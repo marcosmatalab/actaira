@@ -1,0 +1,174 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "actaira"
+version = "2.2.0"
+description = "Local-first AI assurance for model artifacts and agents: static inspection, evidence lifecycle, policy-as-code, agent governance and verifiable attestations. Nothing is ever loaded or executed."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Marcos Mata Garcia" }]
+keywords = [
+  "ml-supply-chain", "pickle", "safetensors", "onnx", "gguf", "sbom", "cyclonedx",
+  "attestation", "ed25519", "ai-security", "ai-governance", "agent-security",
+  "agentic-ai", "ai-assurance", "policy-as-code", "eu-ai-act", "model-security",
+  "software-supply-chain", "llm-security",
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Topic :: Security",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+# One runtime dependency, on purpose. A tool that inspects supply chains
+# should not have a supply chain of its own. Everything else is stdlib.
+dependencies = ["cryptography>=41"]
+
+[project.optional-dependencies]
+# `jsonschema` is a test dependency only: `tests/test_bom.py` validates every
+# emitted ML-BOM against the published CycloneDX 1.6 schema committed under
+# `tests/fixtures/cyclonedx/`. It never enters the runtime dependency set -
+# the tool still installs with `cryptography` alone.
+# Pillow is here and not in `dependencies` on purpose, and the distinction is
+# narrower than it looks: ONE shipped control needs it - ACT-C-15-MARK-ROBUSTNESS,
+# which re-encodes an image to see whether a marking survives - and it reports
+# INCONCLUSIVE naming the missing library rather than failing when it is absent.
+# That is the behaviour a control is supposed to have. What was wrong before
+# (DEF-97) is that four places in the source told the reader Pillow was in the
+# dev extra and it was in no extra at all, so `pip install -e ".[dev]"` left
+# that control permanently inconclusive and 33 tests silently skipped.
+dev = ["pytest>=8", "numpy>=1.26", "ruff>=0.6", "jsonschema>=4.18", "pillow>=10"]
+# `mypy` is its own extra and not part of `dev`, deliberately. `make all` is
+# the gate this release is closed against, and it must not be able to go red
+# because a third-party checker changed what it reports between two versions.
+# `make types` is the ratchet (D-242, scripts/type_check.py): it holds the
+# modules that already pass, and refuses a stale entry on the known-unclean
+# list as loudly as it refuses a new error.
+types = ["mypy>=1.11"]
+# `build` is here for `make package` and, like the two above, not in `dev`: a
+# packaging tool must not be able to break an install of the package.
+package = ["build>=1.2"]
+
+[project.scripts]
+actaira = "actaira.cli:main"
+
+# No `[project.urls]`. This is a local snapshot: there is no homepage, no
+# repository, no issue tracker and no release page, and a metadata field
+# pointing at one would be a claim the package cannot keep - readable by
+# every tool that reads metadata and checkable by none of them. The
+# documentation the block used to point at is in the tree, beside this file.
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+actaira = ["i18n/*.json", "web/static/*", "agents/cassettes/*.json", "schemas/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+src = ["src", "tests", "evals"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "B", "UP", "S"]
+ignore = ["E501", "S101"]
+
+[tool.ruff.lint.per-file-ignores]
+# S301: this project's whole point is handling pickles; the corpus writes them
+# on purpose and never loads one. S108: the "/tmp/..." strings are arguments
+# inside synthetic gadget payloads, not paths this code opens.
+"evals/corpus/build.py" = ["S301", "S108"]
+# S311: the marking corpus is drawn from a seeded PRNG on purpose. The whole
+# argument of the eval is that a reader regenerates the identical corpus, which
+# a cryptographic source would make impossible. Nothing here is a secret.
+"evals/marking/build.py" = ["S311"]
+# S314: tests/test_junit.py parses the XML this repository wrote three lines
+# earlier, to assert on it. Reaching for defusedxml would add a dependency in
+# order to defend the test suite against its own output. S310: the URLs the
+# governance tests open are http://127.0.0.1:<port> addresses of a server the
+# same test process started three lines earlier.
+# S311: `random.Random(seed)` in test_state.py generates the digraphs the
+# cycle walk is differentially tested against. The whole point is that a
+# failing seed reproduces from the command line, which a cryptographic
+# source would make impossible. Nothing there is a secret.
+"tests/*" = ["S301", "S603", "S108", "S314", "S310", "S311"]
+# S105: `PASS = "pass"` is an enum member for a verdict, not a credential.
+# UP042: str+Enum is kept over StrEnum so the module stays readable on 3.11
+# without a version-gated import; the .value semantics are identical.
+"src/actaira/model.py" = ["S105", "UP042"]
+# UP042, same decision one layer up: Role, Coverage and Status are compared
+# with `is` and serialised with `.value`, exactly like the verdicts in
+# model.py, and the two files should not disagree about how an enum is spelt.
+"src/actaira/governance/catalog.py" = ["UP042"]
+# UP042, the same decision three files down. Outcome, Method, Mechanism and
+# MarkingState are compared with `is` and serialised with `.value`, exactly
+# like the verdicts in model.py, and a repository should not spell the same
+# kind of enum two ways depending on which module it landed in.
+"src/actaira/controls/model.py" = ["UP042"]
+"src/actaira/marking.py" = ["UP042"]
+# UP042, the same decision again. `Surface` and `CoverageState` are compared
+# with `is`, serialised with `.value` and read back from JSON by third-party
+# verifiers, exactly like `Verdict`. The coverage matrix is signed into an
+# attestation, so how these enums serialise is part of a public contract, and
+# it should be spelt the way every other enum in this repository is spelt.
+"src/actaira/coverage.py" = ["UP042"]
+"src/actaira/policy/model.py" = ["UP042"]
+# UP042 once more. `Effect` is serialised into the A-BOM with `.value` and
+# read back from it, so its spelling is part of a document contract, and it
+# should look like every other enum in this repository.
+"src/actaira/agentgov/model.py" = ["UP042"]
+# UP042 for the 2.2 enums, on the argument recorded five times above and not
+# worth restating five more: every one of these is compared with `is`,
+# serialised with `.value`, and read back out of a published JSON contract by
+# a third-party verifier, so its spelling is part of that contract and should
+# match the enums this repository already ships. S105 on the vocabulary and
+# the evidence store: `SECRET = "secret"` is a data classification and
+# `REVOKED`/`UNTRUSTED` are lifecycle states, none of them a credential.
+"src/actaira/bundle.py" = ["UP042"]
+"src/actaira/agentgov/vocabulary.py" = ["UP042", "S105"]
+"src/actaira/subject.py" = ["UP042"]
+"src/actaira/state/evidence.py" = ["UP042", "S105"]
+"src/actaira/state/graph.py" = ["UP042"]
+"src/actaira/state/watch.py" = ["UP042"]
+"src/actaira/trustpolicy.py" = ["UP042"]
+"src/actaira/agentgov/paths.py" = ["UP042", "S105"]
+# N818: `Unevaluable` keeps its name, on the same argument `CassetteMiss`
+# keeps its. The rule exists so an unfamiliar exception is recognisable as one
+# at the call site, and this one is: it is raised by the predicates in
+# engine.py, caught by name at exactly one place, and named in the design note
+# that explains why a predicate with no information must not return False.
+# `UnevaluableError` would read as a failure of the engine rather than what it
+# is, a statement about the run.
+"src/actaira/policy/engine.py" = ["N818"]
+# N818: `CassetteMiss` and `MissingCredential` keep their names. The rule
+# exists so an unfamiliar exception is recognisable as one at the call site,
+# and both already are: each is documented in the module, each is caught by
+# name at exactly one place, and `CassetteMiss` in particular is the name the
+# eval harness, the pipeline and the design note all refer to. Renaming an
+# interface to satisfy a suffix convention it does not need is the wrong way
+# round.
+"src/actaira/agents/provider.py" = ["N818"]
+# UP042, the same decision the two files above record: `JudgeVerdict` is
+# compared with `is` and serialised with `.value`, exactly like `Verdict` in
+# model.py and `Outcome` in controls/model.py. Three enums in one codebase
+# should not disagree about how an enum is spelt, and str+Enum keeps the file
+# readable on 3.11 without a version-gated import.
+"src/actaira/agents/judge.py" = ["UP042"]
+# S112: a malformed key in a package keyring must not abort verification. The
+# loop tries the next key and, if none verifies, the caller gets an explicit
+# "signature does not verify" problem rather than a stack trace.
+"src/actaira/attest/verify.py" = ["S112"]
+# S112, same reasoning one layer up: a chain file rendered by the web UI may
+# contain a line that is not JSON, and one bad line must not take the page
+# down. The line is skipped, the entry total still counts it, and the reader
+# sees a row missing rather than a stack trace.
+"src/actaira/web/server.py" = ["S112"]

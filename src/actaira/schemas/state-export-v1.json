@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actaira.dev/schemas/state-export-v1.json",
+  "title": "State export",
+  "description": "The whole local store as one canonical document. Deterministic by construction: every table is ordered by its key and nothing autoincrementing is emitted, so two machines that observed the same things produce the same bytes. That is what makes `watch` testable - the release gate runs it twice over fixtures and compares the exports.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "state-export/v1"
+    },
+    "store_schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "tool_version": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "snapshots": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "receipts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "store_schema_version",
+    "sources",
+    "snapshots",
+    "assets",
+    "edges",
+    "evidence"
+  ],
+  "additionalProperties": true
+}

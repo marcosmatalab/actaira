@@ -1,0 +1,58 @@
+# Actaira as a pre-commit hook, for repositories that carry model artifacts.
+#
+# Both hooks exit non-zero on an artifact that could not be fully read, not
+# only on one that failed, because that is the CLI contract (exit code 3) and
+# because "I could not read this file" is not a reason to let it into a
+# commit. Add `args: [--allow-inconclusive]` if your repository decides
+# otherwise: the decision then lives in your config, visibly, instead of in
+# this file, silently.
+#
+# This file is the *provider* half of a pre-commit integration: it declares
+# what the hooks are, for a config in some other repository to point at. Since
+# this tree is not published anywhere, the form that works today is the local
+# one, against an Actaira already installed in the environment:
+#
+#   repos:
+#     - repo: local
+#       hooks:
+#         - id: actaira
+#           name: actaira (inspect model artifacts)
+#           entry: actaira scan --fail-on high
+#           language: system
+#           types: [file]
+#           files: '(?i)\.(pkl|pt|safetensors|onnx|gguf|npy|h5|joblib)$'
+#
+# If this tree is ever published, the same hooks are reached the usual way,
+# and the pin is the version in `pyproject.toml` - which `make release-check`
+# compares against the line below so the example cannot name a version this
+# tree is not:
+#
+#   repos:
+#     - repo: <wherever this tree is published>
+#       rev: v2.2.0
+#       hooks:
+#         - id: actaira
+
+- id: actaira
+  name: actaira (inspect model artifacts)
+  description: Static inspection of the model artifacts in this commit. Nothing is loaded or executed.
+  entry: actaira scan --fail-on high
+  language: python
+  pass_filenames: true
+  types: [file]
+  files: '(?i)\.(pkl|pickle|pt|pth|bin|ckpt|safetensors|onnx|gguf|ggml|npy|npz|h5|hdf5|keras|joblib|model)$'
+  minimum_pre_commit_version: '2.9.0'
+
+# The hook above sees the files in the commit. This one is triggered by the
+# same files and then scans the whole working tree, which is what catches an
+# artifact that was committed before the hook existed and has never been read
+# by anything since.
+- id: actaira-repo
+  name: actaira (inspect every model artifact in the repository)
+  description: Static inspection of every model artifact in the working tree, triggered when any of them changes.
+  entry: actaira scan --fail-on high .
+  language: python
+  pass_filenames: false
+  types: [file]
+  files: '(?i)\.(pkl|pickle|pt|pth|bin|ckpt|safetensors|onnx|gguf|ggml|npy|npz|h5|hdf5|keras|joblib|model)$'
+  minimum_pre_commit_version: '2.9.0'

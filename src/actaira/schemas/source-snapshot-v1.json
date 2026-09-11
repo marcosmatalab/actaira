@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actaira.dev/schemas/source-snapshot-v1.json",
+  "title": "Source snapshot",
+  "description": "What one source was serving at one moment, written so two of them can be compared byte for byte. The digest covers the content and not `observed_at`, so an unchanged source produces the same digest on every observation - otherwise `watch` would report a change every time it ran. `listing_complete` is the field that keeps a failed listing apart from an empty source: without it, a page that failed to load reads as every artifact having been deleted. Nothing here carries a token, a signed URL or a header, because this is the document an operator commits to a repository.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "source-snapshot/v1"
+    },
+    "source": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "connector": {
+      "type": "string"
+    },
+    "revision": {
+      "type": "string"
+    },
+    "listing_complete": {
+      "type": "boolean"
+    },
+    "incomplete_because": {
+      "type": "string",
+      "description": "Required whenever listing_complete is false. 'Incomplete' with no reason reads as a bug in the tool rather than a fact about the source."
+    },
+    "observed_at": {
+      "type": "string"
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "declared_sha256": {
+            "type": "string",
+            "description": "Published by whoever served the bytes. Never a value this tool computed."
+          },
+          "revision": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "uri",
+          "size_bytes"
+        ]
+      }
+    },
+    "hosts_contacted": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "snapshot_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "source",
+    "connector",
+    "listing_complete",
+    "observed_at",
+    "artifacts",
+    "snapshot_digest"
+  ],
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "listing_complete": {
+            "const": false
+          }
+        },
+        "required": [
+          "listing_complete"
+        ]
+      },
+      "then": {
+        "required": [
+          "incomplete_because"
+        ]
+      }
+    }
+  ]
+}

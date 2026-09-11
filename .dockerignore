@@ -1,0 +1,13 @@
+# An allowlist, not a denylist. The build context is four entries, so anything
+# added to this repository later stays out of the image until somebody says
+# otherwise. The same argument as the scan policy, one layer down.
+*
+
+!pyproject.toml
+!README.md
+!LICENSE
+!src
+
+# Byte-compiled leftovers from a local run are not part of the source.
+src/**/__pycache__
+src/**/*.pyc

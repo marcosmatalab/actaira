@@ -1,0 +1,35 @@
+# What a policy or a receipt is about, when it is not a list of files.
+#
+#   actaira policy check --subjects examples/subjects.yaml \
+#       --policy-file policies/production-model.yaml
+#   actaira graph build --subjects examples/subjects.yaml
+#
+# This document points at subjects; it does not describe them. Everything it
+# names already has a loader, and a manifest that restated what a declaration
+# says would be a second place for the same fact to go stale.
+
+schema_version: subject-manifest/v1
+system: ticket-triage-service
+
+subjects:
+  - kind: agent
+    # The node is `agent:ticket-triage` - the name inside the declaration, not
+    # the name of the file. That is what `SubjectRef.handle` uses, and a
+    # manifest that spelt it differently would put an edge in the graph
+    # pointing at a node nothing else can find.
+    path: agent-ticket-triage.yaml
+    # `uses` is the one relation this document declares itself, and it is
+    # declared rather than inferred: two subjects being in the same manifest
+    # does not make one depend on the other.
+    uses:
+      - source:huggingface://acme/fraud-model
+
+  - kind: source
+    uri: huggingface://acme/fraud-model
+    connector: huggingface
+    revision: 7f91a2c
+
+  - kind: system
+    name: ticket-triage-service
+    uses:
+      - agent:ticket-triage

@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actaira.dev/schemas/attack-paths-v1.json",
+  "title": "Attack paths",
+  "description": "Routes from untrusted input to a consequence, each with the hops that make it and the change that breaks it. `closed_by` lists controls the declaration already carries that close this exact route; `break_path_by` is what to change when it does not; `present_but_ineffective` names controls a reader will expect to have closed it and that do not - separate identities on a route that carries text through one model's context, for instance. Keeping the third apart from the first is the point: a real finding marked resolved by a control that does not apply to it is the most expensive wrong answer this document could give.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "attack-paths/v1"
+    },
+    "agent": {
+      "type": "string"
+    },
+    "contexts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "open_paths": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "cycles": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "unresolved_sub_agents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "paths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "pattern": "^ACT-PATH-[0-9]+$"
+          },
+          "severity": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "info"
+            ]
+          },
+          "entry": {
+            "type": "string"
+          },
+          "sink": {
+            "type": "string"
+          },
+          "carries": {
+            "type": "string"
+          },
+          "broken": {
+            "type": "boolean"
+          },
+          "closed_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "break_path_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "present_but_ineffective": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "note": {
+            "type": "string"
+          },
+          "hops": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "properties": {
+                "node": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "via": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "node",
+                "label",
+                "via"
+              ]
+            }
+          }
+        },
+        "required": [
+          "rule_id",
+          "severity",
+          "entry",
+          "sink",
+          "hops",
+          "broken"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "agent",
+    "paths",
+    "open_paths",
+    "cycles"
+  ],
+  "additionalProperties": true
+}

@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actaira.dev/schemas/policy-v1.json",
+  "title": "Policy",
+  "description": "A named, versioned set of rules with a digest over its canonical JSON. An exception without an owner, a reason and an expiry date is a permanent policy change written where the temporary ones go, and a loader that accepts one is not implementing this schema.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "policy/v1"
+    },
+    "policy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "effect": {
+            "enum": [
+              "deny",
+              "require",
+              "review"
+            ]
+          },
+          "when": {
+            "type": "object",
+            "minProperties": 1
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "effect",
+          "when"
+        ]
+      }
+    },
+    "exceptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rule": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expires": {
+            "type": "string",
+            "format": "date"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "ticket": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "owner",
+          "reason",
+          "expires"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "policy",
+    "version",
+    "rules"
+  ],
+  "additionalProperties": true
+}

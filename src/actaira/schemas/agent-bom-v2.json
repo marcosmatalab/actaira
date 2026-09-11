@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actaira.dev/schemas/agent-bom-v2.json",
+  "title": "Agent bill of materials",
+  "description": "Everything an agent is made of, each component versioned, and - new in v2 - the relations between them. `effects` is the union of what its tools can cause, and it is what the capability rules reason over: a component list without effects cannot express the combinations that are the actual risk. v2 is a major because two fields changed meaning: `sub_agents` holds objects rather than names, so a delegate can be pinned to a digest, and `data_sources[].classification` and `.access` come from a versioned vocabulary rather than being free text. `relations` is what makes a claimed mitigation checkable - 'the secret reader runs under an identity the egress path does not have' is an edge, not a coincidence of two strings.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "agent-bom/v2"
+    },
+    "vocabulary": {
+      "type": "string",
+      "description": "The version of the classification and access vocabulary this document's words come from."
+    },
+    "agent": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "model": {
+      "type": "object"
+    },
+    "prompt": {
+      "type": "object"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "effects": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "enum": [
+                "read",
+                "write",
+                "delete",
+                "network",
+                "exec",
+                "secrets",
+                "send",
+                "pay",
+                "untrusted_input"
+              ]
+            }
+          },
+          "requires_approval": {
+            "type": "boolean"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "identity": {
+            "type": "string",
+            "description": "The name of a declared identity this tool runs as. Resolved against `identities` when the declaration is loaded."
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Declared data sources this tool reads. Resolved against `data_sources`."
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "served_by": {
+            "type": "string",
+            "description": "The MCP server that exposes this tool, when one does."
+          }
+        },
+        "required": [
+          "name",
+          "effects",
+          "requires_approval"
+        ]
+      }
+    },
+    "mcp_servers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "pinned": {
+            "type": "boolean"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string"
+          },
+          "transport": {
+            "type": "string"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "reference",
+          "pinned"
+        ]
+      }
+    },
+    "identities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expires": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    "data_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "classification": {
+            "type": "string",
+            "description": "A word from the vocabulary named in `vocabulary`, or one carrying an explicit `namespace:` prefix."
+          },
+          "access": {
+            "type": "string"
+          },
+          "trusted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "classification",
+          "access",
+          "trusted"
+        ]
+      }
+    },
+    "sub_agents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "pinned": {
+            "type": "boolean"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string"
+          },
+          "declaration": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "pinned"
+        ]
+      }
+    },
+    "relations": {
+      "type": "array",
+      "description": "The declared edges between this agent's parts. `stated_by` keeps a claim its author made apart from anything this tool worked out for itself.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "relation": {
+            "enum": [
+              "runs_as",
+              "reads",
+              "writes",
+              "exposes",
+              "delegates_to",
+              "uses_model"
+            ]
+          },
+          "to": {
+            "type": "string"
+          },
+          "stated_by": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "relation",
+          "to"
+        ]
+      }
+    },
+    "effects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "agent_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "agent",
+    "tools",
+    "mcp_servers",
+    "effects",
+    "relations",
+    "vocabulary"
+  ],
+  "additionalProperties": true
+}

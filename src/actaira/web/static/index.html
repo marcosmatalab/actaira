@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="referrer" content="no-referrer">
+<title>Actaira</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2064%2064%27%20fill%3D%27%252385088F%27%3E%3Cpath%20d%3D%27M59.88%206.57c-0.21%200.6%20-0.09%201.44%20-0.17%202.08c-0.18%201.34%20-0.38%202.69%20-0.73%204c-0.28%201.06%20-0.59%202.12%20-0.96%203.15c-1.87%205.19%20-5.53%2011.08%20-11.43%2012.05c-1.17%200.19%20-2.43%200.23%20-3.61%200.1c-5.05%20-0.55%20-9.04%20-3.79%20-13.53%20-5.83c-4.09%20-1.86%20-8.51%20-3.26%20-13.06%20-3c-1.96%200.11%20-3.88%200.48%20-5.77%201c-2.65%200.74%20-5.32%201.99%20-7.58%203.56c-0.53%200.37%20-1.04%200.73%20-1.55%201.12c-0.06%200.05%20-0.57%200.38%20-0.56%200.43c0.02%200.11%200.64%200.04%200.73%200.04c0.76%20-0.02%201.51%20-0.01%202.27%200.01c1.86%200.03%203.76%200.35%205.55%200.85c5.65%201.58%2011.19%205.76%2012.22%2011.88c0.34%202.04%200.29%204.16%20-0.22%206.17c-1.42%205.66%20-6.39%2010.31%20-11.69%2012.41c-1.93%200.76%20-4%201.17%20-6.06%201.35c-0.75%200.06%20-1.52%200.02%20-2.27%200.02c-0.09%200%20-0.7%20-0.07%20-0.74%200.04c-0.01%200.05%200.29%200.23%200.32%200.26c0.26%200.22%200.54%200.42%200.81%200.62c1.3%200.93%202.72%201.8%204.2%202.41c4.95%202.02%2010.33%203.2%2015.7%202.66c1.19%20-0.12%202.42%20-0.12%203.6%20-0.35c1.2%20-0.25%202.42%20-0.42%203.61%20-0.72c2.44%20-0.59%204.88%20-1.44%207.16%20-2.51c6.03%20-2.81%2011.76%20-6.85%2016.12%20-11.91c2.15%20-2.49%203.94%20-5.14%205.69%20-7.92c1.51%20-2.4%202.7%20-5.09%203.57%20-7.78c0.48%20-1.48%200.97%20-3.01%201.21%20-4.55c0.27%20-1.76%200.45%20-3.47%200.54%20-5.26c0.21%20-4.3%20-0.49%20-8.53%20-1.84%20-12.59c-0.41%20-1.23%20-0.79%20-2.74%20-1.52%20-3.82Z%27%2F%3E%3Ccircle%20cx%3D%2741.89%27%20cy%3D%2710.38%27%20r%3D%2710.39%27%2F%3E%3C%2Fsvg%3E" type="image/svg+xml">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<!-- Icon sprite. Inline SVG is markup, not inline script or style: the strict
+     CSP holds, and the page still ships no external font or icon request. -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <!-- The Actaira mark, not an icon: a filled two-part shape with the brand
+       ramp, so it carries its own fill and stroke rather than inheriting the
+       stroke-and-no-fill the icon class sets. The two stops are driven from
+       styles.css, which is what lets the dark scheme lift the ramp off a
+       near-black ground without shipping a second copy of the artwork. -->
+  <linearGradient id="brand-ramp" gradientUnits="userSpaceOnUse" x1="3.35" y1="60.65" x2="58.64" y2="5.36">
+    <stop id="brand-ramp-a" offset="0"/>
+    <stop id="brand-ramp-b" offset="1"/>
+  </linearGradient>
+  <symbol id="i-mark" viewBox="0 0 64 64">
+    <g fill="url(#brand-ramp)" stroke="none">
+      <path d="M59.88 6.57c-0.21 0.6 -0.09 1.44 -0.17 2.08c-0.18 1.34 -0.38 2.69 -0.73 4c-0.28 1.06 -0.59 2.12 -0.96 3.15c-1.87 5.19 -5.53 11.08 -11.43 12.05c-1.17 0.19 -2.43 0.23 -3.61 0.1c-5.05 -0.55 -9.04 -3.79 -13.53 -5.83c-4.09 -1.86 -8.51 -3.26 -13.06 -3c-1.96 0.11 -3.88 0.48 -5.77 1c-2.65 0.74 -5.32 1.99 -7.58 3.56c-0.53 0.37 -1.04 0.73 -1.55 1.12c-0.06 0.05 -0.57 0.38 -0.56 0.43c0.02 0.11 0.64 0.04 0.73 0.04c0.76 -0.02 1.51 -0.01 2.27 0.01c1.86 0.03 3.76 0.35 5.55 0.85c5.65 1.58 11.19 5.76 12.22 11.88c0.34 2.04 0.29 4.16 -0.22 6.17c-1.42 5.66 -6.39 10.31 -11.69 12.41c-1.93 0.76 -4 1.17 -6.06 1.35c-0.75 0.06 -1.52 0.02 -2.27 0.02c-0.09 0 -0.7 -0.07 -0.74 0.04c-0.01 0.05 0.29 0.23 0.32 0.26c0.26 0.22 0.54 0.42 0.81 0.62c1.3 0.93 2.72 1.8 4.2 2.41c4.95 2.02 10.33 3.2 15.7 2.66c1.19 -0.12 2.42 -0.12 3.6 -0.35c1.2 -0.25 2.42 -0.42 3.61 -0.72c2.44 -0.59 4.88 -1.44 7.16 -2.51c6.03 -2.81 11.76 -6.85 16.12 -11.91c2.15 -2.49 3.94 -5.14 5.69 -7.92c1.51 -2.4 2.7 -5.09 3.57 -7.78c0.48 -1.48 0.97 -3.01 1.21 -4.55c0.27 -1.76 0.45 -3.47 0.54 -5.26c0.21 -4.3 -0.49 -8.53 -1.84 -12.59c-0.41 -1.23 -0.79 -2.74 -1.52 -3.82Z"/>
+      <circle cx="41.89" cy="10.38" r="10.39"/>
+    </g>
+  </symbol>
+  <symbol id="i-inspect" viewBox="0 0 24 24">
+    <circle cx="10.8" cy="10.8" r="6.4"/><path d="m15.6 15.6 4.2 4.2"/><path d="M8.2 10.8h5.2"/>
+  </symbol>
+  <symbol id="i-agent" viewBox="0 0 24 24">
+    <circle cx="12" cy="5.4" r="2.8"/><circle cx="5.6" cy="18" r="2.8"/><circle cx="18.4" cy="18" r="2.8"/>
+    <path d="m10.1 7.7 -2.6 7.6"/><path d="m13.9 7.7 2.6 7.6"/><path d="M8.4 18h7.2"/>
+  </symbol>
+  <symbol id="i-policy" viewBox="0 0 24 24">
+    <path d="M6.4 3.4h8.2l4 4v13.2H6.4Z"/><path d="M14.4 3.4v4.2h4.2"/>
+    <path d="M9.2 12.4h6"/><path d="M9.2 16.2h4"/>
+  </symbol>
+  <symbol id="i-graph" viewBox="0 0 24 24">
+    <circle cx="6" cy="6.6" r="2.6"/><circle cx="18" cy="9.8" r="2.6"/><circle cx="9.4" cy="18.4" r="2.6"/>
+    <path d="m8.5 7.4 6.9 1.8"/><path d="m16.6 12.1 -5.4 4.6"/><path d="M6.4 9.2 8.6 15.9"/>
+  </symbol>
+  <symbol id="i-attest" viewBox="0 0 24 24">
+    <path d="M12 2.8 19.4 6v6.1c0 4.3-3 7.4-7.4 9-4.4-1.6-7.4-4.7-7.4-9V6Z"/><path d="m9 12.1 2.1 2.1 4-4.2"/>
+  </symbol>
+  <symbol id="i-verify" viewBox="0 0 24 24">
+    <circle cx="12" cy="9.4" r="5.6"/><path d="m9.6 9.4 1.8 1.8 3.2-3.4"/><path d="m8.6 14.4-1.4 6 4.8-2.4 4.8 2.4-1.4-6"/>
+  </symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24">
+    <path d="M12 15.6V4.2"/><path d="m8.2 8 3.8-3.8L15.8 8"/><path d="M4.4 14.8v3.4a2 2 0 0 0 2 2h11.2a2 2 0 0 0 2-2v-3.4"/>
+  </symbol>
+  <symbol id="i-pass" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.6"/><path d="m7.9 12.4 2.8 2.8 5.4-5.8"/>
+  </symbol>
+  <symbol id="i-fail" viewBox="0 0 24 24">
+    <path d="M12 3.4 21.4 20H2.6Z"/><path d="M12 9.6v4.3"/><path d="M12 17.1h.01"/>
+  </symbol>
+  <symbol id="i-inconclusive" viewBox="0 0 24 24">
+    <rect x="3.6" y="3.6" width="16.8" height="16.8" rx="2.6"/>
+    <path d="M9.7 9.5a2.4 2.4 0 1 1 2.8 2.7v1.3"/><path d="M12.4 16.6h.01"/>
+  </symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24">
+    <rect x="8.6" y="8.6" width="11" height="11" rx="2"/><path d="M15.4 5.6H6.4a2 2 0 0 0-2 2v9"/>
+  </symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.6 4.4 4.4L19 6.8"/></symbol>
+  <symbol id="i-cross" viewBox="0 0 24 24"><path d="m6.6 6.6 10.8 10.8"/><path d="M17.4 6.6 6.6 17.4"/></symbol>
+  <symbol id="i-theme" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.2"/><path d="M12 3.8a8.2 8.2 0 0 1 0 16.4Z" fill="currentColor" stroke="none"/>
+  </symbol>
+  <symbol id="i-download" viewBox="0 0 24 24">
+    <path d="M12 4.2v11.4"/><path d="m8.2 11.8 3.8 3.8 3.8-3.8"/><path d="M4.4 16.4v1.8a2 2 0 0 0 2 2h11.2a2 2 0 0 0 2-2v-1.8"/>
+  </symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.6"/><path d="M12 7.8v4.6"/><path d="M12 15.9h.01"/>
+  </symbol>
+  <symbol id="i-file" viewBox="0 0 24 24">
+    <path d="M13.6 3.6H7.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h9.2a2 2 0 0 0 2-2V8.6Z"/><path d="M13.4 3.8v4.8h4.9"/>
+  </symbol>
+  <symbol id="i-retry" viewBox="0 0 24 24">
+    <path d="M19.5 12a7.5 7.5 0 1 1-2.4-5.5"/><path d="M19.8 4.4v4.2h-4.2"/>
+  </symbol>
+  <symbol id="i-trace" viewBox="0 0 24 24">
+    <path d="M4.4 6.6h3.2"/><path d="M11 6.6h8.6"/>
+    <path d="M4.4 12h5.4"/><path d="M13.2 12h6.4"/>
+    <path d="M4.4 17.4h3.2"/><path d="M11 17.4h5"/>
+  </symbol>
+  <symbol id="i-chain" viewBox="0 0 24 24">
+    <path d="M9.6 14.4a3.6 3.6 0 0 1 0-5.1l2.1-2.1a3.6 3.6 0 0 1 5.1 5.1l-1 1"/>
+    <path d="M14.4 9.6a3.6 3.6 0 0 1 0 5.1l-2.1 2.1a3.6 3.6 0 0 1-5.1-5.1l1-1"/>
+  </symbol>
+  <symbol id="i-key" viewBox="0 0 24 24">
+    <circle cx="8.2" cy="8.2" r="4"/><path d="m11.2 11.2 8 8"/><path d="m16.4 16.4 2-2"/>
+  </symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.4 2.8 5.2 13.6h5.6l-.8 7.6 8.4-11h-5.6Z"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24">
+    <path d="M9.6 3.4v6L4.8 18a2 2 0 0 0 1.7 3h11a2 2 0 0 0 1.7-3l-4.8-8.6v-6"/>
+    <path d="M8.2 3.4h7.6"/><path d="M7.2 14.4h9.6"/>
+  </symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24">
+    <path d="M2.6 12S6 5.8 12 5.8 21.4 12 21.4 12 18 18.2 12 18.2 2.6 12 2.6 12Z"/>
+    <circle cx="12" cy="12" r="2.9"/>
+  </symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24">
+    <path d="M12 4v16"/><path d="M6.6 20h10.8"/><path d="M4 9h16"/>
+    <path d="M4 9 1.8 14.2h4.4Z"/><path d="M20 9l-2.2 5.2h4.4Z"/>
+  </symbol>
+  <symbol id="i-seal" viewBox="0 0 24 24">
+    <circle cx="12" cy="9.6" r="5.4"/><path d="m9.8 9.6 1.6 1.6 2.9-3.1"/>
+    <path d="M8.8 14.2 7.4 21l4.6-2.2 4.6 2.2-1.4-6.8"/>
+  </symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4.4 12h14.4"/><path d="m13.6 6.8 5.2 5.2-5.2 5.2"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.4"/><path d="M12 7.2V12l3.2 2"/>
+  </symbol>
+  <symbol id="i-docs" viewBox="0 0 24 24">
+    <path d="M14.2 3.4H7.6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h8.8a2 2 0 0 0 2-2V7.8Z"/>
+    <path d="M14 3.6v4.4h4.4"/><path d="M8.8 12.6h6.4"/><path d="M8.8 16.2h4.2"/>
+  </symbol>
+</svg>
+
+<a class="skip-link" href="#main" data-i18n="a11y.skip">Skip to content</a>
+
+<header class="topbar">
+  <div class="shell topbar__row">
+    <div class="brand">
+      <svg class="brand-mark" aria-hidden="true"><use href="#i-mark"></use></svg>
+      <span class="brand__name">actaira</span>
+      <span class="pill pill--quiet" id="version-pill">&#8203;</span>
+    </div>
+
+    <div class="topbar__controls">
+      <div class="segmented" role="group" data-i18n-aria-label="a11y.language_group">
+        <button type="button" class="segmented__btn tip" id="lang-en" data-lang="en" aria-pressed="true" data-i18n-tip="tip.lang.en">EN</button>
+        <button type="button" class="segmented__btn tip" id="lang-es" data-lang="es" aria-pressed="false" data-i18n-tip="tip.lang.es">ES</button>
+      </div>
+      <button type="button" class="iconbtn tip tip--end" id="theme-toggle"
+              data-i18n-aria-label="a11y.theme" data-i18n-tip="a11y.theme">
+        <svg class="icon" aria-hidden="true"><use href="#i-theme"></use></svg>
+        <span class="iconbtn__label" id="theme-label">Auto</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="tabsbar">
+  <div class="shell">
+    <div class="tabs" role="tablist" data-i18n-aria-label="a11y.tabs">
+      <button type="button" class="tab" role="tab" id="tab-inspect" aria-controls="panel-inspect" aria-selected="true" data-tab="inspect">
+        <svg class="icon" aria-hidden="true"><use href="#i-inspect"></use></svg>
+        <span data-i18n="tab.inspect">Inspect</span>
+      </button>
+      <button type="button" class="tab" role="tab" id="tab-agents" aria-controls="panel-agents" aria-selected="false" tabindex="-1" data-tab="agents">
+        <svg class="icon" aria-hidden="true"><use href="#i-agent"></use></svg>
+        <span data-i18n="tab.agents">Agents</span>
+      </button>
+      <button type="button" class="tab" role="tab" id="tab-policy" aria-controls="panel-policy" aria-selected="false" tabindex="-1" data-tab="policy">
+        <svg class="icon" aria-hidden="true"><use href="#i-policy"></use></svg>
+        <span data-i18n="tab.policy">Policy</span>
+      </button>
+      <button type="button" class="tab" role="tab" id="tab-graph" aria-controls="panel-graph" aria-selected="false" tabindex="-1" data-tab="graph">
+        <svg class="icon" aria-hidden="true"><use href="#i-graph"></use></svg>
+        <span data-i18n="tab.graph">Graph</span>
+      </button>
+      <button type="button" class="tab" role="tab" id="tab-attest" aria-controls="panel-attest" aria-selected="false" tabindex="-1" data-tab="attest">
+        <svg class="icon" aria-hidden="true"><use href="#i-attest"></use></svg>
+        <span data-i18n="tab.attest">Attest</span>
+      </button>
+      <button type="button" class="tab" role="tab" id="tab-verify" aria-controls="panel-verify" aria-selected="false" tabindex="-1" data-tab="verify">
+        <svg class="icon" aria-hidden="true"><use href="#i-verify"></use></svg>
+        <span data-i18n="tab.verify">Verify</span>
+      </button>
+      <!-- Fourth section: the EU AI Act mapping. -->
+      <button type="button" class="tab" role="tab" id="tab-govern" aria-controls="panel-govern" aria-selected="false" tabindex="-1" data-tab="govern">
+        <svg class="icon" aria-hidden="true"><use href="#i-scale"></use></svg>
+        <span data-i18n="tab.govern">Governance</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main id="main" class="shell main" tabindex="-1">
+
+  <!-- ── Inspect ─────────────────────────────────────────────────────── -->
+  <section class="panel" id="panel-inspect" role="tabpanel" aria-labelledby="tab-inspect">
+
+    <!-- The ten-second explanation. Removed from the flow the moment there
+         is a real report to read, because then it is in the way. -->
+    <div class="welcome" id="welcome-inspect">
+      <div class="welcome__intro">
+
+        <!-- Purely decorative: a hash-linked tree, drawn once, in the two
+             brand hues. Hidden below 860px, where the text needs the room. -->
+        <svg class="hero-art" viewBox="0 0 330 210" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="hero-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop class="hero-art__a" offset="0" stop-opacity=".85"/>
+              <stop class="hero-art__b" offset="1" stop-opacity=".55"/>
+            </linearGradient>
+            <radialGradient id="hero-glow">
+              <stop class="hero-art__a" offset="0" stop-opacity=".16"/>
+              <stop class="hero-art__a" offset="1" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle class="hero-art__glow" cx="165" cy="70" r="130"/>
+          <path class="hero-art__line" d="M165 42 95 90M165 42l70 48M95 112l-52 52M95 112l30 52M235 112l-30 52M235 112l52 52"/>
+          <path class="hero-art__line" d="M40 190h250" stroke-dasharray="2 6" stroke-opacity=".7"/>
+          <circle class="hero-art__node" cx="165" cy="30" r="12"/>
+          <circle class="hero-art__dot" cx="165" cy="30" r="3.4"/>
+          <circle class="hero-art__node" cx="95" cy="101" r="10"/>
+          <circle class="hero-art__node" cx="235" cy="101" r="10"/>
+          <circle class="hero-art__dot hero-art__dot--2" cx="95" cy="101" r="2.8"/>
+          <circle class="hero-art__dot hero-art__dot--2" cx="235" cy="101" r="2.8"/>
+          <circle class="hero-art__node" cx="40" cy="172" r="8"/>
+          <circle class="hero-art__node" cx="125" cy="172" r="8"/>
+          <circle class="hero-art__node" cx="205" cy="172" r="8"/>
+          <circle class="hero-art__node" cx="290" cy="172" r="8"/>
+        </svg>
+
+        <h1 class="welcome__title" data-i18n="welcome.title"></h1>
+        <p class="welcome__lede" data-i18n="welcome.lede"></p>
+        <ul class="claims">
+          <li class="claim"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span data-i18n="welcome.claim.1"></span></li>
+          <li class="claim"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span data-i18n="welcome.claim.2"></span></li>
+          <li class="claim"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span data-i18n="welcome.claim.3"></span></li>
+        </ul>
+      </div>
+
+      <ol class="steps">
+        <li class="step-card">
+          <span class="step-card__num">01</span>
+          <div class="step-card__main">
+            <h2 class="step-card__title">
+              <svg class="icon step-card__icon" aria-hidden="true"><use href="#i-eye"></use></svg>
+              <span data-i18n="welcome.step1.title"></span>
+            </h2>
+            <p class="step-card__text" data-i18n="welcome.step1.text"></p>
+          </div>
+        </li>
+        <li class="step-card">
+          <span class="step-card__num">02</span>
+          <div class="step-card__main">
+            <h2 class="step-card__title">
+              <svg class="icon step-card__icon" aria-hidden="true"><use href="#i-trace"></use></svg>
+              <span data-i18n="welcome.step2.title"></span>
+            </h2>
+            <p class="step-card__text" data-i18n="welcome.step2.text"></p>
+          </div>
+        </li>
+        <li class="step-card">
+          <span class="step-card__num">03</span>
+          <div class="step-card__main">
+            <h2 class="step-card__title">
+              <svg class="icon step-card__icon" aria-hidden="true"><use href="#i-seal"></use></svg>
+              <span data-i18n="welcome.step3.title"></span>
+            </h2>
+            <p class="step-card__text" data-i18n="welcome.step3.text"></p>
+          </div>
+        </li>
+      </ol>
+
+      <!-- A worked example of step 2, rendered by the same component that
+           renders the real thing, and labelled as an example. -->
+      <figure class="demo" id="demo-trace"></figure>
+    </div>
+
+    <div class="dropzone" id="dz-inspect" data-target="inspect">
+      <svg class="icon dropzone__icon" aria-hidden="true"><use href="#i-upload"></use></svg>
+      <p class="dropzone__title" data-i18n="drop.title">Drop an artifact here</p>
+      <p class="dropzone__hint" data-i18n="drop.hint">or</p>
+      <input type="file" id="file-inspect" class="visually-hidden" tabindex="-1">
+      <button type="button" class="btn btn--primary" data-i18n="drop.choose">Choose a file</button>
+      <p class="dropzone__formats" data-i18n="drop.formats"></p>
+      <p class="dropzone__file" id="chosen-inspect" hidden></p>
+    </div>
+
+    <!-- Sample artifacts, filled in from /api/samples. Hidden when the
+         installation has no corpus on disk. -->
+    <div class="samples" id="samples-inspect" hidden>
+      <div class="samples__head">
+        <svg class="icon" aria-hidden="true"><use href="#i-flask"></use></svg>
+        <span class="samples__label" data-i18n="samples.title"></span>
+        <span class="samples__note" data-i18n="samples.note"></span>
+      </div>
+      <div class="samples__grid" id="samples-grid-inspect"></div>
+    </div>
+
+    <details class="options" id="options-inspect">
+      <summary data-i18n="options.title">Scan options</summary>
+      <div class="options__grid">
+        <p class="field">
+          <label class="field__label" for="policy-inspect" data-i18n="options.policy">Import policy</label>
+          <select class="field__control" id="policy-inspect">
+            <option value="strict" data-i18n="options.policy.strict">strict, allowlist</option>
+            <option value="known-bad" data-i18n="options.policy.known_bad">known-bad, denylist</option>
+          </select>
+          <span class="field__help" data-i18n="options.policy.help"></span>
+        </p>
+        <p class="field">
+          <label class="field__label" for="failon-inspect" data-i18n="options.fail_on">Fail on</label>
+          <select class="field__control" id="failon-inspect">
+            <option value="critical">critical</option>
+            <option value="high" selected>high</option>
+            <option value="medium">medium</option>
+            <option value="low">low</option>
+          </select>
+          <span class="field__help" data-i18n="options.fail_on.help"></span>
+        </p>
+      </div>
+    </details>
+
+    <div class="results" id="out-inspect" aria-live="polite" aria-busy="false"></div>
+  </section>
+
+  <!-- ── Agents ──────────────────────────────────────────────────────────
+       One dropzone, and everything below it drawn by app.js: the capability
+       findings, one SVG per attack route, the A-BOM download and the diff
+       against a second declaration. Same rule as every other panel: nodes are
+       created with createElement and filled with textContent, so nothing a
+       declaration contains can become markup. -->
+  <section class="panel" id="panel-agents" role="tabpanel" aria-labelledby="tab-agents" hidden>
+    <p class="panel__lede" data-i18n="agents.lede"></p>
+
+    <div class="dropzone" id="dz-agents" data-target="agents">
+      <svg class="icon dropzone__icon" aria-hidden="true"><use href="#i-upload"></use></svg>
+      <p class="dropzone__title" data-i18n="agents.drop_title">Drop an agent declaration</p>
+      <p class="dropzone__hint" data-i18n="drop.hint">or</p>
+      <input type="file" id="file-agents" class="visually-hidden" tabindex="-1" accept=".yaml,.yml,.json">
+      <button type="button" class="btn btn--primary" data-i18n="agents.choose">Choose a .yaml</button>
+      <p class="dropzone__formats" data-i18n="agents.hint"></p>
+      <p class="dropzone__file" id="chosen-agents" hidden></p>
+    </div>
+
+    <div class="results" id="out-agents" aria-live="polite" aria-busy="false"></div>
+  </section>
+
+  <!-- ── Policy ──────────────────────────────────────────────────────────
+       The document first, then a decision about one subject under it. Both
+       halves are drawn by app.js: the rules are a list of whatever the
+       document declares, and the proof is one row per rule per subject. -->
+  <section class="panel" id="panel-policy" role="tabpanel" aria-labelledby="tab-policy" hidden>
+    <p class="panel__lede" data-i18n="policy.lede"></p>
+
+    <div class="dropzone" id="dz-policy" data-target="policy">
+      <svg class="icon dropzone__icon" aria-hidden="true"><use href="#i-upload"></use></svg>
+      <p class="dropzone__title" data-i18n="policy.drop_title">Drop a policy document</p>
+      <p class="dropzone__hint" data-i18n="drop.hint">or</p>
+      <input type="file" id="file-policy" class="visually-hidden" tabindex="-1" accept=".yaml,.yml">
+      <button type="button" class="btn btn--primary" data-i18n="policy.choose">Choose a .yaml</button>
+      <p class="dropzone__formats" data-i18n="policy.hint"></p>
+      <p class="dropzone__file" id="chosen-policy" hidden></p>
+    </div>
+
+    <div class="results" id="out-policy" aria-live="polite" aria-busy="false"></div>
+  </section>
+
+  <!-- ── Graph ───────────────────────────────────────────────────────────
+       The workspace, not a file. Built entirely by app.js because everything
+       in it depends on what the store holds, and because every string that
+       reaches it - an asset id, a source URI, the name of whoever stated a
+       relation - is written with textContent. This panel is the one that
+       draws text somebody else put in a database, so the rule that nothing
+       is ever assigned to innerHTML is doing real work here. -->
+  <section class="panel" id="panel-graph" role="tabpanel" aria-labelledby="tab-graph" hidden>
+    <p class="panel__lede" data-i18n="gr.lede"></p>
+    <div class="results" id="out-graph" aria-live="polite" aria-busy="false"></div>
+  </section>
+
+  <!-- ── Attest ──────────────────────────────────────────────────────── -->
+  <section class="panel" id="panel-attest" role="tabpanel" aria-labelledby="tab-attest" hidden>
+    <p class="panel__lede" data-i18n="attest.lede"></p>
+
+    <div class="dropzone" id="dz-attest" data-target="attest">
+      <svg class="icon dropzone__icon" aria-hidden="true"><use href="#i-upload"></use></svg>
+      <p class="dropzone__title" data-i18n="drop.title">Drop an artifact here</p>
+      <p class="dropzone__hint" data-i18n="drop.hint">or</p>
+      <input type="file" id="file-attest" class="visually-hidden" tabindex="-1">
+      <button type="button" class="btn btn--primary" data-i18n="drop.choose">Choose a file</button>
+      <p class="dropzone__formats" data-i18n="attest.hint"></p>
+      <p class="dropzone__file" id="chosen-attest" hidden></p>
+    </div>
+
+    <details class="options" id="options-attest">
+      <summary data-i18n="options.title">Scan options</summary>
+      <div class="options__grid">
+        <p class="field">
+          <label class="field__label" for="policy-attest" data-i18n="options.policy">Import policy</label>
+          <select class="field__control" id="policy-attest">
+            <option value="strict" data-i18n="options.policy.strict">strict, allowlist</option>
+            <option value="known-bad" data-i18n="options.policy.known_bad">known-bad, denylist</option>
+          </select>
+        </p>
+        <p class="field">
+          <label class="field__label" for="failon-attest" data-i18n="options.fail_on">Fail on</label>
+          <select class="field__control" id="failon-attest">
+            <option value="critical">critical</option>
+            <option value="high" selected>high</option>
+            <option value="medium">medium</option>
+            <option value="low">low</option>
+          </select>
+        </p>
+      </div>
+    </details>
+
+    <div class="results" id="out-attest" aria-live="polite" aria-busy="false"></div>
+  </section>
+
+  <!-- ── Verify ──────────────────────────────────────────────────────── -->
+  <section class="panel" id="panel-verify" role="tabpanel" aria-labelledby="tab-verify" hidden>
+    <p class="panel__lede" data-i18n="verify.lede"></p>
+
+    <div class="dropzone" id="dz-verify" data-target="verify">
+      <svg class="icon dropzone__icon" aria-hidden="true"><use href="#i-upload"></use></svg>
+      <p class="dropzone__title" data-i18n="verify.drop_title">Drop an attestation package</p>
+      <p class="dropzone__hint" data-i18n="drop.hint">or</p>
+      <input type="file" id="file-verify" class="visually-hidden" tabindex="-1" accept=".zip,application/zip">
+      <button type="button" class="btn btn--primary" data-i18n="verify.choose">Choose a .zip</button>
+      <p class="dropzone__formats" data-i18n="verify.hint"></p>
+      <p class="dropzone__file" id="chosen-verify" hidden></p>
+    </div>
+
+    <div class="results" id="out-verify" aria-live="polite" aria-busy="false"></div>
+  </section>
+
+  <!-- ── Governance ──────────────────────────────────────────────────────
+       Built by app.js so it follows the language switch like everything
+       else: the notice, the controls, the timeline of application dates
+       with today marked, the dropzone and one card per obligation. Every
+       node is created with createElement and filled with textContent, so
+       the strict CSP holds and no text from a report can become markup. -->
+  <section class="panel" id="panel-govern" role="tabpanel" aria-labelledby="tab-govern" hidden>
+    <div class="gov" id="gov-body"></div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="shell footer__row">
+    <div class="footer__brand">
+      <svg class="brand-mark brand-mark--sm" aria-hidden="true"><use href="#i-mark"></use></svg>
+      <span class="footer__name">actaira</span>
+    </div>
+    <div class="footer__notes">
+      <p class="footer__note" data-i18n="footer.never_executes"></p>
+      <p class="footer__note footer__note--dim" data-i18n="footer.deps"></p>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="/static/app.js" defer></script>
+</body>
+</html>

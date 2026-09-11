@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Build output. `make package` writes here and `make clean` removes it; the
+# root of the tree holds sources and configuration, never a built artifact.
+build/
+dist/
+*.whl
+*.tar.gz
+!tests/fixtures/**/*.tar.gz
+
+# Local environments and editor state.
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Coverage.
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Generated corpora. Every one of these is written from code at build time, so
+# no malware is ever committed here: `evals/corpus/build.py` writes working
+# gadget pickles, and the argument for generating them is in SECURITY.md.
+evals/artifacts/
+evals/_tamper/
+evals/real/
+evals/marking/artifacts/
+evals/marking/_control.png
+models/
+
+# Fuzzing run output. The reduced regression inputs in fuzz/corpus/ ARE tracked.
+fuzz/runs/
+
+# Everything `make eval`, `make benchmark` or a stray run leaves behind.
+*.zip
+!tests/fixtures/*.zip
+# fickling writes its scan output here on every `make benchmark`, appending to
+# whatever was there before. Tracking it meant a benchmark run produced a
+# 300 KB diff of somebody else's tool output on top of the previous run's, and
+# reviewing it told a reader nothing.
+safety_results.json
+
+# `evals/benchmark.json` is deliberately NOT ignored, and neither are
+# `evals/results.json`, `evals/marking/results.json` or
+# `evals/agents/results.json`: docs/FIGURES.md and both READMEs quote figures
+# from them, and an untracked source means the figure is only comparable on a
+# machine with picklescan, modelscan and fickling installed. Regenerate with
+# `make benchmark`; the versions it ran against are recorded inside the file.
+
+# Screenshots. `make screenshots` writes every capture here first; only the six
+# that a README or a doc actually displays are copied into docs/img/, and an
+# image nothing displays is not documentation. See scripts/screenshots.py.
+.screenshots/
+
+# The closing plan this pass was worked from. It is a planning document about
+# the repository, not part of it, and it should not travel inside a source
+# archive of the product. Left on disk deliberately; only kept out of what
+# ships.
+Actaira_2.2.0_Plan_Final_Pulido_Repo_Local.md
+Claude Code — Actaira Graph + Impact.md

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 286" width="1000" height="286" role="img" aria-label="The Actaira assurance loop">
+<title>The Actaira assurance loop</title>
+<text x="500.0" y="34" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="15" fill="#6E7781" font-weight="600" text-anchor="middle">what happens to one source, and what happens next time</text>
+<rect x="0.0" y="62" width="140" height="84" rx="10" fill="none" stroke="#8B5CF6" stroke-opacity="0.55" stroke-width="1.5"/>
+<text x="70.0" y="93" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="15" fill="#8B5CF6" font-weight="600" text-anchor="middle">scan</text>
+<text x="70.0" y="114" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#7D8590" font-weight="400" text-anchor="middle">bytes parsed,</text>
+<text x="70.0" y="130" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#7D8590" font-weight="400" text-anchor="middle">never loaded</text>
+<path d="M146.0 104.0 H164.0 m-6 -5 l6 5 l-6 5" fill="none" stroke="#7D8590" stroke-opacity="0.6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="172.0" y="62" width="140" height="84" rx="10" fill="none" stroke="#8B5CF6" stroke-opacity="0.55" stroke-width="1.5"/>
+<text x="242.0" y="93" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="15" fill="#8B5CF6" font-weight="600" text-anchor="middle">evidence</text>
+<text x="242.0" y="114" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#7D8590" font-weight="400" text-anchor="middle">5 states,</text>
+<text x="242.0" y="130" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#7D8590" font-weight="400" text-anchor="middle">one of them counts</text>
+<path d="M318.0 104.0 H336.0 m-6 -5 l6 5 l-6 5" fill="none" stroke="#7D8590" stroke-opacity="0.6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="344.0" y="62" width="140" height="84" rx="10" fill="none" stroke="#8B5CF6" stroke-opacity="0.55" stroke-width="1.5"/>
+<text x="414.0" y="93" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="15" fill="#8B5CF6" font-weight="600" text-anchor="middle">watch</text>
+<text x="414.0" y="114" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#7D8590" font-weight="400" text-anchor="middle">5 answers,</text>
+<text x="414.0" y="130" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#7D8590" font-weight="400" text-anchor="middle">not one</text>
+<path d="M490.0 104.0 H508.0 m-6 -5 l6 5 l-6 5" fill="none" stroke="#7D8590" stroke-opacity="0.6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="516.0" y="62" width="140" height="84" rx="10" fill="none" stroke="#8B5CF6" stroke-opacity="0.55" stroke-width="1.5"/>
+<text x="586.0" y="93" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="15" fill="#8B5CF6" font-weight="600" text-anchor="middle">graph</text>
+<text x="586.0" y="114" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#7D8590" font-weight="400" text-anchor="middle">declared edges,</text>
+<text x="586.0" y="130" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#7D8590" font-weight="400" text-anchor="middle">exact routes</text>
+<path d="M662.0 104.0 H680.0 m-6 -5 l6 5 l-6 5" fill="none" stroke="#7D8590" stroke-opacity="0.6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="688.0" y="62" width="140" height="84" rx="10" fill="none" stroke="#8B5CF6" stroke-opacity="0.55" stroke-width="1.5"/>
+<text x="758.0" y="93" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="15" fill="#8B5CF6" font-weight="600" text-anchor="middle">policy</text>
+<text x="758.0" y="114" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#7D8590" font-weight="400" text-anchor="middle">15 controls,</text>
+<text x="758.0" y="130" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#7D8590" font-weight="400" text-anchor="middle">ALLOW/DENY/REVIEW</text>
+<path d="M834.0 104.0 H852.0 m-6 -5 l6 5 l-6 5" fill="none" stroke="#7D8590" stroke-opacity="0.6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="860.0" y="62" width="140" height="84" rx="10" fill="none" stroke="#7D8590" stroke-opacity="0.55" stroke-width="1.5"/>
+<text x="930.0" y="93" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="15" fill="#7D8590" font-weight="600" text-anchor="middle">receipt</text>
+<text x="930.0" y="114" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#7D8590" font-weight="400" text-anchor="middle">signed, offline-</text>
+<text x="930.0" y="130" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#7D8590" font-weight="400" text-anchor="middle">verifiable</text>
+<path d="M930.0 152 V184 H70.0 V158 m-5 6 l5 -6 l5 6" fill="none" stroke="#8B5CF6" stroke-opacity="0.5" stroke-width="1.5" stroke-dasharray="5 4" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="500.0" y="202" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8B5CF6" font-weight="400" text-anchor="middle">observe again: what changed, what that invalidated, what it reaches</text>
+<text x="500.0" y="236" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#7D8590" font-weight="400" text-anchor="middle">every stage answers only for what it read, and says so in its own output</text>
+<text x="500.0" y="258" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#8B5CF6" font-weight="400" text-anchor="middle">a 4th answer, INCONCLUSIVE, exists at every stage and is never folded into a pass</text>
+</svg>

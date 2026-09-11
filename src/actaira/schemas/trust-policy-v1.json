@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actaira.dev/schemas/trust-policy-v1.json",
+  "title": "Trust policy",
+  "description": "What this environment accepts, as distinct from what cryptography proved. A keyring says which key signed something; this says whether that signer is one we accept, whether a model from this registry has to be pinned, and whether an MCP server from a given publisher must carry a digest. The absence of this document means UNKNOWN and never UNTRUSTED: an environment that has not written its rules down has not refused anything.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "trust-policy/v1"
+    },
+    "trusted_signers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fingerprint": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "fingerprint"
+        ]
+      }
+    },
+    "trusted_tsa_roots": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "connector": {
+            "type": "string"
+          },
+          "require_revision_pin": {
+            "type": "boolean"
+          },
+          "require_declared_digest": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "connector"
+        ]
+      }
+    },
+    "mcp_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "publisher": {
+            "type": "string"
+          },
+          "require_digest": {
+            "type": "boolean"
+          },
+          "require_publisher": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "schema_version"
+  ],
+  "additionalProperties": true
+}

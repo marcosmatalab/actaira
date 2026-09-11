@@ -1,0 +1,1194 @@
+{
+  "ablations": [
+    {
+      "base_pair_id": "AIA-4/ai-literacy-positive-1",
+      "control_id": "ai-literacy-positive-1--ablated",
+      "document": "ai-literacy-positive-1--ablated",
+      "obligation_id": "AIA-4",
+      "removed": "The measures taken to support AI literacy are set out below for each role, and attendance records for the training made available to staff are kept in the learning management system.",
+      "sha256": "9feb93f2aec55db6d4765e27316ca565bd4b28d9316a9643ff6528abcf5c582d"
+    },
+    {
+      "base_pair_id": "AIA-53-1c/copyright-policy-positive-1",
+      "control_id": "copyright-policy-positive-1--ablated",
+      "document": "copyright-policy-positive-1--ablated",
+      "obligation_id": "AIA-53-1c",
+      "removed": "This written copyright policy requires the crawler to read robots.txt and the TDM reservation signals on every domain, and the records of how each reservation of rights was identified and honoured are kept in the crawl ledger.",
+      "sha256": "4ab785de7f100b308cbbed1901a8c73794fc4e6fff9ed03c01ff5ad83987015c"
+    },
+    {
+      "base_pair_id": "AIA-55/systemic-risk-positive-1",
+      "control_id": "systemic-risk-positive-1--ablated",
+      "document": "systemic-risk-positive-1--ablated",
+      "obligation_id": "AIA-55",
+      "removed": "Model evaluation including documented adversarial testing was carried out against the published protocol in May, the systemic risk assessment and the mitigation measures taken are recorded in section 3, and serious incidents are reported to the AI Office through the process in section 5.",
+      "sha256": "2b90c40c1e3b2985e1babcafe9e4ee2704535af75ac167c11f9c2e535c635283"
+    },
+    {
+      "base_pair_id": "AIA-50-3/emotion-recognition-notice-positive-1",
+      "control_id": "emotion-recognition-notice-positive-1--ablated",
+      "document": "emotion-recognition-notice-positive-1--ablated",
+      "obligation_id": "AIA-50-3",
+      "removed": "The notice given to affected persons is read out at the start of every call and is reproduced in appendix A, and the lawful basis together with the record of processing is held by the data protection officer.",
+      "sha256": "ba1b59b1d49888f40164f0f8419d5314ca05bca235754bccc66c99f0cad3a44d"
+    },
+    {
+      "base_pair_id": "AIA-26/deployer-oversight-positive-1",
+      "control_id": "deployer-oversight-positive-1--ablated",
+      "document": "deployer-oversight-positive-1--ablated",
+      "obligation_id": "AIA-26",
+      "removed": "Human oversight is assigned to two named reviewers whose competence, training and authority to override an output are recorded in appendix A, and the automatically generated logs are kept for eighteen months.",
+      "sha256": "d997887f8a3144b60819057532579f4a231c7d11a152d4efb7c79b6116d3d1da"
+    }
+  ],
+  "generated_by": "evals/agents/build.py",
+  "misfiled_controls": [
+    {
+      "control_id": "ai-literacy-control-misfiled",
+      "obligation_id": "AIA-4",
+      "sha256": "e3259929553c34b8b14c54dd4a087d6a1c3e211e5ffeb034197970aee43cb141",
+      "source_document": "copyright-policy-positive-1"
+    },
+    {
+      "control_id": "copyright-policy-control-misfiled",
+      "obligation_id": "AIA-53-1c",
+      "sha256": "bd858894005cd55a6b3d01cd8c14d606650a8798fd71bfb15b896403f9d5c103",
+      "source_document": "systemic-risk-positive-1"
+    },
+    {
+      "control_id": "systemic-risk-control-misfiled",
+      "obligation_id": "AIA-55",
+      "sha256": "ec25d3c34a5def212f6cb26d80e9e4423648ec9860829f94ca80d86e28832732",
+      "source_document": "emotion-recognition-notice-positive-1"
+    },
+    {
+      "control_id": "emotion-recognition-notice-control-misfiled",
+      "obligation_id": "AIA-50-3",
+      "sha256": "92ef335cbfbf36ecf3c71a9f7159fe99bcc18fc53c69e89d1432f9712c13dd91",
+      "source_document": "deployer-oversight-positive-1"
+    },
+    {
+      "control_id": "deployer-oversight-control-misfiled",
+      "obligation_id": "AIA-26",
+      "sha256": "59ae85faca32ff38e80fa61c03a4393253c3e58dccc3c075d6552c5a4db948f2",
+      "source_document": "ai-literacy-positive-1"
+    }
+  ],
+  "obligations": [
+    "AIA-4",
+    "AIA-53-1c",
+    "AIA-55",
+    "AIA-50-3",
+    "AIA-26"
+  ],
+  "pairs": [
+    {
+      "document": "ai-literacy-positive-1",
+      "key_sentence": "The measures taken to support AI literacy are set out below for each role, and attendance records for the training made available to staff are kept in the learning management system.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-positive-1",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "59ae85faca32ff38e80fa61c03a4393253c3e58dccc3c075d6552c5a4db948f2"
+    },
+    {
+      "document": "ai-literacy-positive-2",
+      "key_sentence": "Every member of staff who operates an AI system completed a two-hour induction in March, and the guidance made available to them is archived together with a record of who received it.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-positive-2",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "4fcd07f51eb641abc620c32745665a2e6b2316550f840d5423a3f3d8abfc21f0"
+    },
+    {
+      "document": "ai-literacy-positive-3",
+      "key_sentence": "AI literacy measures proportionate to each role were rolled out across the three teams that use the system, and the training records for the staff concerned are retained for five years.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-positive-3",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "e7f13f02d1626ff2268d2177f6a5e8908018f5929fd422a1c1443e375243b622"
+    },
+    {
+      "document": "ai-literacy-positive-4",
+      "key_sentence": "A written description of the AI literacy measures taken sits in section 4 of the staff handbook, and records of the guidance actually made available to staff are held by the people team.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-positive-4",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "13a1227c7ba9b7da647d522c613d63455f68dde71d07440c32bb4736732f5715"
+    },
+    {
+      "document": "ai-literacy-positive-5",
+      "key_sentence": "Support for AI literacy is delivered through role-specific briefings that have run twice so far this year, with a record of the training kept for each member of staff who attended.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-positive-5",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "8c9c682f715f1612f60775e8162880536e6f81e15a1ca28fabc28c06a9b6d734"
+    },
+    {
+      "document": "ai-literacy-hard-intent",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "intent",
+      "note": "describes a future intention rather than a measure taken",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-hard-intent",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "7d0ce4aeebcaf3e7ac2d9e0021d205a87ea2230743d0650d47af1414b12aa06b"
+    },
+    {
+      "document": "ai-literacy-hard-adjacent",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "adjacent",
+      "note": "on the obligation's topic but answering a different limb of it",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-hard-adjacent",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "1bb0acc1cf032692c2ec1c566f604fc747a931513fe11c8d70481749517c96a9"
+    },
+    {
+      "document": "ai-literacy-hard-wrong_actor",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "wrong_actor",
+      "note": "somebody else's measures, quoted by the party who owes their own",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-hard-wrong_actor",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "bbb7fe634e8d26f16f8a7bae0fce1af43b5a1fc469d534f89a00fc66b5713ce9"
+    },
+    {
+      "document": "ai-literacy-hard-filler",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "filler",
+      "note": "governance boilerplate under the obligation's own heading",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-hard-filler",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "af3a65684d77d39709d1c9b8a7e32e9fda0d79f167e3f0b7e6ba618949e81dc7"
+    },
+    {
+      "document": "ai-literacy-hard-crossref",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "crossref",
+      "note": "points at a document that was not supplied",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-hard-crossref",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "e79b529cf4ef22e636fe2e7b2a799cc807ee1ae4cfba63e10128dd64f4fc74db"
+    },
+    {
+      "document": "ai-literacy-easy-blank",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "blank",
+      "note": "no content at all; the pipeline must answer, not abstain",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-easy-blank",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "adb0b0b591f7f3c806148a1a9913e07ff0772cc96901c202a9acaa22e698d6ae"
+    },
+    {
+      "document": "ai-literacy-easy-crossfiled",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "crossfiled",
+      "note": "a document that addresses a different obligation, filed against this one",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-easy-crossfiled",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "e3259929553c34b8b14c54dd4a087d6a1c3e211e5ffeb034197970aee43cb141"
+    },
+    {
+      "document": "ai-literacy-easy-unrelated",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "unrelated",
+      "note": "about nothing in the catalogue",
+      "obligation_id": "AIA-4",
+      "pair_id": "AIA-4/ai-literacy-easy-unrelated",
+      "relevant_spans": [
+        "AIA-4#s1",
+        "AIA-4#s2",
+        "AIA-4#e1",
+        "AIA-4#e2"
+      ],
+      "sha256": "0941d7f4def48caa7641060b208541aa9718973cc9a9eda9e559b834336e637a"
+    },
+    {
+      "document": "copyright-policy-positive-1",
+      "key_sentence": "This written copyright policy requires the crawler to read robots.txt and the TDM reservation signals on every domain, and the records of how each reservation of rights was identified and honoured are kept in the crawl ledger.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-positive-1",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "e3259929553c34b8b14c54dd4a087d6a1c3e211e5ffeb034197970aee43cb141"
+    },
+    {
+      "document": "copyright-policy-positive-2",
+      "key_sentence": "We identify reservations of rights expressed under Article 4(3) of Directive (EU) 2019/790 using the tdm-reservation header and the ai.txt convention, and the records of which domains were excluded on that basis are retained per crawl.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-positive-2",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "6e0484d6f6f6a6563f6c341fc03d5b1f9164e4501ee5dea8ece6dc0b523d1dca"
+    },
+    {
+      "document": "copyright-policy-positive-3",
+      "key_sentence": "The policy set out here obliges us to honour every machine-readable reservation of rights, and the record of identified reservations, with the date each was honoured, is held with the dataset card.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-positive-3",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "dd4ff642cfeec90da0e9b4e0ac6de7f67fe7c452cbc290d5fa7c26fb6771d124"
+    },
+    {
+      "document": "copyright-policy-positive-4",
+      "key_sentence": "A written copyright policy is in force across all training runs, and the exclusion list it produces, together with the record of how each reservation of rights was identified, is versioned in the data repository.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-positive-4",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "f8343bc0219ac7b0d13c1899a91bd455483bfe29e467d19751d23c9e990f4c65"
+    },
+    {
+      "document": "copyright-policy-positive-5",
+      "key_sentence": "Reservations of rights are identified through state-of-the-art detection of the TDM opt-out signals, they are honoured before the crawl begins, and the records of both steps are kept for each corpus.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-positive-5",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "f5c0c39d2920865c54688a958f825a0edf07b5621dec068967687256d0a8d5f8"
+    },
+    {
+      "document": "copyright-policy-hard-intent",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "intent",
+      "note": "describes a future intention rather than a measure taken",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-hard-intent",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "016faad271949e4f09b50b23a15ea5fc632ba066d1696ef156aa878fad8eae0a"
+    },
+    {
+      "document": "copyright-policy-hard-adjacent",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "adjacent",
+      "note": "on the obligation's topic but answering a different limb of it",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-hard-adjacent",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "ae06e5ed239e85d3f218a3318619aec33ad72ebb2074400b040ec2dd67e75aea"
+    },
+    {
+      "document": "copyright-policy-hard-wrong_actor",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "wrong_actor",
+      "note": "somebody else's measures, quoted by the party who owes their own",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-hard-wrong_actor",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "ca534e7bd18103c2fdbb93e39eac637ed80a8d67427be147a1e7b4216e8f3b1c"
+    },
+    {
+      "document": "copyright-policy-hard-filler",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "filler",
+      "note": "governance boilerplate under the obligation's own heading",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-hard-filler",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "43b4717f6e5a3063b446fa18137c9d112854f9af5537c3c52d73200d3e019373"
+    },
+    {
+      "document": "copyright-policy-hard-crossref",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "crossref",
+      "note": "points at a document that was not supplied",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-hard-crossref",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "ef285f913db33f493a3b245e1e1a020340197d831bafdc931645187a5e4c2500"
+    },
+    {
+      "document": "copyright-policy-easy-blank",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "blank",
+      "note": "no content at all; the pipeline must answer, not abstain",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-easy-blank",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "adb0b0b591f7f3c806148a1a9913e07ff0772cc96901c202a9acaa22e698d6ae"
+    },
+    {
+      "document": "copyright-policy-easy-crossfiled",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "crossfiled",
+      "note": "a document that addresses a different obligation, filed against this one",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-easy-crossfiled",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "bd858894005cd55a6b3d01cd8c14d606650a8798fd71bfb15b896403f9d5c103"
+    },
+    {
+      "document": "copyright-policy-easy-unrelated",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "unrelated",
+      "note": "about nothing in the catalogue",
+      "obligation_id": "AIA-53-1c",
+      "pair_id": "AIA-53-1c/copyright-policy-easy-unrelated",
+      "relevant_spans": [
+        "AIA-53-1c#s1",
+        "AIA-53-1c#e1",
+        "AIA-53-1c#e2"
+      ],
+      "sha256": "0941d7f4def48caa7641060b208541aa9718973cc9a9eda9e559b834336e637a"
+    },
+    {
+      "document": "systemic-risk-positive-1",
+      "key_sentence": "Model evaluation including documented adversarial testing was carried out against the published protocol in May, the systemic risk assessment and the mitigation measures taken are recorded in section 3, and serious incidents are reported to the AI Office through the process in section 5.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-positive-1",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "bd858894005cd55a6b3d01cd8c14d606650a8798fd71bfb15b896403f9d5c103"
+    },
+    {
+      "document": "systemic-risk-positive-2",
+      "key_sentence": "We completed adversarial testing with an external red team, documented the systemic risk assessment, applied the mitigation measures listed, and hold cybersecurity measures for the model weights and for the physical infrastructure they sit on.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-positive-2",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "6cdcb2b2e483823407ff7eea433feee511ee0153914467d5997b3b46e3fa08af"
+    },
+    {
+      "document": "systemic-risk-positive-3",
+      "key_sentence": "The model evaluation records and the adversarial testing report are attached, the risks assessed at Union level are listed with the mitigation applied to each, and the incident reporting process to the AI Office was exercised in a drill in April.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-positive-3",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "72ee219159c2379aeda7bad5f4242f839557919792ca45d762c718be2eb81b17"
+    },
+    {
+      "document": "systemic-risk-positive-4",
+      "key_sentence": "Adversarial testing against standardised protocols was documented in March, the systemic risk assessment was updated at the same time, and cybersecurity measures for the model and its physical infrastructure are audited each quarter.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-positive-4",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "0cc1228e9eaa85717da6fe7b13c682ae553f982edfe91690eae632c83baf75c9"
+    },
+    {
+      "document": "systemic-risk-positive-5",
+      "key_sentence": "Serious incident tracking runs to the AI Office under the process described here, model evaluation and adversarial testing records are retained, and the mitigation measures taken after the last assessment are itemised in appendix D.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-positive-5",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "12d16b52007b10264e898db90af0524e466309b87f5a0dfebafbde39aa38f9c6"
+    },
+    {
+      "document": "systemic-risk-hard-intent",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "intent",
+      "note": "describes a future intention rather than a measure taken",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-hard-intent",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "89b56c08ff413487029bf868ac49b80111a3556dab66f70c01903493c1328a26"
+    },
+    {
+      "document": "systemic-risk-hard-adjacent",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "adjacent",
+      "note": "on the obligation's topic but answering a different limb of it",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-hard-adjacent",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "d0ae3463a51270ced59124bb21dee5d1f22c5e7c88a9de2df60e319991f9170a"
+    },
+    {
+      "document": "systemic-risk-hard-wrong_actor",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "wrong_actor",
+      "note": "somebody else's measures, quoted by the party who owes their own",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-hard-wrong_actor",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "79ba6694e18f14c92aecd5f0d9fbabd25c15e6fa63be120eb50ddde38ce5cf0b"
+    },
+    {
+      "document": "systemic-risk-hard-filler",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "filler",
+      "note": "governance boilerplate under the obligation's own heading",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-hard-filler",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "5b65438e245812908f01fdc721a14c5beaccf740025c723970c198d881dc5504"
+    },
+    {
+      "document": "systemic-risk-hard-crossref",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "crossref",
+      "note": "points at a document that was not supplied",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-hard-crossref",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "765d751f09a02d11b408ae9119048f6c96c15c82b114bf8badc35e5742d3c140"
+    },
+    {
+      "document": "systemic-risk-easy-blank",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "blank",
+      "note": "no content at all; the pipeline must answer, not abstain",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-easy-blank",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "adb0b0b591f7f3c806148a1a9913e07ff0772cc96901c202a9acaa22e698d6ae"
+    },
+    {
+      "document": "systemic-risk-easy-crossfiled",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "crossfiled",
+      "note": "a document that addresses a different obligation, filed against this one",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-easy-crossfiled",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "ec25d3c34a5def212f6cb26d80e9e4423648ec9860829f94ca80d86e28832732"
+    },
+    {
+      "document": "systemic-risk-easy-unrelated",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "unrelated",
+      "note": "about nothing in the catalogue",
+      "obligation_id": "AIA-55",
+      "pair_id": "AIA-55/systemic-risk-easy-unrelated",
+      "relevant_spans": [
+        "AIA-55#s1",
+        "AIA-55#e1",
+        "AIA-55#e2",
+        "AIA-55#e3",
+        "AIA-55#e4"
+      ],
+      "sha256": "0941d7f4def48caa7641060b208541aa9718973cc9a9eda9e559b834336e637a"
+    },
+    {
+      "document": "emotion-recognition-notice-positive-1",
+      "key_sentence": "The notice given to affected persons is read out at the start of every call and is reproduced in appendix A, and the lawful basis together with the record of processing is held by the data protection officer.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-positive-1",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "ec25d3c34a5def212f6cb26d80e9e4423648ec9860829f94ca80d86e28832732"
+    },
+    {
+      "document": "emotion-recognition-notice-positive-2",
+      "key_sentence": "Every person exposed to the system is informed of its operation before it runs, through the on-screen notice reproduced below, and the record of processing activities entry for this pilot was updated in February.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-positive-2",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "fa71568d56f9d4158d6dfab6208cd4ad2939a6012fb6ce579fcfac074b703dd5"
+    },
+    {
+      "document": "emotion-recognition-notice-positive-3",
+      "key_sentence": "Affected persons are informed of the operation of the emotion recognition system by the written notice at the entrance and by the spoken notice on each call, and the lawful basis relied on is legitimate interests as recorded in the register.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-positive-3",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "1aef50b2e45f5b82f5acd4db7cd12e42c106efe19b7044398e4297a53f37389c"
+    },
+    {
+      "document": "emotion-recognition-notice-positive-4",
+      "key_sentence": "The notice given to affected persons is displayed at every workstation covered by the pilot, and the records of processing name the controller, the purpose and the retention period.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-positive-4",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "93c4fb149398561f8290769c72dd6c801d2ce2db93ac241f2b00c14128572f25"
+    },
+    {
+      "document": "emotion-recognition-notice-positive-5",
+      "key_sentence": "Persons exposed to the biometric categorisation feature are informed at the point of exposure, and the GDPR lawful basis together with the record of processing is maintained by the data protection officer.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-positive-5",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "c71d2e93575162fa554e011f389dc8160a360036d93932ad76afbbc182272725"
+    },
+    {
+      "document": "emotion-recognition-notice-hard-intent",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "intent",
+      "note": "describes a future intention rather than a measure taken",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-hard-intent",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "400e0ca0f6ebd663310ae45ae5dd78056545987130bf2769b9bfc0252bc42f1f"
+    },
+    {
+      "document": "emotion-recognition-notice-hard-adjacent",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "adjacent",
+      "note": "on the obligation's topic but answering a different limb of it",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-hard-adjacent",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "6355eb3c96b3749fa47a339bb99221e51fee6ac447b9e917d07bf0cf91de1c82"
+    },
+    {
+      "document": "emotion-recognition-notice-hard-wrong_actor",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "wrong_actor",
+      "note": "somebody else's measures, quoted by the party who owes their own",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-hard-wrong_actor",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "501bb42906040ed68905a1adf4bdb395435dc4bb49a1083b40d0112b86091dee"
+    },
+    {
+      "document": "emotion-recognition-notice-hard-filler",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "filler",
+      "note": "governance boilerplate under the obligation's own heading",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-hard-filler",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "c287db7ab84d69962283051f63986857e974d01fd312274cea74b93a547ab9bb"
+    },
+    {
+      "document": "emotion-recognition-notice-hard-crossref",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "crossref",
+      "note": "points at a document that was not supplied",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-hard-crossref",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "3a97ca37f99fb904e7dea10d7cad2e33da02d993a8c152b158cededed31386fe"
+    },
+    {
+      "document": "emotion-recognition-notice-easy-blank",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "blank",
+      "note": "no content at all; the pipeline must answer, not abstain",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-easy-blank",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "adb0b0b591f7f3c806148a1a9913e07ff0772cc96901c202a9acaa22e698d6ae"
+    },
+    {
+      "document": "emotion-recognition-notice-easy-crossfiled",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "crossfiled",
+      "note": "a document that addresses a different obligation, filed against this one",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-easy-crossfiled",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "92ef335cbfbf36ecf3c71a9f7159fe99bcc18fc53c69e89d1432f9712c13dd91"
+    },
+    {
+      "document": "emotion-recognition-notice-easy-unrelated",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "unrelated",
+      "note": "about nothing in the catalogue",
+      "obligation_id": "AIA-50-3",
+      "pair_id": "AIA-50-3/emotion-recognition-notice-easy-unrelated",
+      "relevant_spans": [
+        "AIA-50-3#s1",
+        "AIA-50-3#e1",
+        "AIA-50-3#e2"
+      ],
+      "sha256": "0941d7f4def48caa7641060b208541aa9718973cc9a9eda9e559b834336e637a"
+    },
+    {
+      "document": "deployer-oversight-positive-1",
+      "key_sentence": "Human oversight is assigned to two named reviewers whose competence, training and authority to override an output are recorded in appendix A, and the automatically generated logs are kept for eighteen months.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-positive-1",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "92ef335cbfbf36ecf3c71a9f7159fe99bcc18fc53c69e89d1432f9712c13dd91"
+    },
+    {
+      "document": "deployer-oversight-positive-2",
+      "key_sentence": "The assignment of human oversight is documented for each shift, monitoring records under Article 26(5) are produced weekly, and the notifications sent to the provider in April and in June are filed with them.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-positive-2",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "fb1a674078358a4c068c1459fcd1f620b3d6b27afe14839b80d9903a55cd514c"
+    },
+    {
+      "document": "deployer-oversight-positive-3",
+      "key_sentence": "We keep the automatically generated logs for twelve months, above the six-month minimum, and the information given to workers before deployment is reproduced in appendix B.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-positive-3",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "f095d447545678fa4ccd6ffd7eaf14c39d4303c4289e2ff3702dbff3a030c745"
+    },
+    {
+      "document": "deployer-oversight-positive-4",
+      "key_sentence": "Monitoring records are reviewed each month by the named reviewer, who holds the authority to suspend use, and the notification sent to the provider when an anomaly appeared is attached.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-positive-4",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "3688c969f0e192d9f9573d583269a528fff6ff53e5eb59229165db837cca34ac"
+    },
+    {
+      "document": "deployer-oversight-positive-5",
+      "key_sentence": "Oversight is assigned to a person with the necessary competence and authority, their training is recorded, the logs are retained, and affected persons are informed at the point the system is used on them.",
+      "kind": "positive",
+      "label": "addressed",
+      "negative_kind": "",
+      "note": "states a measure taken, in the vocabulary the obligation asks for",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-positive-5",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "6aa5a8fd5041f36a371e196d8c2014121d00350a36fb904ddf57fe04c085b484"
+    },
+    {
+      "document": "deployer-oversight-hard-intent",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "intent",
+      "note": "describes a future intention rather than a measure taken",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-hard-intent",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "603d5b3ba8f5fff38d049218a905f3e2dbeea46bfc8e284edd11e3b6f06ed5e1"
+    },
+    {
+      "document": "deployer-oversight-hard-adjacent",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "adjacent",
+      "note": "on the obligation's topic but answering a different limb of it",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-hard-adjacent",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "9e74054e9adf5fe7f0f2fc4468cf2c5280678f2f43c555caf937ae8a63ba9cfa"
+    },
+    {
+      "document": "deployer-oversight-hard-wrong_actor",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "wrong_actor",
+      "note": "somebody else's measures, quoted by the party who owes their own",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-hard-wrong_actor",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "ae8116b576a60c3e050d98a1bd620a46d5958f0649159f291ea7d37a997d200c"
+    },
+    {
+      "document": "deployer-oversight-hard-filler",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "filler",
+      "note": "governance boilerplate under the obligation's own heading",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-hard-filler",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "e5a8aba44227381c1f37d83f1ed3633c402ff4d27c061633d4b357bba5dd61d7"
+    },
+    {
+      "document": "deployer-oversight-hard-crossref",
+      "key_sentence": "",
+      "kind": "hard_negative",
+      "label": "not_addressed",
+      "negative_kind": "crossref",
+      "note": "points at a document that was not supplied",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-hard-crossref",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "fea5f2f25acb085938f98c8c997283a64d6e239875366e96d03db7f1f973f2b3"
+    },
+    {
+      "document": "deployer-oversight-easy-blank",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "blank",
+      "note": "no content at all; the pipeline must answer, not abstain",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-easy-blank",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "adb0b0b591f7f3c806148a1a9913e07ff0772cc96901c202a9acaa22e698d6ae"
+    },
+    {
+      "document": "deployer-oversight-easy-crossfiled",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "crossfiled",
+      "note": "a document that addresses a different obligation, filed against this one",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-easy-crossfiled",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "59ae85faca32ff38e80fa61c03a4393253c3e58dccc3c075d6552c5a4db948f2"
+    },
+    {
+      "document": "deployer-oversight-easy-unrelated",
+      "key_sentence": "",
+      "kind": "easy_negative",
+      "label": "not_addressed",
+      "negative_kind": "unrelated",
+      "note": "about nothing in the catalogue",
+      "obligation_id": "AIA-26",
+      "pair_id": "AIA-26/deployer-oversight-easy-unrelated",
+      "relevant_spans": [
+        "AIA-26#s1",
+        "AIA-26#e1",
+        "AIA-26#e2",
+        "AIA-26#e3",
+        "AIA-26#e4"
+      ],
+      "sha256": "0941d7f4def48caa7641060b208541aa9718973cc9a9eda9e559b834336e637a"
+    }
+  ],
+  "recorded_with": "StubJudgeProvider (see the module docstring: this is not a language model)",
+  "retriever_k": 5,
+  "schema": "actaira-judged-gold/1"
+}

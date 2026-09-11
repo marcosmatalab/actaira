@@ -1,0 +1,1395 @@
+{
+  "schema": "actaira.defects/1",
+  "about": "Every defect found in this repository from inside it, with the mechanism that found it and the test that keeps it found. This file is data: scripts/figures.py counts it and checks that every test named here is one pytest actually collects, so the number in the README cannot drift from the repository the way a typed figure does. Two entries are not defects in the shipped tool and say so: one was the eval measuring the cost of a policy, one was a defect in the measuring apparatus. They are here because they were found the same way everything else was.",
+  "found_by_meanings": {
+    "test suite": "a test that was written for something else failed",
+    "adversarial engineering review": "the code read as an attacker would read it, looking for the call that never happens",
+    "adversarial legal review": "the governance catalogue read against the Official Journal",
+    "fuzzing": "coverage-guided mutation over every parser, deterministic seeds",
+    "benign corpus": "the half of the eval corpus that must not fail",
+    "real-serialiser corpus": "artifacts written by torch, safetensors, onnx and h5py rather than crafted",
+    "benchmark self-tests": "the tests that check the comparison is fair to the other tools",
+    "exhaustive sweep": "every input in a bounded space, not a sample",
+    "reading the tool's own output": "running it on a real artifact and looking at what came back",
+    "running the harness": "a figure the harness printed that could not be true",
+    "external adversarial audit": "the repository read by someone outside it, looking for the claim the code does not check",
+    "running the gate": "`make lint`, `make test` or `make fuzz` refused the working tree",
+    "product review against a roadmap": "the repository read against a written plan for what it should become, looking for the place the plan's first requirement was already violated",
+    "writing a test for an adjacent feature": "a test written for something new asserted, for the first time, on a value the old code had always produced incorrectly",
+    "adversarial review of new code": "the modules written for this release read back as an attacker would read them, before the release, looking for the path the tests were written around",
+    "using the tool as a person would": "the commands run end to end against a workspace written the way somebody would write it, rather than the way the fixtures do"
+  },
+  "defects": [
+    {
+      "id": "DEF-01",
+      "title": "The zip branch never cleared fully_read",
+      "effect": "An archive over the member budget, or one that would not open, reached PASS with the unscanned members never looked at.",
+      "found_by": "test suite",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_a_zip_that_was_not_fully_read_must_not_come_back_as_pass"
+      ]
+    },
+    {
+      "id": "DEF-02",
+      "title": "verify_package returned ok=True against non-matching anchors",
+      "effect": "A green result printed next to the words \"this key is not one of yours\".",
+      "found_by": "test suite",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_package_verify.py::test_someone_elses_fingerprint_leaves_it_untrusted",
+        "tests/test_package_verify.py::test_require_trust_without_anchors_fails"
+      ]
+    },
+    {
+      "id": "DEF-03",
+      "title": "The harness tamper check passed vacuously on 8 of 50",
+      "effect": "The tampered package was byte-identical to the original whenever the recorded verdict already equalled the constant the mutation wrote.",
+      "found_by": "running the harness",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
+      "pinned_by": [
+        "tests/test_eval_harness.py::test_the_tamper_mutation_moves_the_verdict_off_whatever_it_was"
+      ],
+      "pinned_note": "the mutation is a named function now, `harness.tampered_entry`, so the property that made this defect possible - that it must never rewrite an entry to itself - is asserted directly instead of living in a comment beside one line"
+    },
+    {
+      "id": "DEF-04",
+      "title": "Five false positives on the benign corpus",
+      "effect": "_codecs.encode and numpy._core.numeric._frombuffer failed five real state_dicts under the strict allowlist.",
+      "found_by": "benign corpus",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "the eval measuring the cost of a policy, resolved as two documented risk acceptances",
+      "pinned_by": [
+        "tests/test_policy.py::test_allowlist_admits_the_callables_a_state_dict_actually_imports"
+      ]
+    },
+    {
+      "id": "DEF-05",
+      "title": "ACT-GGF-004 could never fire",
+      "effect": "A rule with catalogue entries in two languages, unreachable by construction: the tensor loop guaranteed the counts it compared.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_gguf_that_declares_more_tensors_than_it_carries_is_caught"
+      ]
+    },
+    {
+      "id": "DEF-06",
+      "title": "A seven-byte pickle gate let a protocol 0 gadget through",
+      "effect": "posix.system inside a checkpoint reached PASS with exit 0 under both policies. The analyser was fine; it was never called.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_protocol_zero_gadget_inside_a_checkpoint_is_caught",
+        "tests/test_formats.py::test_protocol_zero_gadget_loose_on_disk_is_recognised_as_a_pickle"
+      ]
+    },
+    {
+      "id": "DEF-07",
+      "title": "The torch. prefix allowed its own executable siblings",
+      "effect": "cpp_extension.load_inline, torch._C, torch.multiprocessing.spawn and torch.hub were allowed by prefix, with six hand-written exceptions that did not cover them.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_policy.py::test_no_module_prefix_is_allowed_wholesale",
+        "tests/test_formats.py::test_the_torch_prefix_no_longer_allows_its_own_executable_siblings"
+      ]
+    },
+    {
+      "id": "DEF-08",
+      "title": "Fourteen parser bugs, including 73 seconds and 8.1 million objects from 24 bytes",
+      "effect": "Exponential recursion, unbounded allocation, uncaught exceptions, reports that could not be serialised, and five separate paths to PASS on an artifact that was never read.",
+      "found_by": "fuzzing",
+      "counts_as": 14,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_fuzz_regressions.py::test_every_saved_fuzz_input_satisfies_the_property",
+        "tests/test_fuzz_regressions.py::test_concatenated_empty_pickles_do_not_blow_up_exponentially",
+        "tests/test_fuzz_regressions.py::test_an_artifact_that_reported_itself_unread_cannot_reach_pass"
+      ]
+    },
+    {
+      "id": "DEF-09",
+      "title": "The legacy torch container failed as a false positive",
+      "effect": "Every checkpoint written before torch 1.6 reached FAIL on ACT-PKL-010: the format is four concatenated pickles by design.",
+      "found_by": "real-serialiser corpus",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_real_artifacts.py::test_the_real_legacy_checkpoint_passes_as_a_recognised_container",
+        "tests/test_real_artifacts.py::test_the_legacy_exemption_does_not_hide_a_gadget"
+      ]
+    },
+    {
+      "id": "DEF-10",
+      "title": "The benchmark counted declines in the detection denominator",
+      "effect": "Every rival's score was understated, and the error direction favoured Actaira every time, which is why it survived a reading.",
+      "found_by": "benchmark self-tests",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
+      "pinned_by": [
+        "tests/test_benchmark.py::test_a_declined_artifact_is_not_in_the_detection_denominator"
+      ]
+    },
+    {
+      "id": "DEF-11",
+      "title": "The consistency proof failed for every power-of-two old_size",
+      "effect": "Prover and verifier were written from the same misunderstanding, agreed with each other, and disagreed with RFC 6962.",
+      "found_by": "exhaustive sweep",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_consistency.py::test_a_power_of_two_old_size_leaves_the_old_root_out_of_the_proof",
+        "tests/test_consistency.py::test_putting_the_old_root_back_into_the_proof_breaks_every_power_of_two_case"
+      ]
+    },
+    {
+      "id": "DEF-12",
+      "title": "Every attestation restarted the chain from genesis",
+      "effect": "--extends could never succeed, because the ledger it was meant to extend was rebuilt from nothing on each run. A log you restart is not a log.",
+      "found_by": "reading the tool's own output",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_consistency.py::test_a_continued_package_is_an_append_only_extension_of_the_one_it_resumed",
+        "tests/test_consistency.py::test_a_chain_restarted_from_genesis_does_not_extend_the_earlier_package"
+      ]
+    },
+    {
+      "id": "DEF-13",
+      "title": "An archive member was decompressed without a size limit",
+      "effect": "A 400 KiB archive holding a 400 MiB member made the inspector allocate 400 MiB: a denial of service against the machine doing the auditing.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_an_oversized_member_is_not_decompressed_into_memory"
+      ]
+    },
+    {
+      "id": "DEF-14",
+      "title": "Two package members under one name defeated the manifest",
+      "effect": "A zip may carry the same name twice and read returns the last one, so an unsigned member could hide behind a name the manifest covered: every hash matched and nothing showed as undeclared.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_package_verify.py::test_two_members_under_one_name_are_refused"
+      ]
+    },
+    {
+      "id": "DEF-15",
+      "title": "A decompression bomb was rated MEDIUM and reached PASS",
+      "effect": "An artifact that expands without bound is a denial of service against whoever loads it, and at the default threshold a MEDIUM does not fail an artifact.",
+      "found_by": "running the harness",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_a_member_that_expands_without_bound_is_flagged",
+        "tests/test_formats.py::test_a_compressible_but_ordinary_member_is_not_a_bomb"
+      ]
+    },
+    {
+      "id": "DEF-16",
+      "title": "A pickle concatenated after the first STOP was never analysed",
+      "effect": "genops stops at the first STOP, so a benign pickle with a gadget appended produced zero findings.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_a_gadget_concatenated_after_the_first_stop_is_reported"
+      ]
+    },
+    {
+      "id": "DEF-17",
+      "title": "STACK_GLOBAL went unresolved without a model of the memo",
+      "effect": "From protocol 4 the pickler memoises the module string and re-pushes it with BINGET, so a scanner without a memo loses the operands of every repeated import and reports them as undecidable.",
+      "found_by": "test suite",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_pickle_scan.py::test_memoised_module_string_resolves_both_of_its_reuses",
+        "tests/test_pickle_scan.py::test_every_import_in_a_numpy_state_dict_resolves"
+      ]
+    },
+    {
+      "id": "DEF-18",
+      "title": "Tensor storages were reported one finding each",
+      "effect": "A real state_dict uses BINPERSID once per storage, so a fifty-tensor model produced fifty identical lines and whatever else the scan found was below them.",
+      "found_by": "reading the tool's own output",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_real_artifacts.py::test_a_real_checkpoint_reports_its_storages_once_not_once_each"
+      ]
+    },
+    {
+      "id": "DEF-19",
+      "title": "Storages inside a legacy container were rated MEDIUM",
+      "effect": "A nested stream cannot see the container it is in, so every pre-1.6 checkpoint carried a yellow line for using the mechanism its own format documents.",
+      "found_by": "reading the tool's own output",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_real_artifacts.py::test_the_legacy_container_rates_its_storages_the_same_way"
+      ]
+    },
+    {
+      "id": "DEF-20",
+      "title": "The catalogue described the Digital Omnibus as unpublished",
+      "effect": "Regulation (EU) 2026/1744 had been in the Official Journal for six weeks, and the tool printed advice to keep preparing for the deadline it had moved.",
+      "found_by": "adversarial legal review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_governance.py::test_the_high_risk_deferral_is_published_law_and_nothing_is_provisional"
+      ]
+    },
+    {
+      "id": "DEF-21",
+      "title": "Article 4 was taught in its repealed wording",
+      "effect": "The catalogue asked for evidence of a level of AI literacy attained, which the amended article expressly does not require.",
+      "found_by": "adversarial legal review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_governance.py::test_article_4_carries_the_wording_it_has_had_since_july_2026"
+      ]
+    },
+    {
+      "id": "DEF-22",
+      "title": "Annex IV was cited at the wrong point",
+      "effect": "Point 5 is the risk management system; the catalogue cited it as validation and testing, which is point 2(g), and disclaimed the content of point 5 two lines later.",
+      "found_by": "adversarial legal review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_governance.py::test_annex_iv_point_5_is_the_risk_management_system"
+      ]
+    },
+    {
+      "id": "DEF-23",
+      "title": "The new Article 5 prohibitions were missing",
+      "effect": "Points (ba) and (bb), inserted by Regulation (EU) 2026/1744 and applying from 2 December 2026, were the only duty in the catalogue with a date between then and the end of the year, and it was not there.",
+      "found_by": "adversarial legal review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_governance.py::test_the_new_article_5_prohibitions_are_the_next_thing_to_fall_due"
+      ]
+    },
+    {
+      "id": "DEF-24",
+      "title": "The Article 111(3) transitional was missing",
+      "effect": "GPAI models placed on the market before 2 August 2025 have until 2 August 2027, and the catalogue applied the earlier date to all of them.",
+      "found_by": "adversarial legal review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_governance.py::test_the_chapter_v_rows_carry_the_article_111_3_transitional"
+      ]
+    },
+    {
+      "id": "DEF-25",
+      "title": "Article 53(1)(b) was rated as fully supported",
+      "effect": "A signed BOM of artifacts is not the documentation a downstream provider needs, and rating it SUPPORTS was the tool claiming one obligation it does not carry.",
+      "found_by": "adversarial legal review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_governance.py::test_the_catalogue_stays_mostly_honest_about_what_it_cannot_do"
+      ]
+    },
+    {
+      "id": "DEF-26",
+      "title": "Article 12 was claimed by a ledger of artifact inspections",
+      "effect": "Article 12 asks the high-risk system to record its own events. A record of this tool's inspections is not that, and the evidence map pointed three kinds of evidence at it.",
+      "found_by": "adversarial legal review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_governance.py::test_article_12_is_not_claimed_by_a_ledger_of_artifact_inspections"
+      ]
+    },
+    {
+      "id": "DEF-27",
+      "title": "The web panel kept a PROVISIONAL notice after nothing was provisional",
+      "effect": "The banner was emitted unconditionally, so the panel warned about a status no row carried any more.",
+      "found_by": "adversarial legal review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_governance.py::test_the_provisional_marker_still_fires_on_a_row_that_is_provisional"
+      ]
+    },
+    {
+      "id": "DEF-28",
+      "title": "torch.storage._load_from_bytes was on the allowlist",
+      "effect": "Its body is torch.load(BytesIO(b), weights_only=False), a full unpickler with the safe mode off. A gadget in the byte operand reached PASS with exit 0 under both policies, and a test asserted the entry was correct.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_a_nested_loader_payload_is_disassembled_not_trusted",
+        "tests/test_policy.py::test_load_from_bytes_is_not_a_reconstruction_entry_point"
+      ]
+    },
+    {
+      "id": "DEF-29",
+      "title": "A protocol 2 payload handed to a nested loader could not be followed",
+      "effect": "Protocol 2 has no byte-string opcode, so the pickler writes bytes as _codecs.encode(text, latin1) and the payload arrived as the result of a call. A known gadget was downgraded to an unknown one for the price of passing protocol=2.",
+      "found_by": "test suite",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_a_protocol_two_nested_payload_is_still_followed"
+      ]
+    },
+    {
+      "id": "DEF-30",
+      "title": "One byte after STOP removed an archive member from the analysis",
+      "effect": "An ambiguously named member was kept only when its bytes looked like a pickle at both ends, so appending a byte made it fail the tail check and be dropped with no rule at all, leaving fully_read True and the verdict PASS.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_an_ambiguous_member_with_a_trailing_byte_is_not_dropped",
+        "tests/test_formats.py::test_a_raw_blob_under_an_ambiguous_name_stays_quiet"
+      ]
+    },
+    {
+      "id": "DEF-31",
+      "title": "Trailing zero padding was passed over in silence",
+      "effect": "Padding after the final STOP never reaches the unpickler, so failing on it would be noise, but saying nothing made the report read as though the whole file had been analysed.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_trailing_zero_padding_is_stated_rather_than_ignored"
+      ]
+    },
+    {
+      "id": "DEF-32",
+      "title": "The assessment printed a capability as though it were evidence",
+      "effect": "The catalogue's \"what Actaira provides\" lines were printed under the word provides for every applicable obligation, evidence or none, so a run that established nothing read like a run that had.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_cli.py::test_an_obligation_with_no_evidence_does_not_read_as_provided",
+        "tests/test_cli.py::test_evidence_lines_name_the_artifact_they_came_from"
+      ]
+    },
+    {
+      "id": "DEF-33",
+      "title": "The concatenated-stream budget failed open",
+      "effect": "The walker stops after eight trailing streams and simply left the loop: no finding, `truncated` never set, `fully_read` still True. A legacy magic number to suppress the concatenation finding, eight one-byte fillers to exhaust the budget and a gadget as stream nine gave a 115-byte file an empty findings list, max_severity None, PASS and exit 0 under both policies, while any consumer that loads more than one object from the stream runs os.system.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_a_stream_past_the_concatenation_budget_cannot_reach_pass",
+        "tests/test_fuzz_regressions.py::test_concatenated_empty_pickles_do_not_blow_up_exponentially"
+      ]
+    },
+    {
+      "id": "DEF-34",
+      "title": "A MARK-built tuple kept only its last element",
+      "effect": "`stack_before` is listed bottom to top, and the walk read every entry as if it sat above the mark: it popped one slice item as a fixed operand, never popped the container below the mark, and discarded the rest of the slice. TUPLE, which is what a pickler emits for more than three arguments, produced a one-element tuple holding the last argument, so a payload handed to a nested loader in any position but the last was invisible to the nested-loader check.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_a_nested_loader_called_with_a_mark_tuple_is_still_followed"
+      ]
+    },
+    {
+      "id": "DEF-35",
+      "title": "GLOBAL's module and name were split from the left",
+      "effect": "`pickletools` renders GLOBAL's two newline-terminated fields joined by a space, so a module name containing a space had its first token read as the module and everything after it as the callable. Not exploitable, because such a module cannot be imported, and fixed because a scanner that reports a callable the file does not name is wrong in the direction that matters least until the day it is not.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_pickle_scan.py::test_a_module_name_containing_a_space_keeps_its_callable"
+      ]
+    },
+    {
+      "id": "DEF-36",
+      "title": "INST imported a callable and was never judged",
+      "effect": "INST carries module and name inline exactly as GLOBAL does and reaches find_class at load time exactly as GLOBAL does, but it lived only in EXECUTION_OPCODES, where it was counted and never passed to the policy. Twenty-seven bytes of protocol 0, (S'echo PWNED'\\nios\\nsystem\\n., ran a denylisted callable and passed under both policies with one INFO line. The design note at the top of the module enumerates the import primitives and forgot this one.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_inst_imports_are_judged_like_any_other_import",
+        "tests/test_formats.py::test_inst_inside_a_checkpoint_is_caught_too"
+      ]
+    },
+    {
+      "id": "DEF-37",
+      "title": "A tail the walker could not measure was dropped in silence",
+      "effect": "Real pickle reads I\\\\x00\\\\n. as the integer 0 followed by STOP where pickletools raises on it, so the trailing-stream walker could not compute the stream's length and returned, while the parse error that would have shown it was suppressed by the torch legacy exemption. A 48-byte file with an os.system gadget behind that divergence reached PASS with exit 0, and a repeated-load consumer ran it. The exemption is now bounded to the storage region, whose position is measured from a checkpoint torch wrote.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_a_tail_the_walker_could_not_measure_is_reported"
+      ]
+    },
+    {
+      "id": "DEF-38",
+      "title": "An RFC 3161 token whose signature was never checked read as a verified one",
+      "effect": "`signature_state: not_verified` - no certificate in the token, an algorithm this verifier does not implement, or anything the two broad `except` clauses in `_check_signature` swallowed - was accepted by `ok` exactly as `embedded_cert_only` was. The one field a caller looks at could not tell a checked token from an unchecked one, in a module whose docstring ends \"Never say verified about something that was not\".",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_attest_anchor.py::test_a_token_whose_signature_was_never_checked_is_not_a_verified_token"
+      ]
+    },
+    {
+      "id": "DEF-39",
+      "title": "manifest.tsr was covered by no signature at all",
+      "effect": "The token cannot appear in `files` - it is issued over the manifest's pending form - and that was read as \"cannot be covered\", so it sat outside the file list and outside the Ed25519 signature. The only cross-checks were the genTime and the serial the manifest advertises, both of which a second token minted with the same values satisfies, and Actaira verifies no TSA chain. Swapping the token needed no key and left every check green.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_attest_anchor.py::test_the_token_file_cannot_be_swapped_for_another_token_over_the_same_manifest",
+        "tests/test_attest_anchor.py::test_the_swap_is_caught_by_the_digest_and_not_by_the_signature",
+        "tests/test_attest_anchor.py::test_the_declared_token_digest_is_the_digest_of_the_token_that_was_written"
+      ]
+    },
+    {
+      "id": "DEF-40",
+      "title": "--extends returned before verification, so every trust flag was ignored in silence",
+      "effect": "`actaira verify NEW --extends OLD` ran the consistency proof and returned, never reaching `verify_package`. `--require-trust` and `--trusted-keyring` were parsed, accepted and discarded: a package signed by a key the caller had explicitly said they did not accept exited 0.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_cli.py::test_extends_still_enforces_require_trust",
+        "tests/test_cli.py::test_extends_still_enforces_a_trusted_keyring",
+        "tests/test_cli.py::test_extends_reports_both_results_in_json"
+      ]
+    },
+    {
+      "id": "DEF-41",
+      "title": "A trust anchor that would not load was indistinguishable from no anchor",
+      "effect": "A keyring with `key` for `keys`, a `keys` that was a string, an empty `keys`, or `--pubkey \"\"` all produced an empty anchor set, which fell through to the `embedded_key_only` branch: OK, exit 0, and the caller's assertion about whose signatures they accept dropped without a word - along with every revocation that keyring carried. An unparseable `--pubkey` propagated a ValueError out of the verifier instead.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_package_verify.py::test_a_keyring_that_yields_no_anchors_fails_and_says_why",
+        "tests/test_package_verify.py::test_a_pubkey_that_is_not_a_key_fails_instead_of_raising",
+        "tests/test_package_verify.py::test_one_unusable_row_does_not_discard_the_rest_of_the_keyring",
+        "tests/test_package_verify.py::test_a_well_formed_keyring_is_unaffected"
+      ]
+    },
+    {
+      "id": "DEF-42",
+      "title": "A manifest claiming rfc3161 with no timestamp block compared every field with itself",
+      "effect": "`declared.get(\"gen_time\") not in (None, actual)` and `str(declared.get(\"serial_number\", actual)) != str(actual)` both pass when the block is absent, and `timestamp_subject` strips the block so removing it does not change what the TSA signed. A token issued in 1999 over the right digest verified and was reported as third-party time evidence.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_attest_anchor.py::test_an_rfc3161_manifest_with_no_timestamp_block_is_refused",
+        "tests/test_attest_anchor.py::test_every_field_the_timestamp_block_advertises_is_required"
+      ]
+    },
+    {
+      "id": "DEF-43",
+      "title": "The no-score guard read keys and never values",
+      "effect": "The guard on the governance layer's thesis walked dictionary keys only, and only through dicts and lists. \"Actaira rates this obligation 87% compliant (grade B, overall score 4.2/5)\" in `governance.AIA-4.summary` left all 172 governance tests green while every rendering printed a grade. It also missed an integer under a neutral key (`readiness_index: 87`), stepped over tuples, and was applied to the assessment dictionary alone - not to `governance clock --json`, the text renders, the dossier, the catalogues or the web routes.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_governance.py::test_the_guard_catches_a_grade_planted_in_the_prose",
+        "tests/test_governance.py::test_the_guard_catches_a_grade_the_score_words_do_not_name",
+        "tests/test_governance.py::test_no_output_surface_carries_anything_that_reads_as_a_grade",
+        "tests/test_governance.py::test_the_cli_text_render_of_the_clock_carries_no_grade",
+        "tests/test_governance.py::test_the_clock_route_serves_nothing_that_reads_as_a_grade"
+      ]
+    },
+    {
+      "id": "DEF-44",
+      "title": "The dossier's subject digest was written and never read",
+      "effect": "`governance/pack.py` files the dossier under the digest of the artifact set it covers and repeats that set as `subjects`; nothing in `attest/` read either. The naive forgery breaks `prev_hash` and was caught, but re-linking - appending the stolen dossier through `chain.append` onto another package's inspections - recomputes every link, the Merkle root, the head and the signature, and verified clean with the assessment now sitting at the end of a chain it was never computed from.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_governance.py::test_a_relinked_dossier_is_caught_even_when_every_hash_recomputes",
+        "tests/test_governance.py::test_editing_the_subjects_list_to_match_breaks_the_digest_it_is_filed_under",
+        "tests/test_governance.py::test_a_package_with_no_dossier_is_not_asked_about_one"
+      ]
+    },
+    {
+      "id": "DEF-45",
+      "title": "The fuzzer published its argument as a measurement",
+      "effect": "`\"iters\": config.iters` is the number on the command line. The worker had always written the real count to `state/worker.json` and nobody read it, and `except Exception: break` on a worker that died without leaving state finished the run silently - so a run that executed twelve cases published the full figure, zero findings and exit 0, and `scripts/figures.py` summed those figures into the README.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
+      "pinned_by": [
+        "tests/test_fuzz_regressions.py::test_a_run_publishes_the_cases_it_executed",
+        "tests/test_fuzz_regressions.py::test_a_worker_that_dies_without_leaving_state_is_a_hard_failure"
+      ]
+    },
+    {
+      "id": "DEF-46",
+      "title": "The fuzzer's soundness oracle was circular, and its rule list had drifted",
+      "effect": "Property (d), \"never PASS over something it did not read whole\", re-derived PASS from `fully_read` - the same boolean `decide_verdict` produced PASS from, three lines earlier in the same function. And `fuzz.UNREAD_RULE_IDS` was a copy of `inspect.UNREAD_RULE_IDS` missing ACT-PKL-013, so the fuzzer could not have seen a PASS beside the rule DEF-33 was fixed to emit.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
+      "pinned_by": [
+        "tests/test_fuzz_regressions.py::test_the_fuzzer_uses_the_products_unread_rule_list_and_not_a_copy",
+        "tests/test_fuzz_regressions.py::test_the_coverage_oracle_catches_a_claim_the_report_does_not_admit_to",
+        "tests/test_fuzz_regressions.py::test_the_coverage_oracle_catches_a_report_that_describes_the_wrong_file"
+      ]
+    },
+    {
+      "id": "DEF-47",
+      "title": "Archive members the name gate rejected were never mentioned",
+      "effect": "The gate decides which members are opened, and everything it rejected - storage blobs, the version marker, anything a repackager had renamed - was absent from the report entirely: no rule, no metadata, and `fully_read: true` beside a PASS. This is the other half of DEF-01: the budget and the unreadable member were fixed, the members nobody tried to read were not.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_members_left_undecompressed_are_named_and_say_what_they_limit",
+        "tests/test_formats.py::test_an_archive_whose_every_member_was_opened_says_nothing",
+        "tests/test_formats.py::test_the_skipped_member_note_never_fails_an_artifact_on_its_own",
+        "tests/test_formats.py::test_the_rule_limits_raw_tensor_content_and_nothing_else"
+      ]
+    },
+    {
+      "id": "DEF-48",
+      "title": "The benchmark read picklescan's error flag before its detections",
+      "effect": "`scan_err` was tested first, so a run that both found a gadget and hit a member it could not open was recorded as \"declined\" - which drops the artifact out of the detection denominator. Every one of those moved the comparison in this project's favour, which is the single direction a benchmark written by the vendor must never be wrong in.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "a defect in the benchmark that compares the tool, not in the tool",
+      "pinned_by": [
+        "tests/test_benchmark.py::test_a_real_detection_counts_even_when_the_scan_also_reported_an_error",
+        "tests/test_benchmark.py::test_a_declined_picklescan_result_still_leaves_the_artifact_out_of_the_denominator"
+      ]
+    },
+    {
+      "id": "DEF-49",
+      "title": "The harness printed its positive control and never asserted it",
+      "effect": "The tamper gate asked only that no tampered package be accepted, which is trivially true when no package is accepted either. A signing layer that rejected everything, untouched packages included, exited 0 with `0/50 packages verified before tampering` printed one line above.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
+      "pinned_by": [
+        "tests/test_eval_harness.py::test_a_signing_layer_that_verifies_nothing_at_all_fails_the_gate",
+        "tests/test_eval_harness.py::test_a_tamper_check_over_nothing_fails_the_gate",
+        "tests/test_eval_harness.py::test_a_run_in_which_everything_worked_exits_zero"
+      ]
+    },
+    {
+      "id": "DEF-50",
+      "title": "A control character in a member name destroyed the whole JUnit report",
+      "effect": "XML 1.0 cannot represent a C0 control, escaped or otherwise. `ElementTree` wrote the byte out and every parser then rejected the document, so one member called `weights\\u0001.bin` inside one artifact cost the entire report rather than one line of it - and a runner shows a report it cannot parse as no tests at all, which is the silent pass the three-verdict mapping exists to prevent.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_junit.py::test_a_control_character_in_a_member_name_does_not_destroy_the_report",
+        "tests/test_junit.py::test_a_lone_surrogate_from_an_undecodable_path_does_not_destroy_the_report",
+        "tests/test_junit.py::test_the_three_whitespace_controls_xml_does_allow_are_left_alone"
+      ]
+    },
+    {
+      "id": "DEF-51",
+      "title": "Every ML-BOM was invalid against the CycloneDX version it declared",
+      "effect": "`modelCard.modelParameters` is declared with `additionalProperties: false` and a closed field list, and this emitted a `properties` array inside it. Tools that do not validate accepted the document, which is why it shipped; tools that do rejected all of it. Separately, `bom-ref` was derived from the digest alone, so one document covering the same bytes twice - a file and a copy of it in one directory - carried two components under one reference.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_bom.py::test_a_bom_over_the_whole_corpus_validates_against_the_1_6_schema",
+        "tests/test_bom.py::test_the_schema_check_can_fail",
+        "tests/test_bom.py::test_the_same_bytes_twice_in_one_document_keep_two_refs"
+      ]
+    },
+    {
+      "id": "DEF-52",
+      "title": "Four limits the local server did not have, and one set on the wrong object",
+      "effect": "`verify_package` read every package member with `ZipFile.read`, which decompresses without limit, so a 1.4 MiB package posted to `/api/verify` allocated gigabytes. A multipart part could carry unbounded headers and a request unbounded parts and field names, each capped individually and never counted. And `_Server.timeout` was read by `handle_request()`, which `serve_forever()` never calls, so the slowloris bound it was written for did not exist. Neither `Origin` nor `Host` was checked, leaving CSRF through the operator's browser and DNS rebinding open.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_web_limits.py::test_a_package_member_that_decompresses_past_the_cap_is_refused_not_read",
+        "tests/test_web_limits.py::test_a_part_with_more_headers_than_any_client_sends_is_refused",
+        "tests/test_web_limits.py::test_a_request_with_more_distinct_field_names_than_the_dictionary_holds_is_refused",
+        "tests/test_web_limits.py::test_the_socket_timeout_is_set_on_the_handler_and_not_on_the_server",
+        "tests/test_web_limits.py::test_a_cross_origin_post_is_refused",
+        "tests/test_web_limits.py::test_a_host_header_that_is_a_name_this_server_does_not_know_is_refused"
+      ]
+    },
+    {
+      "id": "DEF-53",
+      "title": "safety_results.json was tracked and rewritten by every benchmark run",
+      "effect": "fickling appends its scan output to it on each `make benchmark`, so a benchmark run produced a 300 KB diff of another tool's output on top of the previous run's. Reviewing it told a reader nothing, and it was the only run artifact in the repository that was not ignored.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "repository hygiene, not a fault in the tool",
+      "pinned_by": [
+        "tests/test_release_check.py::test_a_dropped_ignore_rule_for_another_tool_s_run_log_fails"
+      ],
+      "pinned_note": "the release gate asserts both halves, the ignore rule and the index, and the test breaks the ignore rule in a copy of the tree to prove the gate can fail on it"
+    },
+    {
+      "id": "DEF-54",
+      "title": "`discover` printed the hosts of the listing, not the hosts of the run",
+      "effect": "The one command in this tool that touches the network prints what it contacted, and the line was filled from `Discovery.hosts_contacted`, a snapshot taken before any artifact was fetched. A `--fetch` over a manifest of URLs therefore downloaded from those hosts and then printed \"none; nothing was contacted\", because the manifest itself is a local file and the listing had reached nobody. The same line was wrong in the milder direction for every remote source: it named the API host and never the CDN the bytes actually came from. `stage()` already returns the client's cumulative host list, so the fix was to print that when there was a fetch.",
+      "found_by": "test suite",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_connectors.py::test_a_fetch_whose_digests_all_match_exits_zero"
+      ]
+    },
+    {
+      "id": "DEF-55",
+      "title": "The one HTTP client followed a redirect from https to http, and did not record where it went",
+      "effect": "`Http` documents two properties: HTTPS only, and a record of every host contacted. `urlopen` broke both through its default redirect handler. A source answering with a 302 to an `http://` URL had its artifact fetched in plaintext by a client whose docstring says it refuses to do that, and the host that actually served the bytes never entered `hosts_contacted`, so `actaira discover` printed the redirector and not the server. Confirmed against CPython before fixing: the downgrade is followed with no warning. The client now builds its own opener with no HTTP handler at all, refuses a redirect to any scheme but https, and records every hop it follows.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 2,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_connectors.py::test_a_redirect_to_a_plaintext_url_is_refused",
+        "tests/test_connectors.py::test_a_redirect_that_is_followed_is_recorded_as_a_host_contacted",
+        "tests/test_connectors.py::test_the_client_has_no_handler_that_can_speak_plaintext"
+      ]
+    },
+    {
+      "id": "DEF-56",
+      "title": "A credential followed a redirect to a different host",
+      "effect": "`HTTPRedirectHandler` copies the original request's headers onto the redirected one, `Authorization` included. The two connectors most likely to carry a token are exactly the two whose downloads redirect across a host boundary: a GitHub release asset redirects to `objects.githubusercontent.com`, a HuggingFace resolve URL redirects to the LFS CDN. So a `GITHUB_TOKEN` set for `api.github.com` was handed to a second service on every asset fetch, silently, from a package whose stated rule is that credentials come from one named variable and go to one named source. The header is now dropped on any hop that changes host, which costs nothing: both redirect targets serve presigned URLs.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_connectors.py::test_a_credential_does_not_travel_across_a_redirect_to_another_host",
+        "tests/test_connectors.py::test_a_credential_survives_a_redirect_that_stays_on_the_same_host"
+      ]
+    },
+    {
+      "id": "DEF-57",
+      "title": "The HuggingFace URL parser read an owner called `tree` as a view marker",
+      "effect": "A Hub browser URL carries the view after the repository (`/tree/main`, `/blob/main/config.json`), and the parser looked for those words anywhere in the path rather than past the owner and the name. `hf://tree/model` therefore truncated to nothing and was reported to the operator as a URL that does not name a repository. The GitHub parser beside it already searched from index 2, which is how the asymmetry was noticed: two parsers doing the same job, one of them more careful.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "found by reading the two URL parsers against each other before this package had a release; it is recorded because the mechanism that caught it is the one this ledger is a claim about",
+      "pinned_by": [
+        "tests/test_connectors.py::test_a_hub_owner_whose_name_is_a_view_marker_is_still_a_repository"
+      ]
+    },
+    {
+      "id": "DEF-58",
+      "title": "The connector contract did not pass the repository's own linter",
+      "effect": "`src/actaira/connectors/model.py` arrived with two `S310` findings: the `noqa` sat on the `urlopen` call and ruff flags the `Request` construction beside it. `make lint` is one of the six steps in `make all`, so the package could not have been merged with the gate green. The suppression now sits where the finding is and carries the argument for it, which is that `_guard` has already refused every scheme but https on the line above.",
+      "found_by": "running the gate",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "a lint failure on an unreleased module, caught by the gate that exists for it",
+      "pinned_by": [],
+      "pinned_note": "held down by `make lint`, which runs ruff over src, tests, evals, fuzz and scripts on every commit; there is nothing in the tool's behaviour for a unit test to assert"
+    },
+    {
+      "id": "DEF-59",
+      "title": "The archive member gate decided by name, so a pickle called `data/0` was never opened",
+      "effect": "Members were selected for scanning by their names: `.pkl`, `.pickle`, `data.pkl` always, `.bin`/`.ckpt`/`.pt`/`.pth` when ambiguous. Everything else was listed as skipped and left closed. A repackager who names a payload `archive/data/0` - which is exactly what PyTorch calls a raw storage blob - got a report with no pickle findings, no imported callables and no mention of the gadget. The artifact was INCONCLUSIVE, but so was every clean checkpoint, so nothing distinguished them, and `--allow-inconclusive` (which teams set because clean checkpoints were inconclusive) turned it into exit 0. D-06 has said since the first release that an extension is a claim and the bytes are the fact; the gate inside the archive was still asking the attacker.",
+      "found_by": "product review against a roadmap",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_a_pickle_under_a_raw_storage_name_is_opened_and_reported",
+        "tests/test_formats.py::test_a_blob_whose_first_byte_is_an_opcode_is_still_data",
+        "tests/test_formats.py::test_the_peek_never_decompresses_more_than_its_budget"
+      ]
+    },
+    {
+      "id": "DEF-60",
+      "title": "A directory walk filtered by file extension, so a pickle named `notes.txt` was invisible",
+      "effect": "`collect_paths()` kept only files whose suffix was in `ARTIFACT_SUFFIXES`. Scanning a directory therefore never saw a pickle called `weights`, `notes.txt` or `model.safetensors.bak`: not scanned, not reported, not counted. The tool's own detector classifies by content and has since 0.1.0; the walk one level above it asked the file name. Same defect class as DEF-59, one level out.",
+      "found_by": "product review against a roadmap",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_cli.py::test_a_pickle_with_a_text_file_name_is_found_in_a_directory_walk",
+        "tests/test_cli.py::test_files_walked_past_are_counted_rather_than_forgotten"
+      ]
+    },
+    {
+      "id": "DEF-61",
+      "title": "One `fully_read` boolean made every clean checkpoint INCONCLUSIVE",
+      "effect": "`fully_read` had to answer two unrelated questions: did every parser finish, and was the whole file examined. Nothing examines the whole file, so ACT-ZIP-007 - which fires on every archive carrying storage blobs, that is, all of them - took the verdict of every clean PyTorch checkpoint to INCONCLUSIVE and `actaira scan` to exit 3. The available response was `--allow-inconclusive` in CI, which also suppressed the artifacts whose headers genuinely would not parse. A signal that fires on every input is not a signal, and this one was hiding the ones that mattered.",
+      "found_by": "product review against a roadmap",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_formats.py::test_the_rule_limits_raw_tensor_content_and_nothing_else",
+        "tests/test_coverage.py::test_a_surface_nobody_undertook_to_read_cannot_make_a_verdict_inconclusive",
+        "tests/test_coverage.py::test_a_surface_that_was_in_scope_and_failed_still_does"
+      ]
+    },
+    {
+      "id": "DEF-62",
+      "title": "`read_bytes()[:LIMIT]` in four places, which is not a limit",
+      "effect": "The whole file was in memory by the time the slice ran, so a 4 GB declaration file allocated 4 GB and then kept 64 KiB of it. The bound was written, reviewed and merged and it protected nothing. Two parsers had no bound at all: a raw `.pkl` and a GGUF were both read whole, and a quantised 70B GGUF is tens of gigabytes. Actaira is pointed at files an adversary produced and is usually run in CI, so a file that exhausts the auditor's memory is a cheap and completely reliable way to avoid being audited.",
+      "found_by": "product review against a roadmap",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_io_budget.py::test_a_read_is_bounded_at_the_read_not_after_it",
+        "tests/test_io_budget.py::test_a_pickle_past_the_budget_is_not_scanned_and_says_so",
+        "tests/test_io_budget.py::test_a_gguf_header_past_the_budget_is_not_called_malformed"
+      ]
+    },
+    {
+      "id": "DEF-63",
+      "title": "A self-signed certificate was returned as its own issuer, so the path walk looped",
+      "effect": "`_find_issuer` fell back to returning the certificate itself when it was self-signed, and the walk had already checked the store before looking for an issuer. A token whose root was not one of the caller's anchors therefore looped on that root until the path-length cap and reported 'the certificate path is longer than 8' - for what is really 'this root is not one of yours'. The answer was correct and the reason sent the reader to the wrong fix.",
+      "found_by": "test suite",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_trust.py::test_a_root_that_is_not_the_issuer_makes_the_chain_untrusted"
+      ],
+      "not_shipped_because": "the code it was in never reached a release: chain validation is new in this version and the loop was found by the negative-control test written alongside it, before the first tag that carries the module"
+    },
+    {
+      "id": "DEF-64",
+      "title": "The release gate's own test count check could not fail",
+      "effect": "`_collect_count` parsed pytest's output for a line reading 'N tests collected'. This project sets `-q` in addopts, so `-q --collect-only` sees two and prints per-file totals with no grand total: the regex never matched, the function returned None, and the caller skipped the comparison. The check printed a green tick on every tree, including one where the suite would not import. Found by the test written to prove the gate could fail, which is the only thing that finds a check like this.",
+      "found_by": "test suite",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "the gate is new in this version and the hole was found by its own negative-control test before the tag",
+      "pinned_by": [
+        "tests/test_release_check.py::test_a_stale_figure_fails"
+      ]
+    },
+    {
+      "id": "DEF-65",
+      "title": "The policy layer read a trust field that does not exist, so every keyring meant DENY",
+      "effect": "`_attestation_claims` turned an `actaira verify` result into the claims a policy sees, and it read `key_trusted` then `trusted`. The result carries neither: the field is `trust_state`, with three values - trusted, untrusted, embedded_key_only. Both lookups missed, `bool(None)` is False, and every run that supplied a trusted keyring came back DENY with `signer_trusted: actual false` printed beside a package the verifier had just called trusted. The three states are the whole point of this layer, and the bridge between the two halves collapsed them into one. Found by running the two commands end to end against each other rather than by a test of either.",
+      "found_by": "reading the tool's own output",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "the policy layer is new in this version and the bridge was exercised end to end before the tag",
+      "pinned_by": [
+        "tests/test_cli.py::test_a_trusted_keyring_makes_the_signer_trusted_in_a_policy_decision"
+      ]
+    },
+    {
+      "id": "DEF-66",
+      "title": "A colon with no space after it made every scope a stringified dictionary",
+      "effect": "`miniyaml` decided a line was a mapping with `\":\" in text` and split it with `partition(\":\")`. YAML opens a value only when the colon is followed by a space or ends the line, which is why `jira:write`, `sha256:aaaa` and `http://example.com` are scalars in every real parser. Here `- jira:write` became `{\"jira\": \"write\"}`, the agent loader stringified it, and the shipped example's A-BOM published `\"{'jira': 'write'}\"` where the declaration said `jira:write`. A scope is exactly the field a reviewer compares between two releases, so the A-BOM was wrong in the one place it is read most carefully. Nothing caught it because no test had ever asserted on a scope's value - the declaration loaded, the digest was stable, and the output was consistently wrong.",
+      "found_by": "writing a test for an adjacent feature",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "shipped_in": "1.0.0 through 2.1.0",
+      "pinned_by": [
+        "tests/test_miniyaml.py::test_a_colon_with_no_space_after_it_is_part_of_the_scalar",
+        "tests/test_miniyaml.py::test_the_shipped_declaration_keeps_its_scopes_verbatim"
+      ]
+    },
+    {
+      "id": "DEF-67",
+      "title": "`python -m actaira.cli` ran main() halfway through defining the module",
+      "effect": "The `if __name__ == \"__main__\"` guard had drifted into the middle of `cli.py`, above roughly a thousand lines of command handlers. Running the package as a module executed `main()` at that point, so argument parsing succeeded and dispatch died with `NameError: name '_run_agent' is not defined`. The installed console script was unaffected - `actaira = actaira.cli:main` calls the function after the import completes - so every documented invocation worked and the one a developer reaches for first did not.",
+      "found_by": "reading the tool's own output",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "shipped_in": "2.0.0 and 2.1.0",
+      "pinned_by": [
+        "tests/test_cli.py::test_the_package_runs_as_a_module"
+      ]
+    },
+    {
+      "id": "DEF-68",
+      "title": "`policy check` without --on crashed, and the crash looked like a DENY",
+      "effect": "`on = args.on or gov_clock_fn()` called `governance.clock`, which is the obligation-clock builder and takes the date rather than returning it. Every `actaira policy check` and `actaira receipt issue` without an explicit `--on` raised TypeError, and the caller turned that into exit 1 - which is EXIT_FAIL, so a pipeline reading the exit code saw a clean policy denial rather than a broken command. Two things hid it: every test of both commands passes `--on`, because that is what a reproducible decision uses and what the README shows, and the one test that omits it uses a policy file that fails to load and returns before reaching the line.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_cli.py::test_policy_check_works_without_an_on_date",
+        "tests/test_cli.py::test_receipt_issue_works_without_an_on_date"
+      ],
+      "shipped_in": "2.1.0"
+    },
+    {
+      "id": "DEF-69",
+      "title": "A file that is not a database came back as a traceback, and leaked a descriptor each time",
+      "effect": "`Store.__init__` opened the connection and then ran four PRAGMAs and the migration chain with no handler, so a corrupt or truncated state file raised `sqlite3.DatabaseError` rather than the `StoreError` whose own docstring describes exactly that case. Because `__init__` raised, no object existed for `__exit__` to close, and a caller that retried leaked a descriptor and a `-wal` file per attempt.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_state.py::test_a_file_that_is_not_a_database_is_a_message_and_not_a_traceback",
+        "tests/test_state.py::test_a_failed_open_does_not_leak_its_connection"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-70",
+      "title": "A source that returned to an earlier state reported the same change forever",
+      "effect": "`record_snapshot` keyed the row on the content digest, so a source that went A to B and back to A could not record the return: the insert collided with the row from the first observation, was skipped, and `latest_snapshot` went on returning B. Every subsequent run reported the same artifact as changed, exited 1, and left `sources.last_seen` frozen at the date of the last change - so `actaira source list` also claimed the source had not been observed since. A rollback, a re-pinned tag, or a load balancer alternating between two mirror states all produce that sequence. The JSON was self-contradictory: `\"state\": \"content_drift\"` next to `\"recorded\": false`.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_state.py::test_a_source_that_returns_to_an_earlier_state_is_recorded"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-71",
+      "title": "A watch that died halfway left a snapshot claiming a source had been fully observed",
+      "effect": "`_write` called `record_snapshot`, which opened and committed a transaction of its own, and only then opened a second one for the assets, edges and evidence. A failure in between committed the snapshot alone - and left it, because the next run compared against that committed row, found no change, took the early return, and never wrote what was missing. The test that was meant to catch this asserted a disjunction whose right-hand side was true, so it passed while the condition it was written to check was false.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_state.py::test_a_failure_partway_through_leaves_nothing_at_all"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-72",
+      "title": "Revoked evidence came back valid when an unrelated artifact changed",
+      "effect": "The evidence upsert was `ON CONFLICT (evidence_id) DO UPDATE SET state = excluded.state`, and every record this code builds is VALID. An evidence id is the digest of what the evidence says, so re-observing an unchanged artifact produced the same id and overwrote whatever state an operator, a revocation or a stale sweep had set. Observing a sibling artifact was enough. `EvidenceState.counts` gates every policy decision on VALID, so a withdrawn attestation became acceptable evidence again on the next unrelated watch.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_state.py::test_a_revoked_record_is_not_resurrected_by_an_unrelated_observation"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-73",
+      "title": "A source watched every day went stale after thirty, and re-observing could not clear it",
+      "effect": "Two halves. `_write` returned early when nothing had changed, so `record_evidence` was never called again; and the conflict clause updated only `state`, never `observed_at`. A source observed on day zero and watched daily thereafter still carried a day-zero timestamp on day forty, so the freshness sweep marked everything stale and no amount of watching cleared it. Combined with DEF-72 the record oscillated: a watch flipped it back to valid without moving its timestamp, and the next sweep re-staled it.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_state.py::test_an_unchanged_source_keeps_its_evidence_current",
+        "tests/test_state.py::test_re_observing_a_stale_record_makes_it_current_again",
+        "tests/test_state.py::test_an_unchanged_source_still_records_that_it_was_looked_at"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-74",
+      "title": "The default source could not detect a content change, and said nothing about it",
+      "effect": "With no declared digest, `_identity` fell back to file size. The filesystem connector publishes no digests by design, and every scheme-less URI routes to it, so this was the default case: a weight file replaced with different bytes of the same length came back UNCHANGED, exit 0, with no caveat anywhere. `_identity`'s own docstring claimed the weakness was \"labelled as such everywhere it is used\" - the word appeared only in that docstring. Fixed twice over: a local source's bytes are hashed, because they are right there, and every artifact now carries an `identity_basis` with the weak ones named in the observation.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_state.py::test_a_local_source_is_compared_by_its_bytes",
+        "tests/test_state.py::test_an_artifact_compared_by_size_alone_is_named"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-75",
+      "title": "Every snapshot carried the literal string \"None\"",
+      "effect": "`str(clean.get(\"revision\", \"\"))` returns the default only when the key is ABSENT, and `RemoteArtifact.to_dict()` always emits `revision`, set to `None` by the filesystem and S3 connectors. `str(None)` is `\"None\"`, which is truthy, so it survived into the artifact row - inside the snapshot digest, and inside the document the design note calls the thing an operator commits to a repository or attaches to a receipt.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_state.py::test_a_snapshot_never_carries_the_string_none"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-76",
+      "title": "`evidence list --json` always exited 0",
+      "effect": "The `--json` branch returned EXIT_OK before the exit code was computed, so the identical store gave exit 1 as text and exit 0 as JSON. The comment three lines below states the code exists \"so a pipeline can act on it without parsing the text\", and the one mode a pipeline uses was the one that never signalled.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_cli.py::test_evidence_list_json_carries_the_same_exit_code_as_the_text"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-77",
+      "title": "`graph build` turned a bad agent declaration into a traceback",
+      "effect": "The `try` wrapped only the manifest load; the agent loader ran a few lines further down, inside the transaction, unguarded. `DeclarationError` was imported specifically to be caught and was not in scope for that call, so a valid manifest pointing at an agent file missing its `agent:` line produced a raw traceback where the same error one step earlier produced a message and exit 2.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_cli.py::test_graph_build_reports_a_bad_agent_declaration_as_a_usage_error"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-78",
+      "title": "`--out` into a directory that did not exist raised FileNotFoundError",
+      "effect": "`snapshot --out` and `graph export --out` called `write_text` with no `mkdir`. A path the operator typed is a statement of where they want the file, not a bet on whether the directory is already there.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_cli.py::test_graph_export_creates_the_directory_it_was_given"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-79",
+      "title": "Cycle detection systematically under-reported, in two different ways",
+      "effect": "The first version coloured a node black immediately after pushing its children rather than after they finished, and the LIFO order let the last-pushed branch mark a node done before an earlier sibling's trail had been walked: on `a->b, a->c, b->a, c->b` it found `a->c->b->a` and missed `a->b->a`. A differential test against brute-force enumeration disagreed on about a fifth of random small digraphs, always under-reporting, which is why it looked right - it never returned nothing on a cyclic graph. Repairing the colouring did not fix it, and that was the useful part: a three-colour walk answers whether a graph has a cycle, not which cycles it has, because every cycle reachable only through a blackened node is invisible however correct the colouring is. Replaced with proper simple-cycle enumeration, bounded and with both bounds reported.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_state.py::test_the_counterexample_that_the_colouring_version_missed",
+        "tests/test_state.py::test_cycle_enumeration_agrees_with_brute_force",
+        "tests/test_state.py::test_a_dense_graph_stops_at_the_cap_and_says_so"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-80",
+      "title": "A bundle's reference did not say whether its digest was of the weights or of the layout",
+      "effect": "`SubjectRef.digest` carried the content digest when there was one and the layout digest otherwise, under one unlabelled field - which is the confusion D-200 exists to prevent, reintroduced one layer up. Worse in practice than in the document: `claims.subject` is that digest and waivers match on it, so turning on `--hash-weights` silently invalidated every subject-scoped waiver on a bundle.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_subjects.py::test_a_bundle_reference_says_which_kind_of_digest_it_carries"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-81",
+      "title": "A deny rule on an open attack path silently passed when nothing had searched for one",
+      "effect": "`attack_path_severity_at_least` guarded on `claims.agent is None and not claims.attack_paths`, which reads \"an agent is attached\" as \"routes were searched\". `SubjectClaims(agent=...)` and `for_agent(..., with_paths=False)` both leave the list empty, so a policy denying open HIGH routes returned ALLOW with `\"count\": 0` beside an agent that had one. The same conflation put `open_attack_paths: 0` into a receipt about that agent. This is the exact failure - absence read as falsehood - that the engine's own module docstring says the design exists to prevent.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_subjects.py::test_an_agent_whose_routes_were_never_searched_is_unevaluable",
+        "tests/test_subjects.py::test_searched_and_found_nothing_is_not_unevaluable"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-82",
+      "title": "A provable absence of a relation came back as REVIEW instead of DENY",
+      "effect": "`relation_exists` raised `Unevaluable` on an empty relation list, conflating \"this kind of subject never had relations gathered\" with \"this fully loaded declaration states none\". Only the first is a gap. The second is precisely the agent the predicate was written for - one whose secret-reading tool names no identity - and it came back inconclusive rather than denied.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_subjects.py::test_a_declaration_that_states_no_relations_can_fail_a_requirement"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-83",
+      "title": "A misspelt predicate argument was a traceback, and the traceback looked like a DENY",
+      "effect": "Predicate NAMES were validated when a policy loaded - with a comment calling a silently-never-matching rule \"the worst failure mode a policy language has\" - and predicate VALUES were validated inside the predicate at evaluation time, where nothing catches a PolicyError. So `finding_severty_at_least` gave a clean message and exit 2 while `finding_severity_at_least: criticl` gave a Python traceback and exit 1, which is EXIT_FAIL and therefore indistinguishable from a policy denial. `agent_effect` was worse: its check sat after the payload check, so a typo passed silently for artifact and bundle subjects and raised on the first agent.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_subjects.py::test_an_unknown_kind_is_refused_when_the_document_loads",
+        "tests/test_subjects.py::test_every_closed_vocabulary_is_checked_at_load_time"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-84",
+      "title": "A manifest handle matched no other spelling of the same asset",
+      "effect": "`handle()` used `Path(path).stem`, which agreed with `SubjectRef.handle` for neither kind that has a path. `models/fraud.pt` became `artifact:fraud` where the reference says `artifact:fraud.pt`, so `fraud.pt` and `fraud.onnx` collided onto one node whose name came from one and whose digest came from the other; and an agent declaring `agent: fraud-review` inside `fraud-review-v2.yaml` became `agent:fraud-review-v2`, so the correct handle in a `uses:` line was refused as undeclared and a `delegates_to` edge could never reach a manifest node. The docstring promised \"the same `kind:id` spelling `SubjectRef.handle` uses\" and named this exact failure.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_trust_paths.py::test_a_manifest_handle_is_the_handle_a_reference_would_give",
+        "tests/test_trust_paths.py::test_a_uses_edge_may_name_the_declared_agent"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-85",
+      "title": "A trust rule that had never run reported itself satisfied",
+      "effect": "`require_declared_digest` compared against a parameter no caller in the repository ever passed, so it could never fail - and the result came back TRUSTED, naming the rule in `checked`, with the reason \"every applicable rule was satisfied\" about a rule that had not been evaluated. That contradicts the module's own stated rule that a rule which could not be evaluated says so. An unevaluated rule now makes the result UNKNOWN, which is the third state and what it is for.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_trust_paths.py::test_a_rule_that_could_not_be_evaluated_does_not_read_as_satisfied",
+        "tests/test_trust_paths.py::test_a_failure_still_wins_over_an_unevaluated_rule"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-86",
+      "title": "A revision the connector ignored was written into the provenance anyway",
+      "effect": "`resolved_revision` fell back to whatever the operator typed, so `actaira bundle file:///models/x --revision 7f91a2c` recorded `7f91a2c` as the revision of a plain directory - while the filesystem connector had said, in a note this code discarded, that a directory has no revisions and the flag was ignored. Feeding that provenance to `source_revision_pinned` then satisfied an immutability requirement on the strength of a string somebody typed.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_remote_receipt.py::test_a_revision_the_connector_ignored_is_not_written_into_the_provenance",
+        "tests/test_cli.py::test_bundle_refuses_a_revision_on_a_local_directory"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-87",
+      "title": "A `file://` URI resolved to a different directory than the connector had listed",
+      "effect": "`_local_root` stripped the `file://` prefix by hand where `connectors/filesystem` normalises the same URI properly, so a host-less `file://x/y` became the CWD-relative `x/y` here and `/x/y` there. The bundle document then described the bytes of one directory under the provenance of another, and carried a `listing_complete` earned by a walk of the directory it had not read - the exact property the module exists to provide.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_remote_receipt.py::test_a_local_uri_resolves_to_the_directory_the_connector_listed"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-88",
+      "title": "A delegated attack path asserted an edge nobody had declared",
+      "effect": "Route 4 paired the root context with every other one and emitted a single hop labelled `declared delegates_to` between them. For a chain A to B to D that asserted an edge A's declaration does not contain and elided B entirely, so the reviewer could not see which file to change - and `Hop.via`'s docstring says a hop with no relation behind it would be the module inferring a flow, which is what the relations exist to stop.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_trust_paths.py::test_a_delegated_route_names_every_declaration_it_passes_through"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-89",
+      "title": "A delegation chain past the depth limit was cut in silence",
+      "effect": "`_contexts` returned at MAX_DEPTH with no note and no report field. An agent that could reach a payment tool eleven delegations away came back with no routes, no unresolved sub-agents and no cycles - three statements that together read as \"there is nothing here\" - while `PathReport`'s docstring promised \"every route found, plus what the walk could not see\".",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_trust_paths.py::test_a_delegation_chain_past_the_depth_limit_says_so"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-90",
+      "title": "One tool that read outside text and acted on it produced a finding with no route",
+      "effect": "Route 2 skipped the case where the entry and the sink are the same tool, and the EXEC route did not, so the two disagreed. ACT-AGT-001 fires on a single tool with `untrusted_input` and `write`, and `agent paths` reported nothing for it - the set-based rule named a risk for which the routes command offered no route and no way to break it, which is the precise gap routes exist to fill.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_trust_paths.py::test_one_tool_that_reads_outside_text_and_acts_is_a_route"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-91",
+      "title": "A timezone-naive `valid_until` took `watch --max-age-days` down with a TypeError",
+      "effect": "`expire()` caught `ValueError` around the parse, and the parse succeeded: the comparison was what failed, with `can't compare offset-naive and offset-aware datetimes`. `EvidenceRecord.valid_until` is a public field with no validation, and a value written by hand is naive. Separately, when the parse genuinely did fail the code set `stale = False` and skipped the global limit entirely, contrary to the docstring.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_state.py::test_a_records_own_valid_until_beats_a_global_limit"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-92",
+      "title": "A decision over no subjects emitted a document that contradicted itself",
+      "effect": "`decide` evaluated against `[Claims()]` when handed an empty list, so the proof carried outcomes naming `\"subject\": \"\"` beside a `\"subjects\": []` list. A document that contradicts itself is worse than an error, because it looks like a decision.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_policy_engine.py::test_a_decision_needs_at_least_one_subject"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-93",
+      "title": "A receipt quietly covered fewer subjects than it was given",
+      "effect": "`_typed_subjects` skipped any subject with no reference, so a receipt over four subjects could list three and say nothing about the fourth - in a signed document whose entire purpose is stating what was observed.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "pinned_by": [
+        "tests/test_remote_receipt.py::test_a_receipt_never_quietly_covers_fewer_subjects_than_it_was_given"
+      ],
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+    },
+    {
+      "id": "DEF-94",
+      "title": "The inline list everybody writes was read as a string, then iterated letter by letter",
+      "effect": "`miniyaml` parsed block sequences and not flow ones, so `effects: [read, write]` came back as the string \"[read, write]\". Each caller then did something different and wrong with it: the agent loader raised \"expected a list, got str\", which is at least an error, while the manifest loader did `tuple(str(name) for name in value)` and iterated the string CHARACTER BY CHARACTER - producing a document that claimed to use \":\", \"[\", \"]\", \"a\", \"b\", \"d\"... and refusing to load with a message listing single letters. Found by writing a manifest and a declaration the way a person writes them rather than the way the fixtures do.",
+      "found_by": "using the tool as a person would",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "shipped_in": "1.0.0 through 2.1.0",
+      "pinned_by": [
+        "tests/test_miniyaml.py::test_an_inline_list_is_a_list",
+        "tests/test_miniyaml.py::test_a_declaration_written_with_inline_lists_loads",
+        "tests/test_trust_paths.py::test_a_manifest_uses_line_that_is_not_a_list_is_refused"
+      ]
+    },
+    {
+      "id": "DEF-95",
+      "title": "One tool supplying both the instruction and the material produced no route at all",
+      "effect": "The same shape as DEF-90, one route along and found after it was fixed. ACT-PATH-001 skipped the carrier when it was also the entry, so an agent whose single reader brings in both outside text and sensitive data reported no route. That is not an edge case: `trusted: false` and `classification: personal` on one source is what a ticket queue, an inbox or a case file actually is, and it is the strongest form of the route rather than a degenerate one - the instruction and the material arrive in the same tool result.",
+      "found_by": "using the tool as a person would",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "found by running the new commands end to end against a hand-written workspace, before the tag",
+      "pinned_by": [
+        "tests/test_trust_paths.py::test_one_tool_that_supplies_both_the_instruction_and_the_material_is_a_route"
+      ]
+    },
+    {
+      "id": "DEF-96",
+      "title": "`--dsse` was documented from 2.0 and the flag did not exist",
+      "effect": "The README, the CHANGELOG and the threat model all told the reader that `actaira attest --dsse` writes an in-toto Statement in a DSSE envelope, and `attest/dsse.py` was 505 lines of implemented, tested, unreachable code: no parser ever added the flag and `write_package` had no parameter to carry an envelope. A reader following the interoperability claim got `unrecognized arguments: --dsse`, and the supply-chain integration the document promised had never once run outside its unit tests. Fixed by wiring it: the envelope is written as an ordinary package member, so the manifest covers it and the manifest signature covers the manifest.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_dsse.py::test_attest_dsse_writes_an_envelope_into_the_package",
+        "tests/test_dsse.py::test_a_package_without_the_flag_carries_no_envelope",
+        "tests/test_dsse.py::test_verify_checks_the_envelope_it_finds",
+        "tests/test_dsse.py::test_an_edited_envelope_is_caught_twice"
+      ]
+    },
+    {
+      "id": "DEF-97",
+      "title": "Pillow was named as a dev dependency in four places and declared in none",
+      "effect": "ACT-C-15-MARK-ROBUSTNESS re-encodes an image to see whether a marking survives, and it needs Pillow. Four locations in the source and the docs told the reader Pillow was in the `dev` extra; `pyproject.toml` did not list it. A clean `pip install -e \".[dev]\"` therefore produced a checkout where that control reported INCONCLUSIVE for a missing library and the documentation said the library was installed, which reads as the control being broken rather than the environment being incomplete. Declared, with the reason the control abstains rather than fails written beside it.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_controls.py::test_the_marking_robustness_control_names_the_library_it_needs"
+      ]
+    },
+    {
+      "id": "DEF-98",
+      "title": "The version this tool told every remote host was frozen two minor releases back",
+      "effect": "`connectors/model.py` set `USER_AGENT = \"actaira/2.0\"` as a literal. Every request the discovery layer made through 2.1 and 2.2 identified the tool as 2.0, so a registry rate-limiting or blocking by client version, or an operator reading their own access logs to find out what was pulling from them, was given the wrong answer. Not a security failure and not cosmetic either: it is the one string this tool asserts about itself to somebody else. Derived from `__version__` now (D-231).",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_connectors.py::test_the_user_agent_is_the_version_this_package_is"
+      ]
+    },
+    {
+      "id": "DEF-99",
+      "title": "`state-export/v1` published two arrays nothing could ever fill",
+      "effect": "The state store shipped `policies`, `decisions` and `receipts` tables and the published export document carried `decisions` and `receipts` arrays. `Store.record_decision` and `Store.record_receipt` were written, tested by nothing, and called by nothing, and `policy check` had no `--state` flag at all, so every export ever produced carried two empty arrays that could not be anything else. A consumer written against a published contract was reading a field the producer could not populate. Fixed by wiring the writes rather than by removing the field, because a v1 consumer already reads it and the compatibility promise says a published contract stays published (D-233).",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_state.py::test_a_policy_decision_is_recorded_when_there_is_a_store",
+        "tests/test_state.py::test_deciding_twice_about_the_same_thing_records_one_row",
+        "tests/test_state.py::test_an_issued_receipt_is_noted_in_the_store",
+        "tests/test_state.py::test_a_receipt_is_still_issued_when_the_store_is_missing"
+      ]
+    },
+    {
+      "id": "DEF-100",
+      "title": "A dead function whose docstring named two callers that do not exist",
+      "effect": "`statecli.record_evidence_for_report` said in its own docstring that it was \"used by `scan --state` and by `receipt issue`\". `scan` has no `--state` flag and `receipt issue` never called it. Nothing in the repository referenced the function. Worse than dead code, because the docstring described a wiring a reader would then look for and a maintainer would assume was load-bearing. Removed.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_release_check.py::test_no_source_function_is_unreachable_from_the_package_or_its_tests"
+      ]
+    },
+    {
+      "id": "DEF-101",
+      "title": "A reader that stopped reading produced a traceback and exit 0",
+      "effect": "`actaira schema | head -3`, and the same with `less`, `grep -m` or any consumer that stops early, printed a `BrokenPipeError` traceback to stderr and exited 0. Every command in this tool prints more lines than such a reader consumes, so it was every command. The exit code is the part that matters: a stack trace on stderr with a success code is what a CI job shows the person debugging it, from the tool that has just reported that nothing failed. Found by running the quickstart against the installed wheel rather than the checkout, which is where a shell pipeline actually gets used. Fixed by catching it at the entry point, pointing stdout at the null device so the interpreter's own flush has nothing left to fail on, and exiting 141, the shell's convention for SIGPIPE (D-235).",
+      "found_by": "using the tool as a person would",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_cli.py::test_a_reader_that_stops_reading_is_not_a_traceback"
+      ]
+    },
+    {
+      "id": "DEF-102",
+      "title": "The nightly asserted the behaviour 2.2 deliberately replaced, and only the nightly runs it",
+      "effect": "`tests/test_real_artifacts.py` and the expectation recorded by `evals/corpus/real.py` both said a benign `torch.save` zip comes back INCONCLUSIVE with `fully_read` False. That was true until the coverage model landed: ACT-ZIP-007 marked `raw_tensor_content` PARTIAL, and the same state_dict saved in the legacy format came back PASS, so one object gave two verdicts depending on a serialisation flag. 2.2 replaced the boolean with per-surface coverage precisely to end that (D-104), and a surface nobody undertook to read can no longer make a verdict inconclusive. Every other test moved with the change; these two did not, because they need torch, onnx, h5py and safetensors and therefore run only in the nightly. The release would have shipped with its own nightly red and its recorded expectations describing the previous release. Found by installing the real ML stack and running the nightly with skipping disallowed, which §6 of the closing plan asks for and which had not been done since the change.",
+      "found_by": "real-serialiser corpus",
+      "counts_as": 2,
+      "shipped_defect": false,
+      "not_shipped_because": "a stale assertion in the nightly suite and in the expectation file it reads, not a defect in the shipped tool: the behaviour they disagreed with is the corrected one",
+      "pinned_by": [
+        "tests/test_real_artifacts.py::test_a_real_artifact_meets_the_expectation_its_writer_recorded",
+        "tests/test_real_artifacts.py::test_both_torch_containers_reach_the_same_verdict_by_different_routes"
+      ]
+    },
+    {
+      "id": "DEF-103",
+      "title": "The fuzz harness imported a POSIX-only module at module scope, and the suite imports the fuzz harness",
+      "effect": "`fuzz/fuzz_targets.py` imported `resource` unconditionally. `tests/test_fuzz_regressions.py` loads that file by path to check the instrument against the product, so on a platform without `resource` the import error interrupted collection and the entire suite refused to run: 41 tests absent, and the only thing that noticed was `make release-check`, which compared 3161 tests in figures.json against 3120 collected and could not say why. A gate that a reader cannot run on their machine is a gate that gets taken on trust. The conditional import is half the fix; the other half is that `RLIMIT_AS` and `SIGALRM` enforce two of the four promises the fuzzer makes, so a platform without them runs a weaker instrument and every summary now names which oracles were not enforced rather than printing `0 property violation(s)` as though four still held.",
+      "found_by": "running the gate",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "the fuzz harness is not part of the distributed package; it is the apparatus that measures it, and this is a defect in the apparatus and in what the apparatus was willing to claim",
+      "pinned_by": [
+        "tests/test_fuzz_regressions.py::test_the_fuzzer_imports_on_a_platform_without_the_posix_facilities",
+        "tests/test_fuzz_regressions.py::test_a_platform_that_cannot_enforce_an_oracle_says_so_in_the_summary",
+        "tests/test_fuzz_regressions.py::test_the_peak_rss_reading_does_not_invent_a_number_it_cannot_measure"
+      ]
+    },
+    {
+      "id": "DEF-104",
+      "title": "The platform separator reached documents built to be compared across machines",
+      "effect": "\"The last path segment of a report path\" was spelled three ways in one codebase. `Path(p).name` in three places, `p.replace(chr(92), '/').rsplit('/', 1)[-1]` in three more, and the POSIX-only `p.rsplit('/', 1)[-1]` in six: the ML-BOM component name, the receipt's subject rows, the governance dossier's `artifacts_not_fully_read`, the assessed-artifact list, the bundle location and the CLI's summary line. On a platform whose separator is not '/', every one of those six documents carried the producer's full absolute path where a filename belonged - inside a document that is signed, published and meant to be comparable with the same document produced on another machine. `src/actaira/web/server.py` had a docstring explaining exactly why both separators have to be cut; six call sites in the same tree did not do it. Now one helper, `actaira.model.artifact_name` (D-238), and the call sites are the helper. The second site is the filesystem connector's listing, which built each artifact path with `str(Path.relative_to(root))`: the same directory listed on two machines produced two discoveries that no longer compared equal, and the separator it emitted off POSIX is also an escape character inside the JSON it is written into. That one is `as_posix()`; the local absolute path, which is genuinely platform-shaped, stays in `extra` where nothing compares it.",
+      "found_by": "running the gate",
+      "counts_as": 2,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_receipt.py::test_a_receipt_names_the_artifact_and_not_the_directory_it_was_built_in",
+        "tests/test_connectors.py::test_the_listing_spells_a_nested_path_the_same_way_on_every_platform"
+      ]
+    },
+    {
+      "id": "DEF-105",
+      "title": "The tensor table clipped a number mid-digit on a phone, and the clipped value still read as a number",
+      "effect": "Four columns do not fit a 400px viewport. `.tablewrap` carried `overflow-x: auto`, so the table could be scrolled, but a horizontal scrollbar inside a card is close to invisible and nothing indicated the row continued. A tensor of 65 536 elements therefore rendered as `65.5` and the `ELEMENTS` header as `ELEMENT`. A truncated label is a cosmetic problem; a truncated number that still looks like a number is a wrong figure shown to a reader with nothing to notice, in a tool whose whole argument is that its output is checkable. Below 560px the rows are cards now, each cell behind the translated column name, and nothing is clipped. Found by looking at the phone capture that `make screenshots` takes and that nothing displayed - which is the reason that capture is taken, and the first time in this repository it paid for itself.",
+      "found_by": "reading the tool's own output",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_web_frontend.py::test_the_tensor_table_stacks_on_a_phone_instead_of_clipping_a_number",
+        "tests/test_web_frontend.py::test_the_stacked_labels_come_from_the_catalogue_and_not_from_english_literals"
+      ]
+    },
+    {
+      "id": "DEF-106",
+      "title": "The action's entrypoint flattened one input out of five before writing them into GITHUB_OUTPUT",
+      "effect": "`GITHUB_OUTPUT` is a key=value file, one line per output, so a newline inside a value writes a line the script never emitted. The script knew this and said so in a comment - and applied the defence to `path` alone. `sarif-file` reached the writer untouched on both the normal path and the not-found early exit, so an input of `x` followed by a newline and `should-fail=false` set the output the action's own last step reads to decide whether the job fails: a scan that found a critical finding, reported as a job that passed. `policy`, `fail-on` and `allow-inconclusive` were unvalidated and unflattened too, and reached the GitHub step summary, where a newline injects arbitrary markdown. Every input is now flattened once, at the top, before anything reads it; the three with a closed set of values are checked against it and become exit code 2 with a message naming the allowed values; and the whole output set is written by one function, so a path that returns early cannot emit four of six and leave a consumer reading a stale value for the other two. The entrypoint had no test of any kind: it has fourteen now, run against the real script with the CLI shimmed.",
+      "found_by": "adversarial engineering review",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "the action is an integration definition in this tree, not a service running anywhere; nothing has ever executed it outside its own tests",
+      "pinned_by": [
+        "tests/test_action_entrypoint.py::test_a_newline_in_an_input_cannot_write_an_output_the_script_never_emitted",
+        "tests/test_action_entrypoint.py::test_a_newline_in_a_scanned_file_name_cannot_forge_an_output",
+        "tests/test_action_entrypoint.py::test_an_input_outside_its_closed_set_fails_the_job_rather_than_scanning_anyway"
+      ]
+    },
+    {
+      "id": "DEF-107",
+      "title": "The encoding of what the tool prints came from the host's locale",
+      "effect": "`sys.stdout`'s encoding is chosen from the locale, and nothing in this tool was deciding it. `actaira --lang es scan > report.txt` therefore wrote UTF-8 on a POSIX host with a UTF-8 locale and cp1252 on a default Windows install - the same command, over the same artifact, producing two different files, with the line endings differing too. A consumer reading the redirected output as UTF-8 got mojibake, and a character with no mapping in the host code page would have been a `UnicodeEncodeError` traceback out of a command that had already finished its work. Byte-level reproducibility is the property this repository spends a release gate defending everywhere else, and standard output was the one surface where nothing defended it. Redirected output is UTF-8 with `\n` endings now, on every platform; a terminal keeps its own code page, because forcing UTF-8 into a console that is not expecting it renders mojibake, and gains `errors='replace'` so an undrawable character can never become a traceback.",
+      "found_by": "using the tool as a person would",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_cli.py::test_redirected_output_is_utf8_on_every_platform"
+      ]
+    },
+    {
+      "id": "DEF-108",
+      "title": "The localised screenshots were never localised: both READMEs showed the same image",
+      "effect": "`scripts/screenshots.py` selected the interface language only when it was not English, on the assumption that an unprimed page shows English. It does not: with no stored preference `app.js` follows `navigator.language`. So the language of every capture was whatever the browser running playwright happened to prefer, and the English and Spanish captures of a panel were byte-identical files - `04-governance.png` and `06-governance-es.png` the same image, `05-governance-dark.png` and `08-governance-dark-es.png` the same image, one of the two READMEs showing a screenshot in the other's language and neither saying so. `scripts/release_check.py` treats the two as one slot with a comment reading 'a localised README should show the localised screenshot', so the intent was written down in the gate while the generator never delivered it, and nothing compared the bytes. The language is selected in every case now, English included. Found by noticing that two files the pass had just written had identical sizes.",
+      "found_by": "reading the tool's own output",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "a defect in the documentation the tool ships with rather than in the tool: the interface itself switches language correctly, which is what `tests/test_i18n.py` asserts",
+      "pinned_by": [
+        "tests/test_readme_parity.py::test_the_localised_screenshots_are_not_the_same_image"
+      ]
+    },
+    {
+      "id": "DEF-109",
+      "title": "The nightly's only check on the trojan's callable asserted the POSIX spelling of a platform-dependent name",
+      "effect": "`os.system` pickles under the name of the module `os` is implemented by on the machine that wrote the artifact: `posix.system` on Linux and macOS, `nt.system` on Windows. `test_the_real_trojan_names_posix_system_in_its_imports` asserted `posix.system` and nothing else, and its docstring said 'on this platform' about a property of the writing platform rather than of the format. Run with the real ML stack on Windows it failed against a report that was entirely correct - the worst kind of red, because a genuine regression in the one test that checks the trojan is named would have looked exactly the same. The expected name is derived from the interpreter now. The test also gained the assertion that was missing and matters more: that the DENYLIST flags it too. The allowlist fails closed and would refuse the name whichever way it was spelt; `--policy known-bad` only catches what it enumerates, so a denylist exercised only against `posix.system` is exactly where a Windows-authored gadget would have walked through. It does catch it - `nt` is in DENIED_MODULES beside `posix` - and that is now checked rather than assumed.",
+      "found_by": "real-serialiser corpus",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "the shipped tool is correct on both policies and on both spellings; this was a test that could only ever have been run on one kind of host, and an untested branch of the denylist",
+      "pinned_by": [
+        "tests/test_real_artifacts.py::test_the_real_trojan_names_the_os_module_as_the_pickle_spells_it"
+      ]
+    },
+    {
+      "id": "DEF-110",
+      "title": "The read bounded to protect memory allocated its whole ceiling for every file",
+      "effect": "`io_budget.read_at_most` called `handle.read(limit + 1)`. That is correct, and CPython allocates the requested size up front and then shrinks the object to what it actually read - so every pickle asked the allocator for 512 MiB before reading its bytes, a 16-byte one exactly as much as a real checkpoint, and every GGUF header asked for 64 MiB. On Linux the allocation is lazy and the pages are never touched, which is why this lived through five releases and a CI job that only ever ran on Linux. On a platform that commits what it allocates it costs about 78 ms per artifact and a real 512 MiB spike: `make benchmark` on Windows measured a median of 66 ms per file where the recorded Linux run of the same corpus measured 0.175 ms, and a scan of the 64-artifact corpus spent four and a half seconds in the allocator. The module's own docstring is what makes this more than a slow path - it exists so that 'a file that makes the auditor run out of memory is a file that does not get audited' cannot happen, and the bound it introduced was allocating the ceiling for every file regardless of size. The budget is a decision about the format; the allocation is now a fact about the file, from `os.fstat` on the already-open handle so there is no window in which the file could be replaced between the two. Median per artifact went from 70.0 ms to 0.568 ms on the machine that found it. Found by running `make benchmark` with the real rival tools on a platform the project had never measured on.",
+      "found_by": "benchmark self-tests",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_io_budget.py::test_a_small_file_is_not_read_with_a_large_allocation",
+        "tests/test_io_budget.py::test_the_budget_is_still_a_budget_for_a_file_that_exceeds_it",
+        "tests/test_io_budget.py::test_a_file_at_exactly_the_limit_is_read_in_full_and_not_called_over"
+      ]
+    },
+    {
+      "id": "DEF-111",
+      "title": "Every data source in every graph drew as an unrecognised kind, silently",
+      "effect": "The graph renderer reads a node's kind from the prefix of its id and colours the box with it. The agent engine has emitted data sources as `data:<name>` since the declaration format was published; the renderer's vocabulary calls that kind `datasource`. So the prefix matched nothing, every data source fell to the `unknown` style, and the one node kind an attack-path reader most needs to pick out - the place untrusted content comes from - was drawn as the kind the renderer has no name for. Nothing failed: an unrecognised kind is still drawn, just neutrally, so there was no console error, no failed request and nothing for the screenshot gate to catch. The picture was simply wrong. Renaming either side would have meant changing a published node id or a stylesheet class to settle a spelling, so there is an explicit alias table instead, and the test is deliberately not about that one entry: it collects the prefixes the engine can actually emit and requires each to be classifiable, so the next id prefix somebody adds is caught the same way.",
+      "found_by": "writing a test for an adjacent feature",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_web_frontend.py::test_every_node_prefix_the_engine_emits_has_a_visual_kind",
+        "tests/test_web_frontend.py::test_the_data_prefix_is_mapped_rather_than_renamed"
+      ]
+    },
+    {
+      "id": "DEF-112",
+      "title": "`impact` answered that nothing depended on an agent's tools, because nothing joined them to it",
+      "effect": "`Agent.relations()` emits what the declaration says about its parts - the model, a tool's identity, a tool's inputs and outputs, an MCP server's exposed tools, a delegation - and it does not emit an edge from the agent to the tools and servers it declares. The shipped example has five tools, two MCP servers, one identity and two data sources, and contributed exactly one edge to the stored asset graph. So `actaira impact tool:fetch_url` reported nothing affected, and `actaira impact mcp:github` reported nothing affected, over a workspace whose manifest says a system uses an agent that declares both. A wrong answer, not a missing feature: the question was asked, the tool answered it, and the answer was the most reassuring one available. The fix is declaration-backed and lives at the graph-build layer: an agent declaration listing a tool is that declaration stating the agent has that tool, and the edge is read off the document rather than inferred from a name. Deliberately not added to `Agent.relations()`, because that feeds `to_bom()` and therefore `Agent.digest` - the number that answers 'is this the agent that was approved?' - which must not move because the graph wanted better connectivity.",
+      "found_by": "product review against a roadmap",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_state_graph.py::test_impact_on_a_declared_tool_now_reaches_the_system_that_uses_the_agent",
+        "tests/test_state_graph.py::test_the_shipped_agents_digest_has_not_moved",
+        "tests/test_state_graph.py::test_membership_is_not_in_the_bom_and_does_not_reach_the_digest"
+      ]
+    }
+  ]
+}

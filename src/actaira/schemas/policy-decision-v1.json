@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actaira.dev/schemas/policy-decision-v1.json",
+  "title": "Policy decision",
+  "description": "A decision and the proof of it. `proof` holds one entry per rule per subject, including the ones that were satisfied, so that two runs over the same artifacts are comparable. A decision with an empty proof is an assertion, not a decision.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "policy-decision/v1"
+    },
+    "decision": {
+      "enum": [
+        "allow",
+        "deny",
+        "review"
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "digest"
+      ]
+    },
+    "decided_on": {
+      "type": "string",
+      "format": "date"
+    },
+    "subjects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "proof": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "rule": {
+            "type": "string"
+          },
+          "effect": {
+            "enum": [
+              "deny",
+              "require",
+              "review"
+            ]
+          },
+          "matched": {
+            "type": "boolean"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "contributes": {
+            "enum": [
+              "allow",
+              "deny",
+              "review"
+            ]
+          },
+          "evidence": {
+            "type": "object"
+          },
+          "waived_by": {
+            "type": "object"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "effect",
+          "matched",
+          "subject",
+          "contributes"
+        ]
+      }
+    },
+    "expired_exceptions": {
+      "type": "array"
+    },
+    "tool_version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "decision",
+    "policy",
+    "decided_on",
+    "subjects",
+    "proof"
+  ],
+  "additionalProperties": true
+}

@@ -1,0 +1,39 @@
+# What this environment accepts, which is not the same question as whether a
+# signature verified. `attest/trust.py` answers the second; this answers the
+# first, and keeping them apart is why `actaira trust check` is its own command.
+#
+#   actaira trust check --trust-policy examples/trust-policy.yaml \
+#       --connector huggingface --revision main
+#
+# Absence of this file means UNKNOWN, never UNTRUSTED. An environment that has
+# not written its rules down has not refused anything.
+
+schema_version: trust-policy/v1
+
+trusted_signers:
+  # The fingerprint `actaira keygen` prints, for the key your release pipeline
+  # signs with. A signature from any other key still verifies; it is simply not
+  # one this environment vouches for.
+  - fingerprint: sha256:0000000000000000000000000000000000000000000000000000000000000000
+
+trusted_tsa_roots:
+  # Anchors for RFC 3161 chains. A time-stamp that does not reach one of these
+  # is reported as untrusted rather than ignored.
+  - ./roots/company-tsa.pem
+
+source_rules:
+  - connector: huggingface
+    # A branch name resolves to different bytes tomorrow. Production pulls a
+    # commit or does not pull.
+    require_revision_pin: true
+    require_declared_digest: true
+  - connector: s3
+    require_revision_pin: false
+
+mcp_rules:
+  # An approved server referenced by tag is approved until somebody pushes.
+  - publisher: acme-security
+    require_digest: true
+  # Everything else must at least say who publishes it, so the question "is
+  # this the vendor we reviewed" has an answer.
+  - require_publisher: true
