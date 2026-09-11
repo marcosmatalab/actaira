@@ -1,0 +1,29 @@
+# What goes into the source distribution, decided here rather than left to
+# setuptools' defaults. Those defaults were putting `tests/test_*.py` into the
+# sdist without `conftest.py`, `tests/tsa.py` or the fixtures beside them: a
+# test suite that cannot even be collected, which is worse than none.
+#
+# The corpus builder is excluded for the same reason the Docker image excludes
+# it (see SECURITY.md): `evals/corpus/build.py` writes working gadget pickles,
+# and a published artifact is not where that belongs. Someone who wants to run
+# the suite or reproduce the figures clones the repository, which is also the
+# only place the numbers can be regenerated from.
+include LICENSE
+include README.md
+include README.es.md
+include CHANGELOG.md
+include CONTRIBUTING.md
+include SECURITY.md
+include CODE_OF_CONDUCT.md
+include CITATION.cff
+recursive-include docs *.md
+
+prune tests
+prune evals
+prune fuzz
+prune .github
+exclude Makefile
+exclude Dockerfile
+exclude .dockerignore
+exclude .pre-commit-hooks.yaml
+exclude figures.json

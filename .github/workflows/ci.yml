@@ -1,0 +1,307 @@
+# Every gate this project claims, as a workflow definition. The rule from the
+# Makefile applies: no step is allowed a `|| true`. A step that cannot fail is
+# not a check.
+#
+# WHAT THIS FILE IS. The integration definition, and it does run: the tree has
+# a remote and these jobs execute on every push to `main` and every pull
+# request. It is still not the whole gate. `make all` is what a change is held
+# against on a laptop, and `make release-check` is the one that refuses a tree
+# whose parts disagree with each other - the README states which of the two
+# produced any figure it prints.
+#
+# WHAT IT NO LONGER CONTAINS. A `release` job that built the artifacts on a
+# `v*` tag and called `gh release create`. Publishing is a deliberate act, and
+# a workflow that performs it on a tag push is the opposite of deliberate -
+# especially in a tree with nowhere to publish to. The version agreement it
+# checked (tag, pyproject, `__init__`, CHANGELOG, CITATION) is checked by
+# `scripts/release_check.py`, which runs on a laptop and needs no tag. Building
+# and checking the artifacts is `make package`.
+#
+# ON PINNING. The `actions/*` steps below are pinned to a major tag, not to a
+# commit SHA. A SHA is stricter and is the right thing in a pipeline that runs,
+# and the way to get one is to resolve it on a machine that can reach the
+# registry and record it there. A SHA copied into a repository from somewhere
+# else is a claim the repository cannot check, which is the same argument the
+# Dockerfile makes about the base image digest, and this project does not make
+# claims it cannot check.
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[dev]"
+      - name: ruff
+        run: python -m ruff check src tests evals fuzz scripts
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install -e ".[dev]"
+      - name: tests
+        run: python -m pytest tests
+      # The RFC 3161 tests compare this project's DER against bytes OpenSSL
+      # wrote, and hand what the test authority issues back to OpenSSL. The
+      # runner has it; this asserts that rather than assuming it, because those
+      # cross-checks skip silently when it is missing.
+      - name: openssl is present, so the cross-implementation checks ran
+        run: openssl version
+
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[dev]"
+      - name: evaluation harness
+        run: |
+          rm -rf evals/artifacts
+          PYTHONPATH=src python evals/corpus/build.py evals/artifacts
+          python evals/harness.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: eval-results
+          path: evals/results.json
+          if-no-files-found: error
+
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[dev]"
+      # The CI budget is short on purpose: 5 000 cases per target is a smoke
+      # test of the property, not a search. `make fuzz-long` is the one that
+      # finds things, and it is run before a release rather than on every push.
+      - name: fuzz every parser, CI budget
+        run: make fuzz
+      - uses: actions/upload-artifact@v7
+        with:
+          name: fuzz-summary
+          path: fuzz/runs/latest/summary.json
+          if-no-files-found: error
+
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[dev]"
+      # The rivals, at whatever version pip resolves today. Not pinned: the
+      # comparison is only interesting against what a user would install now,
+      # and the versions actually used are recorded in benchmark.json.
+      - name: install the other scanners
+        run: python -m pip install picklescan modelscan fickling
+      # No real-artifact corpus here: it needs torch, onnx and h5py, which is
+      # gigabytes of download for a comparison the generated corpus already
+      # supports. `make benchmark` locally includes it.
+      - name: benchmark against picklescan, modelscan and fickling
+        run: |
+          rm -rf evals/artifacts
+          PYTHONPATH=src python evals/corpus/build.py evals/artifacts
+          python evals/benchmark.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-results
+          path: evals/benchmark.json
+          if-no-files-found: error
+
+  figures:
+    # Runs last and reads what the other jobs measured, so docs/FIGURES.md
+    # published by a run describes that run rather than whatever was last
+    # committed.
+    needs: [eval, fuzz, benchmark]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[dev]"
+      - uses: actions/download-artifact@v8
+        with:
+          path: measured
+      - name: put the measured JSON where the script expects it
+        run: |
+          mkdir -p fuzz/runs/latest
+          mv measured/eval-results/results.json evals/results.json
+          mv measured/benchmark-results/benchmark.json evals/benchmark.json
+          mv measured/fuzz-summary/summary.json fuzz/runs/latest/summary.json
+          rm -rf measured
+      - name: measure the repository
+        run: make figures
+      - name: show what will be published
+        run: cat docs/FIGURES.md
+      - uses: actions/upload-artifact@v7
+        with:
+          name: figures
+          path: |
+            docs/FIGURES.md
+            figures.json
+          if-no-files-found: error
+
+  attest-self:
+    # Actaira attests its own eval corpus, resumes the chain, proves the second
+    # package extends the first, rotates the signing key and verifies the old
+    # package against the rotated keyring. A regression in the signing, the
+    # consistency proof or the rotation path fails CI rather than being noticed
+    # by a user holding an old root.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[dev]"
+      - name: build the corpus
+        run: PYTHONPATH=src python evals/corpus/build.py evals/artifacts
+      - name: attest, verify, extend
+        run: |
+          set -euo pipefail
+          export ACTAIRA_KEY="$RUNNER_TEMP/keys/signing-key.pem"
+          # The corpus is full of artifacts that must fail, so the exit code is
+          # 1 by design and the package is written either way.
+          actaira attest evals/artifacts --out "$RUNNER_TEMP/first.zip" --key "$ACTAIRA_KEY" || test $? -eq 1
+          actaira verify "$RUNNER_TEMP/first.zip"
+          actaira attest evals/artifacts --out "$RUNNER_TEMP/second.zip" --key "$ACTAIRA_KEY" \
+            --continue "$RUNNER_TEMP/first.zip" || test $? -eq 1
+          actaira verify "$RUNNER_TEMP/second.zip" --extends "$RUNNER_TEMP/first.zip"
+      - name: rotate the key, and check the old package still verifies
+        run: |
+          set -euo pipefail
+          export ACTAIRA_KEY="$RUNNER_TEMP/keys/signing-key.pem"
+          actaira keygen --key "$ACTAIRA_KEY" --rotate
+          actaira verify "$RUNNER_TEMP/first.zip" \
+            --trusted-keyring "$RUNNER_TEMP/keys/keyring.json" --require-trust
+      - name: a package signed by a revoked key must be refused
+        run: |
+          set -euo pipefail
+          export ACTAIRA_KEY="$RUNNER_TEMP/keys/signing-key.pem"
+          KEY_ID="$(python -c "
+          import json, sys
+          ring = json.load(open('$RUNNER_TEMP/keys/keyring.json'))
+          print(next(k['key_id'] for k in ring['keys'] if k['status'] == 'retired'))
+          ")"
+          actaira keygen --key "$ACTAIRA_KEY" --revoke "$KEY_ID"
+          if actaira verify "$RUNNER_TEMP/first.zip" \
+               --trusted-keyring "$RUNNER_TEMP/keys/keyring.json"; then
+            echo "::error::a package signed by a revoked key verified" && exit 1
+          fi
+
+  package:
+    # "It is installable" is a claim, so it is checked: build the sdist and the
+    # wheel, install each into an empty environment that has never seen this
+    # checkout, and run the tool from there.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: build sdist and wheel
+        run: |
+          python -m pip install build twine
+          python -m build
+          python -m twine check dist/*
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/*
+          if-no-files-found: error
+      - name: install from the sdist and use it
+        run: |
+          set -euo pipefail
+          python -m venv "$RUNNER_TEMP/from-sdist"
+          "$RUNNER_TEMP/from-sdist/bin/python" -m pip install --quiet dist/*.tar.gz
+          VERSION="$(python -c "import tomllib, pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")"
+          REPORTED="$("$RUNNER_TEMP/from-sdist/bin/actaira" --version)"
+          echo "pyproject says $VERSION, the installed tool says $REPORTED"
+          test "$REPORTED" = "actaira $VERSION"
+      - name: the package carries the tool and nothing else
+        run: |
+          set -euo pipefail
+          # -I: isolated, so the checkout's own directory is off sys.path and
+          # these imports say what is installed rather than what is lying about.
+          "$RUNNER_TEMP/from-sdist/bin/python" -I -c "import actaira, actaira.web, actaira.attest.timestamp"
+          "$RUNNER_TEMP/from-sdist/bin/python" -I -c "
+          import importlib.resources as resources
+          assert (resources.files('actaira') / 'i18n' / 'es.json').is_file(), 'the catalogue did not ship'
+          assert (resources.files('actaira') / 'web' / 'static' / 'app.js').is_file(), 'the interface did not ship'
+          "
+          for module in evals tests; do
+            if "$RUNNER_TEMP/from-sdist/bin/python" -I -c "import $module" 2>/dev/null; then
+              echo "::error::the installed package exposes $module" && exit 1
+            fi
+          done
+          # And the sdist itself: the corpus builder writes working gadget
+          # pickles, and a published artifact is not where that belongs.
+          # SECURITY.md makes that claim; this is the check behind it.
+          python - <<'PY'
+          import sys, tarfile, pathlib
+          archive = next(pathlib.Path("dist").glob("*.tar.gz"))
+          names = [name.split("/", 1)[1] for name in tarfile.open(archive).getnames() if "/" in name]
+          smuggled = [name for name in names if name.startswith(("tests/", "evals/", "fuzz/"))]
+          if smuggled:
+              sys.exit(f"::error::the sdist carries {smuggled[:5]}")
+          print(f"{archive.name}: {len(names)} files, none of them corpus, tests or fuzzing")
+          PY
+      - name: scan with the installed tool, and check the exit codes
+        run: |
+          set -euo pipefail
+          # The corpus builder runs from the checkout, not from the installed
+          # package, and it writes its benign half with numpy's own serialiser.
+          # This job deliberately never installs `.[dev]` - the whole point is
+          # an environment that has never seen this checkout - so the one dev
+          # dependency the builder needs is installed here, into the runner's
+          # Python and not into either of the venvs under test.
+          python -m pip install --quiet "numpy>=1.26"
+          PYTHONPATH=src python evals/corpus/build.py "$RUNNER_TEMP/corpus"
+          mkdir -p "$RUNNER_TEMP/clean"
+          cp "$RUNNER_TEMP/corpus/benign_model.safetensors" "$RUNNER_TEMP/clean/"
+          # 0 on a clean directory ...
+          "$RUNNER_TEMP/from-sdist/bin/actaira" scan "$RUNNER_TEMP/clean"
+          # ... and 1 on the corpus, which is full of artifacts that must fail.
+          set +e
+          "$RUNNER_TEMP/from-sdist/bin/actaira" scan "$RUNNER_TEMP/corpus" --format sarif --out "$RUNNER_TEMP/out.sarif"
+          code=$?
+          set -e
+          test "$code" -eq 1 || { echo "::error::expected exit code 1, got $code"; exit 1; }
+          python -c "import json,sys; d=json.load(open('$RUNNER_TEMP/out.sarif')); assert d['runs'][0]['results'], 'SARIF carried no results'"
+      - name: install from the wheel and use it
+        run: |
+          set -euo pipefail
+          python -m venv "$RUNNER_TEMP/from-wheel"
+          "$RUNNER_TEMP/from-wheel/bin/python" -m pip install --quiet dist/*.whl
+          "$RUNNER_TEMP/from-wheel/bin/actaira" --version

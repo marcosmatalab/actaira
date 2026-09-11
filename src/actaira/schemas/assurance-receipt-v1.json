@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actaira.dev/schemas/assurance-receipt-v1.json",
+  "title": "Assurance receipt",
+  "description": "A signed statement of observed state. Not a certification and not a score: no property of this document is a percentage, a grade or a rating, and a producer that adds one is not producing this format. `states_what_it_does_not_cover` is required, because the commonest way an assurance document misleads is by being read as exhaustive.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "assurance-receipt/v1"
+    },
+    "tool": {
+      "const": "actaira"
+    },
+    "tool_version": {
+      "type": "string"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "system": {
+      "type": "string"
+    },
+    "subjects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "pass",
+              "fail",
+              "inconclusive"
+            ]
+          },
+          "coverage": {
+            "$ref": "https://actaira.dev/schemas/coverage-v1.json"
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "verdict",
+          "coverage"
+        ]
+      }
+    },
+    "coverage": {
+      "$ref": "https://actaira.dev/schemas/coverage-v1.json"
+    },
+    "findings_by_severity": {
+      "type": "object",
+      "properties": {
+        "critical": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "high": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "medium": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "low": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "info": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "info"
+      ]
+    },
+    "supply_chain": {
+      "type": "object",
+      "properties": {
+        "attestation": {
+          "enum": [
+            "none",
+            "present"
+          ]
+        },
+        "signature_verified": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "signer_trusted": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "time_anchor_trust": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "attestation",
+        "signature_verified",
+        "signer_trusted"
+      ]
+    },
+    "policy_decision": {
+      "$ref": "https://actaira.dev/schemas/policy-decision-v1.json"
+    },
+    "states_what_it_does_not_cover": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "surface": {
+            "enum": [
+              "load_time_execution",
+              "archive_structure",
+              "artifact_metadata",
+              "raw_tensor_content",
+              "behavioral_safety",
+              "organizational_facts"
+            ]
+          },
+          "state": {
+            "enum": [
+              "complete",
+              "partial",
+              "failed",
+              "not_assessed"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "surface",
+          "state",
+          "reason"
+        ]
+      }
+    },
+    "signature": {
+      "type": "object",
+      "properties": {
+        "algorithm": {
+          "const": "ed25519"
+        },
+        "over": {
+          "type": "string"
+        },
+        "receipt_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "key_id": {
+          "type": "string"
+        },
+        "public_key_b64": {
+          "type": "string"
+        },
+        "fingerprint_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "value_b64": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "algorithm",
+        "receipt_sha256",
+        "public_key_b64",
+        "fingerprint_sha256",
+        "value_b64"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "tool",
+    "observed_at",
+    "subjects",
+    "coverage",
+    "findings_by_severity",
+    "supply_chain",
+    "states_what_it_does_not_cover"
+  ],
+  "additionalProperties": true
+}

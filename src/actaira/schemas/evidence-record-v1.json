@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actaira.dev/schemas/evidence-record-v1.json",
+  "title": "Evidence record",
+  "description": "One observation, with an identity, a lifetime and a reason it stopped counting. The five states are not degrees of confidence: `stale` means nobody has looked lately, `superseded` means somebody looked and this is not the current answer, `revoked` is a fact about the world, and `untrusted` is a decision made in this environment. A policy may rest only on `valid`. `subject_digest` is what supersession is bound to - a re-observation of a subject that did not change supersedes nothing.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "evidence-record/v1"
+    },
+    "evidence_id": {
+      "type": "string",
+      "pattern": "^ev_[0-9a-f]{8,64}$"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "subject_digest": {
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "artifact_scan",
+        "bundle",
+        "agent_assessment",
+        "policy_decision",
+        "governance",
+        "attestation",
+        "source_snapshot"
+      ]
+    },
+    "collector": {
+      "type": "string"
+    },
+    "collector_version": {
+      "type": "string"
+    },
+    "observed_at": {
+      "type": "string"
+    },
+    "valid_until": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "state": {
+      "enum": [
+        "valid",
+        "stale",
+        "superseded",
+        "revoked",
+        "untrusted"
+      ]
+    },
+    "supersedes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "trust": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "evidence_id",
+    "subject",
+    "kind",
+    "collector",
+    "collector_version",
+    "observed_at",
+    "state",
+    "digest"
+  ],
+  "additionalProperties": true
+}

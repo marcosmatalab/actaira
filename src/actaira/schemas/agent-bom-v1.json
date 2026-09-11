@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actaira.dev/schemas/agent-bom-v1.json",
+  "title": "Agent bill of materials",
+  "description": "Everything an agent is made of, each component versioned. `effects` is the union of what its tools can cause, and it is what the capability rules reason over: a component list without effects cannot express the combinations that are the actual risk.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "agent-bom/v1"
+    },
+    "agent": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "model": {
+      "type": "object"
+    },
+    "prompt": {
+      "type": "object"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "effects": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "enum": [
+                "read",
+                "write",
+                "delete",
+                "network",
+                "exec",
+                "secrets",
+                "send",
+                "pay",
+                "untrusted_input"
+              ]
+            }
+          },
+          "requires_approval": {
+            "type": "boolean"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "effects",
+          "requires_approval"
+        ]
+      }
+    },
+    "mcp_servers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "pinned": {
+            "type": "boolean"
+          },
+          "publisher": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "reference",
+          "pinned"
+        ]
+      }
+    },
+    "identities": {
+      "type": "array"
+    },
+    "data_sources": {
+      "type": "array"
+    },
+    "sub_agents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "effects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "agent_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "agent",
+    "tools",
+    "mcp_servers",
+    "effects"
+  ],
+  "additionalProperties": true
+}

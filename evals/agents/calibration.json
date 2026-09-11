@@ -1,0 +1,429 @@
+{
+  "admissible_cells": 938,
+  "agrees_with_shipped": true,
+  "calibration_counts_at_shipped": {
+    "abstained": 7,
+    "correct": 23,
+    "incorrect": 2,
+    "objective": 21
+  },
+  "cells": 3757,
+  "chosen": {
+    "ceiling": 0.5,
+    "floor": 0.25,
+    "min_terms": 12
+  },
+  "chosen_counts": {
+    "abstained": 7,
+    "correct": 23,
+    "incorrect": 2
+  },
+  "constraints": [
+    "misfiled:ai-literacy-control-misfiled",
+    "misfiled:copyright-policy-control-misfiled",
+    "misfiled:systemic-risk-control-misfiled",
+    "misfiled:emotion-recognition-notice-control-misfiled",
+    "misfiled:deployer-oversight-control-misfiled",
+    "ablation:ai-literacy-positive-1--ablated",
+    "ablation:copyright-policy-positive-1--ablated",
+    "ablation:systemic-risk-positive-1--ablated",
+    "ablation:emotion-recognition-notice-positive-1--ablated",
+    "ablation:deployer-oversight-positive-1--ablated"
+  ],
+  "grid": [
+    0.0,
+    0.05,
+    0.1,
+    0.15,
+    0.2,
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.45,
+    0.5,
+    0.55,
+    0.6,
+    0.65,
+    0.7,
+    0.75,
+    0.8
+  ],
+  "heldout_counts_at_chosen": {
+    "abstained": 9,
+    "correct": 23,
+    "incorrect": 1,
+    "objective": 22
+  },
+  "heldout_counts_at_shipped": {
+    "abstained": 9,
+    "correct": 23,
+    "incorrect": 1,
+    "objective": 22
+  },
+  "n_samples": 32,
+  "objective": "correct_minus_incorrect_over_answered, maximised inside the admissible region",
+  "plateau": [
+    {
+      "abstained": 7,
+      "ceiling": 0.5,
+      "correct": 23,
+      "floor": 0.0,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.55,
+      "correct": 23,
+      "floor": 0.0,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.6,
+      "correct": 23,
+      "floor": 0.0,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.65,
+      "correct": 23,
+      "floor": 0.0,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.7,
+      "correct": 23,
+      "floor": 0.0,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.75,
+      "correct": 23,
+      "floor": 0.0,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.8,
+      "correct": 23,
+      "floor": 0.0,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.5,
+      "correct": 23,
+      "floor": 0.05,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.55,
+      "correct": 23,
+      "floor": 0.05,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.6,
+      "correct": 23,
+      "floor": 0.05,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.65,
+      "correct": 23,
+      "floor": 0.05,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.7,
+      "correct": 23,
+      "floor": 0.05,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.75,
+      "correct": 23,
+      "floor": 0.05,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.8,
+      "correct": 23,
+      "floor": 0.05,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.5,
+      "correct": 23,
+      "floor": 0.1,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.55,
+      "correct": 23,
+      "floor": 0.1,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.6,
+      "correct": 23,
+      "floor": 0.1,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.65,
+      "correct": 23,
+      "floor": 0.1,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.7,
+      "correct": 23,
+      "floor": 0.1,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.75,
+      "correct": 23,
+      "floor": 0.1,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.8,
+      "correct": 23,
+      "floor": 0.1,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.5,
+      "correct": 23,
+      "floor": 0.15,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.55,
+      "correct": 23,
+      "floor": 0.15,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.6,
+      "correct": 23,
+      "floor": 0.15,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.65,
+      "correct": 23,
+      "floor": 0.15,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.7,
+      "correct": 23,
+      "floor": 0.15,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.75,
+      "correct": 23,
+      "floor": 0.15,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.8,
+      "correct": 23,
+      "floor": 0.15,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.5,
+      "correct": 23,
+      "floor": 0.2,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.55,
+      "correct": 23,
+      "floor": 0.2,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.6,
+      "correct": 23,
+      "floor": 0.2,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.65,
+      "correct": 23,
+      "floor": 0.2,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.7,
+      "correct": 23,
+      "floor": 0.2,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.75,
+      "correct": 23,
+      "floor": 0.2,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.8,
+      "correct": 23,
+      "floor": 0.2,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.5,
+      "correct": 23,
+      "floor": 0.25,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.55,
+      "correct": 23,
+      "floor": 0.25,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.6,
+      "correct": 23,
+      "floor": 0.25,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.65,
+      "correct": 23,
+      "floor": 0.25,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.7,
+      "correct": 23,
+      "floor": 0.25,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.75,
+      "correct": 23,
+      "floor": 0.25,
+      "incorrect": 2,
+      "min_terms": 12
+    },
+    {
+      "abstained": 7,
+      "ceiling": 0.8,
+      "correct": 23,
+      "floor": 0.25,
+      "incorrect": 2,
+      "min_terms": 12
+    }
+  ],
+  "shipped": {
+    "ceiling": 0.5,
+    "floor": 0.25,
+    "min_terms": 12
+  },
+  "split_sizes": {
+    "calibration": 32,
+    "heldout": 33
+  },
+  "term_grid": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "tie_break": "fewest answered, then highest floor, then lowest ceiling, then highest min_terms"
+}

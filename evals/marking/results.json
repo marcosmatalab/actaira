@@ -1,0 +1,203 @@
+{
+  "corpus_files": 4,
+  "transformations": [
+    "reencode_jpeg_q85",
+    "reencode_jpeg_q60",
+    "resize_half",
+    "crop_10pct",
+    "rotate_90",
+    "convert_to_jpeg",
+    "convert_to_png",
+    "strip_metadata",
+    "reencode_jpeg_q85_metadata_aware",
+    "resize_half_metadata_aware"
+  ],
+  "trials": 40,
+  "survived": 8,
+  "naive_pipeline": {
+    "survived": 0,
+    "trials": 32
+  },
+  "metadata_aware_pipeline": {
+    "survived": 8,
+    "trials": 8
+  },
+  "per_transformation": {
+    "reencode_jpeg_q85": {
+      "survived": 0,
+      "trials": 4
+    },
+    "reencode_jpeg_q60": {
+      "survived": 0,
+      "trials": 4
+    },
+    "resize_half": {
+      "survived": 0,
+      "trials": 4
+    },
+    "crop_10pct": {
+      "survived": 0,
+      "trials": 4
+    },
+    "rotate_90": {
+      "survived": 0,
+      "trials": 4
+    },
+    "convert_to_jpeg": {
+      "survived": 0,
+      "trials": 4
+    },
+    "convert_to_png": {
+      "survived": 0,
+      "trials": 4
+    },
+    "strip_metadata": {
+      "survived": 0,
+      "trials": 4
+    },
+    "reencode_jpeg_q85_metadata_aware": {
+      "survived": 4,
+      "trials": 4
+    },
+    "resize_half_metadata_aware": {
+      "survived": 4,
+      "trials": 4
+    }
+  },
+  "losses": [
+    [
+      "generated_0.png",
+      "reencode_jpeg_q85"
+    ],
+    [
+      "generated_0.png",
+      "reencode_jpeg_q60"
+    ],
+    [
+      "generated_0.png",
+      "resize_half"
+    ],
+    [
+      "generated_0.png",
+      "crop_10pct"
+    ],
+    [
+      "generated_0.png",
+      "rotate_90"
+    ],
+    [
+      "generated_0.png",
+      "convert_to_jpeg"
+    ],
+    [
+      "generated_0.png",
+      "convert_to_png"
+    ],
+    [
+      "generated_0.png",
+      "strip_metadata"
+    ],
+    [
+      "generated_1.jpg",
+      "reencode_jpeg_q85"
+    ],
+    [
+      "generated_1.jpg",
+      "reencode_jpeg_q60"
+    ],
+    [
+      "generated_1.jpg",
+      "resize_half"
+    ],
+    [
+      "generated_1.jpg",
+      "crop_10pct"
+    ],
+    [
+      "generated_1.jpg",
+      "rotate_90"
+    ],
+    [
+      "generated_1.jpg",
+      "convert_to_jpeg"
+    ],
+    [
+      "generated_1.jpg",
+      "convert_to_png"
+    ],
+    [
+      "generated_1.jpg",
+      "strip_metadata"
+    ],
+    [
+      "generated_2.png",
+      "reencode_jpeg_q85"
+    ],
+    [
+      "generated_2.png",
+      "reencode_jpeg_q60"
+    ],
+    [
+      "generated_2.png",
+      "resize_half"
+    ],
+    [
+      "generated_2.png",
+      "crop_10pct"
+    ],
+    [
+      "generated_2.png",
+      "rotate_90"
+    ],
+    [
+      "generated_2.png",
+      "convert_to_jpeg"
+    ],
+    [
+      "generated_2.png",
+      "convert_to_png"
+    ],
+    [
+      "generated_2.png",
+      "strip_metadata"
+    ],
+    [
+      "generated_3.jpg",
+      "reencode_jpeg_q85"
+    ],
+    [
+      "generated_3.jpg",
+      "reencode_jpeg_q60"
+    ],
+    [
+      "generated_3.jpg",
+      "resize_half"
+    ],
+    [
+      "generated_3.jpg",
+      "crop_10pct"
+    ],
+    [
+      "generated_3.jpg",
+      "rotate_90"
+    ],
+    [
+      "generated_3.jpg",
+      "convert_to_jpeg"
+    ],
+    [
+      "generated_3.jpg",
+      "convert_to_png"
+    ],
+    [
+      "generated_3.jpg",
+      "strip_metadata"
+    ]
+  ],
+  "negative_controls": {
+    "unmarked_reads_unmarked": true,
+    "marked_reads_marked": true,
+    "stripped_reads_unmarked": true,
+    "all_passed": true
+  }
+}

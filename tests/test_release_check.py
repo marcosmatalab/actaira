@@ -1,0 +1,333 @@
+"""The gate itself: it has to pass, and it has to be able to fail.
+
+Design note D-180. A consistency gate that cannot fail is a green tick with
+nothing behind it, and this repository has had the exact drift the gate looks
+for - a stale figure, a stale threat model, a version with no changelog entry.
+So each check is exercised against a working tree that has been broken on
+purpose, in a copy.
+"""
+from __future__ import annotations
+
+import json
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+from conftest import REPO_ROOT
+
+SCRIPT = Path(REPO_ROOT) / "scripts" / "release_check.py"
+
+
+def run(cwd: Path) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [sys.executable, str(cwd / "scripts" / "release_check.py")],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+
+
+@pytest.fixture(scope="module")
+def working_tree(tmp_path_factory) -> Path:
+    """A copy of the repository, so a broken check cannot break the checkout.
+
+    Copied rather than mutated in place because these tests edit CHANGELOG.md
+    and figures.json, and a test that corrupts the working tree when it fails
+    partway through is worse than no test.
+    """
+    destination = tmp_path_factory.mktemp("tree") / "actaira"
+    shutil.copytree(
+        REPO_ROOT,
+        destination,
+        ignore=shutil.ignore_patterns(
+            "__pycache__", ".git", "*.pyc", ".pytest_cache", "evals/artifacts", "fuzz/runs"
+        ),
+    )
+    return destination
+
+
+def test_the_gate_passes_on_this_repository(working_tree):
+    result = run(working_tree)
+
+    assert result.returncode == 0, result.stdout
+    match = re.search(r"all (\d+) checks passed", result.stdout)
+    assert match, result.stdout
+    # Counted from the script rather than written here. A literal would make
+    # adding a check fail this test, which is the treadmill D-181 removed from
+    # the figure check - and the thing worth asserting is that every check ran
+    # and none failed, not that there are exactly nine of them.
+    assert int(match.group(1)) == result.stdout.count("  ok    ")
+
+
+def test_a_version_with_no_changelog_entry_fails(working_tree, tmp_path):
+    """The drift the gate found on its own first run: 2.0.0 was released and
+    this file never got an entry."""
+    broken = tmp_path / "no-changelog"
+    shutil.copytree(working_tree, broken)
+    changelog = broken / "CHANGELOG.md"
+    from actaira import __version__
+
+    changelog.write_text(
+        changelog.read_text(encoding="utf-8").replace(f"[{__version__}]", "[9.9.9]"), encoding="utf-8"
+    )
+
+    result = run(broken)
+
+    assert result.returncode == 1
+    assert "CHANGELOG.md has no entry" in result.stdout
+
+
+def test_a_stale_figure_fails(working_tree, tmp_path):
+    """The drift that happened twice, and the second time it was the defect
+    count itself."""
+    broken = tmp_path / "stale-figures"
+    shutil.copytree(working_tree, broken)
+    figures = json.loads((broken / "figures.json").read_text(encoding="utf-8"))
+    figures["tests"]["collected"] = 1
+    (broken / "figures.json").write_text(json.dumps(figures), encoding="utf-8")
+
+    result = run(broken)
+
+    assert result.returncode == 1
+    assert "Run `make figures`" in result.stdout
+
+
+def test_an_undocumented_rule_fails(working_tree, tmp_path):
+    """A rule that can appear in a SARIF document and is in no table is a rule
+    whose link goes nowhere."""
+    broken = tmp_path / "undocumented-rule"
+    shutil.copytree(working_tree, broken)
+    for lang in ("en", "es"):
+        path = broken / "src" / "actaira" / "i18n" / f"{lang}.json"
+        catalogue = json.loads(path.read_text(encoding="utf-8"))
+        catalogue["rules"]["ACT-NEW-001"] = "a rule nobody documented"
+        path.write_text(json.dumps(catalogue, ensure_ascii=False), encoding="utf-8")
+
+    result = run(broken)
+
+    assert result.returncode == 1
+    assert "ACT-NEW-001" in result.stdout
+
+
+def test_a_rule_with_no_spanish_text_fails(working_tree, tmp_path):
+    """The normal fate of a second language is to rot. This is what stops it."""
+    broken = tmp_path / "untranslated"
+    shutil.copytree(working_tree, broken)
+    path = broken / "src" / "actaira" / "i18n" / "en.json"
+    catalogue = json.loads(path.read_text(encoding="utf-8"))
+    catalogue["rules"]["ACT-NEW-002"] = "english only"
+    path.write_text(json.dumps(catalogue, ensure_ascii=False), encoding="utf-8")
+
+    result = run(broken)
+
+    assert result.returncode == 1
+    assert "no Spanish text" in result.stdout
+
+
+def test_a_schema_that_disagrees_with_its_module_fails(working_tree, tmp_path):
+    """Two places recording one version number is how a document ends up
+    declaring a version whose shape it does not have."""
+    broken = tmp_path / "schema-drift"
+    shutil.copytree(working_tree, broken)
+    path = broken / "src" / "actaira" / "schemas" / "coverage-v1.json"
+    schema = json.loads(path.read_text(encoding="utf-8"))
+    schema["properties"]["schema_version"]["const"] = "coverage/v99"
+    path.write_text(json.dumps(schema), encoding="utf-8")
+
+    result = run(broken)
+
+    assert result.returncode == 1
+    assert "coverage/v99" in result.stdout
+
+
+def test_a_command_the_documentation_never_mentions_fails(working_tree, tmp_path):
+    """A command nobody can find is a command nobody uses.
+
+    The index moved from the README to `docs/CONCEPTS.md` in 2.2.0, when the
+    README became a landing page rather than a reference manual. Breaking the
+    English page is enough: both are checked, and a gate that only noticed the
+    one the author reads is the parity failure this repository already had.
+    """
+    broken = tmp_path / "undocumented-command"
+    shutil.copytree(working_tree, broken)
+    page = broken / "docs" / "CONCEPTS.md"
+    page.write_text(
+        page.read_text(encoding="utf-8").replace("actaira receipt", "actaira reciept"),
+        encoding="utf-8",
+    )
+
+    result = run(broken)
+
+    assert result.returncode == 1
+    assert "receipt" in result.stdout
+
+
+def test_the_gate_names_what_it_compared_on_every_check(working_tree):
+    """A gate whose failure message is "release check failed" gets skipped
+    with --no-verify the first time somebody is in a hurry."""
+    result = run(working_tree)
+
+    for line in result.stdout.splitlines():
+        if line.strip().startswith("ok "):
+            continue
+    # Every ok line is followed by a detail line saying what was compared.
+    oks = [index for index, line in enumerate(result.stdout.splitlines()) if line.strip().startswith("ok ")]
+    lines = result.stdout.splitlines()
+
+    assert oks
+    for index in oks:
+        assert lines[index + 1].strip(), f"check at line {index} passed with no detail"
+
+
+# ---------------------------------------------------------------------------
+# DEF-100: a dead function whose docstring named callers that do not exist
+# ---------------------------------------------------------------------------
+# `handle_error`, `do_HEAD` and `do_OPTIONS` are overrides on
+# `BaseHTTPRequestHandler`. The framework calls them by name from code that is
+# not in this repository, so no reference to them can exist here and their
+# absence is not evidence of anything. Every other entry would be.
+FRAMEWORK_CALLBACKS = frozenset({"do_HEAD", "do_OPTIONS", "handle_error"})
+
+SEARCHED = ("src", "tests", "evals", "fuzz", "scripts")
+SEARCHED_SUFFIXES = (".py", ".md", ".json", ".yaml", ".yml", ".toml")
+
+
+def _identifier_counts() -> dict[str, int]:
+    """Every identifier-shaped word in the repository, with how often it appears.
+
+    Tokenising Python and word-splitting everything else, because a function
+    can legitimately be reached by name from a string: a registry keyed on
+    `"art50"`, a `getattr`, a dispatch table in YAML. Counting words rather
+    than resolving calls therefore under-reports rather than over-reports,
+    which is the direction a gate like this has to err in.
+    """
+    import collections
+    import io
+    import tokenize
+
+    counts: collections.Counter[str] = collections.Counter()
+    word = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+    for root in SEARCHED:
+        for path in (Path(REPO_ROOT) / root).rglob("*"):
+            if path.suffix not in SEARCHED_SUFFIXES or "__pycache__" in path.parts:
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if path.suffix != ".py":
+                counts.update(word.findall(text))
+                continue
+            try:
+                for token in tokenize.generate_tokens(io.StringIO(text).readline):
+                    if token.type == tokenize.NAME:
+                        counts[token.string] += 1
+                    elif token.type == tokenize.STRING:
+                        counts.update(word.findall(token.string))
+            except (tokenize.TokenError, IndentationError, SyntaxError):
+                counts.update(word.findall(text))
+    return counts
+
+
+def test_no_source_function_is_unreachable_from_the_package_or_its_tests():
+    """A function nothing names is either dead or wired wrong, and both matter.
+
+    `statecli.record_evidence_for_report` was the case that produced this
+    test: nothing called it, and its own docstring said it was "used by
+    `scan --state` and by `receipt issue`". `scan` has no `--state` flag and
+    `receipt issue` never called it. Dead code is weight; dead code that
+    documents a wiring a reader will then look for is a false statement about
+    how the tool works, which is the thing this repository is least allowed
+    to ship.
+    """
+    import ast
+    import collections
+
+    counts = _identifier_counts()
+    definitions: dict[str, list[str]] = collections.defaultdict(list)
+    for path in (Path(REPO_ROOT) / "src").rglob("*.py"):
+        if "__pycache__" in path.parts:
+            continue
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+                definitions[node.name].append(f"{path.relative_to(REPO_ROOT)}:{node.lineno}")
+
+    unreachable = {
+        name: places
+        for name, places in definitions.items()
+        if not (name.startswith("__") and name.endswith("__"))
+        and name not in FRAMEWORK_CALLBACKS
+        and counts[name] <= len(places)
+    }
+    assert not unreachable, (
+        "function(s) never named anywhere but their own definition:\n  "
+        + "\n  ".join(f"{name}: {', '.join(places)}" for name, places in sorted(unreachable.items()))
+        + "\nDelete them, or wire them to the caller their docstring claims."
+    )
+
+
+def test_an_image_no_document_displays_fails(working_tree, tmp_path):
+    """`docs/img/` held two captures of v1.0.0 next to six of v2.2.0.
+
+    They were untracked, on the argument that an image nothing displays is not
+    documentation - which was right, and did nothing, because untracked is not
+    absent and a delivered copy of the tree carried them anyway. The captures
+    that are only a smoke test go to `.screenshots/` now, and this is the check
+    that keeps the documentation directory holding documentation.
+
+    Written as a property of the directory, not a list of two file names: any
+    file that lands there and is not shown fails, whatever it is called.
+    """
+    broken = tmp_path / "orphan-image"
+    shutil.copytree(working_tree, broken)
+    images = broken / "docs" / "img"
+    shutil.copyfile(next(images.glob("*.png")), images / "01-welcome.png")
+
+    result = run(broken)
+
+    assert result.returncode == 1
+    assert "no document displays" in result.stdout
+    assert "01-welcome.png" in result.stdout
+
+
+def test_a_document_pointing_at_a_missing_image_fails(working_tree, tmp_path):
+    """The other direction, which is the one a reader meets: a README showing a
+    broken image is worse than one showing none."""
+    broken = tmp_path / "missing-image"
+    shutil.copytree(working_tree, broken)
+    (broken / "docs" / "img" / "02-inspect.png").unlink()
+
+    result = run(broken)
+
+    assert result.returncode == 1
+    assert "not there" in result.stdout
+
+
+def test_a_dropped_ignore_rule_for_another_tool_s_run_log_fails(working_tree, tmp_path):
+    """DEF-53. `make benchmark` runs fickling as a subprocess, the way a user
+    would, and fickling appends its scan output to `safety_results.json` in
+    the working directory. That file was tracked, so every benchmark run put
+    a 300 KB diff of another tool's output on top of the previous run's.
+
+    The repair was one line in `.gitignore`, and one line is exactly what a
+    later rewrite of that file drops without anyone noticing: nothing goes
+    wrong until the next benchmark run quietly stages somebody else's JSON.
+    So the rule is asserted rather than assumed, and this is the test that
+    proves the assertion can fail.
+    """
+    broken = tmp_path / "unignored-run-log"
+    shutil.copytree(working_tree, broken)
+    ignore_file = broken / ".gitignore"
+    kept = [
+        line for line in ignore_file.read_text(encoding="utf-8").splitlines()
+        if line.strip() != "safety_results.json"
+    ]
+    ignore_file.write_text("\n".join(kept) + "\n", encoding="utf-8")
+
+    result = run(broken)
+
+    assert result.returncode == 1
+    assert "safety_results.json" in result.stdout
+    assert "no longer in .gitignore" in result.stdout

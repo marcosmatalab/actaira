@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actaira.dev/schemas/report-v1.json",
+  "title": "Artifact report",
+  "description": "Everything one static inspection established about one artifact. `verdict` is decided from `coverage`, never from a score: a surface the tool declined to read cannot make a verdict inconclusive, and one it tried to read and could not still does.",
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string"
+    },
+    "size_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "detected_format": {
+      "type": "string"
+    },
+    "format_confidence": {
+      "enum": [
+        "magic",
+        "structure",
+        "extension",
+        "unknown"
+      ]
+    },
+    "verdict": {
+      "enum": [
+        "pass",
+        "fail",
+        "inconclusive"
+      ]
+    },
+    "max_severity": {
+      "oneOf": [
+        {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "pattern": "^ACT-[A-Z0-9]+-[0-9]+$"
+          },
+          "severity": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "info"
+            ]
+          },
+          "location": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "rule_id",
+          "severity",
+          "location"
+        ]
+      }
+    },
+    "tensors": {
+      "type": "array"
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "imported_callables": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "inspector_errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "coverage": {
+      "$ref": "https://actaira.dev/schemas/coverage-v1.json"
+    }
+  },
+  "required": [
+    "path",
+    "size_bytes",
+    "sha256",
+    "detected_format",
+    "format_confidence",
+    "verdict",
+    "findings",
+    "coverage"
+  ],
+  "additionalProperties": true
+}
