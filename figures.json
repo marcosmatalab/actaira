@@ -410,10 +410,10 @@
     "core": {
       "blank": 387,
       "code": 1978,
-      "comment": 303,
+      "comment": 301,
       "docstring": 331,
       "files": 5,
-      "lines": 2999,
+      "lines": 2997,
       "note": "the model, the verdict rules, the CLI"
     },
     "evals": {
@@ -516,30 +516,30 @@
       "note": "this script"
     },
     "state": {
-      "blank": 496,
+      "blank": 498,
       "code": 1970,
-      "comment": 231,
-      "docstring": 820,
+      "comment": 238,
+      "docstring": 821,
       "files": 9,
-      "lines": 3517,
+      "lines": 3527,
       "note": "the SQLite store, watch, evidence, graph"
     },
     "tests": {
-      "blank": 6632,
-      "code": 16799,
-      "comment": 1428,
-      "docstring": 4042,
+      "blank": 6641,
+      "code": 16821,
+      "comment": 1430,
+      "docstring": 4052,
       "files": 58,
-      "lines": 28901,
+      "lines": 28944,
       "note": "the test suite"
     },
     "total": {
-      "blank": 12229,
-      "code": 43282,
-      "comment": 4677,
-      "docstring": 11604,
+      "blank": 12240,
+      "code": 43304,
+      "comment": 4684,
+      "docstring": 11615,
       "files": 176,
-      "lines": 71792,
+      "lines": 71843,
       "note": "every Python file under evals, fuzz, scripts, src, tests, each counted once"
     },
     "web": {
@@ -704,12 +704,12 @@
     "produced_by": "make fuzz",
     "source": "fuzz/runs/latest/summary.json"
   },
-  "generated_at": "2026-09-12T16:25:26+00:00",
+  "generated_at": "2026-09-12T16:34:01+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 3,
-    "head": "c439ee5",
+    "commits": 4,
+    "head": "0db4e14",
     "head_date": "2026-09-12"
   },
   "governance": {
@@ -752,7 +752,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 3593,
+    "collected": 3594,
     "files": 56,
     "per_file": {
       "tests/test_action_entrypoint.py": 14,
@@ -799,7 +799,7 @@
       "tests/test_sarif.py": 33,
       "tests/test_schemas.py": 59,
       "tests/test_state.py": 92,
-      "tests/test_state_change.py": 48,
+      "tests/test_state_change.py": 49,
       "tests/test_state_graph.py": 29,
       "tests/test_subjects.py": 52,
       "tests/test_timestamp.py": 47,

@@ -1606,13 +1606,11 @@ def _record_decision_in_state(
         with Store(args.state, create=False) as store:
             from .state import record as record_mod
 
-            # The order matters. The inputs are read BEFORE the decision's own
-            # evidence is written, because `decision_inputs` walks the
-            # evidence attached to each subject and the records this run is
-            # about to write are not things the decision depended on - they
-            # are the note that it happened. Writing first would make every
-            # decision depend on itself.
-            inputs = record_mod.decision_inputs(store, subjects or [], [])
+            # `decision_inputs` excludes `policy_decision` records by kind,
+            # so the order of these three statements is not load-bearing - and
+            # it was, until deciding twice about one subject showed the second
+            # decision recording the first one's note as an input.
+            inputs = record_mod.decision_inputs(store, subjects or [])
             store.record_decision(decision, proof_digest, inputs)
             record_mod.policy_decision(store, decision, proof_digest, subjects or [])
     except StoreError as exc:
