@@ -1255,6 +1255,10 @@ class ActairaHandler(BaseHTTPRequestHandler):
             "/api/graph": self._api_graph,
             "/api/graph/node": self._api_graph_node,
             "/api/impact": self._api_impact,
+            "/api/evidence": self._api_evidence,
+            "/api/evidence/record": self._api_evidence_record,
+            "/api/changes": self._api_changes,
+            "/api/decisions": self._api_decisions,
         }
         multipart = "multipart/form-data" in self.headers.get("Content-Type", "").lower()
 
@@ -1804,6 +1808,172 @@ class ActairaHandler(BaseHTTPRequestHandler):
         finally:
             store.close()
 
+    @staticmethod
+    def _one_of(body: dict[str, Any], field: str, allowed: tuple[str, ...]) -> str:
+        """An optional filter, refused when it is not one of the known values.
+
+        Never coerced to "all" when it does not match. A filter the server
+        silently ignored would show the reader every record under a heading
+        saying it had shown them one kind.
+        """
+        value = body.get(field, "")
+        if value in ("", None):
+            return ""
+        if not isinstance(value, str) or value not in allowed:
+            raise RequestError(HTTPStatus.BAD_REQUEST, "bad_" + field,
+                               f"`{field}` must be one of {', '.join(allowed)}")
+        return value
+
+    @staticmethod
+    def _search(body: dict[str, Any]) -> str:
+        raw = body.get("subject", "")
+        if raw in ("", None):
+            return ""
+        if not isinstance(raw, str):
+            raise RequestError(HTTPStatus.BAD_REQUEST, "bad_subject",
+                               "`subject` must be text")
+        text = raw.strip()
+        if len(text) > MAX_NODE_ID_CHARS:
+            raise RequestError(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "id_too_long",
+                               f"a subject is at most {MAX_NODE_ID_CHARS} characters")
+        return text
+
+    def _api_evidence(self, body: dict[str, Any]) -> None:
+        """The ledger, filtered, with the counts computed over all of it.
+
+        The counts are deliberately over the whole ledger rather than over the
+        filtered page. A reader who has filtered to `revoked` needs to know
+        how many valid records exist to understand the one in front of them,
+        and a summary that moved with the filter would answer a different
+        question every time it was touched.
+        """
+        from ..state.evidence import KINDS, EvidenceState
+
+        store = self._open_state()
+        try:
+            state = self._one_of(body, "state", tuple(item.value for item in EvidenceState))
+            kind = self._one_of(body, "kind", KINDS)
+            needle = self._search(body).lower()
+            everything = store.all_evidence()
+            rows = [
+                row for row in everything
+                if (not state or row["state"] == state)
+                and (not kind or row["kind"] == kind)
+                and (not needle or needle in str(row["subject_id"]).lower()
+                     or needle in str(row["subject_digest"]).lower()
+                     or needle in str(row["evidence_id"]).lower())
+            ]
+            shown = rows[:MAX_EVIDENCE_ROWS]
+            self._json({
+                "workspace": _workspace_state(self._state_database()),
+                "evidence": [_evidence_row(row) for row in shown],
+                "total": len(everything),
+                "matched": len(rows),
+                # Said rather than left to be inferred from a list that
+                # happens to be exactly the limit long.
+                "truncated": len(rows) > len(shown),
+                "limit": MAX_EVIDENCE_ROWS,
+                "by_state": _tally(everything, "state",
+                                   tuple(item.value for item in EvidenceState)),
+                "by_kind": _tally(everything, "kind", KINDS),
+            })
+        finally:
+            store.close()
+
+    def _api_evidence_record(self, body: dict[str, Any]) -> None:
+        """One record, its payload, and what its subject looks like now.
+
+        The comparison is the point of the panel. A record says it was taken
+        about a digest; the asset row says what that subject's digest is now;
+        and showing the two beside each other is what turns "superseded" from
+        a label into a fact the reader can check. When the store cannot
+        produce a current digest it says so rather than showing a blank that
+        reads as agreement.
+        """
+        import json as json_mod
+
+        store = self._open_state()
+        try:
+            wanted = self._node_id(body, "id")
+            record = store.evidence(wanted)
+            if record is None:
+                # Not a 404. An id this workspace does not hold is a fact
+                # about this workspace, and the panel renders it as an empty
+                # state rather than as a failed request.
+                return self._json({"asked": wanted, "found": False})
+            document: dict[str, Any] = {}
+            try:
+                parsed = json_mod.loads(record["document"] or "{}")
+                if isinstance(parsed, dict):
+                    document = parsed
+            except ValueError:  # pragma: no cover - only on a hand-edited store
+                document = {}
+            subject = str(record["subject_id"])
+            asset = store.asset(subject)
+            self._json({
+                "asked": wanted,
+                "found": True,
+                "record": _evidence_row(record),
+                "payload": document.get("payload") or {},
+                "trust": document.get("trust") or {},
+                "subject": {
+                    "id": subject,
+                    "known": asset is not None,
+                    "kind": (asset or {}).get("kind") or subject.partition(":")[0] or "unknown",
+                    "name": (asset or {}).get("name") or "",
+                    "digest_now": (asset or {}).get("digest") or "",
+                    "digest_then": record["subject_digest"] or "",
+                },
+                # Every record about this subject, oldest first, so one
+                # record can be read as a moment in a history rather than as
+                # a standalone assertion.
+                "timeline": [_evidence_row(row) for row in store.evidence_for(subject)],
+            })
+        finally:
+            store.close()
+
+    def _api_changes(self, body: dict[str, Any]) -> None:
+        """What has already happened, from the snapshots the store recorded."""
+        from ..state import change as change_mod
+
+        store = self._open_state()
+        try:
+            rows = change_mod.history(store, limit=MAX_CHANGE_ROWS)
+            self._json({
+                "workspace": _workspace_state(self._state_database()),
+                "changes": rows,
+                "limit": MAX_CHANGE_ROWS,
+                "states": list(change_mod.TIMELINE_STATES),
+                # The two `watch` states no stored row can ever exhibit,
+                # named in the response so the panel can say so instead of
+                # drawing a timeline that looks like it has every run in it.
+                "not_recorded": ["unchanged", "incomplete"],
+            })
+        finally:
+            store.close()
+
+    def _api_decisions(self, body: dict[str, Any]) -> None:
+        """Every recorded decision beside whether its inputs still hold.
+
+        `actaira decisions`, over the same engine. The historical value and
+        the current applicability are two separate fields and the panel is
+        required to render them as two separate things: this response never
+        rewrites `decision`.
+        """
+        from ..state import decide as decide_mod
+
+        store = self._open_state()
+        try:
+            rows = decide_mod.review(store)
+            self._json({
+                "workspace": _workspace_state(self._state_database()),
+                "decisions": [row.to_dict() for row in rows],
+                "counts": decide_mod.counts(rows),
+                "validities": list(decide_mod.VALIDITIES),
+            })
+        finally:
+            store.close()
+
     def _api_verify(self, upload: Upload, workdir: Path) -> None:
         result = verify_package(upload.path)
         payload = result.to_dict()
@@ -1856,6 +2026,14 @@ MAX_NODE_ID_CHARS = 512
 # stated and call the result the graph.
 MAX_GRAPH_NODES = 400
 MAX_GRAPH_EDGES = 1200
+
+# How many ledger rows and timeline entries one response carries. A ceiling
+# rather than paging, for the same reason the graph refuses rather than
+# samples: a page of results that says nothing about the rest is a picture
+# that looks complete. Both responses report `truncated` and the totals, so a
+# reader is told what they are not seeing.
+MAX_EVIDENCE_ROWS = 500
+MAX_CHANGE_ROWS = 200
 
 WORKSPACE_ABSENT = "absent"
 WORKSPACE_READY = "ready"
@@ -1948,6 +2126,43 @@ _WORKSPACE_MESSAGES = {
         "and downgrading it would mean guessing what its extra columns meant"
     ),
 }
+
+
+def _evidence_row(row: dict[str, Any]) -> dict[str, Any]:
+    """One ledger row as the interface reads it.
+
+    The stored `document` column is deliberately not here. It is the record's
+    own JSON and the panel that wants it asks for one record at a time; a list
+    endpoint that carried every document would put the whole ledger's payloads
+    through one response for a table that shows six columns.
+    """
+    return {
+        "evidence_id": row["evidence_id"],
+        "subject": row["subject_id"],
+        "subject_digest": row["subject_digest"] or "",
+        "kind": row["kind"],
+        "collector": row["collector"],
+        "collector_version": row["collector_version"],
+        "observed_at": row["observed_at"],
+        "valid_until": row["valid_until"] or "",
+        "state": row["state"],
+        "supersedes": row["supersedes"] or "",
+        "digest": row["digest"],
+    }
+
+
+def _tally(rows: list[dict[str, Any]], field: str, vocabulary: tuple[str, ...]) -> dict[str, int]:
+    """How many rows are in each value, every known value present at zero.
+
+    A count whose absent keys mean zero cannot be told apart from one whose
+    absent keys mean the server did not compute it, and a panel that hides a
+    zero is a panel that cannot show "nothing has been revoked".
+    """
+    tally = dict.fromkeys(vocabulary, 0)
+    for row in rows:
+        value = str(row[field])
+        tally[value] = tally.get(value, 0) + 1
+    return tally
 
 
 def _kind_counts(graph: Any) -> dict[str, int]:

@@ -6,7 +6,7 @@
 
 Inspect model artifacts without executing them. Find the routes an agent can be walked down. Enforce policy as code. Map technical evidence to EU AI Act obligations. Track what changes, and produce proof somebody else can verify.
 
-**Actaira 2.2.0** · Python 3.11 · 3.12 · 3.13 · MIT · one runtime dependency · local-first, no telemetry, no account
+**Actaira 2.3.0** · Python 3.11 · 3.12 · 3.13 · MIT · one runtime dependency · local-first, no telemetry, no account
 
 **[Español](README.es.md)** · [What it does](#what-actaira-does) · [Quickstart](#quickstart) · [EU AI Act](#the-eu-ai-act) · [Architecture](#architecture) · [Evaluation](#evaluation) · [Docs](#where-the-rest-lives)
 
@@ -29,7 +29,7 @@ Nothing is ever loaded, deserialised or executed. Nothing is ever scored.
 | | | |
 |---|---|---|
 | **80 documented rules** | **15 executable controls** | **21 obligations** modeled |
-| **3,474 tests**, none of them hand-written figures | **7 connectors** that never decide | one runtime dependency |
+| **3,535 tests**, none of them hand-written figures | **7 connectors** that never decide | one runtime dependency |
 
 **No network is required** for local scanning, governance or offline verification. Remote discovery and RFC 3161 time anchoring reach the network only when you ask them to, `bundle` and `discover` take `--offline` to forbid it outright, and nothing here ever phones home: there is no telemetry, no account and no hosted service.
 
@@ -275,7 +275,7 @@ actaira receipt issue models/ --out release.receipt.json \
 
 `actaira --lang es <command>` switches the output language. The flag is global, so it goes before the subcommand, and a test fails if one language gains a string the other does not have.
 
-There are 22 CLI commands in total, indexed in [`docs/CONCEPTS.md`](docs/CONCEPTS.md), and what each one prints is in [`docs/CLI-OUTPUT.md`](docs/CLI-OUTPUT.md).
+There are 24 CLI commands in total, indexed in [`docs/CONCEPTS.md`](docs/CONCEPTS.md), and what each one prints is in [`docs/CLI-OUTPUT.md`](docs/CLI-OUTPUT.md).
 
 To work on the tool rather than with it, `python -m pip install -e ".[dev]"` adds pytest, ruff, numpy, jsonschema and Pillow; the gates are listed in [`docs/ENGINEERING.md`](docs/ENGINEERING.md).
 
@@ -293,7 +293,7 @@ And the loop closes. The next observation is compared against the last, so the o
 
 ![The Actaira assurance loop](docs/img/pipeline.svg)
 
-**68,034 lines of Python**, one runtime dependency, and **155 design notes** recording why each decision went the way it did. [`docs/DESIGN.md`](docs/DESIGN.md) is the index; every note names the file and line that implements it, and a test fails if a note in the code is missing from the table.
+**70,800 lines of Python**, one runtime dependency, and **160 design notes** recording why each decision went the way it did. [`docs/DESIGN.md`](docs/DESIGN.md) is the index; every note names the file and line that implements it, and a test fails if a note in the code is missing from the table.
 
 ---
 
@@ -371,4 +371,4 @@ This page is a landing page. The depth is here:
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) covers the bar for a change: a rule needs both languages, a defect needs a regression test named in the ledger, and a figure in prose needs a source in the contract. [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) applies.
 
-MIT, © Marcos Mata García. **Actaira 2.2.0**, [`CHANGELOG.md`](CHANGELOG.md).
+MIT, © Marcos Mata García. **Actaira 2.3.0**, [`CHANGELOG.md`](CHANGELOG.md).

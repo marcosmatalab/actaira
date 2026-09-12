@@ -23,6 +23,9 @@ from pathlib import Path
 from typing import Any
 
 from .i18n.catalog import Catalog
+from .state import change as change_mod
+from .state import decide as decide_mod
+from .state import evidence as evidence_mod
 from .state import graph as graph_mod
 from .state.store import Store, StoreError, default_path
 
@@ -76,6 +79,9 @@ def add_parsers(sub: Any) -> None:
     ev_list = ev_sub.add_parser("list", help="every record, with its state and age")
     ev_list.add_argument("--state-is", dest="state_filter", default="",
                          choices=("", "valid", "stale", "superseded", "revoked", "untrusted"))
+    ev_list.add_argument("--kind", dest="kind_filter", default="",
+                         choices=("", *evidence_mod.KINDS),
+                         help="only records of this kind")
     ev_list.add_argument("--state", type=Path, default=None)
     ev_list.add_argument("--json", action="store_true")
     ev_show = ev_sub.add_parser("show", help="one subject's evidence, oldest first")
@@ -106,6 +112,27 @@ def add_parsers(sub: Any) -> None:
     gph_build.add_argument("--state", type=Path, default=None)
     gph_build.add_argument("--json", action="store_true")
 
+    chg = sub.add_parser(
+        "changes",
+        help="the observations this workspace has recorded, oldest first",
+    )
+    chg.add_argument("--state", type=Path, default=None)
+    chg.add_argument("--json", action="store_true")
+    chg.add_argument("--limit", type=int, default=0,
+                     help="only the most recent N. Zero, the default, is all of them")
+
+    dec = sub.add_parser(
+        "decisions",
+        help="the policy decisions this workspace recorded, and whether each still applies",
+    )
+    dec.add_argument("--state", type=Path, default=None)
+    dec.add_argument("--json", action="store_true")
+    dec.add_argument("--needing-reassessment", action="store_true",
+                     dest="needing_reassessment",
+                     help="only the decisions whose recorded inputs no longer describe their "
+                          "subjects. Never a decision this store merely cannot vouch for: "
+                          "those are undetermined, which is a third answer and not a quiet yes")
+
     imp = sub.add_parser("impact", help="what depends on this, and the exact route that reaches it")
     imp.add_argument("subject", help="an asset id or a digest")
     imp.add_argument("--state", type=Path, default=None)
@@ -135,6 +162,8 @@ def dispatch(args: argparse.Namespace, catalog: Catalog) -> int | None:
         "snapshot": _snapshot,
         "evidence": _evidence,
         "graph": _graph,
+        "changes": _changes,
+        "decisions": _decisions,
         "impact": _impact,
         "trust": _trust,
     }
@@ -271,15 +300,16 @@ def _watch(args: argparse.Namespace, catalog: Catalog) -> int:
         if args.max_age_days:
             expired = stale_sweep(store, max_age_days=args.max_age_days)
 
-        affected = _affected_by(store, observation)
+        # One engine object, rendered two ways. Neither branch below derives
+        # anything: the impact, the decision validity and the unknowns are
+        # already computed, which is what stops the terminal and the browser
+        # answering the same question differently. See D-249.
+        change = change_mod.of_observation(store, observation, stale=sorted(expired))
 
         if args.json:
-            document = observation.to_dict()
-            document["stale_evidence"] = sorted(expired)
-            document["impact"] = affected
-            print(json.dumps(document, ensure_ascii=False, indent=2))
+            print(json.dumps(change.to_dict(), ensure_ascii=False, indent=2))
         else:
-            _print_observation(observation, expired, affected, catalog)
+            _print_change(change, catalog)
 
     return {
         ObservationState.INCOMPLETE: EXIT_INCONCLUSIVE,
@@ -325,13 +355,6 @@ def _list_source(connector_registry: Any, source: dict[str, Any], *, offline: bo
     )
 
 
-def _affected_by(store: Store, observation: Any) -> dict[str, Any]:
-    if not observation.changed_anything:
-        return {"affected": [], "by_kind": {}}
-    graph = graph_mod.Graph.from_store(store)
-    return graph_mod.impact(graph, f"source:{observation.source_id}")
-
-
 _STATE_MARK = {
     "baseline": "=",
     "unchanged": ".",
@@ -341,47 +364,96 @@ _STATE_MARK = {
 }
 
 
-def _print_observation(observation: Any, expired: list[str], affected: dict[str, Any], catalog: Catalog) -> None:
+_HOW_MARK = {"added": "+", "changed": "~", "removed": "-"}
+
+
+def _print_change(change: Any, catalog: Catalog) -> None:
+    """The whole consequence of one observation, in the order it is asked in.
+
+    What changed, what that stopped counting, what depends on it, and which
+    decisions that leaves needing a second look. Every section reads the
+    engine object and none of them recomputes anything.
+    """
+    observation = change.observation
     print()
-    print(f"SOURCE      {observation.uri}")
-    if observation.previous_revision or observation.snapshot.revision:
-        print(
-            f"REVISION    {observation.previous_revision or '-'} -> "
-            f"{observation.snapshot.revision or '-'}"
-        )
-    mark = _STATE_MARK[observation.state.value]
-    print(f"STATE       {mark} {catalog.line('watch.state.' + observation.state.value)}")
-    if observation.note:
-        print(f"            {observation.note}")
+    print(f"SOURCE      {observation['source']}")
+    revision = observation["revision"]
+    if revision["from"] or revision["to"]:
+        print(f"REVISION    {revision['from'] or '-'} -> {revision['to'] or '-'}")
+    mark = _STATE_MARK[observation["state"]]
+    print(f"STATE       {mark} {catalog.line('watch.state.' + observation['state'])}")
+    if observation.get("note"):
+        print(f"            {observation['note']}")
     print()
 
-    if observation.changed_anything:
+    if change.changed_anything:
         print(f"  {catalog.line('watch.changed_subjects')}")
-        for uri in observation.added:
-            print(f"    + {uri}")
-        for uri in observation.changed:
-            print(f"    ~ {uri}")
-        for uri in observation.removed:
-            print(f"    - {uri}")
+        for row in change.subjects:
+            print(f"    {_HOW_MARK[row['how']]} {row['uri']}")
+            if row["before"] or row["after"]:
+                # The two digests, because "changed" without them is an
+                # assertion and with them it is a fact somebody can check.
+                print(f"      {row['before'] or '-'} -> {row['after'] or '-'}")
         print()
 
-    if observation.superseded_evidence or expired:
+    if change.superseded or change.stale:
         print(f"  {catalog.line('watch.evidence')}")
-        if observation.superseded_evidence:
-            print(f"    {catalog.line('watch.superseded', n=len(observation.superseded_evidence))}")
-        if expired:
-            print(f"    {catalog.line('watch.stale', n=len(expired))}")
+        if change.superseded:
+            print(f"    {catalog.line('watch.superseded', n=len(change.superseded))}")
+            for row in change.superseded[:6]:
+                print(f"      {row['evidence_id']}  {row['kind']}  {row['subject']}")
+        if change.stale:
+            print(f"    {catalog.line('watch.stale', n=len(change.stale))}")
         print()
 
-    rows = affected.get("affected", [])
-    if rows:
+    targets = change.impact.get("targets", [])
+    if targets:
         print(f"  {catalog.line('watch.impact')}")
-        for row in rows[:12]:
+        for row in targets[:12]:
             print(f"    {row['asset']}")
         print()
         print(f"  {catalog.line('watch.why')}")
-        for row in rows[:3]:
-            print(f"    {row['why']}")
+        for row in targets[:3]:
+            # Every cause, not the first one. A system downstream of two
+            # changed artifacts has two reasons to be re-examined, and a list
+            # that showed one would be telling the reader it had one.
+            for cause in row["causes"]:
+                print(f"    {cause['why']}")
+        print()
+
+    needing = [row for row in change.decisions
+               if row["validity"] == decide_mod.REQUIRES_REASSESSMENT]
+    if needing:
+        print(f"  {catalog.line('decide.reassess_header')}")
+        for row in needing:
+            print(f"    {row['decision_id'][:16]}  {row['decision'].upper()}  {row['decided_on']}")
+            for reason in row["reasons"][:2]:
+                print(f"      {_reason_line(reason, catalog)}")
+        print()
+
+    if change.unknowns:
+        print(f"  {catalog.line('state.unknowns')}")
+        for row in change.unknowns:
+            print(f"    {row['asset']}: {row['detail']}")
+
+
+def _reason_line(reason: dict[str, Any], catalog: Catalog) -> str:
+    """One machine-readable reason, rendered for a person.
+
+    The mapping is the contract and this is a view of it. A reason has to be
+    something a caller can act on without reading prose, so the prose is built
+    from the fields rather than the fields being built from prose.
+    """
+    key = "decide.reason." + str(reason.get("reason", ""))
+    rendered = catalog.line(
+        key,
+        evidence=reason.get("evidence_id", ""),
+        subject=reason.get("subject", ""),
+        state=reason.get("state", ""),
+        was=reason.get("was") or "-",
+        now=reason.get("now") or "-",
+    )
+    return rendered if rendered != key else str(reason.get("detail") or key)
 
 
 # --------------------------------------------------------------------------
@@ -419,6 +491,8 @@ def _evidence(args: argparse.Namespace, catalog: Catalog) -> int:
             rows = store.evidence_for(args.subject)
         else:
             rows = store.all_evidence(args.state_filter or None)
+            if getattr(args, "kind_filter", ""):
+                rows = [row for row in rows if row["kind"] == args.kind_filter]
         # The exit code is computed once and returned from every branch.
         # DEF-76: `--json` used to return EXIT_OK before reaching the
         # computation, so the one mode a pipeline reads never signalled - and
@@ -596,6 +670,107 @@ _RELATION_MAP = {"uses_model": "uses_model", "runs_as": "runs_as", "reads": "rea
 
 def _map_relation(relation: str) -> str:
     return _RELATION_MAP.get(relation, "uses")
+
+
+_TIMELINE_MARK = {
+    "baseline": "=",
+    "content_drift": "!",
+    "source_drift": "~",
+    "listing_recorded": ".",
+}
+
+
+def _changes(args: argparse.Namespace, catalog: Catalog) -> int:
+    """What has already happened to the sources this workspace watches.
+
+    A history of changes rather than of runs, and the difference is worth
+    stating where a reader will see it: an observation that found nothing new
+    writes no snapshot, so a source watched hourly for a month with nothing
+    happening has one line here and not seven hundred. `source list` is where
+    "when did anybody last look" lives. See `state/change.history`.
+    """
+    with _open(args) as store:
+        rows = change_mod.history(store, limit=max(0, args.limit))
+        if args.json:
+            print(json.dumps({"changes": rows}, ensure_ascii=False, indent=2))
+            return EXIT_OK
+        print()
+        if not rows:
+            print(f"  {catalog.line('change.none')}")
+            return EXIT_OK
+        for row in rows:
+            mark = _TIMELINE_MARK.get(row["state"], "?")
+            print(f"  {mark} {row['observed_at']}  {row['source_id']}")
+            print(f"      {catalog.line('change.state.' + row['state'])}")
+            for uri in row["added"]:
+                print(f"      + {uri}")
+            for uri in row["changed"]:
+                print(f"      ~ {uri}")
+            for uri in row["removed"]:
+                print(f"      - {uri}")
+        print()
+        # Said once, plainly, rather than left for a reader to infer from a
+        # column of zeroes that are not there.
+        print(f"  {catalog.line('change.supersession_unknown')}")
+    return EXIT_OK
+
+
+def _decisions(args: argparse.Namespace, catalog: Catalog) -> int:
+    """Every recorded decision beside whether its inputs still describe reality.
+
+    Two columns and they must never be read as one. The first is what was
+    decided and it is history: an ALLOW recorded in March prints as ALLOW
+    forever, whatever has happened since. The second is whether that decision
+    still applies to the subject in front of you, and it is derived fresh on
+    every run from the rows the decision recorded as its inputs.
+
+    The exit code follows the second column. A decision needing reassessment
+    is not a failure of this command - it is what the command was asked to
+    find - and the code exists so a pipeline can act on it without parsing the
+    text, exactly as `evidence list` does.
+    """
+    with _open(args) as store:
+        rows = decide_mod.review(store)
+        if getattr(args, "needing_reassessment", False):
+            rows = [row for row in rows if row.status == decide_mod.REQUIRES_REASSESSMENT]
+        tally = decide_mod.counts(rows)
+
+        if args.json:
+            print(json.dumps(
+                {"decisions": [row.to_dict() for row in rows], "counts": tally},
+                ensure_ascii=False, indent=2,
+            ))
+            return _decisions_code(rows)
+
+        print()
+        if not rows:
+            print(f"  {catalog.line('decide.none')}")
+            return EXIT_OK
+        for row in rows:
+            print(f"  {row.decision_id[:16]}  {row.decision.upper():<7} {row.decided_on}")
+            print(f"  {'':<16}  {catalog.line('decide.validity.' + row.status)}")
+            for reason in row.reasons:
+                print(f"  {'':<16}    {_reason_line(reason, catalog)}")
+        print()
+        print("  " + ", ".join(
+            f"{count} {catalog.line('decide.validity.' + status)}"
+            for status, count in tally.items()
+        ))
+    return _decisions_code(rows)
+
+
+def _decisions_code(rows: list[Any]) -> int:
+    """FAIL when something needs a second look, INCONCLUSIVE when nothing can tell.
+
+    Three states and three codes, because collapsing UNDETERMINED into either
+    of the others is the whole thing this release is against: a decision whose
+    inputs were never recorded is not one that passed.
+    """
+    if any(row.status == decide_mod.REQUIRES_REASSESSMENT for row in rows):
+        return EXIT_FAIL
+    if any(row.status == decide_mod.UNDETERMINED for row in rows):
+        return EXIT_INCONCLUSIVE
+    return EXIT_OK
 
 
 def _impact(args: argparse.Namespace, catalog: Catalog) -> int:
