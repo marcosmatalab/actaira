@@ -237,6 +237,8 @@ Con estado, necesitan `.actaira/`:
 | `actaira evidence` | `list` de lo observado y `show` de un registro |
 | `actaira graph` | `build`, `show` o `export` de las relaciones declaradas entre activos |
 | `actaira impact` | de qué depende esto, y la ruta exacta que llega hasta ahí |
+| `actaira changes` | las observaciones que este espacio de trabajo ha registrado, de la más antigua a la más reciente |
+| `actaira decisions` | cada decisión registrada, y si sus entradas siguen describiendo a su sujeto |
 
 `actaira --lang es <comando>` cambia el idioma de la salida. El flag es global,
 así que va antes del subcomando, y un test falla si un idioma gana una cadena
@@ -279,6 +281,74 @@ volviendo a observar las fuentes, que es barato, sin conexión y honesto sobre
 cuándo se estableció cada hecho. Una importación dejaría que un documento
 afirmara una línea base que nadie observó nunca, y el sentido entero de la línea
 base es que alguien la observó.
+
+---
+
+## Cuando algo cambia
+
+Este es el bucle al que sirve el resto de la herramienta, y cada flecha es un
+sitio donde una herramienta puede mentir sin que se note:
+
+```
+observar -> estado -> cambio -> invalidar -> impacto -> decidir -> demostrar
+```
+
+**Invalidar.** La evidencia se ata al digest sobre el que se tomó, nunca al
+nombre del sujeto. Así que volver a observar un modelo que no cambió no
+sustituye nada, observar uno que sí cambió sustituye solo los registros
+tomados sobre los bytes que ya no están, y el escaneo de un hermano que nadie
+tocó sigue siendo válido. Esa es la diferencia entre una invalidación sobre la
+que alguien actúa y una pantalla roja que nadie lee.
+
+**El impacto empieza en lo que se movió.** No en la fuente que lo contiene.
+Una fuente con cuarenta ficheros de los que cambió uno tiene un artefacto
+cambiado, y el recorrido empieza ahí. Cuando cambian dos artefactos y ambos
+llegan al mismo sistema, ese sistema aparece una vez con dos causas debajo:
+quien tenga que reevaluarlo necesita saber que está aguas abajo de dos
+cambios.
+
+**Decidir son dos preguntas, no una.** Lo que se decidió es historia y esta
+herramienta no la reescribe: un ALLOW registrado en marzo se imprime como
+ALLOW para siempre, porque sobrescribirlo destruye el único registro de lo que
+se aprobó. Si sigue aplicando es otra pregunta, con sus propios tres valores:
+
+| | |
+|---|---|
+| `current` | cada entrada que registró sigue describiendo a su sujeto |
+| `requires_reassessment` | al menos una demostrablemente ya no, y aquí está cuál |
+| `undetermined` | este espacio de trabajo no guarda lo suficiente para decirlo |
+
+A `requires_reassessment` no se llega nunca por inferencia. Hace falta una
+fila: un registro de evidencia cuyo estado no sea `valid`, o un sujeto cuyo
+digest registrado difiera del que la decisión nombró. "El modelo cambió hace
+poco" no es una razón. `{"reason": "evidence_superseded", "evidence_id":
+"ev_...", "was": "sha256:...", "now": "sha256:..."}` sí lo es, y eso es lo que
+imprime el comando y lo que lleva `--json`.
+
+Una decisión archivada antes de que el almacén registrase dependencias no
+tiene ninguna, y queda `undetermined` en vez de `current`. Leer "sin entradas"
+como "nada de lo que dependía ha cambiado" marcaría precisamente las
+decisiones sobre las que esta herramienta sabe menos como las que no requieren
+atención.
+
+```bash
+actaira scan models/model.pt --state .actaira/state.db   # archiva un registro artifact_scan
+actaira policy check --subjects examples/subjects.yaml \
+    --policy-file policies/production-model.yaml --state .actaira/state.db
+actaira watch corpus                                     # qué se movió, y qué costó eso
+actaira decisions --state .actaira/state.db              # y qué aprobaciones deja abiertas
+```
+
+`--state` es opcional en todos ellos, y nunca crea una base de datos. Un
+escaneo en una máquina sin espacio de trabajo se comporta exactamente como
+antes de que nada de esto existiera, que es la propiedad local-first por la
+que la herramienta merece la pena.
+
+Una cosa que el registro todavía no hace. Cuatro de los siete tipos de
+evidencia tienen productor: `source_snapshot`, `artifact_scan`,
+`agent_assessment` y `policy_decision`. `bundle`, `governance` y `attestation`
+están definidos y todavía no los escribe nada, y ese reparto está fijado por
+un test para que no cambie sin que alguien se entere.
 
 ---
 

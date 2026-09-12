@@ -138,6 +138,7 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("--out", type=Path,
                       help="write the report to this path; the human-readable report still goes to stdout")
     scan.add_argument("--allow-inconclusive", action="store_true", help="treat inconclusive as success")
+    scan.add_argument("--state", type=Path, default=None, help='a state database this run may file its evidence in. Optional in both directions: without it the command is exactly as stateless as it was, and with it the database must already exist - a scan does not create a workspace')
 
     bom = sub.add_parser("bom", help="emit a CycloneDX 1.6 ML-BOM")
     _add_scan_args(bom)
@@ -230,6 +231,7 @@ def build_parser() -> argparse.ArgumentParser:
     agt_check.add_argument("declaration", type=Path)
     agt_check.add_argument("--json", action="store_true")
     agt_check.add_argument("--fail-on", choices=("critical", "high", "medium", "low"), default="high")
+    agt_check.add_argument("--state", type=Path, default=None, help='a state database this run may file its evidence in. Optional in both directions: without it the command is exactly as stateless as it was, and with it the database must already exist - a scan does not create a workspace')
 
     agt_bom = agt_sub.add_parser("bom", help="emit the A-BOM for one declaration")
     agt_bom.add_argument("declaration", type=Path)
@@ -769,6 +771,11 @@ def _main(argv: list[str] | None = None) -> int:
         return EXIT_USAGE
 
     if args.command == "scan":
+        # After the report exists and never instead of it. The scanner is
+        # untouched: `run_scan` already produced the authoritative reports and
+        # this only writes them down, so a workspace that cannot be opened
+        # costs the operator a note on stderr and not the scan.
+        _record_scans_in_state(args, reports, catalog)
         rendered = render_scan(reports, _scan_format(args) or "text", catalog)
         if args.out:
             args.out.write_text(rendered, encoding="utf-8", newline="\n")
@@ -1467,7 +1474,7 @@ def _run_policy(args: argparse.Namespace, catalog: Catalog) -> int:
     decision = decide(policy, subjects, on=on)
 
     document = decision.to_dict()
-    _record_decision_in_state(args, decision, document)
+    _record_decision_in_state(args, decision, document, subjects)
     if args.out is not None:
         args.out.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     if args.json:
@@ -1482,7 +1489,99 @@ def _run_policy(args: argparse.Namespace, catalog: Catalog) -> int:
     }[decision.decision]
 
 
-def _record_decision_in_state(args: argparse.Namespace, decision, document: dict) -> None:
+def _record_scans_in_state(args: argparse.Namespace, reports: list, catalog: Catalog) -> None:
+    """File an `artifact_scan` record per scanned artifact, when asked to.
+
+    Design note D-246. Three things this deliberately does not do.
+
+    It does not create a store. `--state` names one that must already exist,
+    because a scan that wrote `.actaira/` into whatever directory it ran in
+    would be a tool taking a liberty with somebody's disk in exchange for a
+    convenience nobody asked for.
+
+    It does not fail the scan. A workspace that is missing, unreadable or at a
+    newer schema version is reported on stderr and the findings still go to
+    stdout with their own exit code: turning "the ledger was unavailable" into
+    "the artifact was not inspected" would be the two worst answers swapped.
+
+    And it does not invent an identity. `record.artifact_scan` binds to the
+    asset this workspace already records for those exact bytes, and when there
+    is none it writes nothing and says why - see `state/record.py` on what a
+    basename-derived id would mean the first time two teams both have a
+    `model.pt`.
+    """
+    if not getattr(args, "state", None):
+        return
+    from .state import record as record_mod
+    from .state.store import Store, StoreError
+
+    try:
+        with Store(args.state, create=False) as store:
+            written, skipped = 0, 0
+            for report in reports:
+                result = record_mod.artifact_scan(
+                    store, report,
+                    scan_policy=getattr(args, "policy", ""),
+                    fail_on=str(getattr(args, "fail_on", "")),
+                )
+                if result.written:
+                    written += 1
+                else:
+                    skipped += 1
+                    print(
+                        catalog.line("state.not_recorded", subject=Path(report.path).name,
+                                     detail=result.note),
+                        file=sys.stderr,
+                    )
+            if written:
+                print(catalog.line("state.recorded", n=written, kind="artifact_scan"),
+                      file=sys.stderr)
+    except StoreError as exc:
+        print(f"{exc}", file=sys.stderr)
+
+
+def _record_agent_assessment_in_state(
+    args: argparse.Namespace, agent, findings: list, catalog: Catalog
+) -> None:
+    """File one `agent_assessment` record about one exact declared shape.
+
+    Bound to `Agent.digest`, which is what makes the record answerable later:
+    "was this produced about the agent in front of me?" is one string
+    comparison, and an assessment bound to the agent's name would answer yes
+    for a declaration that had since gained a shell tool.
+
+    The attack-path search runs here because the record is about the whole
+    assessment and a record carrying capability findings without route counts
+    would be half an answer filed as a whole one. It is the same search
+    `agent paths` runs, from the same module, over the same declaration.
+    """
+    if not getattr(args, "state", None):
+        return
+    from .agentgov import paths as path_engine
+    from .state import record as record_mod
+    from .state.store import Store, StoreError
+
+    try:
+        with Store(args.state, create=False) as store:
+            result = record_mod.agent_assessment(
+                store, agent, findings, path_engine.find(agent),
+                fail_on=str(getattr(args, "fail_on", "")),
+            )
+            if result.written:
+                print(catalog.line("state.recorded", n=1, kind="agent_assessment"),
+                      file=sys.stderr)
+            else:
+                print(
+                    catalog.line("state.not_recorded", subject=agent.name, detail=result.note),
+                    file=sys.stderr,
+                )
+    except StoreError as exc:
+        print(f"{exc}", file=sys.stderr)
+
+
+def _record_decision_in_state(
+    args: argparse.Namespace, decision, document: dict, subjects: list | None = None
+) -> None:
     """Record a decision in the store, when there is a store.
 
     Design note D-233. `state-export/v1` publishes a `decisions` array and the
@@ -1505,7 +1604,17 @@ def _record_decision_in_state(args: argparse.Namespace, decision, document: dict
     proof_digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
     try:
         with Store(args.state, create=False) as store:
-            store.record_decision(decision, proof_digest)
+            from .state import record as record_mod
+
+            # The order matters. The inputs are read BEFORE the decision's own
+            # evidence is written, because `decision_inputs` walks the
+            # evidence attached to each subject and the records this run is
+            # about to write are not things the decision depended on - they
+            # are the note that it happened. Writing first would make every
+            # decision depend on itself.
+            inputs = record_mod.decision_inputs(store, subjects or [], [])
+            store.record_decision(decision, proof_digest, inputs)
+            record_mod.policy_decision(store, decision, proof_digest, subjects or [])
     except StoreError as exc:
         # The decision stands whether or not it could be filed. Failing here
         # would turn "the store is missing" into "the policy did not decide",
@@ -2141,6 +2250,7 @@ def _run_agent(args: argparse.Namespace, catalog: Catalog) -> int:
         return EXIT_FAIL if document["effects_gained"] or document["tools_added"] else EXIT_OK
 
     findings = assess(agent)
+    _record_agent_assessment_in_state(args, agent, findings, catalog)
     if args.json:
         print(json.dumps(
             {

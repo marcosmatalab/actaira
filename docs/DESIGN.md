@@ -107,7 +107,7 @@ decision without the third part is not a decision, it is a preference.
 | D-91 | A manifest of URLs, for every source this tool does not support | `src/actaira/connectors/url.py:3` |
 | D-91c | The line format has nowhere to put a digest; the JSON one does | `src/actaira/connectors/url.py:29` |
 | D-91b | What `complete` is allowed to mean when the source is a file somebody wrote | `src/actaira/connectors/url.py:17` |
-| D-92 | What `discover` exits with, and why incomplete is not zero | `src/actaira/cli.py:1227` |
+| D-92 | What `discover` exits with, and why incomplete is not zero | `src/actaira/cli.py:1234` |
 | D-93 | Redirects stay on HTTPS and are recorded like any other hop | `src/actaira/connectors/model.py:252` |
 | D-93b | A credential does not follow a redirect to another host | `src/actaira/connectors/model.py:271` |
 | D-100 | Coverage is per surface, not one boolean over the whole file | `src/actaira/coverage.py:3` |
@@ -160,18 +160,23 @@ decision without the third part is not a decision, it is a preference.
 | D-230 | A figure that is derivable is never maintained by hand, in prose either | `scripts/figures_contract.py:3` |
 | D-231 | The version this tool tells a remote host is the one it is, not the one it was | `src/actaira/connectors/model.py:66` |
 | D-232 | The index of published contracts is generated, because an index with a hole in it still looks complete | `scripts/contracts_doc.py:4` |
-| D-233 | A published field that nothing can populate is a claim, so the writes were wired rather than the field removed | `src/actaira/cli.py:1488` |
+| D-233 | A published field that nothing can populate is a claim, so the writes were wired rather than the field removed | `src/actaira/cli.py:1587` |
 | D-234 | The console blocks are output this tool produced, and the gate re-runs them under two hash seeds | `scripts/cli_transcripts.py:4` |
-| D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:576` |
+| D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:578` |
 | D-236 | The published line count is a sum over a partition of the tree, checked, not a sum over a list somebody maintained | `scripts/figures.py:61` |
 | D-237 | A line number in the note table is derived, because a reference wrong by four hundred lines is not stale, it is wrong | `scripts/design_notes.py:4` |
 | D-238 | One spelling of "the last path segment", because three spellings put the producer's absolute path inside signed documents | `src/actaira/model.py:135` |
 | D-239 | A build writes into `dist/` and is then opened and checked, because the one artifact nobody looks at is a package | `scripts/build_package.py:4` |
 | D-240 | The default key path is resolved when a parser is built, not at import, so a host with no home does not break every command | `src/actaira/cli.py:68` |
-| D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:606` |
+| D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:608` |
 | D-242 | Type checking is a ratchet: the exemption list is empty, a new error fails, and a stale exemption fails as loudly | `scripts/type_check.py:4` |
-| D-243 | Recorded is not current, and the third answer is that this store cannot tell | `src/actaira/state/graph.py:317` |
-| D-244 | The workspace is chosen when the server starts, and a read never creates or migrates one | `src/actaira/web/server.py:1819` |
+| D-243 | Recorded is not current, and the third answer is that this store cannot tell | `src/actaira/state/graph.py:379` |
+| D-244 | The workspace is chosen when the server starts, and a read never creates or migrates one | `src/actaira/web/server.py:1989` |
+| D-245 | A decision is history and whether it still applies is a separate, three-valued question | `src/actaira/state/decide.py:3` |
+| D-246 | Evidence is filed only against an asset the workspace already records, because a basename is not an identity | `src/actaira/state/record.py:3` |
+| D-247 | What a decision depended on is rows, not a sentence, and a decision with none is undetermined rather than fine | `src/actaira/state/store.py:187` |
+| D-248 | Impact from a change starts at the artifact that changed, and two causes stay two causes | `src/actaira/state/graph.py:303` |
+| D-249 | One observation's whole consequence is assembled once, in Python, and rendered twice | `src/actaira/state/change.py:3` |
 | D-160b | The read budget bounds the read; the file bounds the allocation | `src/actaira/io_budget.py:53` |
 
 D-25b is numbered as a continuation rather than as a note of its own because

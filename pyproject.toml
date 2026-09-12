@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "actaira"
-version = "2.2.0"
+version = "2.3.0"
 description = "Local-first AI assurance for model artifacts and agents: static inspection, evidence lifecycle, policy-as-code, agent governance and verifiable attestations. Nothing is ever loaded or executed."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -57,11 +57,18 @@ package = ["build>=1.2"]
 [project.scripts]
 actaira = "actaira.cli:main"
 
-# No `[project.urls]`. This is a local snapshot: there is no homepage, no
-# repository, no issue tracker and no release page, and a metadata field
-# pointing at one would be a claim the package cannot keep - readable by
-# every tool that reads metadata and checkable by none of them. The
-# documentation the block used to point at is in the tree, beside this file.
+# Two entries, and only the two that exist. The block used to say there was
+# no repository and no issue tracker, which was true of a local snapshot and
+# stopped being true when this became a public project - so it was a false
+# statement in package metadata, readable by every tool that reads metadata
+# and checkable by none of them. That is the same failure in the other
+# direction, which is why `Documentation` and `Homepage` are still absent:
+# there is no documentation site and no home page, the docs are in the tree
+# beside this file, and a metadata field pointing at a URL that 404s is worse
+# than one that is not there.
+[project.urls]
+Repository = "https://github.com/marcosmatalab/actaira"
+Issues = "https://github.com/marcosmatalab/actaira/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
