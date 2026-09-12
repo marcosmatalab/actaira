@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-12T16:41:31+00:00 for actaira 2.3.0, at commit f3d2c19.
+Generated 2026-09-12T16:57:07+00:00 for actaira 2.3.0, at commit f8e9c18.
 
 ## The package
 
 - version **2.3.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, numpy>=1.26, ruff>=0.6, jsonschema>=4.18, pillow>=10
-- 5 commits, most recent 2026-09-12
+- 6 commits, most recent 2026-09-12
 
 ## Tests
 
-**3594** tests collected by pytest across 56 files.
+**3595** tests collected by pytest across 56 files.
 
 | file | tests |
 |---|---:|
@@ -76,11 +76,11 @@ Generated 2026-09-12T16:41:31+00:00 for actaira 2.3.0, at commit f3d2c19.
 | `tests/test_trust_paths.py` | 39 |
 | `tests/test_web_agents.py` | 50 |
 | `tests/test_web_evidence.py` | 53 |
-| `tests/test_web_frontend.py` | 18 |
+| `tests/test_web_frontend.py` | 19 |
 | `tests/test_web_graph.py` | 69 |
 | `tests/test_web_limits.py` | 31 |
 | `tests/test_web_policy.py` | 34 |
-| **total** | **3594** |
+| **total** | **3595** |
 
 ## The obligation catalogue
 
@@ -154,11 +154,11 @@ and the modules are the source of truth.
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
 | web | 2 | 2323 | 1440 | 301 | 298 | 284 |
 | rest | 13 | 4658 | 2839 | 868 | 333 | 618 |
-| tests | 58 | 28980 | 16828 | 4070 | 1435 | 6647 |
+| tests | 58 | 29046 | 16864 | 4082 | 1445 | 6655 |
 | evals | 8 | 3619 | 2485 | 444 | 250 | 440 |
 | fuzz | 1 | 1284 | 827 | 147 | 110 | 200 |
-| scripts | 11 | 4586 | 3082 | 609 | 325 | 570 |
-| **total** | 176 | 71879 | 43311 | 11633 | 4689 | 12246 |
+| scripts | 11 | 4643 | 3109 | 623 | 333 | 578 |
+| **total** | 176 | 72002 | 43374 | 11659 | 4707 | 12262 |
 
 Documentation, in lines of Markdown:
 

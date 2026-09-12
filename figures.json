@@ -507,12 +507,12 @@
       "note": "the published contracts"
     },
     "scripts": {
-      "blank": 570,
-      "code": 3082,
-      "comment": 325,
-      "docstring": 609,
+      "blank": 578,
+      "code": 3109,
+      "comment": 333,
+      "docstring": 623,
       "files": 11,
-      "lines": 4586,
+      "lines": 4643,
       "note": "this script"
     },
     "state": {
@@ -525,21 +525,21 @@
       "note": "the SQLite store, watch, evidence, graph"
     },
     "tests": {
-      "blank": 6647,
-      "code": 16828,
-      "comment": 1435,
-      "docstring": 4070,
+      "blank": 6655,
+      "code": 16864,
+      "comment": 1445,
+      "docstring": 4082,
       "files": 58,
-      "lines": 28980,
+      "lines": 29046,
       "note": "the test suite"
     },
     "total": {
-      "blank": 12246,
-      "code": 43311,
-      "comment": 4689,
-      "docstring": 11633,
+      "blank": 12262,
+      "code": 43374,
+      "comment": 4707,
+      "docstring": 11659,
       "files": 176,
-      "lines": 71879,
+      "lines": 72002,
       "note": "every Python file under evals, fuzz, scripts, src, tests, each counted once"
     },
     "web": {
@@ -704,12 +704,12 @@
     "produced_by": "make fuzz",
     "source": "fuzz/runs/latest/summary.json"
   },
-  "generated_at": "2026-09-12T16:41:31+00:00",
+  "generated_at": "2026-09-12T16:57:07+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 5,
-    "head": "f3d2c19",
+    "commits": 6,
+    "head": "f8e9c18",
     "head_date": "2026-09-12"
   },
   "governance": {
@@ -752,7 +752,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 3594,
+    "collected": 3595,
     "files": 56,
     "per_file": {
       "tests/test_action_entrypoint.py": 14,
@@ -807,7 +807,7 @@
       "tests/test_trust_paths.py": 39,
       "tests/test_web_agents.py": 50,
       "tests/test_web_evidence.py": 53,
-      "tests/test_web_frontend.py": 18,
+      "tests/test_web_frontend.py": 19,
       "tests/test_web_graph.py": 69,
       "tests/test_web_limits.py": 31,
       "tests/test_web_policy.py": 34
