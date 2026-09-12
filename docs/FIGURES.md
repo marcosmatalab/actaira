@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-12T16:25:26+00:00 for actaira 2.3.0, at commit c439ee5.
+Generated 2026-09-12T16:34:01+00:00 for actaira 2.3.0, at commit 0db4e14.
 
 ## The package
 
 - version **2.3.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, numpy>=1.26, ruff>=0.6, jsonschema>=4.18, pillow>=10
-- 3 commits, most recent 2026-09-12
+- 4 commits, most recent 2026-09-12
 
 ## Tests
 
-**3593** tests collected by pytest across 56 files.
+**3594** tests collected by pytest across 56 files.
 
 | file | tests |
 |---|---:|
@@ -68,7 +68,7 @@ Generated 2026-09-12T16:25:26+00:00 for actaira 2.3.0, at commit c439ee5.
 | `tests/test_sarif.py` | 33 |
 | `tests/test_schemas.py` | 59 |
 | `tests/test_state.py` | 92 |
-| `tests/test_state_change.py` | 48 |
+| `tests/test_state_change.py` | 49 |
 | `tests/test_state_graph.py` | 29 |
 | `tests/test_subjects.py` | 52 |
 | `tests/test_timestamp.py` | 47 |
@@ -80,7 +80,7 @@ Generated 2026-09-12T16:25:26+00:00 for actaira 2.3.0, at commit c439ee5.
 | `tests/test_web_graph.py` | 69 |
 | `tests/test_web_limits.py` | 31 |
 | `tests/test_web_policy.py` | 34 |
-| **total** | **3593** |
+| **total** | **3594** |
 
 ## The obligation catalogue
 
@@ -139,14 +139,14 @@ and the modules are the source of truth.
 |---|---:|---:|---:|---:|---:|---:|
 | formats | 11 | 2490 | 1561 | 316 | 308 | 305 |
 | attest | 10 | 4017 | 2523 | 709 | 252 | 533 |
-| core | 5 | 2999 | 1978 | 331 | 303 | 387 |
+| core | 5 | 2997 | 1978 | 331 | 301 | 387 |
 | scan | 2 | 233 | 154 | 29 | 28 | 22 |
 | agentgov | 6 | 2152 | 1300 | 444 | 101 | 307 |
 | agents | 7 | 2401 | 1107 | 760 | 209 | 325 |
 | controls | 7 | 2844 | 1765 | 585 | 142 | 352 |
 | governance | 5 | 1135 | 717 | 249 | 45 | 124 |
 | policy | 3 | 1226 | 779 | 172 | 100 | 175 |
-| state | 9 | 3517 | 1970 | 820 | 231 | 496 |
+| state | 9 | 3527 | 1970 | 821 | 238 | 498 |
 | connectors | 10 | 2687 | 1562 | 639 | 141 | 345 |
 | schemas | 1 | 111 | 41 | 36 | 14 | 20 |
 | bom | 2 | 119 | 73 | 13 | 17 | 16 |
@@ -154,11 +154,11 @@ and the modules are the source of truth.
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
 | web | 2 | 2323 | 1440 | 301 | 298 | 284 |
 | rest | 13 | 4658 | 2839 | 868 | 333 | 618 |
-| tests | 58 | 28901 | 16799 | 4042 | 1428 | 6632 |
+| tests | 58 | 28944 | 16821 | 4052 | 1430 | 6641 |
 | evals | 8 | 3619 | 2485 | 444 | 250 | 440 |
 | fuzz | 1 | 1284 | 827 | 147 | 110 | 200 |
 | scripts | 11 | 4586 | 3082 | 609 | 325 | 570 |
-| **total** | 176 | 71792 | 43282 | 11604 | 4677 | 12229 |
+| **total** | 176 | 71843 | 43304 | 11615 | 4684 | 12240 |
 
 Documentation, in lines of Markdown:
 

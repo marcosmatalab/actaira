@@ -833,6 +833,49 @@ def test_one_proven_reason_outranks_any_number_of_gaps(workspace):
     assert len(row.reasons) == 3
 
 
+
+def test_a_decision_never_depends_on_another_decisions_note(workspace):
+    """A `policy_decision` record is the note that a decision happened.
+
+    It is not something a decision rested on, and the first version of this
+    excluded only the records the current run was about to write - which is
+    enough on a first run and wrong on every one after it. Deciding twice
+    about one subject made the second decision record the first one's note as
+    an input, so replacing the model would then report the newer decision as
+    needing reassessment partly because an older decision's note about the
+    same model had been superseded. True, circular, and useless as a reason
+    to act on.
+    """
+    from actaira.state import record as record_mod
+
+    store, models = workspace
+    model = _asset_for(store, "model.bin")
+
+    class _Ref:
+        handle = ""
+        digest = ""
+
+    class _Claims:
+        ref = _Ref()
+
+    _Ref.digest = store.asset(model)["digest"]
+    first = record_mod.decision_inputs(store, [_Claims()])
+    assert [item.ref for item in first if item.role == decide_mod.ROLE_SUBJECT] == [model]
+
+    # File a decision, which writes a `policy_decision` record about the same
+    # subject, and then ask again.
+    store.record_decision(_FakeDecision(), "proof-first", first)
+    record_mod.policy_decision(store, _FakeDecision(), "proof-first", [_Claims()])
+    assert any(row["kind"] == "policy_decision" for row in store.evidence_for(model)), (
+        "the fixture is only interesting if the note was actually written"
+    )
+
+    second = record_mod.decision_inputs(store, [_Claims()])
+    kinds = {store.evidence(item.ref)["kind"] for item in second
+             if item.role == decide_mod.ROLE_EVIDENCE}
+    assert "policy_decision" not in kinds
+    assert [item.to_dict() for item in second] == [item.to_dict() for item in first]
+
 def test_the_counts_carry_every_validity_even_at_zero(workspace):
     store, _ = workspace
     _decide(store, [])
