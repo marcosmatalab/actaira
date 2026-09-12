@@ -1948,12 +1948,37 @@ def _state_for_receipt(args: argparse.Namespace, typed: list) -> tuple[list, lis
 
     try:
         with Store(args.state, create=False) as store:
-            handles = {claims.ref.handle for claims in typed if claims.ref is not None}
-            evidence = [
-                row
-                for row in store.all_evidence()
-                if row["subject_id"] in handles or row["subject_id"] in {c.subject for c in typed}
-            ]
+            # Defect DEF-115. This used to match a record's `subject_id`
+            # against the subject's HANDLE - `artifact:model.pkl` - and
+            # against `claims.subject`, which for an artifact is its digest.
+            # Nothing is ever filed under either. `watch` files per-artifact
+            # evidence under the id it derives from the artifact's URI, and
+            # `state.record` files scans and assessments under the same one,
+            # so the two sets never intersected and the `evidence` array of
+            # every receipt ever issued from a workspace was empty. A
+            # published field that cannot be populated is a claim the tool
+            # does not keep - the third time this exact shape has been found
+            # here, after `decisions` and `receipts` in D-233.
+            #
+            # `record.resolve` is the function that already answers "which
+            # recorded asset is this subject", by digest first and by handle
+            # second, and it is the one the producers use. Using it here is
+            # what makes the two ends agree.
+            from .state import record as record_mod
+
+            wanted = set()
+            for claims in typed:
+                reference = claims.ref
+                if reference is None:
+                    continue
+                wanted.add(reference.handle)
+                wanted.add(claims.subject)
+                identity = record_mod.resolve(
+                    store, digest=reference.digest or "", handle=reference.handle
+                )
+                if identity.known:
+                    wanted.add(identity.asset_id)
+            evidence = [row for row in store.all_evidence() if row["subject_id"] in wanted]
             # One query per source, not two. The comprehension this replaces
             # called `latest_snapshot` in the guard and again in the value, so
             # every source was read twice and the type checker could not see

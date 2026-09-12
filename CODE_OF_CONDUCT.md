@@ -57,9 +57,10 @@ posting via an official social media account, or acting as an appointed
 representative at an online or offline event.
 
 For this project, "community spaces" means wherever work on this tree is
-discussed and reviewed. This is a local snapshot: it has no issue tracker, no
-pull requests and no discussion forum, so the spaces are whatever channel you
-received it through and whatever one is opened if it is ever published.
+discussed and reviewed. That is now the repository at https://github.com/marcosmatalab/actaira and its issue
+tracker, together with whatever channel you received this tree through. There
+is no discussion forum and no mailing list, and this file will say so until
+there is.
 
 ## Enforcement
 

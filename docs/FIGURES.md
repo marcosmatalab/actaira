@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-12T16:09:16+00:00 for actaira 2.3.0, at commit ff83913.
+Generated 2026-09-12T16:25:26+00:00 for actaira 2.3.0, at commit c439ee5.
 
 ## The package
 
 - version **2.3.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, numpy>=1.26, ruff>=0.6, jsonschema>=4.18, pillow>=10
-- 2 commits, most recent 2026-09-12
+- 3 commits, most recent 2026-09-12
 
 ## Tests
 
-**3589** tests collected by pytest across 56 files.
+**3593** tests collected by pytest across 56 files.
 
 | file | tests |
 |---|---:|
@@ -41,7 +41,7 @@ Generated 2026-09-12T16:09:16+00:00 for actaira 2.3.0, at commit ff83913.
 | `tests/test_controls_judged.py` | 26 |
 | `tests/test_controls_records.py` | 27 |
 | `tests/test_coverage.py` | 14 |
-| `tests/test_defect_ledger.py` | 345 |
+| `tests/test_defect_ledger.py` | 348 |
 | `tests/test_design_notes.py` | 163 |
 | `tests/test_dsse.py` | 31 |
 | `tests/test_eval_harness.py` | 14 |
@@ -68,7 +68,7 @@ Generated 2026-09-12T16:09:16+00:00 for actaira 2.3.0, at commit ff83913.
 | `tests/test_sarif.py` | 33 |
 | `tests/test_schemas.py` | 59 |
 | `tests/test_state.py` | 92 |
-| `tests/test_state_change.py` | 47 |
+| `tests/test_state_change.py` | 48 |
 | `tests/test_state_graph.py` | 29 |
 | `tests/test_subjects.py` | 52 |
 | `tests/test_timestamp.py` | 47 |
@@ -80,7 +80,7 @@ Generated 2026-09-12T16:09:16+00:00 for actaira 2.3.0, at commit ff83913.
 | `tests/test_web_graph.py` | 69 |
 | `tests/test_web_limits.py` | 31 |
 | `tests/test_web_policy.py` | 34 |
-| **total** | **3589** |
+| **total** | **3593** |
 
 ## The obligation catalogue
 
@@ -104,7 +104,7 @@ Generated 2026-09-12T16:09:16+00:00 for actaira 2.3.0, at commit ff83913.
 
 ## Defects found in this repository
 
-**130** defects, from `docs/defects.json` (114 entries), found by **16** different mechanisms. **129** are pinned by a named regression test, across 204 tests. 85 were defects in the shipped tool; the rest were found the same way but lived in the measuring apparatus, and each says so.
+**131** defects, from `docs/defects.json` (115 entries), found by **16** different mechanisms. **130** are pinned by a named regression test, across 205 tests. 86 were defects in the shipped tool; the rest were found the same way but lived in the measuring apparatus, and each says so.
 
 | what found it | defects |
 |---|---:|
@@ -115,8 +115,8 @@ Generated 2026-09-12T16:09:16+00:00 for actaira 2.3.0, at commit ff83913.
 | adversarial legal review | 8 |
 | reading the tool's own output | 7 |
 | test suite | 7 |
+| product review against a roadmap | 6 |
 | using the tool as a person would | 6 |
-| product review against a roadmap | 5 |
 | real-serialiser corpus | 4 |
 | running the gate | 4 |
 | benchmark self-tests | 2 |
@@ -124,7 +124,7 @@ Generated 2026-09-12T16:09:16+00:00 for actaira 2.3.0, at commit ff83913.
 | writing a test for an adjacent feature | 2 |
 | benign corpus | 1 |
 | exhaustive sweep | 1 |
-| **total** | **130** |
+| **total** | **131** |
 
 Every test named in the ledger was checked against what pytest collects: all of them are collected.
 Pinned by a note rather than by a test, with the reason stated in the ledger: DEF-58.
@@ -139,7 +139,7 @@ and the modules are the source of truth.
 |---|---:|---:|---:|---:|---:|---:|
 | formats | 11 | 2490 | 1561 | 316 | 308 | 305 |
 | attest | 10 | 4017 | 2523 | 709 | 252 | 533 |
-| core | 5 | 2974 | 1970 | 331 | 287 | 386 |
+| core | 5 | 2999 | 1978 | 331 | 303 | 387 |
 | scan | 2 | 233 | 154 | 29 | 28 | 22 |
 | agentgov | 6 | 2152 | 1300 | 444 | 101 | 307 |
 | agents | 7 | 2401 | 1107 | 760 | 209 | 325 |
@@ -154,19 +154,19 @@ and the modules are the source of truth.
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
 | web | 2 | 2323 | 1440 | 301 | 298 | 284 |
 | rest | 13 | 4658 | 2839 | 868 | 333 | 618 |
-| tests | 58 | 28807 | 16743 | 4026 | 1422 | 6616 |
+| tests | 58 | 28901 | 16799 | 4042 | 1428 | 6632 |
 | evals | 8 | 3619 | 2485 | 444 | 250 | 440 |
 | fuzz | 1 | 1284 | 827 | 147 | 110 | 200 |
-| scripts | 11 | 4565 | 3061 | 609 | 325 | 570 |
-| **total** | 176 | 71652 | 43197 | 11588 | 4655 | 12212 |
+| scripts | 11 | 4586 | 3082 | 609 | 325 | 570 |
+| **total** | 176 | 71792 | 43282 | 11604 | 4677 | 12229 |
 
 Documentation, in lines of Markdown:
 
 - `docs/DESIGN.md`: 1677
 - `docs/FORMATS.md`: 679
-- `docs/THREAT-MODEL.md`: 524
+- `docs/THREAT-MODEL.md`: 537
 - `fuzz/README.md`: 251
-- total: 3131
+- total: 3144
 
 ## Rules
 
