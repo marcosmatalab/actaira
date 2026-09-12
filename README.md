@@ -29,7 +29,7 @@ Nothing is ever loaded, deserialised or executed. Nothing is ever scored.
 | | | |
 |---|---|---|
 | **80 documented rules** | **15 executable controls** | **21 obligations** modeled |
-| **3,594 tests**, none of them hand-written figures | **7 connectors** that never decide | one runtime dependency |
+| **3,595 tests**, none of them hand-written figures | **7 connectors** that never decide | one runtime dependency |
 
 **No network is required** for local scanning, governance or offline verification. Remote discovery and RFC 3161 time anchoring reach the network only when you ask them to, `bundle` and `discover` take `--offline` to forbid it outright, and nothing here ever phones home: there is no telemetry, no account and no hosted service.
 
@@ -326,7 +326,7 @@ And the loop closes. The next observation is compared against the last, so the o
 
 ![The Actaira assurance loop](docs/img/pipeline.svg)
 
-**71,879 lines of Python**, one runtime dependency, and **160 design notes** recording why each decision went the way it did. [`docs/DESIGN.md`](docs/DESIGN.md) is the index; every note names the file and line that implements it, and a test fails if a note in the code is missing from the table.
+**72,002 lines of Python**, one runtime dependency, and **160 design notes** recording why each decision went the way it did. [`docs/DESIGN.md`](docs/DESIGN.md) is the index; every note names the file and line that implements it, and a test fails if a note in the code is missing from the table.
 
 ---
 
