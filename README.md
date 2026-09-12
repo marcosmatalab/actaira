@@ -326,7 +326,7 @@ And the loop closes. The next observation is compared against the last, so the o
 
 ![The Actaira assurance loop](docs/img/pipeline.svg)
 
-**71,843 lines of Python**, one runtime dependency, and **160 design notes** recording why each decision went the way it did. [`docs/DESIGN.md`](docs/DESIGN.md) is the index; every note names the file and line that implements it, and a test fails if a note in the code is missing from the table.
+**71,879 lines of Python**, one runtime dependency, and **160 design notes** recording why each decision went the way it did. [`docs/DESIGN.md`](docs/DESIGN.md) is the index; every note names the file and line that implements it, and a test fails if a note in the code is missing from the table.
 
 ---
 

@@ -525,21 +525,21 @@
       "note": "the SQLite store, watch, evidence, graph"
     },
     "tests": {
-      "blank": 6641,
-      "code": 16821,
-      "comment": 1430,
-      "docstring": 4052,
+      "blank": 6647,
+      "code": 16828,
+      "comment": 1435,
+      "docstring": 4070,
       "files": 58,
-      "lines": 28944,
+      "lines": 28980,
       "note": "the test suite"
     },
     "total": {
-      "blank": 12240,
-      "code": 43304,
-      "comment": 4684,
-      "docstring": 11615,
+      "blank": 12246,
+      "code": 43311,
+      "comment": 4689,
+      "docstring": 11633,
       "files": 176,
-      "lines": 71843,
+      "lines": 71879,
       "note": "every Python file under evals, fuzz, scripts, src, tests, each counted once"
     },
     "web": {
@@ -704,12 +704,12 @@
     "produced_by": "make fuzz",
     "source": "fuzz/runs/latest/summary.json"
   },
-  "generated_at": "2026-09-12T16:34:01+00:00",
+  "generated_at": "2026-09-12T16:41:31+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 4,
-    "head": "0db4e14",
+    "commits": 5,
+    "head": "f3d2c19",
     "head_date": "2026-09-12"
   },
   "governance": {

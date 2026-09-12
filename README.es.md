@@ -326,7 +326,7 @@ Y el bucle se cierra. La siguiente observación se compara con la anterior, así
 
 ![El bucle de garantía de Actaira](docs/img/pipeline.svg)
 
-**71.843 líneas de Python**, una dependencia en tiempo de ejecución, y **160 notas de diseño** que registran por qué cada decisión salió como salió. [`docs/DESIGN.md`](docs/DESIGN.md) es el índice; cada nota nombra el fichero y la línea que la implementa, y un test falla si una nota escrita en el código no está en la tabla.
+**71.879 líneas de Python**, una dependencia en tiempo de ejecución, y **160 notas de diseño** que registran por qué cada decisión salió como salió. [`docs/DESIGN.md`](docs/DESIGN.md) es el índice; cada nota nombra el fichero y la línea que la implementa, y un test falla si una nota escrita en el código no está en la tabla.
 
 ---
 
