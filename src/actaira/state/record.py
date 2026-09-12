@@ -277,21 +277,31 @@ def policy_decision(store: Any, decision: Any, decision_id: str, claims: list[An
     return written
 
 
-def decision_inputs(store: Any, claims: list[Any], recorded: list[Recorded]) -> list[Any]:
+# Evidence a decision is never recorded as depending on. A `policy_decision`
+# record is the note that a decision happened; it is not something a decision
+# rested on, and a run that took it as an input would make every decision
+# after the first depend on the ones before it - so replacing a model would
+# report the newest decision as needing reassessment partly because an older
+# decision's note about the same model had been superseded. True, circular,
+# and useless as a reason to act on.
+NOT_AN_INPUT = ("policy_decision",)
+
+
+def decision_inputs(store: Any, claims: list[Any]) -> list[Any]:
     """What the decision rested on, as rows `state.decide` can check later.
 
     Two kinds, and nothing inferred. Each subject the decision was made about,
-    at the digest it had then; and each evidence record that was attached to
-    those subjects and was VALID at the time, because that is what the policy
+    at the digest it had then; and each evidence record attached to those
+    subjects that was VALID at the time, because that is what the policy
     language's `evidence_state` and `evidence_max_age_days` predicates read.
 
-    The `policy_decision` records this run just wrote are deliberately NOT
-    inputs. A decision does not depend on the note that it happened, and
-    listing it would make every decision immediately self-referential.
+    Evidence in `NOT_AN_INPUT` is excluded by kind rather than by identity.
+    Excluding only the records THIS run is about to write would have been
+    enough on a first run and wrong on every one after it: the second decision
+    about a subject would take the first decision's note as an input.
     """
     from .decide import evidence_input, subject_input
 
-    mine = {item.evidence_id for item in recorded if item.evidence_id}
     inputs: list[Any] = []
     seen: set[tuple[str, str]] = set()
     for item in claims:
@@ -306,7 +316,7 @@ def decision_inputs(store: Any, claims: list[Any], recorded: list[Recorded]) -> 
             seen.add(key)
             inputs.append(subject_input(identity.asset_id, digest))
         for row in store.evidence_for(identity.asset_id):
-            if row["evidence_id"] in mine:
+            if row["kind"] in NOT_AN_INPUT:
                 continue
             if row["state"] != evidence_mod.EvidenceState.VALID.value:
                 # A decision does not rest on evidence that had already
