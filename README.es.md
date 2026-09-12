@@ -29,7 +29,7 @@ Nada se carga, se deserializa ni se ejecuta nunca. Nada se puntúa nunca.
 | | | |
 |---|---|---|
 | **80 reglas documentadas** | **15 controles ejecutables** | **21 obligaciones** modeladas |
-| **3.593 tests**, ninguna cifra escrita a mano | **7 conectores** que nunca deciden | una dependencia en tiempo de ejecución |
+| **3.594 tests**, ninguna cifra escrita a mano | **7 conectores** que nunca deciden | una dependencia en tiempo de ejecución |
 
 **No hace falta red** para escanear en local, para la gobernanza ni para verificar sin conexión. El descubrimiento remoto y el anclaje temporal RFC 3161 llegan a la red solo cuando se lo pides, `bundle` y `discover` aceptan `--offline` para prohibirlo del todo, y aquí nada llama a casa: no hay telemetría, ni cuenta, ni servicio alojado.
 
@@ -326,7 +326,7 @@ Y el bucle se cierra. La siguiente observación se compara con la anterior, así
 
 ![El bucle de garantía de Actaira](docs/img/pipeline.svg)
 
-**71.792 líneas de Python**, una dependencia en tiempo de ejecución, y **160 notas de diseño** que registran por qué cada decisión salió como salió. [`docs/DESIGN.md`](docs/DESIGN.md) es el índice; cada nota nombra el fichero y la línea que la implementa, y un test falla si una nota escrita en el código no está en la tabla.
+**71.843 líneas de Python**, una dependencia en tiempo de ejecución, y **160 notas de diseño** que registran por qué cada decisión salió como salió. [`docs/DESIGN.md`](docs/DESIGN.md) es el índice; cada nota nombra el fichero y la línea que la implementa, y un test falla si una nota escrita en el código no está en la tabla.
 
 ---
 
