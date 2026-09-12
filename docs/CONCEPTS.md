@@ -237,6 +237,8 @@ Stateful, needs `.actaira/`:
 | `actaira evidence` | `list` what has been observed and `show` one record |
 | `actaira graph` | `build`, `show` or `export` the declared relations between assets |
 | `actaira impact` | what depends on this, and the exact route that reaches it |
+| `actaira changes` | the observations this workspace has recorded, oldest first |
+| `actaira decisions` | every recorded decision, and whether its inputs still describe its subject |
 
 `actaira --lang es <command>` switches the output language. The flag is global,
 so it goes before the subcommand, and a test fails if one language gains a
@@ -301,8 +303,11 @@ The third value is the honest one and it is not a corner case. An edge a
 manifest declared carries no notion of which run of that manifest is live, so
 its currentness is genuinely unknown, and calling it either of the other two
 would be inventing a fact. Making it answerable needs a store that records
-which declaration run is the current one, which is a change to the state
-layer rather than a reading trick, and it is what the next increment is for.
+which declaration run is the current one - a stable declaration identity, its
+digest, when it was observed, and which edges that exact run stated - which is
+a change to the state layer rather than a reading trick. It is still open, and
+it is named here rather than papered over with a timestamp and a
+latest-write-wins guess.
 
 ```bash
 actaira graph show                                  # every recorded relation
@@ -314,6 +319,71 @@ actaira impact tool:fetch_url                       # what a change reaches, wit
 direction `impact` walks; `--direction dependencies` walks the other way. Both
 are bounded, and a view that stopped at its limit says so rather than looking
 complete.
+
+---
+
+## When something changes
+
+This is the loop the rest of the tool exists to serve, and each arrow is a
+place a tool can quietly lie:
+
+```
+observe -> state -> change -> invalidate -> impact -> decide -> prove
+```
+
+**Invalidate.** Evidence is bound to the digest it was taken about, never to
+the subject's name. So a new observation of a model that did not change
+supersedes nothing, one of a model that did supersedes only the records about
+the bytes that are gone, and a scan of a sibling nobody touched stays valid.
+That is the difference between an invalidation somebody acts on and a page of
+red nobody reads.
+
+**Impact starts at what moved.** Not at the source that contains it. A source
+holding forty files, one of which changed, has one changed artifact, and the
+walk starts there. When two artifacts change and both reach the same system,
+that system appears once with two causes under it: a reader asked to reassess
+it needs to know it is downstream of two changes.
+
+**Decide is two questions, not one.** What was decided is history and this
+tool will not rewrite it - an ALLOW recorded in March prints as ALLOW forever,
+because overwriting it destroys the only record of what was approved. Whether
+it still applies is a separate question with its own three values:
+
+| | |
+|---|---|
+| `current` | every input it recorded still describes its subject |
+| `requires_reassessment` | at least one demonstrably does not, and here is which |
+| `undetermined` | this workspace does not hold enough to say |
+
+`requires_reassessment` is never reached by inference. It needs a row: an
+evidence record whose state is not `valid`, or a subject whose recorded digest
+differs from the one the decision named. "The model changed recently" is not a
+reason. `{"reason": "evidence_superseded", "evidence_id": "ev_...", "was":
+"sha256:...", "now": "sha256:..."}` is, and that is what the command prints
+and what `--json` carries.
+
+A decision filed before the store recorded dependencies has none, and is
+`undetermined` rather than `current`. Reading "no inputs" as "nothing it
+depended on has changed" would mark exactly the decisions this tool knows
+least about as the ones needing no attention.
+
+```bash
+actaira scan models/model.pt --state .actaira/state.db   # files an artifact_scan record
+actaira policy check --subjects examples/subjects.yaml \
+    --policy-file policies/production-model.yaml --state .actaira/state.db
+actaira watch corpus                                     # what moved, and what that cost
+actaira decisions --state .actaira/state.db              # and which approvals that leaves open
+```
+
+`--state` is optional on every one of them, and it never creates a database.
+A scan on a machine with no workspace behaves exactly as it did before any of
+this existed, which is the local-first property the tool is worth having.
+
+One thing the ledger does not do yet. Four of the seven evidence kinds have a
+producer - `source_snapshot`, `artifact_scan`, `agent_assessment` and
+`policy_decision`. `bundle`, `governance` and `attestation` are defined and
+not yet written by anything, and that split is pinned by a test so it cannot
+drift without somebody noticing.
 
 ---
 

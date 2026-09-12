@@ -735,7 +735,13 @@ def test_a_local_source_is_compared_by_its_bytes(tmp_path):
     comparison had been weak."""
     weights = tmp_path / "w.bin"
     weights.write_bytes(b"weights")
-    rows = [{"uri": f"file://{weights}", "size": 7, "path": "w.bin"}]
+    # `as_uri()`, which is what the filesystem connector emits, rather than
+    # a hand-assembled `file://` plus a native path. DEF-114: the
+    # hand-assembled spelling is the one this test used, it is the one shape
+    # that happened to survive the old slice on Windows, and the real one did
+    # not - so the regression test for DEF-74 passed on every platform while
+    # the behaviour it guards was broken on one of them.
+    rows = [{"uri": weights.as_uri(), "size": 7, "path": "w.bin"}]
 
     with Store(tmp_path / "state.db") as store:
         store.add_source("m", "filesystem", str(tmp_path))
@@ -746,7 +752,7 @@ def test_a_local_source_is_compared_by_its_bytes(tmp_path):
 
     assert len(b"HACKED!") == len(b"weights"), "the fixture is only interesting if the sizes match"
     assert after.state is ObservationState.CONTENT_DRIFT
-    assert after.changed == [f"file://{weights}"]
+    assert after.changed == [weights.as_uri()]
 
 
 def test_an_artifact_compared_by_size_alone_is_named(watched):

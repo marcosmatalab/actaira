@@ -295,6 +295,68 @@ def impact(graph: Graph, changed: str, *, max_depth: int = MAX_DEPTH) -> dict[st
     }
 
 
+def impact_of_changes(
+    graph: Graph, changed: list[str], *, max_depth: int = MAX_DEPTH
+) -> dict[str, Any]:
+    """Impact from each changed asset separately, keeping every cause.
+
+    Design note D-248. `watch` used to answer its impact question from
+    `source:<id>`, which is a true answer to a coarser question: everything
+    that source contains was affected, because the source moved. That is the
+    wrong grain for the loop this release is about. A source holding forty
+    files, one of which changed, reported every dependent of all forty.
+
+    So the walk starts from each changed artifact's own recorded asset id, and
+    the results are kept per cause rather than merged into a set. Two changed
+    artifacts that both reach `system:checkout` produce two routes, and both
+    are in the answer: a reader asked to reassess a system needs to know it is
+    downstream of two changes, and a deduplicated list of targets would have
+    told them it was downstream of one.
+
+    `targets` is the deduplicated summary, and it is a summary of TARGETS and
+    never of causes: each entry names every changed asset that reaches it and
+    the shortest route from each. Counting is what a summary is for; losing
+    the reasons is what it must not do.
+    """
+    per_cause: list[dict[str, Any]] = []
+    targets: dict[str, dict[str, Any]] = {}
+    truncated = False
+
+    for name in sorted(set(changed)):
+        document = impact(graph, name, max_depth=max_depth)
+        truncated = truncated or bool(document["truncated"])
+        per_cause.append({"changed": document["changed"], "found": document["found"],
+                          "affected": document["affected"], "by_kind": document["by_kind"],
+                          "truncated": document["truncated"]})
+        for row in document["affected"]:
+            entry = targets.setdefault(
+                str(row["asset"]),
+                {"asset": row["asset"], "kind": graph.assets.get(str(row["asset"]), {}).get(
+                    "kind", _kind_of(str(row["asset"]))), "causes": []},
+            )
+            entry["causes"].append(
+                {"changed": document["changed"], "why": row["why"],
+                 "route": row["route"], "hops": row["hops"]}
+            )
+
+    for entry in targets.values():
+        entry["causes"].sort(key=lambda cause: (cause["hops"], str(cause["changed"])))
+
+    by_kind: dict[str, int] = {}
+    for entry in targets.values():
+        by_kind[str(entry["kind"])] = by_kind.get(str(entry["kind"]), 0) + 1
+
+    return {
+        "changed": sorted(set(changed)),
+        "by_changed": per_cause,
+        "targets": [targets[name] for name in sorted(targets)],
+        "by_kind": dict(sorted(by_kind.items())),
+        "cycles": graph.cycles(),
+        "cycles_may_be_incomplete": graph.cycles_may_be_incomplete,
+        "truncated": truncated,
+    }
+
+
 def resolve(graph: Graph, changed: str) -> str:
     """Accept a node id or a digest, because an operator has whichever they have.
 
