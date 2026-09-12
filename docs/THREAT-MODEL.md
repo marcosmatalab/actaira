@@ -54,6 +54,15 @@ machine has been told to look after: asset ids, source URIs, artifact digests,
 the dependency topology between them, the identities and tool names an agent
 declaration listed, and evidence identifiers.
 
+2.3.0 widens that set rather than the posture. The evidence, change and decision
+routes disclose what was observed and when, what each record was taken about,
+which policy decided what on which date, and which of those decisions no longer
+describes its subject. That last one is the most sensitive thing this interface
+has ever served: it is a list of approvals that have quietly stopped applying,
+which is exactly the list an attacker would want and exactly the list an operator
+needs. It is served under the same rules as everything else here and under no
+new ones.
+
 That is a real change in what an attacker who reaches the port would learn, so
 it is answered in four places rather than assumed away.
 
@@ -63,6 +72,8 @@ it is answered in four places rather than assumed away.
 | A page on the internet reading the graph as a subresource | Every state route is a POST behind the Host and Origin checks. A GET to any of them is a 404 | `src/actaira/web/server.py:1247` |
 | A read changing the operator's database | The schema version is read through a read-only connection first; an older database is reported rather than migrated, a missing one reported rather than created | `src/actaira/web/server.py:1873` |
 | The local filesystem layout leaking into the browser | Responses carry the file's name and never its path | `tests/test_web_graph.py::test_the_response_carries_a_label_and_never_a_path` |
+| A filter or a search string reaching sqlite | Both filters are checked against a closed vocabulary and refused when they are not in it; the search is a Python substring test over rows already read, never a `LIKE` pattern and never concatenated into SQL | `tests/test_web_evidence.py::test_a_search_needle_is_a_substring_and_never_a_pattern` |
+| The browser mutating the ledger | Nothing writes. The Store can revoke, distrust and delete a record and none of it is reachable from here: each changes what a decision may rest on, and a control with that reach is its own review | `tests/test_web_evidence.py::test_reading_leaves_the_database_byte_identical` |
 
 The flag is opt-in and the interface is fully usable without it: every panel
 that existed before the graph works with no workspace at all, and binding this
@@ -465,6 +476,8 @@ row gives an attack, the budget or control that bounds it, and where it lives.
 | A browser choosing which sqlite file this process opens | The path is a server value set from `--state`; no field of any body reaches it | `src/actaira/web/server.py:1859` | A body naming a path is ignored and the configured workspace is read |
 | A read migrating or creating the operator's state database | Version read through a read-only connection; older, newer, corrupt and absent are four structured refusals | `tests/test_web_graph.py::test_a_database_from_an_earlier_release_is_reported_and_not_migrated` | The file is byte-identical after a request that refused it |
 | Markup in an asset id, a name, `stated_by` or an evidence id | Carried as data by the API and written with `textContent` by the renderer; nothing in the interface assigns `innerHTML` | `tests/test_web_graph.py` | The payload is displayed as the text it is |
+| Markup in an evidence payload key or value | The same answer one layer in: the evidence panel renders payload keys and values, and both are text nodes. The response is `application/json` with `nosniff`, so the bytes never reach an HTML parser in the first place | `tests/test_web_evidence.py::test_hostile_text_round_trips_as_text` | Displayed as the text it is |
+| An approval that has stopped applying, read by a page on the internet | The decision routes are POSTs behind the same Host and Origin checks as everything else that reads the workspace | `tests/test_web_evidence.py::test_a_cross_origin_request_is_refused` | Unreachable except from this machine's own browser |
 | `localhost` pinned to HTTPS for every other local server on the machine | No `Strict-Transport-Security`, deliberately, and a test asserts its absence | `tests/test_web_limits.py::test_the_local_server_does_not_send_hsts` | This server is 127.0.0.1 over plain HTTP; HSTS here would be a real harm for a protection that does not apply to loopback |
 
 ### 5.5 The connectors: a different adversary

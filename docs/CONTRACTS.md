@@ -47,6 +47,14 @@ Still on disk, still readable, never emitted again. A consumer written against o
 | `assurance-receipt/v1` | `assurance-receipt/v2` |
 | `model-bundle/v1` | `model-bundle/v2` |
 
+## Not a contract yet, deliberately
+
+The engine builds one more document than this page lists: the whole consequence of one observation, assembled in `state/change.py` - what moved, which evidence stopped counting, what depends on the changed artifact with a route per cause, and which stored decisions that leaves needing a second look. `actaira watch --json` prints it and the interface renders it, and it carries no `schema_version`.
+
+That is on purpose. The obvious name for it is `assurance-state/v1`, and a version number is a promise that the semantics are settled. One of them is not: a relation a declaration stated has no notion of which run of that declaration is live, so its currentness is `undetermined` (design note D-243), and a published state document would have to either omit provenance currentness or assert something this store cannot support. Publishing the name first and working out what it means afterwards is how a contract ends up meaning whatever the last release needed it to.
+
+So the shape stays internal, the output stays deterministic, and nothing outside this repository should pin to it until that seam is closed.
+
 ## Required fields
 
 Each contract's required fields are frozen in the test suite, so dropping one fails the build here rather than a consumer's parser somewhere else.
