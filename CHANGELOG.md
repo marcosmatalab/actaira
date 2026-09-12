@@ -161,6 +161,17 @@ and never given a version of its own.
   because its fixture assembled the URI by hand, and that spelling is the one
   shape the old slice happened to survive. It now uses the spelling the
   connector emits.
+* **DEF-115: every receipt ever issued from a workspace referenced no
+  evidence.** `assurance-receipt/v2` publishes an `evidence` array so a
+  receipt can name the observations it rested on, and the lookup matched each
+  record's subject against the subject's handle - `artifact:model.pkl` - and
+  against its digest. Nothing is ever filed under either: `watch` files
+  per-artifact records under an id derived from the artifact's URI, and so do
+  this release's producers. The command exited 0 and signed a valid document
+  every time, with the field a verifier would read simply absent, which is
+  indistinguishable from a workspace that had recorded nothing. The third time
+  this shape has been found here, after the `decisions` and `receipts` tables
+  in D-233: a published field with no producer that could fill it.
 
 ### Unchanged, and checked
 
@@ -991,12 +1002,13 @@ down until then, and `docs/defects.json` records which test pins each.
 ## On the versions in this file
 
 Every heading above is a **project version**: a point at which the work was
-consistent with itself and the release gate accepted it. None of them is a
-published release. This repository is a local snapshot - it has no remote, no
-package index entry and no release page - so there is nothing for a version
-here to link to, and a row of comparison links to a repository that does not
-exist would be the first false claim in a file whose own convention is that
-numbers are measured rather than remembered.
+consistent with itself and the release gate accepted it. The repository is now
+public, at https://github.com/marcosmatalab/actaira, and there is still no package index entry and no release
+page - so a version here is a point in that history and not a thing you can
+download by name. Comparison links will appear when there are tags to compare;
+a row of them pointing at tags that do not exist would be the first false
+claim in a file whose own convention is that numbers are measured rather than
+remembered.
 
 What each version means is therefore what it says: 0.1.0 and 0.2.0 were
 development milestones in one line of work, 1.0.0 was the first version the

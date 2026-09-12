@@ -1416,6 +1416,17 @@
         "tests/test_state_change.py::test_a_file_uri_with_a_space_in_it_is_still_measured",
         "tests/test_state.py::test_a_local_source_is_compared_by_its_bytes"
       ]
+    },
+    {
+      "id": "DEF-115",
+      "title": "every receipt ever issued from a workspace referenced no evidence, because nothing is filed under a subject handle",
+      "effect": "`assurance-receipt/v2` publishes an `evidence` array so that a receipt can name the observations it rested on, and `receipt issue --state` gathered it by matching each stored record's `subject_id` against the subject's handle - `artifact:model.pkl` - and against `claims.subject`, which for an artifact is its digest. No evidence is ever filed under either. `watch` files per-artifact records under an id derived from the artifact's URI, and the producers added in 2.3.0 file scans, assessments and decisions under that same id, so the two sets never intersected and the array was empty in every receipt ever issued from a workspace. The command exited 0 and wrote a valid signed document each time, which is what made it invisible: the field a verifier would read to learn which observations the receipt rested on was simply absent, and absence is indistinguishable from a workspace that had recorded nothing. This is the third time this exact shape has been found in this repository, after the `decisions` and `receipts` tables in D-233: a published contract field with no producer that could populate it. The fix routes the lookup through `state.record.resolve`, which is the function the producers themselves use to answer 'which recorded asset is this subject', so the two ends agree by construction rather than by two similar-looking expressions staying equal.",
+      "found_by": "product review against a roadmap",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_state_change.py::test_a_receipt_issued_from_a_workspace_references_the_evidence_about_its_subjects"
+      ]
     }
   ]
 }
