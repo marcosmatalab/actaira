@@ -143,8 +143,13 @@ def test_the_response_carries_a_label_and_never_a_path(running, workspace):
     status, payload = post(running, "/api/workspace")
     assert payload["workspace"]["label"] == "state.db"
     blob = json.dumps(payload)
-    assert str(workspace) not in blob
-    assert str(workspace.parent) not in blob
+    # Both spellings. On Windows a backslash is doubled on the wire, so a
+    # check against the plain path alone is a real check on one platform and a
+    # no-op on the other - which is how the same assertion in
+    # `test_web_evidence.py` passed locally and failed in CI.
+    for path in (str(workspace), str(workspace.parent)):
+        for spelling in (path, json.dumps(path)[1:-1]):
+            assert spelling not in blob, f"a response carried {spelling!r}"
 
 
 def test_with_no_workspace_the_route_answers_rather_than_failing(stateless):
