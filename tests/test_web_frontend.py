@@ -472,3 +472,69 @@ def test_no_shipped_static_file_carries_a_raw_control_character():
                 "as an escape: a control character here is invisible in review and does "
                 "not survive a copy."
             )
+
+
+def test_the_screenshot_fixture_is_built_twice_into_the_same_state(tmp_path):
+    """Two runs of `make screenshots` must not produce two different pictures.
+
+    The fixture is built by the commands an operator types, which is the point:
+    one assembled by writing rows could show a panel a state the commands
+    cannot produce. What it must not also inherit is `datetime.now()` in every
+    row, because then every regeneration is a committed diff for a reason that
+    is not a change, and a repository that commits its screenshots ends up with
+    a permanent one nobody can read.
+
+    So the story's clocks are pinned after the commands have built it, and this
+    is the check that they still are. Comparing the state export rather than
+    the images: an export is a document a failure can be read out of, and a
+    PNG comparison would tell you only that two files differ.
+    """
+    import importlib.util
+    import json
+
+    from actaira.state.store import Store
+
+    location = Path(REPO_ROOT) / "scripts" / "screenshots.py"
+    spec = importlib.util.spec_from_file_location("screenshots_fixture", location)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    # Twice into the SAME directory, which is what `make screenshots` does:
+    # it always builds `.screenshots/graph-state.db`. Building into two
+    # different directories would compare two different fixtures, because an
+    # artifact's asset id is derived from its URI and the URI of a local file
+    # contains the directory it is in - which is the property that gives an
+    # artifact a history across observations, and is not a defect.
+    exports = []
+    room = tmp_path / "screenshots"
+    room.mkdir()
+    for _ in range(2):
+        module.build_workspace(room / "state.db")
+        with Store(room / "state.db", create=False) as store:
+            document = store.export()
+        # The tool version and the absolute paths differ by construction; what
+        # has to agree is every identity and every timestamp.
+        exports.append(json.dumps({
+            "snapshots": [(row["digest"], row["observed_at"]) for row in document["snapshots"]],
+            "evidence": sorted(
+                (row["evidence_id"], row["kind"], row["state"], row["observed_at"])
+                for row in document["evidence"]
+            ),
+            "decisions": sorted(
+                (row["decision_id"], row["decision"], row["observed_at"])
+                for row in document["decisions"]
+            ),
+            "decision_inputs": sorted(
+                (row["role"], row["ref"]) for row in document["decision_inputs"]
+            ),
+        }, sort_keys=True))
+
+    assert exports[0] == exports[1], (
+        "two builds of the screenshot fixture disagree, so every regeneration "
+        "of the captures will be a diff that is not a change"
+    )
+    # And the story is actually there, or the comparison above is comparing
+    # two empty documents.
+    assert "artifact_scan" in exports[0]
+    assert "policy_decision" in exports[0]
+    assert "superseded" in exports[0]
