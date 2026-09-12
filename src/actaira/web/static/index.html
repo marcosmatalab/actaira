@@ -44,6 +44,14 @@
     <circle cx="6" cy="6.6" r="2.6"/><circle cx="18" cy="9.8" r="2.6"/><circle cx="9.4" cy="18.4" r="2.6"/>
     <path d="m8.5 7.4 6.9 1.8"/><path d="m16.6 12.1 -5.4 4.6"/><path d="M6.4 9.2 8.6 15.9"/>
   </symbol>
+  <symbol id="i-evidence" viewBox="0 0 24 24">
+    <path d="M5.4 4.2h9l4.2 4.2v11.4H5.4Z"/><path d="M14.4 4.2v4.2h4.2"/>
+    <circle cx="11" cy="13" r="2.6"/><path d="m13 15 2.4 2.4"/>
+  </symbol>
+  <symbol id="i-changes" viewBox="0 0 24 24">
+    <path d="M4.2 12h4"/><path d="M15.8 12h4"/>
+    <circle cx="12" cy="12" r="3"/><path d="M12 3.4v3"/><path d="M12 17.6v3"/>
+  </symbol>
   <symbol id="i-attest" viewBox="0 0 24 24">
     <path d="M12 2.8 19.4 6v6.1c0 4.3-3 7.4-7.4 9-4.4-1.6-7.4-4.7-7.4-9V6Z"/><path d="m9 12.1 2.1 2.1 4-4.2"/>
   </symbol>
@@ -164,6 +172,14 @@
       <button type="button" class="tab" role="tab" id="tab-graph" aria-controls="panel-graph" aria-selected="false" tabindex="-1" data-tab="graph">
         <svg class="icon" aria-hidden="true"><use href="#i-graph"></use></svg>
         <span data-i18n="tab.graph">Graph</span>
+      </button>
+      <button type="button" class="tab" role="tab" id="tab-evidence" aria-controls="panel-evidence" aria-selected="false" tabindex="-1" data-tab="evidence">
+        <svg class="icon" aria-hidden="true"><use href="#i-evidence"></use></svg>
+        <span data-i18n="tab.evidence">Evidence</span>
+      </button>
+      <button type="button" class="tab" role="tab" id="tab-changes" aria-controls="panel-changes" aria-selected="false" tabindex="-1" data-tab="changes">
+        <svg class="icon" aria-hidden="true"><use href="#i-changes"></use></svg>
+        <span data-i18n="tab.changes">Changes</span>
       </button>
       <button type="button" class="tab" role="tab" id="tab-attest" aria-controls="panel-attest" aria-selected="false" tabindex="-1" data-tab="attest">
         <svg class="icon" aria-hidden="true"><use href="#i-attest"></use></svg>
@@ -367,6 +383,22 @@
   <section class="panel" id="panel-graph" role="tabpanel" aria-labelledby="tab-graph" hidden>
     <p class="panel__lede" data-i18n="gr.lede"></p>
     <div class="results" id="out-graph" aria-live="polite" aria-busy="false"></div>
+  </section>
+
+  <!-- ── Evidence ────────────────────────────────────────────────────── -->
+  <!-- A reader over the ledger and nothing else. The Store can revoke, trust
+       and delete a record; none of that is here, because each has security
+       semantics that deserve their own review rather than a button added
+       because the method existed. -->
+  <section class="panel" id="panel-evidence" role="tabpanel" aria-labelledby="tab-evidence" hidden>
+    <p class="panel__lede" data-i18n="ev.lede"></p>
+    <div class="results" id="out-evidence" aria-live="polite" aria-busy="false"></div>
+  </section>
+
+  <!-- ── Changes ─────────────────────────────────────────────────────── -->
+  <section class="panel" id="panel-changes" role="tabpanel" aria-labelledby="tab-changes" hidden>
+    <p class="panel__lede" data-i18n="ch.lede"></p>
+    <div class="results" id="out-changes" aria-live="polite" aria-busy="false"></div>
   </section>
 
   <!-- ── Attest ──────────────────────────────────────────────────────── -->

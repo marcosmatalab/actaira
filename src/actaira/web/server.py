@@ -1892,6 +1892,8 @@ class ActairaHandler(BaseHTTPRequestHandler):
         """
         import json as json_mod
 
+        from ..state import graph as graph_mod
+
         store = self._open_state()
         try:
             wanted = self._node_id(body, "id")
@@ -1910,6 +1912,17 @@ class ActairaHandler(BaseHTTPRequestHandler):
                 document = {}
             subject = str(record["subject_id"])
             asset = store.asset(subject)
+            # The third fact the comparison needs, and the one whose absence
+            # made the panel read wrongly: an artifact that was REMOVED from
+            # its source keeps the last digest the store saw, so "then" and
+            # "now" agree while the subject is not in the latest observation
+            # at all. Two equal digests beside a superseded badge, with
+            # nothing explaining it, invites the reader to conclude nothing
+            # changed. This is the same three-valued projection the graph
+            # panel draws (D-243), asked about one node.
+            projection = graph_mod.project(
+                graph_mod.Graph.from_store(store), graph_mod.latest_observations(store)
+            )
             self._json({
                 "asked": wanted,
                 "found": True,
@@ -1923,6 +1936,7 @@ class ActairaHandler(BaseHTTPRequestHandler):
                     "name": (asset or {}).get("name") or "",
                     "digest_now": (asset or {}).get("digest") or "",
                     "digest_then": record["subject_digest"] or "",
+                    "currentness": projection.nodes.get(subject, graph_mod.UNDETERMINED),
                 },
                 # Every record about this subject, oldest first, so one
                 # record can be read as a moment in a history rather than as

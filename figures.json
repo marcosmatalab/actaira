@@ -507,48 +507,48 @@
       "note": "the published contracts"
     },
     "scripts": {
-      "blank": 548,
-      "code": 2933,
-      "comment": 305,
-      "docstring": 577,
+      "blank": 570,
+      "code": 3061,
+      "comment": 325,
+      "docstring": 609,
       "files": 11,
-      "lines": 4363,
+      "lines": 4565,
       "note": "this script"
     },
     "state": {
-      "blank": 497,
+      "blank": 496,
       "code": 1970,
       "comment": 231,
       "docstring": 820,
       "files": 9,
-      "lines": 3518,
+      "lines": 3517,
       "note": "the SQLite store, watch, evidence, graph"
     },
     "tests": {
-      "blank": 6478,
-      "code": 16352,
-      "comment": 1394,
-      "docstring": 3946,
-      "files": 57,
-      "lines": 28170,
+      "blank": 6616,
+      "code": 16743,
+      "comment": 1422,
+      "docstring": 4026,
+      "files": 58,
+      "lines": 28807,
       "note": "the test suite"
     },
     "total": {
-      "blank": 12052,
-      "code": 42673,
-      "comment": 4599,
-      "docstring": 11476,
-      "files": 175,
-      "lines": 70800,
+      "blank": 12212,
+      "code": 43197,
+      "comment": 4655,
+      "docstring": 11588,
+      "files": 176,
+      "lines": 71652,
       "note": "every Python file under evals, fuzz, scripts, src, tests, each counted once"
     },
     "web": {
-      "blank": 283,
-      "code": 1435,
-      "comment": 290,
+      "blank": 284,
+      "code": 1440,
+      "comment": 298,
       "docstring": 301,
       "files": 2,
-      "lines": 2309,
+      "lines": 2323,
       "note": "the local review interface"
     }
   },
@@ -704,12 +704,12 @@
     "produced_by": "make fuzz",
     "source": "fuzz/runs/latest/summary.json"
   },
-  "generated_at": "2026-09-12T15:00:17+00:00",
+  "generated_at": "2026-09-12T16:09:16+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 1,
-    "head": "e86fdbf",
+    "commits": 2,
+    "head": "ff83913",
     "head_date": "2026-09-12"
   },
   "governance": {
@@ -752,8 +752,8 @@
   },
   "tests": {
     "available": true,
-    "collected": 3535,
-    "files": 55,
+    "collected": 3589,
+    "files": 56,
     "per_file": {
       "tests/test_action_entrypoint.py": 14,
       "tests/test_agentgov.py": 54,
@@ -780,7 +780,7 @@
       "tests/test_formats_doc.py": 82,
       "tests/test_fuzz_regressions.py": 44,
       "tests/test_governance.py": 201,
-      "tests/test_i18n.py": 275,
+      "tests/test_i18n.py": 276,
       "tests/test_io_budget.py": 13,
       "tests/test_junit.py": 21,
       "tests/test_keyring.py": 34,
@@ -806,6 +806,7 @@
       "tests/test_trust.py": 13,
       "tests/test_trust_paths.py": 39,
       "tests/test_web_agents.py": 50,
+      "tests/test_web_evidence.py": 53,
       "tests/test_web_frontend.py": 18,
       "tests/test_web_graph.py": 69,
       "tests/test_web_limits.py": 31,

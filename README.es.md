@@ -2,9 +2,9 @@
 
 <img src="docs/img/banner.svg" alt="Actaira" width="760">
 
-**Consola open source de seguridad y gobernanza para modelos y agentes de IA.**
+**Garantía continua y verificable para modelos y agentes de IA.**
 
-Inspecciona artefactos de modelo sin ejecutarlos. Encuentra las rutas por las que se puede llevar a un agente. Aplica políticas como código. Relaciona evidencia técnica con obligaciones del Reglamento de IA de la UE. Vigila lo que cambia, y produce pruebas que otra persona puede verificar.
+Actaira detecta qué cambió, muestra qué evidencia dejó de contar, traza exactamente qué queda afectado, y demuestra por qué. Inspecciona artefactos de modelo sin ejecutarlos, encuentra las rutas por las que se puede llevar a un agente, decide con políticas como código, y relaciona evidencia técnica con obligaciones del Reglamento de IA de la UE.
 
 **Actaira 2.3.0** · Python 3.11 · 3.12 · 3.13 · MIT · una dependencia en tiempo de ejecución · local-first, sin telemetría, sin cuenta
 
@@ -29,7 +29,7 @@ Nada se carga, se deserializa ni se ejecuta nunca. Nada se puntúa nunca.
 | | | |
 |---|---|---|
 | **80 reglas documentadas** | **15 controles ejecutables** | **21 obligaciones** modeladas |
-| **3.535 tests**, ninguna cifra escrita a mano | **7 conectores** que nunca deciden | una dependencia en tiempo de ejecución |
+| **3.589 tests**, ninguna cifra escrita a mano | **7 conectores** que nunca deciden | una dependencia en tiempo de ejecución |
 
 **No hace falta red** para escanear en local, para la gobernanza ni para verificar sin conexión. El descubrimiento remoto y el anclaje temporal RFC 3161 llegan a la red solo cuando se lo pides, `bundle` y `discover` aceptan `--offline` para prohibirlo del todo, y aquí nada llama a casa: no hay telemetría, ni cuenta, ni servicio alojado.
 
@@ -57,7 +57,7 @@ Cada cifra de esta página la mide `make figures` y la verja de release rechaza 
 
 Los dos paneles están en español e inglés, en claro y en oscuro, y cada captura la regenera `make screenshots` desde un servidor en marcha: la pasada falla ante un error de consola, un error de página, una petición fallida o una violación de la Content-Security-Policy, así que una imagen de aquí no puede mostrar una versión de la interfaz que ya no existe.
 
-La interfaz cubre inspección, agentes, política, el grafo de activos e impacto, atestación, verificación y gobernanza. El resto del motor se alcanza desde la CLI, y [el alcance](#alcance) dice qué partes vienen después. `tests/test_cli_ui_parity.py` sujeta esa frase a las rutas que el servidor responde de verdad, en los dos sentidos, así que no puede dejar de ser cierta en silencio.
+La interfaz cubre inspección, agentes, política, el grafo de activos e impacto, el registro de evidencia, la línea de cambios y la validez de las decisiones, atestación, verificación y gobernanza. El resto del motor se alcanza desde la CLI, y [el alcance](#alcance) dice qué partes vienen después. `tests/test_cli_ui_parity.py` sujeta esa frase a las rutas que el servidor responde de verdad, en los dos sentidos, así que no puede dejar de ser cierta en silencio.
 
 ---
 
@@ -181,6 +181,39 @@ El encabezado dice **registrado**, y eso es una afirmación medida y no una rese
 
 El flag es opcional. Todos los demás paneles funcionan sin ningún espacio de trabajo, la interfaz nunca crea uno, y una base de datos escrita por una versión anterior se informa en vez de migrarla en silencio una pestaña que alguien dejó abierta.
 
+### Cuando algo cambia
+
+Esta es la pregunta a la que sirve el resto de la herramienta, y esta es la version en la que se volvio contestable de principio a fin:
+
+> **¿El sistema de IA que aprobamos sigue siendo el sistema de IA que estamos ejecutando?**
+
+Se reemplazan los bytes de un modelo. La evidencia atada al digest que ya no esta queda sustituida, y la de sus hermanos intactos no. El recorrido de impacto empieza en ese artefacto exacto, no en la fuente que lo contiene, y guarda una ruta por causa. Y el ALLOW registrado en agosto sigue siendo un ALLOW, porque una herramienta que lo sobrescribiera habria destruido el unico registro de lo que se aprobo:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/27-changes-dark-es.png">
+  <img src="docs/img/26-changes-es.png" alt="El panel de cambios: una observacion que encontro un modelo reemplazado, junto a la decision de politica a la que afecta, mostrando ALLOW como lo que se decidio y hay que reevaluarla como si sigue aplicando, con los ids de evidencia y ambos digests como razon">
+</picture>
+
+Dos campos, nunca fundidos. **Que se decidio** es historia. **Si sigue aplicando** se deriva de nuevo a partir de las filas que la decision registro como sus entradas, y tiene tres valores: sigue aplicando, hay que reevaluarla, o no se puede saber. El tercero es la respuesta cuando el almacen no guarda lo suficiente para sostener ninguno de los otros dos, y una decision archivada antes de que se registrasen dependencias recibe ese y no un si en voz baja.
+
+A una reevaluacion no se llega nunca por inferencia. Hace falta una fila a la que apuntar, y la razon es un mapa y no una frase:
+
+```json
+{"reason": "evidence_superseded", "evidence_id": "ev_6b34b42d...", "state": "superseded",
+ "was": "sha256:cc2e521d3675a66c...", "now": "sha256:7be837f956b7ab8a..."}
+```
+
+El panel de evidencia es la otra mitad: cada registro, sobre que se tomo, y como esta ahora su sujeto.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/25-evidence-dark-es.png">
+  <img src="docs/img/24-evidence-es.png" alt="El panel de evidencia mostrando un registro de escaneo sustituido junto al digest sobre el que se tomo y el digest que tiene ahora su sujeto">
+</picture>
+
+Cuatro de los siete tipos de evidencia tienen productor hoy: `source_snapshot` desde `watch`, y `artifact_scan`, `agent_assessment` y `policy_decision` desde `scan`, `agent check` y `policy check` cuando a cada uno se le da `--state`. `bundle`, `governance` y `attestation` estan definidos y todavia no los escribe nada, y un test sostiene ese reparto para que no cambie sin que se note.
+
+Los dos paneles leen. Revocar un registro, marcar uno como no aceptado y borrar uno cambian sobre que puede descansar una decision, y ninguno es un boton.
+
 ### Política como código
 
 **21 predicados de política** sobre **5 tipos de sujeto**, un solo lenguaje, ALLOW / DENY / REVIEW. Un predicado sin información va a REVIEW en vez de devolver falso en silencio, y la decisión lleva las reglas y la evidencia que la causaron.
@@ -293,7 +326,7 @@ Y el bucle se cierra. La siguiente observación se compara con la anterior, así
 
 ![El bucle de garantía de Actaira](docs/img/pipeline.svg)
 
-**70.800 líneas de Python**, una dependencia en tiempo de ejecución, y **160 notas de diseño** que registran por qué cada decisión salió como salió. [`docs/DESIGN.md`](docs/DESIGN.md) es el índice; cada nota nombra el fichero y la línea que la implementa, y un test falla si una nota escrita en el código no está en la tabla.
+**71.652 líneas de Python**, una dependencia en tiempo de ejecución, y **160 notas de diseño** que registran por qué cada decisión salió como salió. [`docs/DESIGN.md`](docs/DESIGN.md) es el índice; cada nota nombra el fichero y la línea que la implementa, y un test falla si una nota escrita en el código no está en la tabla.
 
 ---
 
@@ -361,7 +394,7 @@ Esta página es una portada. La profundidad está aquí:
 
 **La línea Actaira 2.2.x está completa en funcionalidad y es estable.** Inspección, cobertura, bundles, gobierno de agentes y rutas de ataque, estado persistente, ciclo de vida de la evidencia, grafo e impacto, política de confianza, política como código, atestación con DSSE, recibos firmados y el motor de controles del Reglamento de IA de la UE están completos, medidos y revisados de forma adversarial. Esta línea acepta correcciones de errores, correcciones de seguridad y documentación, y las medidas se mueven cuando se mueve el código.
 
-**El motor va por delante de la interfaz, y eso es lo siguiente que hay que cerrar.** La CLI alcanza todas las capacidades de arriba; la interfaz local cubre inspección, agentes, política, el grafo de activos, impacto, atestación, verificación y gobernanza. Bundles, controles, descubrimiento, fuentes, watch, snapshots, evidencia, confianza y recibos se alcanzan hoy solo desde la terminal. El panel de grafo lee lo que escribieron `watch` y `evidence`, y eso no es lo mismo que alcanzarlos: muestra su salida y no puede registrar una fuente, ejecutar una observación ni abrir un snapshot. Cuál es cuál no es prosa: `tests/test_cli_ui_parity.py` lo registra por capacidad y falla si una fila y las rutas se contradicen, en cualquier dirección.
+**El motor sigue por delante de la interfaz, y la distancia es menor que antes.** La CLI alcanza todas las capacidades de arriba; la interfaz local cubre inspección, agentes, política, el grafo de activos, impacto, evidencia, cambios, decisiones, atestación, verificación y gobernanza. Bundles, controles, descubrimiento, fuentes, watch, snapshots, confianza y recibos se alcanzan hoy solo desde la terminal. `evidence`, `changes` y `decisions` subieron en 2.3.0 y la regla que lo permitió es la misma que mantiene abajo a los demás: los tres comandos son lectores sobre estado almacenado y los paneles leen las mismas funciones del motor. `source`, `watch` y `snapshot` no son lectores, y mostrar lo que escribieron no es una forma de ejecutarlos, algo que ahora resulta más tentador confundir, no menos, porque la interfaz muestra el registro y el histórico de observaciones. Cuál es cuál no es prosa: `tests/test_cli_ui_parity.py` lo registra por capacidad y falla si una fila y las rutas se contradicen, en cualquier dirección.
 
 **Lo que deliberadamente no está aquí**, y sería un producto aparte en vez de un commit posterior: sin plano de control multi-tenant, sin SSO ni SAML ni OIDC, sin jerarquía de roles más allá de los roles que nombra el Reglamento, sin integraciones de ticketing, sin workers distribuidos, sin facturación, sin panel alojado. Actaira corre en un portátil o en CI, contra ficheros que ya están ahí, y escribe en un fichero SQLite tuyo.
 
