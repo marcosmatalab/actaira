@@ -1390,6 +1390,32 @@
         "tests/test_state_graph.py::test_the_shipped_agents_digest_has_not_moved",
         "tests/test_state_graph.py::test_membership_is_not_in_the_bom_and_does_not_reach_the_digest"
       ]
+    },
+    {
+      "id": "DEF-113",
+      "title": "`watch` measured a local artifact's digest, compared against it, and then stored neither the digest nor any evidence about it",
+      "effect": "The filesystem connector publishes no `declared_sha256` by design (D-85b): a digest this tool computed and then compared against itself is not a check, so the field stays empty and `measured_sha256` carries what was actually read. `_write` and `_record_evidence` both consulted `declared_sha256` alone. The consequence on a local source, which is the commonest workspace there is, was that every artifact asset row was stored with an empty `digest` column and no per-artifact evidence record was written at all - while the same run used the measured digest to correctly report CONTENT_DRIFT. The measurement existed and was discarded one line before it was written down. Everything downstream reads that column: supersession is bound to a subject's digest (D-223), so there was nothing to supersede and a changed model invalidated nothing; `state.record.resolve` finds a scanned file by its digest, so no scan could ever be filed against a locally observed artifact; and the graph panel showed a digest-less node. The fix is one helper, `watch.artifact_digest`, that returns the strongest digest a snapshot holds - measured before declared - together with the basis it came from, so the two claims stay distinguishable in the asset attributes and in the evidence payload rather than being merged into one field that reads as identity.",
+      "found_by": "using the tool as a person would",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_state_change.py::test_a_local_artifacts_measured_digest_reaches_the_asset_row",
+        "tests/test_state_change.py::test_a_local_artifact_gets_its_own_evidence_record",
+        "tests/test_state_change.py::test_one_changed_artifact_supersedes_only_its_own_evidence"
+      ]
+    },
+    {
+      "id": "DEF-114",
+      "title": "DEF-74's fix has never worked on Windows, because a URI was parsed with a string slice",
+      "effect": "`snapshot._measure` turned a `file:` URI into a path with `uri[len('file://'):]`. On POSIX that is right by coincidence. On Windows `file:///C:/models/w.bin` becomes `/C:/models/w.bin`, which is not a path that exists, so `is_file()` was false, `_measure` returned an empty string, and no local artifact was ever measured. Comparison then fell back to size - which is precisely the DEF-74 failure DEF-74 exists to prevent: a weight file replaced with different bytes of the same length comes back UNCHANGED, exit 0. It also mishandled percent-escapes on every platform, so a directory with a space in its name was never measured either. The regression test written for DEF-74 did not catch any of it, because its fixture assembled `file://` plus a native path by hand and that spelling is the one shape the old slice happened to survive; the connector emits `Path.as_uri()`, which it did not. The fix is `urllib.request.url2pathname`, which is per-platform by construction, with the hand-assembled spelling still accepted so that a URI written by a person does not silently fall back to a byte count. The fixture now uses the spelling the connector actually produces.",
+      "found_by": "using the tool as a person would",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_state_change.py::test_a_file_uri_is_measured_on_the_platform_this_is_running_on",
+        "tests/test_state_change.py::test_a_file_uri_with_a_space_in_it_is_still_measured",
+        "tests/test_state.py::test_a_local_source_is_compared_by_its_bytes"
+      ]
     }
   ]
 }

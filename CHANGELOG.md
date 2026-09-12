@@ -24,12 +24,85 @@ everything else here is checkable against the tree it describes.
 
 ## Unreleased
 
-The dependency graph and impact, which were reachable from the terminal only,
-now have a panel. Nothing about the engine behind them changed: the browser
-calls the same `state/graph.py` the CLI calls, and the tests that matter
-compare the two rather than compare either with a literal.
+Nothing yet.
+
+## [2.3.0] - 2026-09-12
+
+The release where the pieces become a loop.
+
+Actaira could already observe a source, record what it saw as evidence, decide
+under a versioned policy and draw the graph of what depends on what. What it
+could not do was join them: the evidence ledger had seven kinds and one
+producer, a change reported its impact from the source rather than from the
+artifact that moved, and a decision recorded nothing about what it had rested
+on - so the question this tool exists to answer, *is the system we approved
+still the system we are running*, had no path through the code.
+
+It does now:
+
+```
+observe -> state -> change -> invalidate -> impact -> decide -> prove
+```
+
+A model's bytes change. The evidence bound to the digest that is gone is
+superseded, and the evidence about its untouched siblings is not. The impact
+walk starts at that exact artifact and keeps one route per cause. The ALLOW
+that was recorded in March is still an ALLOW, and its applicability to today
+becomes `requires_reassessment` with the evidence id, the digest it was taken
+about, and the digest that replaced it.
+
+This release also contains the graph and impact panel, which had been written
+and never given a version of its own.
 
 ### Added
+
+* **Three evidence producers, where there was one.** `actaira scan --state`,
+  `actaira agent check --state` and `actaira policy check --state` now file
+  `artifact_scan`, `agent_assessment` and `policy_decision` records. State
+  stays optional in both directions: without the flag every command is exactly
+  as stateless as it was, and with it the database must already exist, because
+  a scan that created a workspace in whatever directory it ran in would be
+  taking a liberty with somebody's disk in exchange for a convenience nobody
+  asked for.
+* **An identity rule that does not invent one.** Evidence is filed against an
+  asset this workspace already records, found by the digest that was scanned
+  or by the handle a manifest declared. A file nothing has observed records
+  nothing and says why. The alternative is `artifact:<basename>`, and the
+  first time two teams both have a `model.pt` that is evidence about whichever
+  was scanned last.
+* **Decision validity, with three values.** `current`,
+  `requires_reassessment` and `undetermined`, derived fresh from the rows a
+  decision recorded as its inputs. It is not a second policy engine and not a
+  score: it answers whether the state an old decision rested on still
+  describes the subject in front of you. `actaira decisions` prints it, and
+  every reason is a mapping - `{"reason": "evidence_superseded",
+  "evidence_id": ..., "was": ..., "now": ...}` - rather than a sentence.
+* **`actaira changes`,** the observations this workspace has recorded.
+* **Three panels:** an evidence explorer with filters by state, kind and
+  subject and a timeline per subject; a change timeline; and the decisions
+  with their validity. All readers, all behind the same Host and Origin
+  checks as the graph routes, and the workspace is still chosen when the
+  server starts and never named by a request.
+* **Exact per-artifact impact.** `watch` used to ask its impact question from
+  `source:<id>`, so a source holding forty files, one of which changed,
+  reported every dependent of all forty. It now starts from each changed
+  artifact's own asset id and keeps the causes apart: a system downstream of
+  two changes shows two routes, because a deduplicated list of targets would
+  have told the reader it was downstream of one.
+* **One engine object for a change,** assembled in Python and rendered by both
+  surfaces, so the terminal and the browser cannot describe one observation
+  two ways.
+* **Store schema 3,** adding `decision_inputs`: what a decision rested on, as
+  typed rows rather than ids in a string. Forward-only, additive, and a
+  decision written before it existed is reported `undetermined` rather than
+  rewritten into a fact the old store did not know.
+* **`[project.urls]`,** now that there is a repository and an issue tracker to
+  point at. `Documentation` and `Homepage` are still absent, because there is
+  no documentation site and a metadata field pointing at a URL that 404s is
+  worse than one that is not there.
+
+### Added, in the graph increment this release also carries
+
 
 * **`actaira serve --state PATH`.** Optional, and the interface is fully
   usable without it. It is the only way to tell this server which workspace to
@@ -69,12 +142,41 @@ compare the two rather than compare either with a literal.
   the shipped declaration so a graph improvement cannot move the number that
   answers "is this the agent that was approved?".
 
+* **DEF-113: `watch` measured a local artifact's digest and stored neither it
+  nor any evidence about it.** The filesystem connector publishes no declared
+  digest by design, and both the asset write and the evidence write consulted
+  only that field - so on a local source, which is the commonest workspace
+  there is, every artifact row was stored with an empty digest while the same
+  run used the measured digest to correctly report that the content had
+  changed. The measurement existed and was discarded one line before it was
+  written down. Everything rested on it: supersession is bound to a subject's
+  digest, so a changed model invalidated nothing.
+* **DEF-114: DEF-74's fix had never worked on Windows.** A `file:` URI was
+  turned into a path with a string slice, which is right on POSIX by
+  coincidence and turns `file:///C:/models/w.bin` into `/C:/models/w.bin`
+  everywhere else. No local artifact was ever measured, so comparison fell
+  back to size - precisely the failure DEF-74 exists to prevent, where a
+  weight file replaced with different bytes of the same length comes back
+  UNCHANGED, exit 0. The regression test written for DEF-74 did not catch it
+  because its fixture assembled the URI by hand, and that spelling is the one
+  shape the old slice happened to survive. It now uses the spelling the
+  connector emits.
+
 ### Unchanged, and checked
 
-`asset-graph/v1`, `SubjectKind`, `Agent.digest`, `agent-bom/v2` and the store
-schema. Everything the panel needs beyond the published graph contract rides
-in a separate `view` object beside it: a presentation need is not a reason to
-version a schema other tools read.
+`asset-graph/v1`, `evidence-record/v1`, `assurance-receipt/v2`,
+`SubjectKind`, `Agent.digest` and `agent-bom/v2`. `state-export/v1` gained one
+optional array beside the existing ones, which is what its own compatibility
+rule allows. Everything the panels need beyond the published contracts rides
+in objects beside them: a presentation need is not a reason to version a
+schema other tools read.
+
+There is deliberately no `assurance-state/v1`. The name is attractive and the
+semantics are not complete: a declared edge's currentness is still
+`undetermined`, because nothing in the store says which run of a declaration
+is the live one, so a published state document would have to either omit
+provenance currentness or assert it. The representation stays internal and the
+seam is written down.
 
 ## [2.2.0] - 2026-09-11
 

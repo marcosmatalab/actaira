@@ -46,6 +46,40 @@ from . import evidence as evidence_mod
 from .graph import snapshot_marker
 from .snapshot import Snapshot
 
+# How an artifact's digest came to be known, carried beside the digest rather
+# than folded into it. D-85b: a digest the source published and a digest this
+# process computed are two different claims, and the whole of D-200 is about
+# not letting one wear the other's name.
+MEASURED = "measured"
+DECLARED = "declared"
+UNIDENTIFIED = "size_only"
+
+
+def artifact_digest(artifact: Any) -> tuple[str, str]:
+    """The strongest digest a snapshot holds for one artifact, and its basis.
+
+    Defect DEF-113. `_write` and `_record_evidence` both read
+    `declared_sha256` alone, and the filesystem connector deliberately
+    publishes none (D-85b) - so on a local source, which is the commonest
+    workspace there is, `watch` read the bytes, computed `measured_sha256`,
+    compared against it, correctly reported CONTENT_DRIFT, and then stored an
+    asset row with an empty digest and no per-artifact evidence at all.
+
+    Everything downstream rested on that digest: supersession is bound to it
+    (D-223), `record.resolve` finds a scanned artifact by it, and the graph
+    panel shows it. The measurement existed and was thrown away one line
+    before it was written down.
+
+    Measured first, because bytes this process read beat a digest somebody
+    published about them. The basis travels with it so no reader can mistake
+    one for the other.
+    """
+    if artifact.measured_sha256:
+        return f"sha256:{artifact.measured_sha256}", MEASURED
+    if artifact.declared_sha256:
+        return f"sha256:{artifact.declared_sha256}", DECLARED
+    return "", UNIDENTIFIED
+
 
 class ObservationState(str, Enum):
     """What this observation found, relative to the last one."""
@@ -55,6 +89,40 @@ class ObservationState(str, Enum):
     SOURCE_DRIFT = "source_drift"
     CONTENT_DRIFT = "content_drift"
     INCOMPLETE = "incomplete"
+
+
+@dataclass(frozen=True)
+class ChangedSubject:
+    """One artifact that moved, named by the id the store knows it under.
+
+    The asset id rather than the URI, because that is what `impact` walks from
+    and what evidence is filed against. Carrying the URI too costs nothing and
+    is what an operator reads.
+
+    `before` and `after` are the digests on either side of the change, and
+    either may be empty: an added artifact has no before, a removed one has no
+    after, and an artifact whose source publishes no digest and whose bytes
+    are not local has neither - which is what `basis` is for. A subject
+    compared on size alone is a subject whose "changed" and "unchanged" are
+    both weak, and DEF-74 is the cost of not saying so.
+    """
+
+    asset_id: str
+    uri: str
+    how: str
+    before: str = ""
+    after: str = ""
+    basis: str = UNIDENTIFIED
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "asset": self.asset_id,
+            "uri": self.uri,
+            "how": self.how,
+            "before": self.before or None,
+            "after": self.after or None,
+            "identity_basis": self.basis,
+        }
 
 
 @dataclass
@@ -76,6 +144,12 @@ class Observation:
     # Artifacts whose "unchanged" rests on nothing stronger than a byte count.
     # Never empty and unmentioned: see DEF-74.
     weakly_compared: list[str] = field(default_factory=list)
+    # The same facts as `added`/`changed`/`removed`, resolved to the asset ids
+    # the rest of the store uses and carrying the digests on either side. The
+    # URI lists stay because they are what an operator reads; this is what the
+    # engine walks from, and computing it here is what makes exact
+    # per-artifact impact possible without a second pass over the snapshots.
+    subjects: list[ChangedSubject] = field(default_factory=list)
 
     @property
     def changed_anything(self) -> bool:
@@ -101,6 +175,8 @@ class Observation:
             "listing_complete": self.snapshot.listing_complete,
             "recorded": self.recorded,
             "weakly_compared": sorted(self.weakly_compared),
+            "subjects": [item.to_dict() for item in
+                         sorted(self.subjects, key=lambda row: (row.how, row.uri))],
         }
         if self.note:
             document["note"] = self.note
@@ -159,6 +235,10 @@ def observe(store: Any, snapshot: Snapshot, *, source_id: str | None = None) -> 
                 for uri, artifact in snapshot.by_uri().items()
                 if artifact.identity_basis == "size_only"
             ),
+            subjects=[
+                _subject(uri, "added", after=snapshot.by_uri()[uri])
+                for uri in sorted(snapshot.by_uri())
+            ],
         )
         _write(store, snapshot, observation)
         return observation
@@ -204,9 +284,62 @@ def observe(store: Any, snapshot: Snapshot, *, source_id: str | None = None) -> 
             for uri in set(before) & set(after)
             if _identity(after[uri])[0] == "size"
         ),
+        subjects=(
+            [_subject(uri, "added", after=snapshot.by_uri()[uri]) for uri in added]
+            + [_subject(uri, "changed", after=snapshot.by_uri()[uri], before=before[uri])
+               for uri in changed]
+            # A removed artifact has a before and no after, and it keeps the
+            # asset id it always had. The row stays in the store: the recorded
+            # graph remembers what was there, which is the point of recording
+            # it, and impact from a deletion starts from that same id.
+            + [_subject(uri, "removed", before=before[uri]) for uri in removed]
+        ),
     )
     _write(store, snapshot, observation)
     return observation
+
+
+def _subject(uri: str, how: str, *, after: Any = None, before: Any = None) -> ChangedSubject:
+    """Assemble one changed subject from either side of the comparison.
+
+    The two sides arrive in different shapes - a live `SnapshotArtifact` for
+    what is there now, a stored mapping for what was - so each is read by the
+    reader that understands it rather than by one function that guesses.
+    """
+    after_digest, basis = artifact_digest(after) if after is not None else ("", UNIDENTIFIED)
+    before_digest = _stored_digest(before) if before is not None else ""
+    if after is None and before is not None:
+        basis = _stored_basis(before)
+    return ChangedSubject(
+        asset_id=_asset_id(uri),
+        uri=uri,
+        how=how,
+        before=before_digest,
+        after=after_digest,
+        basis=basis,
+    )
+
+
+def _stored_digest(row: dict[str, Any]) -> str:
+    """The digest a previous snapshot recorded for an artifact, strongest first.
+
+    The same precedence `artifact_digest` applies to a live artifact, over the
+    stored mapping a snapshot document holds. Two spellings of one rule would
+    agree until one of them was changed.
+    """
+    if row.get("measured_sha256"):
+        return f"sha256:{row['measured_sha256']}"
+    if row.get("declared_sha256"):
+        return f"sha256:{row['declared_sha256']}"
+    return ""
+
+
+def _stored_basis(row: dict[str, Any]) -> str:
+    if row.get("measured_sha256"):
+        return MEASURED
+    if row.get("declared_sha256"):
+        return DECLARED
+    return UNIDENTIFIED
 
 
 def _identity(row: dict[str, Any]) -> tuple[Any, ...]:
@@ -269,13 +402,22 @@ def _write(store: Any, snapshot: Snapshot, observation: Observation) -> None:
             return
 
         for uri, artifact in snapshot.by_uri().items():
+            digest, basis = artifact_digest(artifact)
             store.upsert_asset(
                 _asset_id(uri),
                 "artifact",
                 uri,
-                digest=f"sha256:{artifact.declared_sha256}" if artifact.declared_sha256 else "",
+                # DEF-113. Measured before declared, and never neither when
+                # one of them exists: this column is what supersession, the
+                # graph panel and `record.resolve` all read.
+                digest=digest,
                 source_id=observation.source_id,
-                attributes={"size_bytes": artifact.size_bytes, "revision": artifact.revision},
+                attributes={
+                    "size_bytes": artifact.size_bytes,
+                    "revision": artifact.revision,
+                    # Kept beside the digest, not folded into it. D-85b.
+                    "identity_basis": basis,
+                },
                 snapshot_id=snapshot.digest,
                 connection=connection,
             )
@@ -309,7 +451,7 @@ def _write(store: Any, snapshot: Snapshot, observation: Observation) -> None:
         # D-223: this is what keeps an invalidation something an operator can
         # act on rather than a wall of red.
         after = snapshot.by_uri().get(uri)
-        new_digest = f"sha256:{after.declared_sha256}" if after and after.declared_sha256 else ""
+        new_digest = artifact_digest(after)[0] if after is not None else ""
         observation.superseded_evidence.extend(
             evidence_mod.supersede(store, _asset_id(uri), new_digest)
         )
@@ -335,13 +477,23 @@ def _record_evidence(store: Any, snapshot: Snapshot, observation: Observation, c
     # gets no record rather than a record that could never be invalidated
     # correctly.
     for uri, artifact in snapshot.by_uri().items():
-        if not artifact.declared_sha256:
+        digest, basis = artifact_digest(artifact)
+        if not digest:
             continue
         per_artifact = evidence_mod.for_subject(
             _asset_id(uri),
             "source_snapshot",
-            subject_digest=f"sha256:{artifact.declared_sha256}",
-            payload={"uri": uri, "size_bytes": artifact.size_bytes, "declared_by": snapshot.connector},
+            subject_digest=digest,
+            payload={
+                "uri": uri,
+                "size_bytes": artifact.size_bytes,
+                "observed_by": snapshot.connector,
+                # Which of the two this digest is. `declared_by` used to name
+                # the connector for a digest the connector had published, and
+                # DEF-113's fix makes a measured digest reach here too - so
+                # the field that says which is not optional decoration.
+                "identity_basis": basis,
+            },
         )
         per_artifact.observed_at = snapshot.observed_at
         store.record_evidence(per_artifact, connection)

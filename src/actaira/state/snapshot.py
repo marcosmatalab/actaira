@@ -189,6 +189,51 @@ def _size(*candidates: Any) -> int:
     return 0
 
 
+def _local_path(uri: str, path: str) -> Path:
+    """The file a `file:` URI names, on the platform this is running on.
+
+    Defect DEF-114, and it is the reason DEF-74's fix has never once worked on
+    Windows. The old line was `uri[len("file://"):]`, which turns
+    `file:///home/u/m.pt` into `/home/u/m.pt` and is right, and turns
+    `file:///C:/Users/u/m.pt` into `/C:/Users/u/m.pt`, which is not a path
+    Windows has. `is_file()` then returned False, `_measure` returned "", no
+    digest was ever measured, and every local `watch` on Windows silently fell
+    back to comparing sizes.
+
+    That is exactly the failure DEF-74 exists to prevent - a weight file
+    replaced by different bytes of the same length reads as UNCHANGED, exit 0 -
+    reintroduced on one platform by a string slice. Nothing caught it because
+    the fix was correct on the platform CI runs on, which is the shape of bug
+    a hand-rolled URI parse produces: right on the developer's machine,
+    quietly wrong on somebody else's.
+
+    `url2pathname` is the stdlib function for this and it is per-platform by
+    construction. Percent-escapes are decoded too, so a directory with a space
+    in it stops being a file this tool cannot find.
+    """
+    if not uri.startswith("file:"):
+        return Path(path or uri)
+
+    from urllib.parse import urlparse
+    from urllib.request import url2pathname
+
+    parsed = urlparse(uri)
+    candidates = [Path(url2pathname(parsed.path))]
+    if parsed.netloc:
+        # `file://C:\dir\w.bin`: two slashes and a Windows path, which puts
+        # the drive in the authority. Not what `Path.as_uri()` emits and very
+        # much what a hand-written URI looks like, including the one in this
+        # repository's own DEF-74 fixture - which is how DEF-114 survived a
+        # regression test written for it. Accepted, because the alternative is
+        # `_measure` returning "" and the comparison silently falling back to
+        # a byte count, which is the failure being defended against.
+        candidates.append(Path(uri[len("file://"):]))
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return candidates[0]
+
+
 def _measure(uri: str, path: str) -> str:
     """Hash a local artifact, because the bytes are right there.
 
@@ -199,8 +244,7 @@ def _measure(uri: str, path: str) -> str:
     reading it is the difference between a watch that works on the default
     case and one that does not.
     """
-    candidate = uri[len("file://"):] if uri.startswith("file://") else (path or uri)
-    local = Path(candidate)
+    local = _local_path(uri, path)
     if not local.is_file():
         return ""
     digest = hashlib.sha256()

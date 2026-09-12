@@ -49,23 +49,34 @@ CAPABILITIES: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
     "policy":      (("policy",),      ("/api/policy/show", "/api/policy/check")),
     "graph":       (("graph",),       ("/api/graph", "/api/graph/node", "/api/workspace")),
     "impact":      (("impact",),      ("/api/impact",)),
+    "evidence":    (("evidence",),    ("/api/evidence", "/api/evidence/record")),
+    "changes":     (("changes",),     ("/api/changes",)),
+    "decisions":   (("decisions",),   ("/api/decisions",)),
 
     # Reachable from the terminal only. Each one is a panel the interface does
     # not have yet, and the README says so rather than implying otherwise.
     #
-    # `source`, `watch`, `snapshot` and `evidence` stay here on purpose, and
-    # the temptation to move them is exactly what this matrix is against: the
-    # graph panel reads what they wrote and shows an evidence count beside a
-    # node, and none of that is a way to add a source, run a watch, or look at
-    # a snapshot. A capability is reachable when the interface can *do* it,
-    # not when something else displays its output.
+    # `source`, `watch` and `snapshot` stay here on purpose, and the
+    # temptation to move them is exactly what this matrix is against. The
+    # interface now reads the evidence ledger, the observation history and the
+    # decisions those produced - and none of that is a way to register a
+    # source, run a watch, or export a snapshot. A capability is reachable
+    # when the interface can *do* it, not when something else displays its
+    # output.
+    #
+    # `evidence`, `changes` and `decisions` moved up in 2.3.0 and the rule is
+    # the same rule, applied honestly in the other direction: all three
+    # commands are readers over stored state, the panels are readers over the
+    # same engine functions, and a reader whose browser half does exactly what
+    # its terminal half does is covered. The moment one of them gains a write
+    # - revoking a record, re-running an observation - the matrix has to be
+    # re-argued rather than inherited.
     "bundle":      (("bundle",),      ()),
     "controls":    (("controls",),    ()),
     "discover":    (("discover",),    ()),
     "source":      (("source",),      ()),
     "watch":       (("watch",),       ()),
     "snapshot":    (("snapshot",),    ()),
-    "evidence":    (("evidence",),    ()),
     "trust":       (("trust",),       ()),
     "receipt":     (("receipt",),     ()),
     "keygen":      (("keygen",),      ()),
@@ -177,11 +188,11 @@ def test_the_readmes_do_not_claim_a_panel_that_does_not_exist():
     """Both READMEs name the sections the interface covers. This is the check
     that the sentence stays true as panels are added."""
     covered = sorted(name for name, (_, routes) in CAPABILITIES.items() if routes)
-    # The four the interface had before agents, plus agents, policy, and the
-    # graph pair. Named here so that adding a panel fails this test until the
-    # prose is updated with it.
-    assert covered == ["agent", "attest", "bom", "governance", "graph", "impact",
-                       "policy", "scan", "verify"], (
+    # The four the interface had before agents, plus agents, policy, the graph
+    # pair, and 2.3.0's three readers over recorded state. Named here so that
+    # adding a panel fails this test until the prose is updated with it.
+    assert covered == ["agent", "attest", "bom", "changes", "decisions", "evidence",
+                       "governance", "graph", "impact", "policy", "scan", "verify"], (
         "the set of capabilities with a panel has changed; update the sentence "
         "in both READMEs that lists what the interface covers, then update this "
         f"expectation: {covered}"
@@ -196,15 +207,20 @@ def test_the_readmes_do_not_promise_a_panel_for_a_capability_that_has_none():
     """The half that keeps the sentence from drifting the other way.
 
     A capability recorded as terminal-only must not be named as something the
-    interface covers. `source`, `watch`, `snapshot` and `evidence` are the
-    four at risk: the graph panel reads their output, which makes it easy to
-    write a sentence that implies it reaches them.
+    interface covers. `source`, `watch` and `snapshot` are the three at risk,
+    and 2.3.0 made them more at risk rather than less: the interface now shows
+    the evidence those commands wrote and the history of the observations they
+    made, which is exactly the situation in which somebody writes "run a
+    watch from the browser" into a README.
+
+    `evidence` used to be on this list and has earned its way off it - it has
+    routes now, and the assertion below would fail loudly if it were left
+    here, which is the property that makes this test worth having.
     """
     claims = {
         "source": ("add a source", "añadir una fuente"),
         "watch": ("run a watch", "ejecutar un watch"),
         "snapshot": ("browse snapshots", "explorar instantáneas"),
-        "evidence": ("the evidence explorer", "el explorador de evidencia"),
     }
     for name in ("README.md", "README.es.md"):
         text = (Path(REPO_ROOT) / name).read_text(encoding="utf-8").lower()

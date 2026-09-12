@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-12T13:14:10+00:00 for actaira 2.2.0, at commit 1d3b027.
+Generated 2026-09-12T15:00:17+00:00 for actaira 2.3.0, at commit e86fdbf.
 
 ## The package
 
-- version **2.2.0**, Python >=3.11
+- version **2.3.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, numpy>=1.26, ruff>=0.6, jsonschema>=4.18, pillow>=10
 - 1 commits, most recent 2026-09-12
 
 ## Tests
 
-**3474** tests collected by pytest across 54 files.
+**3535** tests collected by pytest across 55 files.
 
 | file | tests |
 |---|---:|
@@ -33,7 +33,7 @@ Generated 2026-09-12T13:14:10+00:00 for actaira 2.2.0, at commit 1d3b027.
 | `tests/test_bundle.py` | 23 |
 | `tests/test_chain_and_signing.py` | 17 |
 | `tests/test_cli.py` | 49 |
-| `tests/test_cli_ui_parity.py` | 19 |
+| `tests/test_cli_ui_parity.py` | 18 |
 | `tests/test_connectors.py` | 118 |
 | `tests/test_consistency.py` | 285 |
 | `tests/test_controls.py` | 196 |
@@ -41,15 +41,15 @@ Generated 2026-09-12T13:14:10+00:00 for actaira 2.2.0, at commit 1d3b027.
 | `tests/test_controls_judged.py` | 26 |
 | `tests/test_controls_records.py` | 27 |
 | `tests/test_coverage.py` | 14 |
-| `tests/test_defect_ledger.py` | 339 |
-| `tests/test_design_notes.py` | 158 |
+| `tests/test_defect_ledger.py` | 345 |
+| `tests/test_design_notes.py` | 163 |
 | `tests/test_dsse.py` | 31 |
 | `tests/test_eval_harness.py` | 14 |
 | `tests/test_formats.py` | 63 |
 | `tests/test_formats_doc.py` | 82 |
 | `tests/test_fuzz_regressions.py` | 44 |
 | `tests/test_governance.py` | 201 |
-| `tests/test_i18n.py` | 271 |
+| `tests/test_i18n.py` | 275 |
 | `tests/test_io_budget.py` | 13 |
 | `tests/test_junit.py` | 21 |
 | `tests/test_keyring.py` | 34 |
@@ -68,6 +68,7 @@ Generated 2026-09-12T13:14:10+00:00 for actaira 2.2.0, at commit 1d3b027.
 | `tests/test_sarif.py` | 33 |
 | `tests/test_schemas.py` | 59 |
 | `tests/test_state.py` | 92 |
+| `tests/test_state_change.py` | 47 |
 | `tests/test_state_graph.py` | 29 |
 | `tests/test_subjects.py` | 52 |
 | `tests/test_timestamp.py` | 47 |
@@ -78,7 +79,7 @@ Generated 2026-09-12T13:14:10+00:00 for actaira 2.2.0, at commit 1d3b027.
 | `tests/test_web_graph.py` | 69 |
 | `tests/test_web_limits.py` | 31 |
 | `tests/test_web_policy.py` | 34 |
-| **total** | **3474** |
+| **total** | **3535** |
 
 ## The obligation catalogue
 
@@ -102,7 +103,7 @@ Generated 2026-09-12T13:14:10+00:00 for actaira 2.2.0, at commit 1d3b027.
 
 ## Defects found in this repository
 
-**128** defects, from `docs/defects.json` (112 entries), found by **16** different mechanisms. **127** are pinned by a named regression test, across 199 tests. 83 were defects in the shipped tool; the rest were found the same way but lived in the measuring apparatus, and each says so.
+**130** defects, from `docs/defects.json` (114 entries), found by **16** different mechanisms. **129** are pinned by a named regression test, across 204 tests. 85 were defects in the shipped tool; the rest were found the same way but lived in the measuring apparatus, and each says so.
 
 | what found it | defects |
 |---|---:|
@@ -113,16 +114,16 @@ Generated 2026-09-12T13:14:10+00:00 for actaira 2.2.0, at commit 1d3b027.
 | adversarial legal review | 8 |
 | reading the tool's own output | 7 |
 | test suite | 7 |
+| using the tool as a person would | 6 |
 | product review against a roadmap | 5 |
 | real-serialiser corpus | 4 |
 | running the gate | 4 |
-| using the tool as a person would | 4 |
 | benchmark self-tests | 2 |
 | running the harness | 2 |
 | writing a test for an adjacent feature | 2 |
 | benign corpus | 1 |
 | exhaustive sweep | 1 |
-| **total** | **128** |
+| **total** | **130** |
 
 Every test named in the ledger was checked against what pytest collects: all of them are collected.
 Pinned by a note rather than by a test, with the reason stated in the ledger: DEF-58.
@@ -137,34 +138,34 @@ and the modules are the source of truth.
 |---|---:|---:|---:|---:|---:|---:|
 | formats | 11 | 2490 | 1561 | 316 | 308 | 305 |
 | attest | 10 | 4017 | 2523 | 709 | 252 | 533 |
-| core | 5 | 2864 | 1909 | 305 | 277 | 373 |
+| core | 5 | 2974 | 1970 | 331 | 287 | 386 |
 | scan | 2 | 233 | 154 | 29 | 28 | 22 |
 | agentgov | 6 | 2152 | 1300 | 444 | 101 | 307 |
 | agents | 7 | 2401 | 1107 | 760 | 209 | 325 |
 | controls | 7 | 2844 | 1765 | 585 | 142 | 352 |
 | governance | 5 | 1135 | 717 | 249 | 45 | 124 |
 | policy | 3 | 1226 | 779 | 172 | 100 | 175 |
-| state | 6 | 2208 | 1308 | 455 | 139 | 306 |
+| state | 9 | 3518 | 1970 | 820 | 231 | 497 |
 | connectors | 10 | 2687 | 1562 | 639 | 141 | 345 |
 | schemas | 1 | 111 | 41 | 36 | 14 | 20 |
 | bom | 2 | 119 | 73 | 13 | 17 | 16 |
 | report | 3 | 435 | 250 | 83 | 35 | 67 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
-| web | 2 | 2085 | 1292 | 263 | 268 | 262 |
-| rest | 13 | 4483 | 2730 | 835 | 322 | 596 |
-| tests | 56 | 27223 | 15857 | 3747 | 1333 | 6286 |
+| web | 2 | 2309 | 1435 | 301 | 290 | 283 |
+| rest | 13 | 4658 | 2839 | 868 | 333 | 618 |
+| tests | 57 | 28170 | 16352 | 3946 | 1394 | 6478 |
 | evals | 8 | 3619 | 2485 | 444 | 250 | 440 |
 | fuzz | 1 | 1284 | 827 | 147 | 110 | 200 |
 | scripts | 11 | 4363 | 2933 | 577 | 305 | 548 |
-| **total** | 171 | 68034 | 41203 | 10815 | 4403 | 11613 |
+| **total** | 175 | 70800 | 42673 | 11476 | 4599 | 12052 |
 
 Documentation, in lines of Markdown:
 
-- `docs/DESIGN.md`: 1672
+- `docs/DESIGN.md`: 1677
 - `docs/FORMATS.md`: 679
 - `docs/THREAT-MODEL.md`: 524
 - `fuzz/README.md`: 251
-- total: 3126
+- total: 3131
 
 ## Rules
 

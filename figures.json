@@ -350,7 +350,7 @@
       "ACT-STF": 7,
       "ACT-ZIP": 9
     },
-    "ui_messages": 225
+    "ui_messages": 250
   },
   "code": {
     "agentgov": {
@@ -408,12 +408,12 @@
       "note": "the executable EU AI Act controls"
     },
     "core": {
-      "blank": 373,
-      "code": 1909,
-      "comment": 277,
-      "docstring": 305,
+      "blank": 386,
+      "code": 1970,
+      "comment": 287,
+      "docstring": 331,
       "files": 5,
-      "lines": 2864,
+      "lines": 2974,
       "note": "the model, the verdict rules, the CLI"
     },
     "evals": {
@@ -480,12 +480,12 @@
       "note": "SARIF and JUnit"
     },
     "rest": {
-      "blank": 596,
-      "code": 2730,
-      "comment": 322,
-      "docstring": 835,
+      "blank": 618,
+      "code": 2839,
+      "comment": 333,
+      "docstring": 868,
       "files": 13,
-      "lines": 4483,
+      "lines": 4658,
       "note": "everything in src/ the areas above do not claim"
     },
     "scan": {
@@ -516,39 +516,39 @@
       "note": "this script"
     },
     "state": {
-      "blank": 306,
-      "code": 1308,
-      "comment": 139,
-      "docstring": 455,
-      "files": 6,
-      "lines": 2208,
+      "blank": 497,
+      "code": 1970,
+      "comment": 231,
+      "docstring": 820,
+      "files": 9,
+      "lines": 3518,
       "note": "the SQLite store, watch, evidence, graph"
     },
     "tests": {
-      "blank": 6286,
-      "code": 15857,
-      "comment": 1333,
-      "docstring": 3747,
-      "files": 56,
-      "lines": 27223,
+      "blank": 6478,
+      "code": 16352,
+      "comment": 1394,
+      "docstring": 3946,
+      "files": 57,
+      "lines": 28170,
       "note": "the test suite"
     },
     "total": {
-      "blank": 11613,
-      "code": 41203,
-      "comment": 4403,
-      "docstring": 10815,
-      "files": 171,
-      "lines": 68034,
+      "blank": 12052,
+      "code": 42673,
+      "comment": 4599,
+      "docstring": 11476,
+      "files": 175,
+      "lines": 70800,
       "note": "every Python file under evals, fuzz, scripts, src, tests, each counted once"
     },
     "web": {
-      "blank": 262,
-      "code": 1292,
-      "comment": 268,
-      "docstring": 263,
+      "blank": 283,
+      "code": 1435,
+      "comment": 290,
+      "docstring": 301,
       "files": 2,
-      "lines": 2085,
+      "lines": 2309,
       "note": "the local review interface"
     }
   },
@@ -586,17 +586,17 @@
       "running the gate": 4,
       "running the harness": 2,
       "test suite": 7,
-      "using the tool as a person would": 4,
+      "using the tool as a person would": 6,
       "writing a test for an adjacent feature": 2
     },
     "checked_against_pytest": true,
-    "defects": 128,
-    "entries": 112,
-    "in_the_shipped_tool": 83,
+    "defects": 130,
+    "entries": 114,
+    "in_the_shipped_tool": 85,
     "mechanisms": 16,
-    "named_tests": 199,
+    "named_tests": 204,
     "named_tests_not_collected": [],
-    "pinned_by_a_named_test": 127,
+    "pinned_by_a_named_test": 129,
     "pinned_by_a_note_instead": [
       "DEF-58"
     ],
@@ -605,7 +605,7 @@
   },
   "docs": {
     "docs/DESIGN.md": {
-      "lines": 1672
+      "lines": 1677
     },
     "docs/FORMATS.md": {
       "lines": 679
@@ -616,7 +616,7 @@
     "fuzz/README.md": {
       "lines": 251
     },
-    "total_lines": 3126
+    "total_lines": 3131
   },
   "eval": {
     "available": true,
@@ -704,12 +704,12 @@
     "produced_by": "make fuzz",
     "source": "fuzz/runs/latest/summary.json"
   },
-  "generated_at": "2026-09-12T13:14:10+00:00",
+  "generated_at": "2026-09-12T15:00:17+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
     "commits": 1,
-    "head": "1d3b027",
+    "head": "e86fdbf",
     "head_date": "2026-09-12"
   },
   "governance": {
@@ -734,7 +734,7 @@
     "with_grace_period": 8
   },
   "package": {
-    "declared_version": "2.2.0",
+    "declared_version": "2.3.0",
     "development_dependencies": [
       "pytest>=8",
       "numpy>=1.26",
@@ -747,13 +747,13 @@
       "cryptography>=41"
     ],
     "runtime_dependency_count": 1,
-    "version": "2.2.0",
+    "version": "2.3.0",
     "version_agrees_with_pyproject": true
   },
   "tests": {
     "available": true,
-    "collected": 3474,
-    "files": 54,
+    "collected": 3535,
+    "files": 55,
     "per_file": {
       "tests/test_action_entrypoint.py": 14,
       "tests/test_agentgov.py": 54,
@@ -764,7 +764,7 @@
       "tests/test_bundle.py": 23,
       "tests/test_chain_and_signing.py": 17,
       "tests/test_cli.py": 49,
-      "tests/test_cli_ui_parity.py": 19,
+      "tests/test_cli_ui_parity.py": 18,
       "tests/test_connectors.py": 118,
       "tests/test_consistency.py": 285,
       "tests/test_controls.py": 196,
@@ -772,15 +772,15 @@
       "tests/test_controls_judged.py": 26,
       "tests/test_controls_records.py": 27,
       "tests/test_coverage.py": 14,
-      "tests/test_defect_ledger.py": 339,
-      "tests/test_design_notes.py": 158,
+      "tests/test_defect_ledger.py": 345,
+      "tests/test_design_notes.py": 163,
       "tests/test_dsse.py": 31,
       "tests/test_eval_harness.py": 14,
       "tests/test_formats.py": 63,
       "tests/test_formats_doc.py": 82,
       "tests/test_fuzz_regressions.py": 44,
       "tests/test_governance.py": 201,
-      "tests/test_i18n.py": 271,
+      "tests/test_i18n.py": 275,
       "tests/test_io_budget.py": 13,
       "tests/test_junit.py": 21,
       "tests/test_keyring.py": 34,
@@ -799,6 +799,7 @@
       "tests/test_sarif.py": 33,
       "tests/test_schemas.py": 59,
       "tests/test_state.py": 92,
+      "tests/test_state_change.py": 47,
       "tests/test_state_graph.py": 29,
       "tests/test_subjects.py": 52,
       "tests/test_timestamp.py": 47,

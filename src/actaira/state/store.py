@@ -37,7 +37,7 @@ from typing import Any
 
 from .. import __version__
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 DEFAULT_DIRECTORY = ".actaira"
 DEFAULT_FILENAME = "state.db"
@@ -181,7 +181,52 @@ def _migration_2(connection: sqlite3.Connection) -> None:
     connection.execute("ALTER TABLE assets ADD COLUMN last_snapshot TEXT")
 
 
-MIGRATIONS: tuple[Callable[[sqlite3.Connection], None], ...] = (_migration_1, _migration_2)
+def _migration_3(connection: sqlite3.Connection) -> None:
+    """What a decision relied on, as rows rather than as a sentence.
+
+    Design note D-247. Until this migration the `decisions` table recorded
+    that a decision happened and under which policy, and nothing recorded
+    what it rested on. That is enough to file a decision and not enough to
+    ever ask the question this release exists to answer: does the state that
+    decision was made from still describe the subject in front of me.
+
+    Two roles and no more. A `subject` row says the decision was made about
+    this asset at this digest; an `evidence` row says it read this evidence
+    record. They are separate because they fail differently - a subject's
+    digest moving and an evidence record being revoked are two different
+    reasons to look again, and a reader has to be able to tell which
+    happened.
+
+    Deliberately a table and not a column. A comma-separated list of ids in a
+    TEXT field is a join waiting to be written by hand in three places, it
+    cannot be indexed, and the first id containing a comma ends the
+    arrangement silently.
+
+    Additive and nullable-by-absence: every decision written under version 2
+    keeps its row and simply has no inputs, which is why
+    `decision.validity()` answers UNDETERMINED for it rather than CURRENT.
+    An old decision is not a decision that was checked and found fine.
+    """
+    connection.executescript(
+        """
+        CREATE TABLE decision_inputs (
+            decision_id    TEXT NOT NULL,
+            role           TEXT NOT NULL,
+            ref            TEXT NOT NULL,
+            subject_id     TEXT NOT NULL DEFAULT '',
+            subject_digest TEXT NOT NULL DEFAULT '',
+            PRIMARY KEY (decision_id, role, ref)
+        );
+        CREATE INDEX decision_inputs_by_decision ON decision_inputs (decision_id);
+        """
+    )
+
+
+MIGRATIONS: tuple[Callable[[sqlite3.Connection], None], ...] = (
+    _migration_1,
+    _migration_2,
+    _migration_3,
+)
 
 
 # --------------------------------------------------------------------------
@@ -584,7 +629,18 @@ class Store:
 
     # -- policies, decisions, receipts ----------------------------------
 
-    def record_decision(self, decision: Any, proof_digest: str) -> str:
+    def record_decision(
+        self, decision: Any, proof_digest: str, inputs: Any = None
+    ) -> str:
+        """File a decision, and file what it rested on in the same transaction.
+
+        `inputs` is a sequence of `DecisionInput` (see `state.decide`), and it
+        goes in here rather than through a second call on purpose: a decision
+        whose dependency rows were written by a later statement can be read
+        between the two as a decision that depended on nothing, which is the
+        one shape `decide.validity` reports as UNDETERMINED. A crash would
+        make that permanent.
+        """
         document = decision.to_dict()
         decision_id = proof_digest
         with self.transaction() as connection:
@@ -613,6 +669,19 @@ class Store:
                     json.dumps(document, ensure_ascii=False, sort_keys=True),
                 ),
             )
+            for item in inputs or ():
+                connection.execute(
+                    "INSERT INTO decision_inputs (decision_id, role, ref, subject_id, "
+                    "subject_digest) VALUES (?, ?, ?, ?, ?) "
+                    "ON CONFLICT (decision_id, role, ref) DO NOTHING",
+                    (
+                        decision_id,
+                        item.role,
+                        item.ref,
+                        item.subject_id,
+                        item.subject_digest,
+                    ),
+                )
         return decision_id
 
     def decisions(self) -> list[dict[str, Any]]:
@@ -620,6 +689,35 @@ class Store:
             dict(row)
             for row in self.connection.execute("SELECT * FROM decisions ORDER BY observed_at, rowid")
         ]
+
+    def decision(self, decision_id: str) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            "SELECT * FROM decisions WHERE decision_id = ?", (decision_id,)
+        ).fetchone()
+        return dict(row) if row else None
+
+    def decision_inputs(self, decision_id: str) -> list[dict[str, Any]]:
+        """What one decision recorded as its inputs, in a stable order.
+
+        Empty is a meaningful answer and not an error: it is what every
+        decision filed before schema version 3 looks like, and
+        `decide.validity` is required to read it as "this store cannot tell"
+        rather than as "this decision depended on nothing and is therefore
+        still fine".
+        """
+        return [
+            dict(row)
+            for row in self.connection.execute(
+                "SELECT * FROM decision_inputs WHERE decision_id = ? ORDER BY role, ref",
+                (decision_id,),
+            )
+        ]
+
+    def evidence(self, evidence_id: str) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            "SELECT * FROM evidence WHERE evidence_id = ?", (evidence_id,)
+        ).fetchone()
+        return dict(row) if row else None
 
     def record_receipt(self, receipt_digest: str, path: str, signer: str, observed_at: str) -> None:
         with self.transaction() as connection:
@@ -665,6 +763,15 @@ class Store:
             "decisions": [
                 {key: value for key, value in row.items() if key != "document"}
                 for row in self.decisions()
+            ],
+            # Beside the decisions rather than nested inside them: a v1
+            # consumer reads `decisions` by iterating it, and an array whose
+            # rows grew a nested array is a shape it was not written against.
+            # D-247.
+            "decision_inputs": [
+                row
+                for decision in self.decisions()
+                for row in self.decision_inputs(decision["decision_id"])
             ],
             "receipts": self.receipts(),
         }
