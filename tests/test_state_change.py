@@ -72,6 +72,24 @@ def _asset_for(store: Store, name: str) -> str:
     return next(row["asset_id"] for row in store.assets() if row["name"].endswith(name))
 
 
+
+def run_cli(argv: list[str]) -> int:
+    """Run one command the way a person does, and give back its exit code.
+
+    Through `main` rather than by calling the handler, because the defect this
+    file's last test is about lived in the wiring between them.
+    """
+    import sys as sys_mod
+
+    from actaira.cli import main
+
+    saved = sys_mod.argv
+    sys_mod.argv = ["actaira", *argv]
+    try:
+        return main()
+    finally:
+        sys_mod.argv = saved
+
 # ---------------------------------------------------------------------------
 # DEF-113 and DEF-114: the digest that was measured and then thrown away
 # ---------------------------------------------------------------------------
@@ -923,3 +941,79 @@ def test_the_export_carries_decision_inputs_beside_the_decisions(workspace):
     assert len(document["decisions"]) == 1
     assert [row["ref"] for row in document["decision_inputs"]] == [model]
     assert "decision_inputs" not in document["decisions"][0]
+
+
+# ---------------------------------------------------------------------------
+# What a receipt issued from a workspace can point at
+# ---------------------------------------------------------------------------
+
+
+def test_a_receipt_issued_from_a_workspace_references_the_evidence_about_its_subjects(tmp_path):
+    """DEF-115. The `evidence` array was empty in every receipt ever issued.
+
+    `_state_for_receipt` matched a record's `subject_id` against the subject's
+    handle - `artifact:model.pkl` - and against `claims.subject`, which for an
+    artifact is its digest. Nothing is ever filed under either: `watch` files
+    per-artifact evidence under the id derived from the artifact's URI, and so
+    do the producers this release adds. The two sets never intersected.
+
+    The failure was silent in the worst way. `receipt issue --state` exited 0,
+    wrote a valid signed document, and the field that was supposed to say which
+    observations the receipt rested on was absent - a published contract field
+    that could not be populated, which is the third time that exact shape has
+    been found in this repository.
+    """
+    from actaira.inspect import inspect_artifact
+    from actaira.state import record as record_mod
+    from actaira.state.snapshot import snapshot_of
+    from actaira.state.store import Store
+    from actaira.state.watch import observe
+
+    models = tmp_path / "models"
+    models.mkdir()
+    weights = models / "model.pkl"
+    weights.write_bytes(b"\x80\x04}\x94\x8c\x07weights\x94]\x94(K\x01K\x02K\x03es.")
+
+    database = tmp_path / "state.db"
+    with Store(database) as store:
+        store.add_source("m", "filesystem", str(models))
+        observe(store, snapshot_of(
+            "m", str(models), "filesystem",
+            [{"uri": weights.as_uri(), "path": weights.name, "size": weights.stat().st_size}],
+            measure_local=True,
+        ))
+        scan = record_mod.artifact_scan(store, inspect_artifact(weights))
+        assert scan.written, "the fixture is only interesting if the scan was filed"
+
+    manifest = tmp_path / "subjects.yaml"
+    manifest.write_text(
+        "schema_version: subject-manifest/v1\n"
+        "system: checkout\n"
+        "subjects:\n"
+        "  - kind: artifact\n"
+        "    name: model\n"
+        f"    path: {weights.as_posix()}\n",
+        encoding="utf-8",
+    )
+
+    out = tmp_path / "receipt.json"
+    code = run_cli([
+        "receipt", "issue", "--subjects", str(manifest), "--out", str(out),
+        "--key", str(tmp_path / "key.json"), "--state", str(database),
+    ])
+    assert code == 0
+
+    document = json.loads(out.read_text(encoding="utf-8"))
+    kinds = {row["kind"] for row in document.get("evidence", [])}
+    assert "artifact_scan" in kinds, (
+        "the receipt references no scan evidence about a subject this workspace "
+        "has scan evidence for"
+    )
+    assert "source_snapshot" in kinds
+    # And it stays a reference rather than a copy: the record's own document is
+    # not embedded, because a second version of a signed fact can disagree with
+    # the first.
+    for row in document["evidence"]:
+        assert set(row) <= {"evidence_id", "subject", "subject_digest", "kind", "state",
+                            "digest", "observed_at", "collector", "collector_version",
+                            "valid_until", "supersedes"}
