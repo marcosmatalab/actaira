@@ -276,6 +276,63 @@ def _assurance_story(state: Path) -> None:
     weights.write_bytes(REPLACED_BYTES)
     run("watch", "release-candidate", "--state", str(state))
 
+    _pin_the_clocks(state)
+
+
+# When each row in the demo story was written. The commands above take their
+# timestamps from the wall clock, which is right for a tool and wrong for a
+# fixture: every capture would differ from the last for a reason that is not
+# a change, and a repository that commits its screenshots would carry a
+# permanent diff nobody could read.
+STORY_CLOCK = (
+    ("sources", "added_at", "2026-08-14T09:00:00+00:00"),
+    ("sources", "last_seen", "2026-09-02T09:05:00+00:00"),
+    ("assets", "first_seen", "2026-08-14T09:00:00+00:00"),
+    ("assets", "last_seen", "2026-09-02T09:05:00+00:00"),
+)
+
+
+def _pin_the_clocks(state: Path) -> None:
+    """Give the fixture fixed timestamps, after the commands have built it.
+
+    The story is built by the commands an operator types, which is the point -
+    a fixture assembled by writing rows could show a panel a state the
+    commands cannot produce. What it must not also inherit is `datetime.now()`
+    in every row, because then two runs of `make screenshots` produce two
+    different pictures of the same story.
+
+    Rewriting these columns is safe and that is checked rather than assumed: a
+    snapshot's digest covers the source, the connector, the revision and the
+    artifacts and deliberately not `observed_at` (two observations of an
+    unchanged source must agree), and an evidence record's digest covers what
+    the evidence says and not when it was taken. So nothing here changes an
+    identity, which is the only reason this is a fixture helper and not a
+    falsification.
+    """
+    import sqlite3  # noqa: PLC0415
+
+    moments = ["2026-08-14T09:00:00+00:00", "2026-08-14T09:02:00+00:00",
+               "2026-09-02T09:00:00+00:00", "2026-09-02T09:05:00+00:00"]
+    connection = sqlite3.connect(state)
+    try:
+        for table, column, moment in STORY_CLOCK:
+            connection.execute(f"UPDATE {table} SET {column} = ?", (moment,))  # noqa: S608
+        # Snapshots and evidence keep their order: the nth distinct moment in
+        # the story gets the nth fixed timestamp, so "before" still reads as
+        # before.
+        for table in ("snapshots", "evidence"):
+            rows = [row[0] for row in connection.execute(
+                f"SELECT DISTINCT observed_at FROM {table} ORDER BY observed_at"  # noqa: S608
+            )]
+            for index, original in enumerate(rows):
+                connection.execute(
+                    f"UPDATE {table} SET observed_at = ? WHERE observed_at = ?",  # noqa: S608
+                    (moments[min(index, len(moments) - 1)], original),
+                )
+        connection.commit()
+    finally:
+        connection.close()
+
 
 def start_server_with_state(state: Path, port: int) -> subprocess.Popen:
     """A second server, against the fixture workspace, for the graph captures."""
