@@ -408,12 +408,12 @@
       "note": "the executable EU AI Act controls"
     },
     "core": {
-      "blank": 386,
-      "code": 1970,
-      "comment": 287,
+      "blank": 387,
+      "code": 1978,
+      "comment": 303,
       "docstring": 331,
       "files": 5,
-      "lines": 2974,
+      "lines": 2999,
       "note": "the model, the verdict rules, the CLI"
     },
     "evals": {
@@ -508,11 +508,11 @@
     },
     "scripts": {
       "blank": 570,
-      "code": 3061,
+      "code": 3082,
       "comment": 325,
       "docstring": 609,
       "files": 11,
-      "lines": 4565,
+      "lines": 4586,
       "note": "this script"
     },
     "state": {
@@ -525,21 +525,21 @@
       "note": "the SQLite store, watch, evidence, graph"
     },
     "tests": {
-      "blank": 6616,
-      "code": 16743,
-      "comment": 1422,
-      "docstring": 4026,
+      "blank": 6632,
+      "code": 16799,
+      "comment": 1428,
+      "docstring": 4042,
       "files": 58,
-      "lines": 28807,
+      "lines": 28901,
       "note": "the test suite"
     },
     "total": {
-      "blank": 12212,
-      "code": 43197,
-      "comment": 4655,
-      "docstring": 11588,
+      "blank": 12229,
+      "code": 43282,
+      "comment": 4677,
+      "docstring": 11604,
       "files": 176,
-      "lines": 71652,
+      "lines": 71792,
       "note": "every Python file under evals, fuzz, scripts, src, tests, each counted once"
     },
     "web": {
@@ -580,7 +580,7 @@
       "exhaustive sweep": 1,
       "external adversarial audit": 19,
       "fuzzing": 14,
-      "product review against a roadmap": 5,
+      "product review against a roadmap": 6,
       "reading the tool's own output": 7,
       "real-serialiser corpus": 4,
       "running the gate": 4,
@@ -590,13 +590,13 @@
       "writing a test for an adjacent feature": 2
     },
     "checked_against_pytest": true,
-    "defects": 130,
-    "entries": 114,
-    "in_the_shipped_tool": 85,
+    "defects": 131,
+    "entries": 115,
+    "in_the_shipped_tool": 86,
     "mechanisms": 16,
-    "named_tests": 204,
+    "named_tests": 205,
     "named_tests_not_collected": [],
-    "pinned_by_a_named_test": 129,
+    "pinned_by_a_named_test": 130,
     "pinned_by_a_note_instead": [
       "DEF-58"
     ],
@@ -611,12 +611,12 @@
       "lines": 679
     },
     "docs/THREAT-MODEL.md": {
-      "lines": 524
+      "lines": 537
     },
     "fuzz/README.md": {
       "lines": 251
     },
-    "total_lines": 3131
+    "total_lines": 3144
   },
   "eval": {
     "available": true,
@@ -704,12 +704,12 @@
     "produced_by": "make fuzz",
     "source": "fuzz/runs/latest/summary.json"
   },
-  "generated_at": "2026-09-12T16:09:16+00:00",
+  "generated_at": "2026-09-12T16:25:26+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 2,
-    "head": "ff83913",
+    "commits": 3,
+    "head": "c439ee5",
     "head_date": "2026-09-12"
   },
   "governance": {
@@ -752,7 +752,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 3589,
+    "collected": 3593,
     "files": 56,
     "per_file": {
       "tests/test_action_entrypoint.py": 14,
@@ -772,7 +772,7 @@
       "tests/test_controls_judged.py": 26,
       "tests/test_controls_records.py": 27,
       "tests/test_coverage.py": 14,
-      "tests/test_defect_ledger.py": 345,
+      "tests/test_defect_ledger.py": 348,
       "tests/test_design_notes.py": 163,
       "tests/test_dsse.py": 31,
       "tests/test_eval_harness.py": 14,
@@ -799,7 +799,7 @@
       "tests/test_sarif.py": 33,
       "tests/test_schemas.py": 59,
       "tests/test_state.py": 92,
-      "tests/test_state_change.py": 47,
+      "tests/test_state_change.py": 48,
       "tests/test_state_graph.py": 29,
       "tests/test_subjects.py": 52,
       "tests/test_timestamp.py": 47,
