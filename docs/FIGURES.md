@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-12T15:00:17+00:00 for actaira 2.3.0, at commit e86fdbf.
+Generated 2026-09-12T16:09:16+00:00 for actaira 2.3.0, at commit ff83913.
 
 ## The package
 
 - version **2.3.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, numpy>=1.26, ruff>=0.6, jsonschema>=4.18, pillow>=10
-- 1 commits, most recent 2026-09-12
+- 2 commits, most recent 2026-09-12
 
 ## Tests
 
-**3535** tests collected by pytest across 55 files.
+**3589** tests collected by pytest across 56 files.
 
 | file | tests |
 |---|---:|
@@ -49,7 +49,7 @@ Generated 2026-09-12T15:00:17+00:00 for actaira 2.3.0, at commit e86fdbf.
 | `tests/test_formats_doc.py` | 82 |
 | `tests/test_fuzz_regressions.py` | 44 |
 | `tests/test_governance.py` | 201 |
-| `tests/test_i18n.py` | 275 |
+| `tests/test_i18n.py` | 276 |
 | `tests/test_io_budget.py` | 13 |
 | `tests/test_junit.py` | 21 |
 | `tests/test_keyring.py` | 34 |
@@ -75,11 +75,12 @@ Generated 2026-09-12T15:00:17+00:00 for actaira 2.3.0, at commit e86fdbf.
 | `tests/test_trust.py` | 13 |
 | `tests/test_trust_paths.py` | 39 |
 | `tests/test_web_agents.py` | 50 |
+| `tests/test_web_evidence.py` | 53 |
 | `tests/test_web_frontend.py` | 18 |
 | `tests/test_web_graph.py` | 69 |
 | `tests/test_web_limits.py` | 31 |
 | `tests/test_web_policy.py` | 34 |
-| **total** | **3535** |
+| **total** | **3589** |
 
 ## The obligation catalogue
 
@@ -145,19 +146,19 @@ and the modules are the source of truth.
 | controls | 7 | 2844 | 1765 | 585 | 142 | 352 |
 | governance | 5 | 1135 | 717 | 249 | 45 | 124 |
 | policy | 3 | 1226 | 779 | 172 | 100 | 175 |
-| state | 9 | 3518 | 1970 | 820 | 231 | 497 |
+| state | 9 | 3517 | 1970 | 820 | 231 | 496 |
 | connectors | 10 | 2687 | 1562 | 639 | 141 | 345 |
 | schemas | 1 | 111 | 41 | 36 | 14 | 20 |
 | bom | 2 | 119 | 73 | 13 | 17 | 16 |
 | report | 3 | 435 | 250 | 83 | 35 | 67 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
-| web | 2 | 2309 | 1435 | 301 | 290 | 283 |
+| web | 2 | 2323 | 1440 | 301 | 298 | 284 |
 | rest | 13 | 4658 | 2839 | 868 | 333 | 618 |
-| tests | 57 | 28170 | 16352 | 3946 | 1394 | 6478 |
+| tests | 58 | 28807 | 16743 | 4026 | 1422 | 6616 |
 | evals | 8 | 3619 | 2485 | 444 | 250 | 440 |
 | fuzz | 1 | 1284 | 827 | 147 | 110 | 200 |
-| scripts | 11 | 4363 | 2933 | 577 | 305 | 548 |
-| **total** | 175 | 70800 | 42673 | 11476 | 4599 | 12052 |
+| scripts | 11 | 4565 | 3061 | 609 | 325 | 570 |
+| **total** | 176 | 71652 | 43197 | 11588 | 4655 | 12212 |
 
 Documentation, in lines of Markdown:
 
