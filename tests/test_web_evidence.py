@@ -75,11 +75,17 @@ def build(root: Path) -> Path:
 
     Built through the engine rather than by inserting rows, so no panel can be
     tested against a state the commands could not have produced.
+
+    The observed directory is deliberately a sibling of the workspace rather
+    than a child of it, so that "the path of the database" and "a source URI
+    the operator registered" are two different strings. One of them must never
+    reach the browser and the other must; a fixture that nested one inside the
+    other could not tell those apart.
     """
     from actaira.inspect import inspect_artifact
 
-    models = root / "models"
-    models.mkdir()
+    models = root / "observed" / "models"
+    models.mkdir(parents=True)
     (models / "model.bin").write_bytes(b"\x80\x04}\x94.")
     (models / "tokenizer.bin").write_bytes(b"vocabulary")
 
@@ -87,7 +93,8 @@ def build(root: Path) -> Path:
         return [{"uri": path.as_uri(), "path": path.name, "size": path.stat().st_size}
                 for path in sorted(models.glob("*.bin"))]
 
-    path = root / "state.db"
+    (root / "workspace").mkdir()
+    path = root / "workspace" / "state.db"
     with Store(path) as store:
         store.add_source("m", "filesystem", str(models))
         observe(store, snapshot_of("m", str(models), "filesystem", listing(),
@@ -449,12 +456,36 @@ def test_no_body_field_can_point_the_server_at_another_file(running, tmp_path, f
         assert status == HTTPStatus.BAD_REQUEST
 
 
-def test_no_response_carries_an_absolute_filesystem_path(running, workspace):
-    """Where this machine keeps things is not the browser's business."""
+def test_no_response_carries_the_path_of_the_workspace_database(running, workspace):
+    """Where this machine keeps the database is not the browser's business.
+
+    The operator chose that path at the command line, so its file name is
+    enough to tell them which workspace they are looking at, and the
+    directories above it are a disclosure with nothing to buy it.
+
+    Two things this test learned the hard way. It compares against the
+    JSON-ESCAPED spelling as well as the plain one, because on Windows a
+    backslash is doubled on the wire and a naive substring check silently
+    passes; the first version of this test was therefore a real check on Linux
+    and a no-op on the machine it was written on. And it asserts separately
+    that a source URI the operator registered IS disclosed - because it is the
+    identity of the source, the panel cannot say which source moved without
+    it, and a blanket "no absolute path anywhere" rule would have been a rule
+    against showing the operator their own workspace.
+    """
     blob = json.dumps([ok(running, route) for route in STATE_ROUTES])
-    assert str(workspace) not in blob
-    assert str(workspace.parent) not in blob
+
+    def spellings(value: str) -> list[str]:
+        return [value, json.dumps(value)[1:-1]]
+
+    for spelling in spellings(str(workspace)) + spellings(str(workspace.parent)):
+        assert spelling not in blob, f"a response carried {spelling!r}"
     assert workspace.name in blob
+
+    # And the other half, stated rather than left as an absence.
+    source = json.loads(json.dumps(ok(running, "/api/changes")))["changes"][0]["source"]
+    assert source, "the timeline does not say which source an observation was of"
+    assert str(workspace.parent) not in source
 
 
 # ---------------------------------------------------------------------------
