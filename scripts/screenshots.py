@@ -201,7 +201,80 @@ def build_workspace(path: Path) -> Path:
             observe(store, snapshot_of(
                 "huggingface://acme/fraud-model", "huggingface://acme/fraud-model",
                 "huggingface", rows, revision=revision, observed_at=moment))
+
+    _assurance_story(path)
     return path
+
+
+# The two states the demo is about, as literal bytes so their digests are the
+# same on every machine. A pickle of a small dict, and a longer one: different
+# content, different length, nothing about either interesting to a scanner.
+APPROVED_BYTES = (
+    b"\x80\x04\x95\x18\x00\x00\x00\x00\x00\x00\x00\x7d\x94\x8c\x07\x77"
+    b"\x65\x69\x67\x68\x74\x73\x94\x5d\x94\x28\x4b\x01\x4b\x02\x4b\x03\x65\x73\x2e"
+)
+REPLACED_BYTES = (
+    b"\x80\x04\x95\x1c\x00\x00\x00\x00\x00\x00\x00\x7d\x94\x8c\x07\x77"
+    b"\x65\x69\x67\x68\x74\x73\x94\x5d\x94\x28\x4b\x09\x4b\x09\x4b\x09\x4b\x09\x4b\x09\x65\x73\x2e"
+)
+
+
+def _assurance_story(state: Path) -> None:
+    """The scenario the product is for, built end to end through the CLI.
+
+    Section 22 of the plan, and the reason it is built with subprocesses
+    rather than by writing rows: a fixture assembled by calling the store
+    directly can show a panel a story the commands cannot actually produce.
+    Every step here is a command an operator types.
+
+        a model is observed, scanned and approved      -> evidence VALID,
+                                                          decision ALLOW,
+                                                          validity CURRENT
+        the model's bytes are replaced and re-observed -> the evidence bound
+                                                          to the old digest is
+                                                          SUPERSEDED, the ALLOW
+                                                          is still an ALLOW,
+                                                          and its validity is
+                                                          REQUIRES_REASSESSMENT
+
+    Deterministic: the two payloads are literal, the policy is written here,
+    and nothing opens a socket.
+    """
+    models = state.parent / "demo-models"
+    models.mkdir(parents=True, exist_ok=True)
+    weights = models / "model.pkl"
+    weights.write_bytes(APPROVED_BYTES)
+
+    policy = state.parent / "demo-policy.yaml"
+    policy.write_text(
+        "schema_version: policy/v1\n"
+        "policy: production-release\n"
+        "version: 1\n"
+        "description: nothing critical may ship\n"
+        "rules:\n"
+        "  - id: no-critical-finding\n"
+        "    effect: deny\n"
+        "    when:\n"
+        "      finding_severity_at_least: critical\n",
+        encoding="utf-8", newline="\n",
+    )
+
+    def run(*args: str) -> None:
+        subprocess.run(  # noqa: S603 - fixed argv, no shell
+            [sys.executable, "-m", "actaira", *args],
+            cwd=ROOT, env={**_env(), "PYTHONPATH": str(ROOT / "src")},
+            check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+
+    run("source", "add", str(models), "--id", "release-candidate", "--state", str(state))
+    run("watch", "release-candidate", "--state", str(state))
+    run("scan", str(weights), "--state", str(state))
+    run("policy", "check", str(weights), "--policy-file", str(policy),
+        "--on", "2026-08-20", "--state", str(state))
+
+    # And then the thing the whole tool exists to notice.
+    weights.write_bytes(REPLACED_BYTES)
+    run("watch", "release-candidate", "--state", str(state))
 
 
 def start_server_with_state(state: Path, port: int) -> subprocess.Popen:
@@ -390,6 +463,133 @@ def capture_graph(browser, out: Path, port: int) -> None:
         page.close()
 
 
+def capture_assurance(browser, out: Path, port: int) -> None:
+    """The two panels the change loop produces, on the fixture workspace.
+
+    These are the pictures of the thing the tool is for. The evidence capture
+    is taken with a superseded record open, because the interesting screen is
+    not a list of rows: it is one record beside the digest its subject has
+    now, which is what turns the word "superseded" into a fact a reader can
+    check. The changes capture is taken scrolled to the decision, because the
+    two fields that must never be read as one - what was decided, and whether
+    it still applies - are there and not in the timeline above it.
+    """
+    base = f"http://{HOST}:{port}/"
+    for scheme, lang, evidence_name, changes_name in (
+        ("light", "en", "20-evidence.png", "22-changes.png"),
+        ("dark", "en", "21-evidence-dark.png", "23-changes-dark.png"),
+        ("light", "es", "24-evidence-es.png", "26-changes-es.png"),
+        ("dark", "es", "25-evidence-dark-es.png", "27-changes-dark-es.png"),
+    ):
+        page = browser.new_page(viewport=DESKTOP, color_scheme=scheme)
+        watch(page, f"assurance-{scheme}-{lang}")
+        page.goto(base, wait_until="networkidle")
+        page.evaluate("() => { try { window.localStorage.clear(); } catch (e) {} }")
+        page.goto(base, wait_until="networkidle")
+        page.click(f"#lang-{lang}")
+        page.wait_for_timeout(250)
+
+        page.click("#tab-evidence")
+        page.wait_for_selector("#out-evidence .evrow", timeout=30000)
+        # The `artifact_scan` record specifically, not merely the first
+        # superseded one. The fixture also contains a superseded record about
+        # an artifact that was REMOVED, whose subject keeps the last digest
+        # the store saw - so its two digests agree, which is honest and is not
+        # the picture this capture is for. The one worth showing is the scan
+        # whose subject's bytes were replaced: two different digests, and a
+        # policy decision that rested on the first of them.
+        page.locator(
+            "#out-evidence .evrow:has(.evbadge--superseded)"
+        ).filter(has_text="artifact_scan").first.click()
+        # Wait for what the fetch produces, not for a card that was already
+        # there: the record view is a second request and a capture taken
+        # before it lands is a capture of the list.
+        page.wait_for_function(
+            "() => document.getElementById('out-evidence').innerText.includes('sha256:')",
+            timeout=30000,
+        )
+        page.wait_for_timeout(500)
+        # Scrolled to the record itself, found by the card that holds the
+        # state badge rather than by counting cards: the number of cards
+        # depends on whether the subject has a timeline, and a capture
+        # anchored on an index moves the day that changes.
+        page.evaluate(
+            "() => { const badge = document.querySelector('#out-evidence .evbadge');"
+            " const card = badge && badge.closest('.card');"
+            " if (card) { card.scrollIntoView({block: 'start'}); window.scrollBy(0, -72); } }"
+        )
+        page.wait_for_timeout(400)
+        path = out / evidence_name
+        page.screenshot(path=str(path), full_page=False)
+        print("wrote", path.relative_to(ROOT) if path.is_relative_to(ROOT) else path)
+
+        page.click("#tab-changes")
+        page.wait_for_selector("#out-changes .chvalid", timeout=30000)
+        page.wait_for_timeout(500)
+        page.evaluate(
+            "() => { const badge = document.querySelector('#out-changes .chvalid');"
+            " if (badge) { badge.closest('.card').scrollIntoView({block: 'start'});"
+            " window.scrollBy(0, -72); } }"
+        )
+        page.wait_for_timeout(400)
+        path = out / changes_name
+        page.screenshot(path=str(path), full_page=False)
+        print("wrote", path.relative_to(ROOT) if path.is_relative_to(ROOT) else path)
+        page.close()
+
+
+def smoke_assurance(browser, out: Path, port: int) -> None:
+    """The states the two panels have that no README shows.
+
+    The phone viewport, the empty ledger, and the workspace-less case. The
+    last one is served by the main server, which was started without
+    `--state`: three panels now refuse in the same way and all three have to
+    refuse legibly rather than throw.
+    """
+    base = f"http://{HOST}:{port}/"
+    for tab in ("evidence", "changes"):
+        page = browser.new_page(viewport=MOBILE, color_scheme="light")
+        watch(page, f"mobile-{tab}")
+        page.goto(base, wait_until="networkidle")
+        page.click(f"#tab-{tab}")
+        page.wait_for_selector(f"#out-{tab} .card", timeout=30000)
+        page.wait_for_timeout(700)
+        page.screenshot(path=str(out / f"mobile-{tab}.png"), full_page=True)
+        print("smoke", (out / f"mobile-{tab}.png").relative_to(ROOT))
+        page.close()
+
+        page = browser.new_page(viewport=DESKTOP, color_scheme="light")
+        watch(page, f"{tab}-no-workspace")
+        page.goto(BASE, wait_until="networkidle")
+        page.click(f"#tab-{tab}")
+        page.wait_for_timeout(900)
+        page.screenshot(path=str(out / f"{tab}-no-workspace.png"), full_page=True)
+        print("smoke", (out / f"{tab}-no-workspace.png").relative_to(ROOT))
+        page.close()
+
+    # Every filter, exercised once, because a filter is a code path and the
+    # only place this repository runs the front end is here.
+    page = browser.new_page(viewport=DESKTOP, color_scheme="light")
+    watch(page, "evidence-filters")
+    page.goto(base, wait_until="networkidle")
+    page.click("#tab-evidence")
+    page.wait_for_selector("#out-evidence .evrow", timeout=30000)
+    states = page.locator("#out-evidence .gr__filter").first.locator(".chip")
+    for index in range(states.count()):
+        states.nth(index).click()
+        page.wait_for_timeout(250)
+    kinds = page.locator("#out-evidence .gr__filter").nth(1).locator(".chip")
+    for index in range(kinds.count()):
+        kinds.nth(index).click()
+        page.wait_for_timeout(250)
+    page.fill("#ev-search", "artifact:")
+    page.press("#ev-search", "Enter")
+    page.wait_for_timeout(600)
+    page.screenshot(path=str(out / "evidence-filters.png"), full_page=True)
+    print("smoke", (out / "evidence-filters.png").relative_to(ROOT))
+    page.close()
+
+
 def smoke_graph(browser, out: Path, port: int) -> None:
     """The graph panel's other states, including the one with no workspace.
 
@@ -551,8 +751,10 @@ def main() -> int:
             try:
                 capture(browser, artifacts, arguments.out)
                 capture_graph(browser, arguments.out, PORT + 1)
+                capture_assurance(browser, arguments.out, PORT + 1)
                 smoke(browser, artifacts, ROOT / ".screenshots")
                 smoke_graph(browser, ROOT / ".screenshots", PORT + 1)
+                smoke_assurance(browser, ROOT / ".screenshots", PORT + 1)
             finally:
                 browser.close()
     finally:

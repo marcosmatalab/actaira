@@ -171,7 +171,7 @@ decision without the third part is not a decision, it is a preference.
 | D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:608` |
 | D-242 | Type checking is a ratchet: the exemption list is empty, a new error fails, and a stale exemption fails as loudly | `scripts/type_check.py:4` |
 | D-243 | Recorded is not current, and the third answer is that this store cannot tell | `src/actaira/state/graph.py:379` |
-| D-244 | The workspace is chosen when the server starts, and a read never creates or migrates one | `src/actaira/web/server.py:1989` |
+| D-244 | The workspace is chosen when the server starts, and a read never creates or migrates one | `src/actaira/web/server.py:2003` |
 | D-245 | A decision is history and whether it still applies is a separate, three-valued question | `src/actaira/state/decide.py:3` |
 | D-246 | Evidence is filed only against an asset the workspace already records, because a basename is not an identity | `src/actaira/state/record.py:3` |
 | D-247 | What a decision depended on is rows, not a sentence, and a decision with none is undetermined rather than fine | `src/actaira/state/store.py:187` |

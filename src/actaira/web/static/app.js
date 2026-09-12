@@ -550,6 +550,103 @@
       'footer.deps': 'No framework, no bundler, no CDN, no external font. Hand-written HTML, CSS and JavaScript over Python’s standard-library HTTP server.',
 
       'theme.auto': 'Auto',
+      'tab.evidence': "Evidence",
+      'tab.changes': "Changes",
+      'loading.evidence': "Reading the ledger",
+      'loading.changes': "Reading what has been observed",
+      'ev.lede': "Every observation this workspace has recorded, what it was about, and why one has stopped counting. A reader: nothing here revokes, edits or deletes a record.",
+      'ev.workspace': "Workspace",
+      'ev.workspace.reading': "reading",
+      'ev.workspace.records': "records",
+      'ev.filter.state': "State",
+      'ev.filter.kind': "Kind",
+      'ev.filter.all': "all",
+      'ev.search': "Search by subject, digest or evidence id",
+      'ev.list': "Records",
+      'ev.showing': "{shown} of {total}",
+      'ev.truncated': "More records match than this panel will list at once. Narrow the filter.",
+      'ev.none': "No record matches this filter.",
+      'ev.empty.title': "This workspace has recorded no evidence yet",
+      'ev.empty.text': "`actaira watch` records what a source served; `actaira scan --state` and `actaira agent check --state` record what was established about it.",
+      'ev.selected': "Record",
+      'ev.selected.none': "Select a record to see what it says and what became of it.",
+      'ev.field.id': "evidence id",
+      'ev.field.subject': "subject",
+      'ev.field.subject_digest': "subject digest",
+      'ev.field.kind': "kind",
+      'ev.field.collector': "collector",
+      'ev.field.collector_version': "collector version",
+      'ev.field.observed_at': "observed at",
+      'ev.field.valid_until': "valid until",
+      'ev.field.state': "state",
+      'ev.field.supersedes': "supersedes",
+      'ev.field.digest': "evidence digest",
+      'ev.field.none': "not set",
+      'ev.payload': "What it establishes",
+      'ev.payload.empty': "This record carries no payload.",
+      'ev.compare': "Then and now",
+      'ev.compare.then': "taken about",
+      'ev.compare.now': "the subject is now",
+      'ev.compare.unknown': "This workspace records no digest for that subject, so the two cannot be compared.",
+      'ev.compare.same': "The subject still has the digest this record was taken about.",
+      'ev.compare.moved': "The subject no longer has the digest this record was taken about.",
+      'ev.compare.currentness': "in the latest observation",
+      'ev.compare.not_in_latest_observation': "An earlier observation of this subject's source recorded it and the latest one did not. The digest above is the last one this workspace saw, not one that anything has confirmed since.",
+      'ev.compare.undetermined': "Nothing in this workspace says whether this subject is still there. No observation recorded it, or its source has never been observed.",
+      'ev.timeline': "Everything recorded about this subject",
+      'ev.state.valid': "valid",
+      'ev.state.stale': "stale",
+      'ev.state.superseded': "superseded",
+      'ev.state.revoked': "revoked",
+      'ev.state.untrusted': "untrusted",
+      'ev.why.valid': "Still stands for exactly the subject it was taken about.",
+      'ev.why.stale': "Older than the freshness it was given. Nobody has looked lately; this is not a statement that anything changed.",
+      'ev.why.superseded': "A later observation of the same claim about the same subject. Somebody looked, and this is not the current answer.",
+      'ev.why.revoked': "The key, source or attestation behind it was withdrawn. A fact about the world.",
+      'ev.why.untrusted': "Intact, and this environment's trust policy does not accept it. A decision made here.",
+      'ev.readonly': "This panel reads. Revoking a record, marking one untrusted and deleting one all change what a decision may rest on, and none of them is a button.",
+      'ch.lede': "The observations this workspace has recorded, and the approvals they leave open. Reading what a watch wrote is not the same as running one, and this panel does not run one.",
+      'ch.workspace': "Workspace",
+      'ch.timeline': "Observations",
+      'ch.none': "Nothing has been observed yet.",
+      'ch.empty.title': "This workspace has recorded no observations yet",
+      'ch.empty.text': "`actaira source add` registers a source and `actaira watch` observes it.",
+      'ch.not_recorded': "An observation that found nothing new writes no row, and one whose listing failed writes nothing at all. This is a history of changes, not of runs: `actaira source list` is where the time anybody last looked is kept.",
+      'ch.supersession': "What each of these invalidated at the time is not recorded. A record keeps its current state and not its history, so this says what changed and not what that stopped counting.",
+      'ch.state.baseline': "first observation",
+      'ch.state.content_drift': "content changed",
+      'ch.state.source_drift': "revision moved, content did not",
+      'ch.state.listing_recorded': "listing recorded again",
+      'ch.added': "added",
+      'ch.removed': "removed",
+      'ch.changed': "changed",
+      'ch.artifacts': "{n} artifact(s)",
+      'ch.incomplete': "the listing was incomplete",
+      'ch.decisions': "Decisions",
+      'ch.decisions.none': "No policy decision has been recorded in this workspace.",
+      'ch.decided': "decided",
+      'ch.decision.historical': "what was decided",
+      'ch.decision.applies': "does it still apply",
+      'ch.decision.why': "why",
+      'ch.validity.current': "still applies",
+      'ch.validity.requires_reassessment': "needs reassessment",
+      'ch.validity.undetermined': "cannot tell",
+      'ch.validity.note.current': "Every input this decision recorded still describes its subject.",
+      'ch.validity.note.requires_reassessment': "At least one input no longer describes its subject, and the reason is below.",
+      'ch.validity.note.undetermined': "This workspace does not hold enough to judge. That is a third answer, not a quiet yes.",
+      'ch.history_note': "What was decided is history and nothing here rewrites it. Whether it still applies is a separate question, derived fresh from what the decision recorded as its inputs.",
+      'ch.reason.no_recorded_inputs': "Filed before this store recorded what a decision depended on.",
+      'ch.reason.evidence_superseded': "{evidence} was superseded: taken about {was}, and {subject} is now {now}.",
+      'ch.reason.evidence_stale': "{evidence} is stale: nobody has re-observed {subject} within the freshness it was given.",
+      'ch.reason.evidence_revoked': "{evidence} was revoked: the key, source or attestation behind it was withdrawn.",
+      'ch.reason.evidence_untrusted': "{evidence} is intact and this environment does not accept it.",
+      'ch.reason.evidence_not_in_store': "{evidence} is not in this workspace, so nothing here can say what became of it.",
+      'ch.reason.subject_digest_changed': "{subject} was {was} when this was decided and is now {now}.",
+      'ch.reason.subject_digest_not_recorded': "{subject} was named without a digest, so there is nothing to compare.",
+      'ch.reason.subject_not_in_store': "{subject} is not an asset this workspace holds.",
+      'ch.reason.subject_digest_unknown': "{subject} is recorded and carries no digest, so the two cannot be compared.",
+      'ch.reason.unknown_input_role': "An input recorded by a release that knew a kind of dependency this one does not.",
+
       'theme.light': 'Light',
       'theme.dark': 'Dark'
     },
@@ -1066,6 +1163,103 @@
       'footer.deps': 'Sin framework, sin empaquetador, sin CDN y sin fuentes externas. HTML, CSS y JavaScript escritos a mano sobre el servidor HTTP de la biblioteca estándar de Python.',
 
       'theme.auto': 'Automático',
+      'tab.evidence': "Evidencia",
+      'tab.changes': "Cambios",
+      'loading.evidence': "Leyendo el registro",
+      'loading.changes': "Leyendo lo que se ha observado",
+      'ev.lede': "Cada observacion que este espacio de trabajo ha registrado, sobre que era, y por que una ha dejado de contar. Un lector: aqui nada revoca, edita ni borra un registro.",
+      'ev.workspace': "Espacio de trabajo",
+      'ev.workspace.reading': "leyendo",
+      'ev.workspace.records': "registros",
+      'ev.filter.state': "Estado",
+      'ev.filter.kind': "Tipo",
+      'ev.filter.all': "todos",
+      'ev.search': "Buscar por sujeto, digest o id de evidencia",
+      'ev.list': "Registros",
+      'ev.showing': "{shown} de {total}",
+      'ev.truncated': "Coinciden mas registros de los que este panel lista de una vez. Acota el filtro.",
+      'ev.none': "Ningun registro coincide con este filtro.",
+      'ev.empty.title': "Este espacio de trabajo no ha registrado evidencia todavia",
+      'ev.empty.text': "`actaira watch` registra lo que sirvio una fuente; `actaira scan --state` y `actaira agent check --state` registran lo que se establecio sobre ello.",
+      'ev.selected': "Registro",
+      'ev.selected.none': "Selecciona un registro para ver que dice y que fue de el.",
+      'ev.field.id': "id de evidencia",
+      'ev.field.subject': "sujeto",
+      'ev.field.subject_digest': "digest del sujeto",
+      'ev.field.kind': "tipo",
+      'ev.field.collector': "recolector",
+      'ev.field.collector_version': "version del recolector",
+      'ev.field.observed_at': "observado el",
+      'ev.field.valid_until': "valido hasta",
+      'ev.field.state': "estado",
+      'ev.field.supersedes': "sustituye a",
+      'ev.field.digest': "digest de la evidencia",
+      'ev.field.none': "sin definir",
+      'ev.payload': "Que establece",
+      'ev.payload.empty': "Este registro no lleva contenido.",
+      'ev.compare': "Entonces y ahora",
+      'ev.compare.then': "se tomo sobre",
+      'ev.compare.now': "el sujeto es ahora",
+      'ev.compare.unknown': "Este espacio de trabajo no registra ningun digest para ese sujeto, asi que no se pueden comparar.",
+      'ev.compare.same': "El sujeto sigue teniendo el digest sobre el que se tomo este registro.",
+      'ev.compare.moved': "El sujeto ya no tiene el digest sobre el que se tomo este registro.",
+      'ev.compare.currentness': "en la ultima observacion",
+      'ev.compare.not_in_latest_observation': "Una observacion anterior de la fuente de este sujeto lo registro y la ultima no. El digest de arriba es el ultimo que vio este espacio de trabajo, no uno que nada haya confirmado desde entonces.",
+      'ev.compare.undetermined': "Nada en este espacio de trabajo dice si este sujeto sigue ahi. Ninguna observacion lo registro, o su fuente no se ha observado nunca.",
+      'ev.timeline': "Todo lo registrado sobre este sujeto",
+      'ev.state.valid': "valida",
+      'ev.state.stale': "caducada",
+      'ev.state.superseded': "sustituida",
+      'ev.state.revoked': "revocada",
+      'ev.state.untrusted': "no aceptada",
+      'ev.why.valid': "Sigue valiendo exactamente para el sujeto sobre el que se tomo.",
+      'ev.why.stale': "Mas antigua que la frescura que se le dio. Nadie ha mirado ultimamente; esto no afirma que nada haya cambiado.",
+      'ev.why.superseded': "Una observacion posterior de la misma afirmacion sobre el mismo sujeto. Alguien miro, y esta no es la respuesta actual.",
+      'ev.why.revoked': "Se retiro la clave, la fuente o la atestacion que la sostenia. Un hecho sobre el mundo.",
+      'ev.why.untrusted': "Intacta, y la politica de confianza de este entorno no la acepta. Una decision tomada aqui.",
+      'ev.readonly': "Este panel lee. Revocar un registro, marcar uno como no aceptado y borrar uno cambian sobre que puede descansar una decision, y ninguno es un boton.",
+      'ch.lede': "Las observaciones que este espacio de trabajo ha registrado, y las aprobaciones que dejan abiertas. Leer lo que escribio un watch no es lo mismo que ejecutar uno, y este panel no ejecuta ninguno.",
+      'ch.workspace': "Espacio de trabajo",
+      'ch.timeline': "Observaciones",
+      'ch.none': "Todavia no se ha observado nada.",
+      'ch.empty.title': "Este espacio de trabajo no ha registrado observaciones todavia",
+      'ch.empty.text': "`actaira source add` registra una fuente y `actaira watch` la observa.",
+      'ch.not_recorded': "Una observacion que no encuentra nada nuevo no escribe fila, y una cuyo listado fallo no escribe nada en absoluto. Esto es una historia de cambios, no de ejecuciones: `actaira source list` es donde se guarda cuando miro alguien por ultima vez.",
+      'ch.supersession': "Lo que cada una invalido en su momento no queda registrado. Un registro guarda su estado actual y no su historia, asi que esto dice que cambio y no que dejo de contar por ello.",
+      'ch.state.baseline': "primera observacion",
+      'ch.state.content_drift': "el contenido cambio",
+      'ch.state.source_drift': "la revision se movio, el contenido no",
+      'ch.state.listing_recorded': "el listado se volvio a registrar",
+      'ch.added': "anadido",
+      'ch.removed': "eliminado",
+      'ch.changed': "cambiado",
+      'ch.artifacts': "{n} artefacto(s)",
+      'ch.incomplete': "el listado estaba incompleto",
+      'ch.decisions': "Decisiones",
+      'ch.decisions.none': "No se ha registrado ninguna decision de politica en este espacio de trabajo.",
+      'ch.decided': "decidida",
+      'ch.decision.historical': "que se decidio",
+      'ch.decision.applies': "sigue aplicando",
+      'ch.decision.why': "por que",
+      'ch.validity.current': "sigue aplicando",
+      'ch.validity.requires_reassessment': "hay que reevaluarla",
+      'ch.validity.undetermined': "no se puede saber",
+      'ch.validity.note.current': "Cada entrada que esta decision registro sigue describiendo a su sujeto.",
+      'ch.validity.note.requires_reassessment': "Al menos una entrada ya no describe a su sujeto, y la razon esta debajo.",
+      'ch.validity.note.undetermined': "Este espacio de trabajo no guarda lo suficiente para juzgarlo. Eso es una tercera respuesta, no un si en voz baja.",
+      'ch.history_note': "Lo que se decidio es historia y aqui nada lo reescribe. Si sigue aplicando es otra pregunta, derivada de nuevo a partir de lo que la decision registro como sus entradas.",
+      'ch.reason.no_recorded_inputs': "Archivada antes de que este almacen registrase de que dependia una decision.",
+      'ch.reason.evidence_superseded': "{evidence} quedo sustituida: se tomo sobre {was}, y {subject} es ahora {now}.",
+      'ch.reason.evidence_stale': "{evidence} esta caducada: nadie ha vuelto a observar {subject} dentro del plazo que se le dio.",
+      'ch.reason.evidence_revoked': "{evidence} fue revocada: se retiro la clave, la fuente o la atestacion que la sostenia.",
+      'ch.reason.evidence_untrusted': "{evidence} esta intacta y este entorno no la acepta.",
+      'ch.reason.evidence_not_in_store': "{evidence} no esta en este espacio de trabajo, asi que nada de aqui puede decir que fue de ella.",
+      'ch.reason.subject_digest_changed': "{subject} era {was} cuando se decidio esto y ahora es {now}.",
+      'ch.reason.subject_digest_not_recorded': "{subject} se nombro sin digest, asi que no hay nada que comparar.",
+      'ch.reason.subject_not_in_store': "{subject} no es un activo que este espacio de trabajo guarde.",
+      'ch.reason.subject_digest_unknown': "{subject} esta registrado y no lleva digest, asi que no se pueden comparar.",
+      'ch.reason.unknown_input_role': "Una entrada registrada por una version que conocia un tipo de dependencia que esta no conoce.",
+
       'theme.light': 'Claro',
       'theme.dark': 'Oscuro'
     }
@@ -1084,7 +1278,8 @@
   /* Tabs in the navigation. Governance is here before it has data: it is a
    * panel with an empty state, not a file workflow, so it is deliberately
    * not in TABS. */
-  var NAV_TABS = ['inspect', 'agents', 'policy', 'graph', 'attest', 'verify', 'govern'];
+  var NAV_TABS = ['inspect', 'agents', 'policy', 'graph', 'evidence', 'changes',
+    'attest', 'verify', 'govern'];
   var THEMES = ['auto', 'light', 'dark'];
   var TRACE_FORMATS = ['pickle', 'pytorch-zip', 'zip'];
   var KIND_ORDER = ['import', 'execute', 'extension', 'persid', 'data'];
@@ -1150,6 +1345,14 @@
       hiddenKinds: {}, hiddenRelations: {},
       selected: null, node: null, impact: null, route: null,
       positions: {}, zoom: 1, pan: { x: 0, y: 0 }, needsFit: true, view: 'graph'
+    },
+    evidence: {
+      workspace: null, payload: null, error: null, busy: false,
+      state: '', kind: '', search: '',
+      selected: null, record: null
+    },
+    changes: {
+      workspace: null, payload: null, decisions: null, error: null, busy: false
     },
     error: { inspect: null, agents: null, policy: null, attest: null, verify: null, govern: null, graph: null },
     busy: { inspect: false, agents: false, policy: false, attest: false, verify: false, govern: false, graph: false },
@@ -5166,6 +5369,588 @@
     }
   }
 
+  /* ═══════════════════════════════════════════════════════════════════
+     Evidence, and what became of it
+
+     A reader over the ledger. The Store can revoke a record, mark one
+     untrusted and delete one; none of those is here, and the absence is the
+     design rather than an omission - each changes what a decision may rest
+     on, and a control with that reach belongs to its own review rather than
+     to whichever panel happened to be reading the table.
+
+     The one thing this panel does that a list of rows does not: it puts the
+     digest a record was taken about beside the digest its subject has now.
+     That is what turns "superseded" from a label into a fact somebody can
+     check, and it is why the record view asks the server for one record
+     rather than filtering the list it already has.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  var EVIDENCE_STATES = ['valid', 'stale', 'superseded', 'revoked', 'untrusted'];
+  var EVIDENCE_KINDS = ['artifact_scan', 'bundle', 'agent_assessment', 'policy_decision',
+    'governance', 'attestation', 'source_snapshot'];
+
+  function evidencePost(url, body, onDone, onError) {
+    postJson(url, body, {
+      onDone: onDone,
+      onError: onError || function (info) {
+        state.evidence.busy = false;
+        state.evidence.error = info;
+        renderEvidence();
+      }
+    });
+  }
+
+  /** Ask what the workspace is before asking it anything.
+   *
+   *  `/api/workspace` answers 200 whether or not there is a database - it is
+   *  the one route that reports absence as a fact rather than as a refusal.
+   *  Every other state route answers 409 when there is nothing to read, which
+   *  is the right answer to give a program and the wrong thing for a panel to
+   *  provoke: the browser logs a console error for a 4xx, so an interface
+   *  started with no `--state` filled its console with errors the moment a
+   *  reader opened a tab. The graph panel already worked this way; these two
+   *  did not, and the screenshot pass is what said so.
+   *
+   *  Cached, so changing a filter is one request rather than two. */
+  var workspaceState = null;
+
+  function withWorkspace(onReady, onAbsent, onError) {
+    if (workspaceState) {
+      if (workspaceState.state === 'ready') { return onReady(workspaceState); }
+      return onAbsent(workspaceState);
+    }
+    postJson('/api/workspace', {}, {
+      onDone: function (payload) {
+        workspaceState = payload.workspace || { state: 'absent' };
+        if (workspaceState.state === 'ready') { return onReady(workspaceState); }
+        onAbsent(workspaceState);
+      },
+      onError: onError
+    });
+  }
+
+  function loadEvidence(keepSelection) {
+    state.evidence.busy = true;
+    state.evidence.error = null;
+    if (!keepSelection) { state.evidence.record = null; state.evidence.selected = null; }
+    renderEvidence();
+    withWorkspace(fetchEvidence, function (workspace) {
+      state.evidence.busy = false;
+      state.evidence.workspace = workspace;
+      state.evidence.payload = null;
+      renderEvidence();
+    }, function (info) {
+      state.evidence.busy = false;
+      state.evidence.error = info;
+      renderEvidence();
+    });
+  }
+
+  function fetchEvidence() {
+    var body = {};
+    if (state.evidence.state) { body.state = state.evidence.state; }
+    if (state.evidence.kind) { body.kind = state.evidence.kind; }
+    if (state.evidence.search) { body.subject = state.evidence.search; }
+    evidencePost('/api/evidence', body, function (payload) {
+      state.evidence.busy = false;
+      state.evidence.payload = payload;
+      state.evidence.workspace = payload.workspace || null;
+      renderEvidence();
+    });
+  }
+
+  function selectEvidence(id) {
+    state.evidence.selected = id;
+    state.evidence.record = { status: 'loading', id: id };
+    renderEvidence();
+    evidencePost('/api/evidence/record', { id: id }, function (payload) {
+      state.evidence.record = { status: 'done', id: id, payload: payload };
+      renderEvidence();
+    }, function (info) {
+      state.evidence.record = { status: 'error', id: id, message: info.message };
+      renderEvidence();
+    });
+  }
+
+  function evidenceWorkspaceCard() {
+    var workspace = state.evidence.workspace || {};
+    var payload = state.evidence.payload || {};
+    var byState = payload.by_state || {};
+    var chips = EVIDENCE_STATES.map(function (name) {
+      // Every state, including the zeroes. A summary that hid them could not
+      // say "nothing has been revoked", which is the useful thing to be able
+      // to say.
+      return el('span', { class: 'evtally evtally--' + name }, [
+        el('span', { class: 'evtally__n', text: num(byState[name] || 0) }),
+        el('span', { class: 'evtally__k', text: t('ev.state.' + name) })
+      ]);
+    });
+    return card('ev.workspace', null, el('div', {}, [
+      el('div', { class: 'kv' }, [
+        kvRow(t('ev.workspace.reading'), document.createTextNode(workspace.label || '?'), true),
+        kvRow(t('ev.workspace.records'), document.createTextNode(num(payload.total || 0)))
+      ]),
+      el('div', { class: 'evtallies' }, chips),
+      el('p', { class: 'graph__note graph__note--wide', text: t('ev.readonly') })
+    ]));
+  }
+
+  function evidenceFilterCard() {
+    function chipRow(labelKey, values, chosen, describe, onPick) {
+      var chips = [el('button', {
+        class: 'chip' + (chosen ? '' : ' chip--on'), type: 'button', text: t('ev.filter.all'),
+        onclick: function () { onPick(''); }
+      })];
+      chips[0].setAttribute('aria-pressed', chosen ? 'false' : 'true');
+      values.forEach(function (value) {
+        var chip = el('button', {
+          class: 'chip' + (chosen === value ? ' chip--on' : ''), type: 'button',
+          text: describe(value), onclick: function () { onPick(value); }
+        });
+        chip.setAttribute('aria-pressed', chosen === value ? 'true' : 'false');
+        chips.push(chip);
+      });
+      return el('div', { class: 'gr__filter' }, [
+        el('span', { class: 'gr__filterlabel', text: t(labelKey) }),
+        el('div', { class: 'chips' }, chips)
+      ]);
+    }
+
+    var input = el('input', {
+      class: 'field__control gr__search', type: 'search', id: 'ev-search',
+      value: state.evidence.search || ''
+    });
+    input.setAttribute('aria-label', t('ev.search'));
+    input.setAttribute('placeholder', t('ev.search'));
+    function submit() {
+      state.evidence.search = input.value.trim();
+      loadEvidence(false);
+    }
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') { event.preventDefault(); submit(); }
+    });
+
+    return card('ev.list', null, el('div', { class: 'gr__controls' }, [
+      chipRow('ev.filter.state', EVIDENCE_STATES, state.evidence.state,
+        function (value) { return t('ev.state.' + value); },
+        function (value) { state.evidence.state = value; loadEvidence(false); }),
+      chipRow('ev.filter.kind', EVIDENCE_KINDS, state.evidence.kind,
+        function (value) { return value; },
+        function (value) { state.evidence.kind = value; loadEvidence(false); }),
+      el('div', { class: 'gr__searchrow' }, [
+        input,
+        el('button', { class: 'btn btn--small', type: 'button', text: t('gr.search.go'),
+          onclick: submit })
+      ])
+    ]));
+  }
+
+  function evidenceListCard() {
+    var payload = state.evidence.payload || {};
+    var rows = payload.evidence || [];
+    if (!rows.length) {
+      return card('ev.list', null, el('p', { class: 'empty__text', text: t('ev.none') }));
+    }
+    var items = rows.map(function (row) {
+      var chosen = state.evidence.selected === row.evidence_id;
+      var button = el('button', {
+        class: 'evrow' + (chosen ? ' evrow--on' : ''), type: 'button',
+        onclick: function () { selectEvidence(row.evidence_id); }
+      }, [
+        el('span', { class: 'evbadge evbadge--' + row.state, text: t('ev.state.' + row.state) }),
+        el('span', { class: 'evrow__kind', text: row.kind }),
+        el('span', { class: 'evrow__subject', text: row.subject }),
+        el('span', { class: 'evrow__when', text: row.observed_at })
+      ]);
+      button.setAttribute('aria-pressed', chosen ? 'true' : 'false');
+      return button;
+    });
+    var body = el('div', {}, [el('div', { class: 'evlist' }, items)]);
+    if (payload.truncated) {
+      body.appendChild(el('p', { class: 'graph__note graph__note--wide', text: t('ev.truncated') }));
+    }
+    return card('ev.list', t('ev.showing', { shown: num(rows.length), total: num(payload.matched || 0) }), body);
+  }
+
+  function evidenceCompareCard(record, subject) {
+    var then = record.subject_digest || '';
+    var now = subject.digest_now || '';
+    var verdict;
+    if (!now) { verdict = t('ev.compare.unknown'); }
+    else if (now === then) { verdict = t('ev.compare.same'); }
+    else { verdict = t('ev.compare.moved'); }
+
+    var rows = [
+      kvRow(t('ev.compare.then'), document.createTextNode(then || t('ev.field.none')), true),
+      kvRow(t('ev.compare.now'), document.createTextNode(now || t('ev.field.none')), true)
+    ];
+    var notes = [el('p', { class: 'graph__note graph__note--wide', text: verdict })];
+    var currentness = subject.currentness || 'undetermined';
+    if (currentness !== 'current') {
+      // The reading this card got wrong before it carried this. An artifact
+      // dropped from its source keeps the last digest the store saw, so the
+      // two digests agree - and saying only "the subject still has the digest
+      // this record was taken about" beside a superseded badge reads as
+      // "nothing changed", which is the opposite of what happened.
+      rows.push(kvRow(t('ev.compare.currentness'),
+        el('span', { class: 'chvalid chvalid--undetermined',
+          text: t('gr.current.short.' + currentness) })));
+      notes.push(el('p', { class: 'graph__note graph__note--wide',
+        text: t('ev.compare.' + currentness) }));
+    }
+    return card('ev.compare', null, el('div', {}, [el('div', { class: 'kv' }, rows)].concat(notes)));
+  }
+
+  function evidencePayloadCard(payload) {
+    var keys = Object.keys(payload || {}).sort();
+    if (!keys.length) {
+      return card('ev.payload', null, el('p', { class: 'empty__text', text: t('ev.payload.empty') }));
+    }
+    var rows = keys.map(function (key) {
+      var value = payload[key];
+      var rendered = (value !== null && typeof value === 'object')
+        ? JSON.stringify(value)
+        : String(value);
+      return kvRow(key, document.createTextNode(rendered), true);
+    });
+    return card('ev.payload', null, el('div', { class: 'kv' }, rows));
+  }
+
+  function evidenceTimelineCard(rows, selected) {
+    if (!rows || rows.length < 2) { return null; }
+    var items = rows.map(function (row) {
+      var chosen = row.evidence_id === selected;
+      var button = el('button', {
+        class: 'evrow' + (chosen ? ' evrow--on' : ''), type: 'button',
+        onclick: function () { selectEvidence(row.evidence_id); }
+      }, [
+        el('span', { class: 'evbadge evbadge--' + row.state, text: t('ev.state.' + row.state) }),
+        el('span', { class: 'evrow__kind', text: row.kind }),
+        el('span', { class: 'evrow__subject', text: row.subject_digest || t('ev.field.none') }),
+        el('span', { class: 'evrow__when', text: row.observed_at })
+      ]);
+      button.setAttribute('aria-pressed', chosen ? 'true' : 'false');
+      return button;
+    });
+    return card('ev.timeline', num(rows.length), el('div', { class: 'evlist' }, items));
+  }
+
+  function evidenceRecordCards() {
+    var chosen = state.evidence.record;
+    if (!chosen) { return null; }
+    if (chosen.status === 'loading') {
+      return [card('ev.selected', null, el('p', { class: 'empty__text', text: t('loading.evidence') }))];
+    }
+    if (chosen.status === 'error') {
+      return [card('ev.selected', null,
+        el('p', { class: 'empty__text', text: chosen.message || t('error.network') }))];
+    }
+    var payload = chosen.payload || {};
+    if (!payload.found) {
+      return [card('ev.selected', null, el('p', { class: 'empty__text', text: t('ev.none') }))];
+    }
+    var record = payload.record || {};
+    var subject = payload.subject || {};
+
+    var fields = [
+      ['id', record.evidence_id], ['subject', record.subject],
+      ['subject_digest', record.subject_digest], ['kind', record.kind],
+      ['collector', record.collector], ['collector_version', record.collector_version],
+      ['observed_at', record.observed_at], ['valid_until', record.valid_until],
+      ['supersedes', record.supersedes], ['digest', record.digest]
+    ].map(function (pair) {
+      return kvRow(t('ev.field.' + pair[0]),
+        document.createTextNode(pair[1] || t('ev.field.none')), true);
+    });
+    fields.unshift(kvRow(t('ev.field.state'),
+      el('span', { class: 'evbadge evbadge--' + record.state, text: t('ev.state.' + record.state) })));
+
+    var head = el('div', {}, [
+      el('div', { class: 'kv' }, fields),
+      // Never "invalid". The four are four different things and the reader
+      // has to be told which, because they call for four different actions.
+      el('p', { class: 'graph__note graph__note--wide', text: t('ev.why.' + record.state) })
+    ]);
+
+    var cards = [card('ev.selected', null, head),
+      evidenceCompareCard(record, subject),
+      evidencePayloadCard(payload.payload)];
+    var timeline = evidenceTimelineCard(payload.timeline, record.evidence_id);
+    if (timeline) { cards.push(timeline); }
+    return cards;
+  }
+
+  function renderEvidence() {
+    var out = document.getElementById('out-evidence');
+    if (!out) { return; }
+    out.setAttribute('aria-busy', state.evidence.busy ? 'true' : 'false');
+
+    if (state.evidence.busy && !state.evidence.payload) {
+      clear(out);
+      out.appendChild(el('div', { class: 'state' }, [
+        el('p', { class: 'state__title', text: t('loading.evidence') })
+      ]));
+      return;
+    }
+    if (state.evidence.error) {
+      clear(out);
+      out.appendChild(workspaceErrorState(state.evidence.error, loadEvidence));
+      return;
+    }
+    var workspace = state.evidence.workspace;
+    if (!workspace || workspace.state !== 'ready') {
+      clear(out);
+      out.appendChild(graphNoWorkspaceState());
+      return;
+    }
+    var payload = state.evidence.payload || {};
+    if (!payload.total) {
+      clear(out);
+      out.appendChild(el('div', {}, [
+        el('div', { class: 'state' }, [
+          svgIcon('i-evidence', 'icon state__icon'),
+          el('p', { class: 'state__title', text: t('ev.empty.title') }),
+          el('p', { class: 'state__text', text: t('ev.empty.text') })
+        ])
+      ]));
+      return;
+    }
+
+    var cards = [evidenceWorkspaceCard(), evidenceFilterCard(), evidenceListCard()];
+    var record = evidenceRecordCards();
+    if (record) { cards = cards.concat(record); }
+    else {
+      cards.push(card('ev.selected', null,
+        el('p', { class: 'empty__text', text: t('ev.selected.none') })));
+    }
+    clear(out);
+    out.appendChild(el('div', { class: 'cards' }, cards.filter(Boolean)));
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     Changes: what has already happened, and what it leaves open
+
+     Two things this panel is careful not to imply.
+
+     It is not a scheduler. It shows observations that were recorded; it
+     cannot make one, and `watch` stays a terminal capability because reading
+     what a command wrote is not a way to run it.
+
+     And it is not a complete history of runs. An observation that found
+     nothing new writes no snapshot row, and one whose listing failed writes
+     nothing at all - both by design - so this is a history of CHANGES. The
+     note saying so is not a disclaimer bolted on; it is the difference
+     between a timeline a reader can trust and one that quietly omits every
+     quiet morning.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  var CHANGE_MARK = {
+    baseline: '=', content_drift: '!', source_drift: '~', listing_recorded: '.'
+  };
+
+  function loadChanges() {
+    state.changes.busy = true;
+    state.changes.error = null;
+    renderChanges();
+    withWorkspace(fetchChanges, function (workspace) {
+      state.changes.busy = false;
+      state.changes.workspace = workspace;
+      state.changes.payload = null;
+      renderChanges();
+    }, function (info) {
+      state.changes.busy = false;
+      state.changes.error = info;
+      renderChanges();
+    });
+  }
+
+  function fetchChanges() {
+    postJson('/api/changes', {}, {
+      onDone: function (payload) {
+        state.changes.payload = payload;
+        state.changes.workspace = payload.workspace || null;
+        postJson('/api/decisions', {}, {
+          onDone: function (decisions) {
+            state.changes.busy = false;
+            state.changes.decisions = decisions;
+            renderChanges();
+          },
+          onError: function (info) {
+            state.changes.busy = false;
+            state.changes.error = info;
+            renderChanges();
+          }
+        });
+      },
+      onError: function (info) {
+        state.changes.busy = false;
+        state.changes.error = info;
+        renderChanges();
+      }
+    });
+  }
+
+  function changesWorkspaceCard() {
+    var workspace = state.changes.workspace || {};
+    var payload = state.changes.payload || {};
+    return card('ch.workspace', null, el('div', {}, [
+      el('div', { class: 'kv' }, [
+        kvRow(t('ch.workspace'), document.createTextNode(workspace.label || '?'), true)
+      ]),
+      el('p', { class: 'graph__note graph__note--wide', text: t('ch.not_recorded') }),
+      el('p', { class: 'graph__note graph__note--wide',
+        text: payload.changes && payload.changes.length ? t('ch.supersession') : '' })
+    ]));
+  }
+
+  function changeEntry(row) {
+    var lists = [];
+    [['added', 'ch.added'], ['changed', 'ch.changed'], ['removed', 'ch.removed']]
+      .forEach(function (pair) {
+        var uris = row[pair[0]] || [];
+        if (!uris.length) { return; }
+        lists.push(el('div', { class: 'chgroup' }, [
+          el('span', { class: 'chgroup__label', text: t(pair[1]) + ' · ' + num(uris.length) },
+          ),
+          el('ul', { class: 'chgroup__list' }, uris.map(function (uri) {
+            return el('li', { class: 'chgroup__item', text: uri });
+          }))
+        ]));
+      });
+
+    var head = el('div', { class: 'chentry__head' }, [
+      el('span', { class: 'chentry__mark chentry__mark--' + row.state,
+        text: CHANGE_MARK[row.state] || '?' }),
+      el('span', { class: 'chentry__when', text: row.observed_at }),
+      el('span', { class: 'chentry__state', text: t('ch.state.' + row.state) })
+    ]);
+    var body = [head, el('div', { class: 'kv' }, [
+      kvRow(t('gr.node.source'), document.createTextNode(row.source || row.source_id), true),
+      kvRow(t('gr.node.digest'), document.createTextNode(row.digest || '-'), true)
+    ])];
+    if (!row.listing_complete) {
+      body.push(el('p', { class: 'graph__note', text: t('ch.incomplete') }));
+    }
+    body = body.concat(lists);
+    return el('li', { class: 'chentry' }, body);
+  }
+
+  function changesTimelineCard() {
+    var rows = (state.changes.payload || {}).changes || [];
+    if (!rows.length) {
+      return card('ch.timeline', null, el('p', { class: 'empty__text', text: t('ch.none') }));
+    }
+    // Newest first on screen, oldest first in the engine. The engine's order
+    // is the order things happened and must not move; which end a reader
+    // starts from is a reading preference.
+    var shown = rows.slice().reverse();
+    return card('ch.timeline', num(rows.length),
+      el('ul', { class: 'chlist' }, shown.map(changeEntry)));
+  }
+
+  function decisionReason(reason) {
+    var key = 'ch.reason.' + (reason.reason || '');
+    var rendered = t(key, {
+      evidence: reason.evidence_id || '', subject: reason.subject || '',
+      state: reason.state || '', was: reason.was || '-', now: reason.now || '-'
+    });
+    if (rendered === key) { rendered = reason.detail || key; }
+    return el('li', { class: 'chreason', text: rendered });
+  }
+
+  function decisionsCard() {
+    var payload = state.changes.decisions || {};
+    var rows = payload.decisions || [];
+    if (!rows.length) {
+      return card('ch.decisions', null,
+        el('p', { class: 'empty__text', text: t('ch.decisions.none') }));
+    }
+    var items = rows.map(function (row) {
+      var body = [
+        el('div', { class: 'kv' }, [
+          // Two rows, never merged. The first is history and the second is a
+          // question asked of the present, and a panel that showed one field
+          // would be a panel that had rewritten the decision.
+          kvRow(t('ch.decision.historical'),
+            el('span', { class: 'evbadge evbadge--valid', text: row.decision.toUpperCase() })),
+          kvRow(t('ch.decision.applies'),
+            el('span', { class: 'chvalid chvalid--' + row.validity,
+              text: t('ch.validity.' + row.validity) })),
+          kvRow(t('ch.decided'), document.createTextNode(row.decided_on), true),
+          kvRow(t('gr.node.digest'), document.createTextNode(row.policy_digest), true)
+        ]),
+        el('p', { class: 'graph__note graph__note--wide',
+          text: t('ch.validity.note.' + row.validity) })
+      ];
+      if (row.reasons && row.reasons.length) {
+        body.push(el('span', { class: 'chgroup__label', text: t('ch.decision.why') }));
+        body.push(el('ul', { class: 'chreasons' }, row.reasons.map(decisionReason)));
+      }
+      return el('li', { class: 'chentry' }, body);
+    });
+    return card('ch.decisions', num(rows.length), el('div', {}, [
+      el('ul', { class: 'chlist' }, items),
+      el('p', { class: 'graph__note graph__note--wide', text: t('ch.history_note') })
+    ]));
+  }
+
+  function renderChanges() {
+    var out = document.getElementById('out-changes');
+    if (!out) { return; }
+    out.setAttribute('aria-busy', state.changes.busy ? 'true' : 'false');
+
+    if (state.changes.busy && !state.changes.payload) {
+      clear(out);
+      out.appendChild(el('div', { class: 'state' }, [
+        el('p', { class: 'state__title', text: t('loading.changes') })
+      ]));
+      return;
+    }
+    if (state.changes.error) {
+      clear(out);
+      out.appendChild(workspaceErrorState(state.changes.error, loadChanges));
+      return;
+    }
+    var workspace = state.changes.workspace;
+    if (!workspace || workspace.state !== 'ready') {
+      clear(out);
+      out.appendChild(graphNoWorkspaceState());
+      return;
+    }
+    var rows = (state.changes.payload || {}).changes || [];
+    if (!rows.length) {
+      clear(out);
+      out.appendChild(el('div', { class: 'state' }, [
+        svgIcon('i-changes', 'icon state__icon'),
+        el('p', { class: 'state__title', text: t('ch.empty.title') }),
+        el('p', { class: 'state__text', text: t('ch.empty.text') })
+      ]));
+      return;
+    }
+    clear(out);
+    out.appendChild(el('div', { class: 'cards' }, [
+      changesWorkspaceCard(), changesTimelineCard(), decisionsCard()
+    ].filter(Boolean)));
+  }
+
+  /** The error state the three workspace panels share.
+   *
+   *  One function rather than three copies, because the interesting cases
+   *  here are the structured refusals - a database at a newer schema, a file
+   *  that is not one - and three copies is how one of them ends up rendering
+   *  a message the other two have and it does not. */
+  function workspaceErrorState(info, retry) {
+    return el('div', { class: 'state state--error', role: 'alert' }, [
+      svgIcon('i-alert', 'icon state__icon'),
+      el('p', { class: 'state__title', text: t('error.title') }),
+      el('p', { class: 'state__text', text: (info && info.message) || t('error.network') }),
+      el('div', { class: 'actions' }, [
+        el('button', { type: 'button', class: 'btn', text: t('error.retry'),
+          onclick: function () { retry(false); } })
+      ])
+    ]);
+  }
+
   var RUNNERS = {
     inspect: runInspect, agents: runAgents, policy: runPolicy, attest: runAttest,
     verify: runVerify, govern: runGovernance
@@ -5287,6 +6072,16 @@
     // The graph panel is the one whose layout depends on its own size, and
     // this is the first moment it has one.
     if (name === 'graph' && state.graph.needsFit) { renderGraph(); }
+    // The two workspace readers fetch when they are first opened rather than
+    // at start-up: an interface launched with no `--state` must not make a
+    // request whose only possible answer is a refusal, and one launched with
+    // a workspace should not read a database because a tab exists.
+    if (name === 'evidence' && !state.evidence.payload && !state.evidence.busy) {
+      loadEvidence(false);
+    }
+    if (name === 'changes' && !state.changes.payload && !state.changes.busy) {
+      loadChanges();
+    }
   }
 
   function wireTabs() {

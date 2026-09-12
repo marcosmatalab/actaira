@@ -74,6 +74,18 @@ presentation need is not a reason to version a published schema, and a field
 added to `nodes` because a drawing wanted it would be a change every other
 reader of that contract would have to absorb.
 
+The same rule decided the shape of 2.3.0's additions. `state-export/v1` gained
+`decision_inputs` as a new optional array beside `decisions`, which is exactly
+what the rule above permits, and specifically not as a nested array inside each
+decision: a v1 consumer iterates `decisions`, and a row that grew a list is a
+shape it was never written against. `evidence-record/v1` did not change at all,
+because what a scan or an assessment establishes goes in the `payload` object the
+contract already has. And the assembled consequence of one observation - what
+changed, what it invalidated, what it reaches and which decisions it leaves open -
+is deliberately **not** a published schema yet. [`CONTRACTS.md`](CONTRACTS.md)
+says why, and the short version is that one of its semantics is still
+`undetermined` and a version number would be a promise that it is not.
+
 ## Still readable, no longer written
 
 A published contract stays published. A consumer written against
@@ -107,6 +119,15 @@ inventing what its extra columns meant.
 Every migration is exercised against a fixture built by all the ones before it,
 in `tests/test_state.py` and again in `make release-check`. A migration that has
 never run is a migration that does not work.
+
+2.3.0 takes the store to version 3, adding a `decision_inputs` table: what a
+decision rested on, as typed rows rather than ids in a string. It is additive and
+it rewrites nothing, which matters here for a reason a migration usually does not
+have. A decision recorded under version 2 has no dependency rows, and the correct
+reading of that is "this store cannot tell whether its inputs still hold" rather
+than "its inputs are fine". A migration that invented rows to fill the gap would
+have turned the decisions this release knows least about into the ones it
+reassures you about.
 
 The store is optional in both directions. Every command that existed in 2.1
 still runs in a directory that has never been initialised, and a workspace with

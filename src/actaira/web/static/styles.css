@@ -2784,3 +2784,194 @@ pre.code {
   .jm::before { width: 5px; height: 5px; }
   .tip::after { display: none; }
 }
+
+/* ── Evidence ─────────────────────────────────────────────────────────
+   The five states get five colours and the colours are the only place in
+   this stylesheet that encodes a meaning, so they are named after what they
+   mean rather than after how they look. `valid` is the only one that is a
+   yes; the other four are four different reasons a record has stopped
+   answering, and none of them is a gradient of the first.
+   ──────────────────────────────────────────────────────────────────── */
+
+.evtallies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.evtally {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.82rem;
+}
+
+.evtally__n { font-weight: 600; font-variant-numeric: tabular-nums; }
+.evtally__k { color: var(--text-dim); }
+
+.evtally--valid { border-color: var(--pass); }
+.evtally--stale { border-color: var(--unknown); }
+.evtally--superseded { border-color: var(--accent); }
+.evtally--revoked { border-color: var(--fail); }
+.evtally--untrusted { border-color: var(--fail); }
+
+.evbadge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.evbadge--valid { border-color: var(--pass); color: var(--pass); }
+.evbadge--stale { border-color: var(--unknown); color: var(--unknown); }
+.evbadge--superseded { border-color: var(--accent); color: var(--accent); }
+.evbadge--revoked { border-color: var(--fail); color: var(--fail); }
+.evbadge--untrusted { border-color: var(--fail); color: var(--fail); }
+
+.evlist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 26rem;
+  overflow-y: auto;
+}
+
+.evrow {
+  display: grid;
+  grid-template-columns: 7.5rem 9rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.evrow:hover { background: var(--surface-2); }
+.evrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.evrow--on { border-color: var(--accent); background: var(--surface-2); }
+
+.evrow__kind,
+.evrow__subject,
+.evrow__when {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evrow__kind { font-size: 0.82rem; color: var(--text-dim); }
+.evrow__subject { font-family: var(--mono); font-size: 0.8rem; }
+.evrow__when { font-size: 0.76rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+/* ── Changes ─────────────────────────────────────────────────────────── */
+
+.chlist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chentry {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.chentry__head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.chentry__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.chentry__mark--content_drift { border-color: var(--fail); color: var(--fail); }
+.chentry__mark--source_drift { border-color: var(--unknown); color: var(--unknown); }
+.chentry__mark--baseline { border-color: var(--accent); color: var(--accent); }
+
+.chentry__when { font-variant-numeric: tabular-nums; font-size: 0.82rem; color: var(--text-dim); }
+.chentry__state { font-weight: 600; }
+
+.chgroup { margin-top: 0.5rem; }
+
+.chgroup__label {
+  display: block;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  margin-bottom: 0.2rem;
+}
+
+.chgroup__list,
+.chreasons {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.chgroup__item,
+.chreason {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.chreason { font-family: inherit; font-size: 0.85rem; margin-bottom: 0.25rem; }
+
+.chvalid {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.chvalid--current { border-color: var(--pass); color: var(--pass); }
+.chvalid--requires_reassessment { border-color: var(--fail); color: var(--fail); }
+.chvalid--undetermined { border-color: var(--text-dim); color: var(--text-dim); }
+
+/* At 400px the four-column record row has nowhere to go, so it stacks. The
+   badge keeps its own line because it is the field a reader scans for. */
+@media (max-width: 560px) {
+  .evrow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.2rem;
+  }
+
+  .evrow__subject,
+  .evrow__when {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .evlist { max-height: none; }
+}
