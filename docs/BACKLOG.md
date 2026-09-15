@@ -11,16 +11,17 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   Cada una de esas frases es también una frase de posicionamiento, y la
   autorización de la fase 0 era mecánica, así que solo se borraron los bloques
   de imagen. **Fase 5.**
-- Trece líneas de cada README enuncian una cifra que ya no mide ningún comando,
-  medidas contra `scripts/figures_contract.py`, que es la lista de las 21 que sí
-  se miden. Los dos ficheros están alineados línea a línea, así que los números
-  valen para ambos. Regla de trabajo 6 de `CLAUDE.md`. **Fase 5.**
+- Catorce líneas de cada README enuncian una cifra que ya no mide ningún
+  comando, medidas contra `scripts/figures_contract.py`, que es la lista de las
+  21 que sí se miden. Los dos ficheros están alineados línea a línea, así que
+  los números valen para ambos. Regla de trabajo 6 de `CLAUDE.md`. **Fase 5.**
 
   | línea | cifra sin fuente | lo que dice |
   |---|---|---|
   | L27 | controles, obligaciones | `15 executable controls`, `21 obligations` en la tabla de cabecera |
   | L28 | conectores | `7 connectors` en la tabla de cabecera |
   | L111 | bloque de consola de `scan` | `2 artifact(s): 1 passed, 1 failed, 0 inconclusive` |
+  | L137 | bloque de consola de `agent paths` | `8 open, 0 already closed` |
   | L150 | conectores | `7 connectors enumerate and stage and never conclude` |
   | L197 | controles, obligaciones | `15 executable controls over 21 obligations` |
   | L214 | nivel de comprobabilidad | fila `Machine-checkable`, columna de recuento `5` |
@@ -32,11 +33,29 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   | L296 | supervivencia del marcado | `Naive pipeline: 0 of 32. Metadata-aware pipeline: 8 of 8` |
   | L298 | corpus, objetivos de fuzz | `64 corpus artifacts`, `9 fuzz targets` |
 
-  Otras cuatro cifras de esas mismas páginas SÍ tienen comando y no entran aquí:
-  `41 documented rules`, `1 643 tests`, `9 capability rules` y `6 coverage
-  surfaces` / `4 coverage states`. `readme_figures_are_current` pasa por ellas,
-  no por las trece de arriba: la comprobación solo mira las cifras que el
-  contrato declara, así que su verde no dice nada sobre esta lista.
+  Otras catorce cifras de esas mismas páginas SÍ tienen comando y no entran
+  aquí, una por cada figura del contrato que aparece en la página: `version`,
+  `tests`, `lines`, `rules`, `coverage_states`, `capability_rules`,
+  `watch_states`, `evidence_states`, `relations`, `predicates`,
+  `subject_kinds`, `surfaces`, `commands` y `design_notes`.
+  `readme_figures_are_current` pasa por esas catorce, no por las catorce de
+  arriba: la comprobación solo mira las cifras que el contrato declara, así que
+  su verde no dice nada sobre la tabla.
+
+  Las tres cifras de este apartado se derivan, no se escriben: 14 y 14 son
+  `len(tabla)` y el recuento de patrones que casan en cada página, y 21 es
+  `len(scripts/figures_contract.figures())`. Decía «otras cuatro», que era
+  falso por diez, en una entrada cuyo asunto es precisamente una cifra sin
+  fuente. Se mide así:
+
+  ```sh
+  python -c "import sys,re;sys.path[:0]=['scripts','src'];\
+  import figures_contract as fc;from pathlib import Path;\
+  t=fc.figures();print(len(t));\
+  print([len([f for f in t if f.patterns.get(p) and re.findall(f.patterns[p],\
+  Path(p).read_text(encoding='utf-8'))]) for p in ('README.md','README.es.md')])"
+  ```
+
 - `CONTRIBUTING.md` y `docs/ENGINEERING.md` nombran `make diagrams`, `make
   screenshots` y `docs/img/`, que ya no existen. **Fase 5.**
 - `docs/GOVERNANCE.md`, `docs/FORMATS.md`, `docs/EVALUATION.md` y

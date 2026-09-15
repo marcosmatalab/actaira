@@ -17,16 +17,16 @@
       "ACT-STF": 3,
       "ACT-ZIP": 6
     },
-    "ui_messages": 169
+    "ui_messages": 171
   },
   "code": {
     "attest": {
-      "blank": 540,
-      "code": 2543,
-      "comment": 263,
-      "docstring": 713,
+      "blank": 562,
+      "code": 2644,
+      "comment": 309,
+      "docstring": 756,
       "files": 10,
-      "lines": 4059,
+      "lines": 4271,
       "note": "Merkle tree, chain, signing, keyring, RFC 3161, verification"
     },
     "conformance": {
@@ -40,11 +40,11 @@
     },
     "core": {
       "blank": 80,
-      "code": 262,
-      "comment": 18,
+      "code": 266,
+      "comment": 21,
       "docstring": 101,
       "files": 4,
-      "lines": 461,
+      "lines": 468,
       "note": "the model and the CLI"
     },
     "i18n": {
@@ -111,21 +111,21 @@
       "note": "the SQLite store, watch, evidence, graph"
     },
     "tests": {
-      "blank": 3104,
-      "code": 7933,
-      "comment": 644,
-      "docstring": 1791,
-      "files": 36,
-      "lines": 13472,
+      "blank": 3284,
+      "code": 8417,
+      "comment": 687,
+      "docstring": 1922,
+      "files": 37,
+      "lines": 14310,
       "note": "the test suite"
     },
     "total": {
-      "blank": 5414,
-      "code": 17669,
-      "comment": 1726,
-      "docstring": 5013,
-      "files": 89,
-      "lines": 29822,
+      "blank": 5616,
+      "code": 18258,
+      "comment": 1818,
+      "docstring": 5187,
+      "files": 90,
+      "lines": 30879,
       "note": "every Python file under scripts, src, tests, each counted once"
     }
   },
@@ -245,12 +245,12 @@
     },
     "total_lines": 2125
   },
-  "generated_at": "2026-09-15T11:44:03+00:00",
+  "generated_at": "2026-09-15T18:36:11+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 8,
-    "head": "f706527",
+    "commits": 10,
+    "head": "6cec2ec",
     "head_date": "2026-09-15"
   },
   "package": {
@@ -270,33 +270,33 @@
   },
   "tests": {
     "available": true,
-    "collected": 1643,
-    "files": 32,
+    "collected": 1751,
+    "files": 33,
     "per_file": {
       "tests/test_action_entrypoint.py": 14,
       "tests/test_attest_anchor.py": 25,
       "tests/test_chain_and_signing.py": 17,
-      "tests/test_chain_domain_separation.py": 5,
+      "tests/test_chain_domain_separation.py": 14,
       "tests/test_cli.py": 25,
       "tests/test_conformance.py": 54,
       "tests/test_consistency.py": 285,
       "tests/test_coverage.py": 12,
       "tests/test_defect_ledger.py": 348,
       "tests/test_design_notes.py": 74,
-      "tests/test_dsse.py": 31,
-      "tests/test_i18n.py": 139,
+      "tests/test_dsse.py": 32,
+      "tests/test_i18n.py": 140,
       "tests/test_io_budget.py": 9,
       "tests/test_junit.py": 19,
       "tests/test_keyring.py": 33,
-      "tests/test_merkle.py": 80,
+      "tests/test_merkle.py": 146,
       "tests/test_miniyaml.py": 22,
-      "tests/test_package_verify.py": 27,
+      "tests/test_package_verify.py": 31,
       "tests/test_policy_engine.py": 22,
       "tests/test_readme_parity.py": 22,
-      "tests/test_receipt.py": 23,
+      "tests/test_receipt.py": 26,
       "tests/test_release_check.py": 12,
       "tests/test_sarif.py": 29,
-      "tests/test_schemas.py": 26,
+      "tests/test_schemas.py": 27,
       "tests/test_signing_domain_separation.py": 6,
       "tests/test_state.py": 88,
       "tests/test_state_change.py": 47,
@@ -304,7 +304,8 @@
       "tests/test_subjects.py": 40,
       "tests/test_timestamp.py": 47,
       "tests/test_trust.py": 13,
-      "tests/test_trust_paths.py": 24
+      "tests/test_trust_paths.py": 24,
+      "tests/test_verify_strictness.py": 23
     }
   }
 }

@@ -232,21 +232,57 @@ def test_every_schema_accepts_extra_properties(name):
     assert schemas.load(name).get("additionalProperties") is True
 
 
+def property_names(node, trail=""):
+    """Every property name anywhere in a schema, with the path that reaches it.
+
+    The first version of this test read `schema["properties"]` and stopped
+    there, so it saw the top level of each document and nothing below it: a
+    `risk_score` inside `subjects[].items.properties`, which is where a
+    per-subject field actually goes, was invisible to it. `$defs`, `items`,
+    `allOf` and the rest are walked for the same reason - a consumer switches
+    on the name wherever it sits, and so does a reader.
+    """
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key == "properties" and isinstance(value, dict):
+                for declared in value:
+                    yield f"{trail}/{declared}", declared
+            yield from property_names(value, f"{trail}/{key}")
+    elif isinstance(node, list):
+        for position, value in enumerate(node):
+            yield from property_names(value, f"{trail}[{position}]")
+
+
+def test_the_property_walk_reaches_below_the_top_level():
+    """The scan itself, so this file cannot go green by scanning nothing."""
+    found = {
+        (name, path)
+        for name in schemas.names()
+        for path, _ in property_names(schemas.load(name))
+    }
+
+    assert found, "the walk found no properties at all"
+    assert any(path.count("/") > 2 for _name, path in found), "the walk is still shallow"
+
+
 def test_no_schema_declares_a_score_shaped_property():
     """The refusal, checked against property names rather than prose.
 
-    The first version of this test searched the whole serialised schema and
-    failed on the receipt's own description, which says "not a score" - the
-    sentence that states the refusal was read as a violation of it. Property
-    names are the thing that matters: a consumer switches on those, and a
-    field named `risk_score` in any of these documents would make the whole
-    argument of this repository a slogan.
+    An earlier version searched the whole serialised schema and failed on the
+    receipt's own description, which says "not a score" - the sentence that
+    states the refusal was read as a violation of it. Property names are the
+    thing that matters: a consumer switches on those, and a field named
+    `risk_score` in any of these documents would make the whole argument of
+    this repository a slogan.
+
+    The word list is CLAUDE.md's first negative plus `level`, which is not in
+    that sentence and is kept because `compliance_level` is the shape a
+    consumer would reach for first.
     """
-    forbidden = ("score", "grade", "rating", "percent", "level")
+    forbidden = ("score", "grade", "rating", "percent", "confidence", "ranking", "level")
     for name in schemas.names():
-        properties = schemas.load(name).get("properties", {})
-        for key in properties:
-            assert not any(word in key.lower() for word in forbidden), f"{name}.{key}"
+        for path, declared in property_names(schemas.load(name)):
+            assert not any(word in declared.lower() for word in forbidden), f"{name}{path}"
 
 
 # --------------------------------------------------------------------------

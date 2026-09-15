@@ -159,7 +159,7 @@ def run_keygen(args: argparse.Namespace, catalog: Catalog) -> int:
 def _print_verify(result: verify_mod.VerifyResult, catalog: Catalog) -> None:
     print(catalog.line("verify.header", path=str(result.manifest.get("tool_version", "?"))))
     for name, ok in result.checks.items():
-        print(f"  [{'ok' if ok else 'FAIL'}] {catalog.line('check.' + name)}")
+        print(f"  [{verify_mod.check_mark(name, ok)}] {catalog.line('check.' + name)}")
     print(f"\n{catalog.line('verify.time_anchor')}: {result.time_anchor} ({result.time_evidence})")
     token = (result.timestamp or {}).get("token") or {}
     if token:
@@ -173,6 +173,13 @@ def _print_verify(result: verify_mod.VerifyResult, catalog: Catalog) -> None:
         print(f"  ! {warning}")
     for problem in result.problems:
         print(f"  x {problem}")
+    # Said once, and only when one was printed. A marker the reader cannot
+    # interpret is a smaller version of the problem it was introduced to fix:
+    # they still cannot tell a documented limit from something that went wrong.
+    if any(
+        not ok and name in verify_mod.ADVISORY_CHECKS for name, ok in result.checks.items()
+    ):
+        print(f"\n{catalog.line('verify.advisory_legend', mark=verify_mod.MARK_ADVISORY)}")
     print(f"\n{catalog.line('verify.result')}: {'OK' if result.ok else 'FAILED'}")
 
 

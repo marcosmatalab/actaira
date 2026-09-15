@@ -51,13 +51,77 @@ from .package import (
     timestamp_subject,
 )
 
-INTEGRITY_CHECKS = (
+# Checks that must be recorded on every package, whatever shape it is in. A
+# name here that is missing from `result.checks` fails the package: a check that
+# did not run is not a check that passed.
+REQUIRED_CHECKS = (
     "files_match_manifest",
     "chain_intact",
     "head_matches",
     "merkle_root_matches",
     "signature_valid",
 )
+
+# Checks only some packages reach - a DSSE envelope, a governance dossier, a
+# keyring record, a TSA trust store the caller asked for, a time anchor.
+# Recorded whenever they apply, and a False one fails exactly like a required
+# one. The distinction that matters is between a check that does not apply and
+# one that applies and did not run: the first is a package with nothing to
+# check, the second is the hole this whole tally was rewritten to close, so
+# every branch where one applies records it rather than returning past it.
+# `_check_timestamp` is where that went wrong and it is audited by
+# `test_the_timestamp_check_is_recorded_whenever_it_applies`.
+CONDITIONAL_CHECKS = (
+    "dsse_envelope_valid",
+    "dossier_covers_its_inspections",
+    "signing_key_in_validity",
+    "timestamp_matches_manifest",
+    "tsa_trust_store_loaded",
+)
+
+FAILING_CHECKS = REQUIRED_CHECKS + CONDITIONAL_CHECKS
+
+# The only checks a False value does NOT fail, one line of why each. The list
+# is short because it is the whole of the exception: everything else fails.
+#
+# `key_trusted` is an advisory and not a failure because D-15 keeps integrity
+# and identity apart: a package always carries its own key, so integrity is
+# always answerable, and "nobody vouched for this key" is the honest default
+# rather than a defect in the package. Rejected: moving it to FAILING_CHECKS,
+# which would fail every package verified without anchors and collapse the two
+# questions the module exists to keep separate; `--require-trust` is how a
+# caller asks for the strict reading, and it already fails the run.
+ADVISORY_CHECKS = {
+    "key_trusted": (
+        "identity is a separate question from integrity (D-15). With no anchors "
+        "the answer is `embedded_key_only`, which is the documented default, and "
+        "only --require-trust turns it into a failure."
+    ),
+}
+
+# What a check prints. Three markers, because two of them made the screen
+# contradict itself: a healthy package verified without anchors showed
+# `[FAIL] the signing key is one you already trust` above `Result: OK`, which
+# is the correct verdict rendered in the word for the opposite one.
+MARK_PASSED = "ok"
+MARK_FAILED = "FAIL"
+MARK_ADVISORY = "--"
+
+
+def check_mark(name: str, passed: bool) -> str:
+    """The marker one check prints, derived from its classification.
+
+    Here rather than at the print site on purpose. A caller choosing the word
+    is a caller who can print `[--]` next to a check that fails the package,
+    and the marker has to be a function of the lists above or it is decoration.
+    """
+    if passed:
+        return MARK_PASSED
+    return MARK_ADVISORY if name in ADVISORY_CHECKS else MARK_FAILED
+
+# Kept so a 2.x embedder importing this name still imports something true: it
+# is the subset of REQUIRED_CHECKS that is about the package's bytes.
+INTEGRITY_CHECKS = REQUIRED_CHECKS[:5]
 
 # `ZipFile.read` decompresses without any limit at all, so a 1.4 MiB package
 # whose `entries.jsonl` expands to three gigabytes made the verifier allocate
@@ -188,7 +252,7 @@ def verify_extends(
 def _read_entries(package_path: Path) -> list[dict[str, Any]]:
     with zipfile.ZipFile(package_path) as archive:
         blob = _read_member_or_raise(archive, ENTRIES_NAME)
-        return [json.loads(line) for line in blob.splitlines() if line.strip()]
+        return [strict_json(line) for line in blob.splitlines() if line.strip()]
 
 
 class MemberTooLargeError(Exception):
@@ -247,6 +311,72 @@ def _hash_member(archive: zipfile.ZipFile, name: str) -> str | None:
     return digest.hexdigest()
 
 
+def strict_json(blob: bytes | str) -> Any:
+    """`json.loads`, minus the three tokens `canonical_json` cannot write back.
+
+    `json.loads` accepts `NaN`, `Infinity` and `-Infinity`; `canonical_json` is
+    `allow_nan=False`. So a payload carrying one loaded here, travelled as far
+    as `verify_chain` and `merkle.leaf_hash`, and came out of the verifier as a
+    `ValueError` traceback. Refused at the point of reading instead: a format
+    error is a message at load time, not a crash at evaluation time.
+    """
+
+    def refuse(token: str) -> Any:
+        raise ValueError(f"{token} is not a number this verifier reads")
+
+    return json.loads(blob, parse_constant=refuse)
+
+
+def _declared_files(manifest: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], list[str]]:
+    """The manifest's `files` list, checked for shape before it is indexed.
+
+    `{row["path"]: row for row in manifest.get("files", [])}` raised `KeyError`
+    on a row without a path and `TypeError` on a `files` that was a string. A
+    manifest is a document somebody else wrote, so its shape is a verdict.
+    """
+    rows = manifest.get("files", [])
+    if not isinstance(rows, list):
+        return {}, [f"manifest `files` is a {type(rows).__name__}, not a list of members"]
+
+    declared: dict[str, dict[str, Any]] = {}
+    problems: list[str] = []
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            problems.append(f"manifest files[{index}] is a {type(row).__name__}, not an object")
+            continue
+        path = row.get("path")
+        if not isinstance(path, str) or not path:
+            problems.append(f"manifest files[{index}] declares no `path`, so it names no member")
+            continue
+        if path in declared:
+            problems.append(f"manifest files[{index}] declares {path} a second time")
+            continue
+        declared[path] = row
+    return declared, problems
+
+
+def settle(result: VerifyResult) -> None:
+    """Turn the checks recorded into a verdict. Failure is the default.
+
+    This was an allow-list: `INTEGRITY_CHECKS` plus three
+    names read through `result.checks.get(name, True)`. A check that was False
+    and not on the list counted for nothing - `dsse_envelope_valid` printed
+    [FAIL] beside `Result: OK` - and a check that never ran counted as a pass,
+    which is how an unreadable TSA trust store skipped the whole RFC 3161
+    check. Rejected: adding those two names to the list, which fixes two
+    packages and leaves the shape that produced both of them in place.
+    """
+    missing = [name for name in REQUIRED_CHECKS if name not in result.checks]
+    for name in missing:
+        result.problems.append(f"{name} was never established, so it cannot be read as passed")
+    failed = [
+        name
+        for name, passed in sorted(result.checks.items())
+        if not passed and name not in ADVISORY_CHECKS
+    ]
+    result.ok = not missing and not failed
+
+
 def verify_package(
     package_path: Path,
     trusted_keyring: Path | None = None,
@@ -283,15 +413,21 @@ def verify_package(
         if manifest_blob is None:
             return result
         try:
-            manifest = json.loads(manifest_blob)
+            manifest = strict_json(manifest_blob)
         except Exception as exc:
             result.problems.append(f"manifest.json is not valid JSON: {exc}")
+            return result
+        if not isinstance(manifest, dict):
+            result.problems.append(
+                f"manifest.json is a {type(manifest).__name__}, not a manifest object"
+            )
             return result
         result.manifest = manifest
 
         # 1. every declared file hashes to what the manifest says
-        declared = {row["path"]: row for row in manifest.get("files", [])}
-        files_ok = True
+        declared, shape_problems = _declared_files(manifest)
+        result.problems.extend(shape_problems)
+        files_ok = not shape_problems
         for path, row in declared.items():
             if path not in names:
                 result.problems.append(f"manifest lists {path}, not present in package")
@@ -320,9 +456,12 @@ def verify_package(
         if entries_blob is None:
             return result
         try:
-            entries = [json.loads(line) for line in entries_blob.splitlines() if line.strip()]
+            entries = [strict_json(line) for line in entries_blob.splitlines() if line.strip()]
         except ValueError as exc:
             result.problems.append(f"{ENTRIES_NAME} is not valid JSON lines: {exc}")
+            return result
+        if not all(isinstance(entry, dict) for entry in entries):
+            result.problems.append(f"{ENTRIES_NAME} holds a line that is not a chain entry object")
             return result
         result.entry_count = len(entries)
         chain_problems = verify_chain(entries)
@@ -430,18 +569,7 @@ def verify_package(
         # 8. a governance dossier describes the artifacts filed beside it
         _check_dossier_subjects(entries, result)
 
-    integrity_ok = all(result.checks[name] for name in INTEGRITY_CHECKS)
-    # A manifest that claims a time anchor and cannot show one, and a key that
-    # was not allowed to sign when the package says it signed, are both
-    # failures of the package's own claims rather than of its bytes. They fail
-    # it all the same: a claim the package contradicts is worse than no claim.
-    if not result.checks.get("timestamp_matches_manifest", True):
-        integrity_ok = False
-    if not result.checks.get("signing_key_in_validity", True):
-        integrity_ok = False
-    if not result.checks.get("dossier_covers_its_inspections", True):
-        integrity_ok = False
-    result.ok = integrity_ok
+    settle(result)
     # Supplying trust anchors is an assertion about who you accept. Returning
     # ok=True alongside "this key is not one of yours" is a contradiction a
     # caller will act on, so anchors are binding once given. Not requiring
@@ -609,6 +737,12 @@ def _check_timestamp(
             )
             result.checks["timestamp_matches_manifest"] = False
         else:
+            # No anchor claimed and no token carried, so there is nothing for a
+            # token to agree with and the check does not apply. Deliberately
+            # NOT recorded as True: this check's name says an RFC 3161 stamp
+            # covers this manifest, and writing True where no stamp exists
+            # would be claiming the unobserved. The warning is the answer here,
+            # and `time_anchor` / `time_evidence` already carry it to --json.
             result.warnings.append(
                 "NO TIME ANCHOR: the chain proves ordering, not when anything happened."
             )
@@ -635,10 +769,16 @@ def _check_timestamp(
             # A trust store the caller named and this process cannot read is
             # a usage error, not a reason to fall back to checking nothing.
             # Silently verifying without the anchors somebody asked for is the
-            # shape of failure this module exists to prevent.
+            # shape of failure this module exists to prevent - and it happened
+            # anyway, because returning here left `timestamp_matches_manifest`
+            # unrecorded and the old tally read an absent check as a pass. Both
+            # are written down now: the store is its own hard failure, and the
+            # timestamp it was going to check stays unestablished.
             result.problems.append(f"the TSA trust store could not be loaded: {exc}")
             result.checks["tsa_trust_store_loaded"] = False
+            result.checks["timestamp_matches_manifest"] = False
             return None
+        result.checks["tsa_trust_store_loaded"] = True
     stamp = timestamp.verify_token(token, subject, trust_store=store)
     result.problems.extend(stamp.problems)
     result.warnings.extend(stamp.warnings)
@@ -814,28 +954,33 @@ def _check_key_validity(
 ) -> None:
     """Was this key allowed to sign, then? D-28.
 
-    The record supplied by the verifier wins over the one the package
-    carries. A package rewritten by an attacker also rewrites its own
-    keyring, so the embedded copy can only be trusted to make the answer
-    stricter, never more permissive - which it still does, because a package
-    that admits its own key was revoked is telling the truth against its own
-    interest.
+    Both records are read and the stricter one decides. An attacker who
+    rewrites a package rewrites its keyring too, so the embedded copy can only
+    ever be believed against its own interest - which is exactly what a
+    confessed `revoked` is. Rejected: the verifier's record winning outright,
+    which is what this did, and which made naming the fingerprint in
+    `--trusted-keyring` discard the package's own confession and return OK.
     """
     if signing_fingerprint is None:
         result.key_state = "unknown"
         return
 
-    record: keyring_mod.KeyRecord | None = trusted_records.get(signing_fingerprint)
-    if record is not None:
-        result.key_status_source = "trusted_keyring"
-    elif signing_row is not None:
-        record = keyring_mod.KeyRecord.from_dict(signing_row)
-        result.key_status_source = "package"
-    if record is None:
+    # Ordered: the verifier's record is consulted first, so it is the one that
+    # names the source when the two agree.
+    candidates: list[tuple[str, keyring_mod.KeyRecord]] = []
+    trusted = trusted_records.get(signing_fingerprint)
+    if trusted is not None:
+        candidates.append(("trusted_keyring", trusted))
+    if signing_row is not None:
+        candidates.append(("package", keyring_mod.KeyRecord.from_dict(signing_row)))
+    if not candidates:
         result.key_state = "unknown"
         return
 
-    verdict = keyring_mod.evaluate(record, moment)
+    verdicts = [(source, keyring_mod.evaluate(record, moment)) for source, record in candidates]
+    refusals = [pair for pair in verdicts if not pair[1].accepted]
+    source, verdict = refusals[0] if refusals else verdicts[0]
+    result.key_status_source = source
     result.key_state = verdict.state
     result.checks["signing_key_in_validity"] = verdict.accepted
     if not verdict.accepted:
