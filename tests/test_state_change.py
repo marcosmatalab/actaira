@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import json
 import sqlite3
-import sys
 from pathlib import Path
 
 import pytest
@@ -70,7 +69,6 @@ def workspace(tmp_path):
 
 def _asset_for(store: Store, name: str) -> str:
     return next(row["asset_id"] for row in store.assets() if row["name"].endswith(name))
-
 
 
 def run_cli(argv: list[str]) -> int:
@@ -170,25 +168,6 @@ def test_a_file_uri_with_a_space_in_it_is_still_measured(tmp_path):
 # ---------------------------------------------------------------------------
 
 
-def test_a_scan_without_a_workspace_writes_nothing_anywhere(tmp_path, monkeypatch):
-    """The local-first property, asserted rather than assumed.
-
-    `actaira scan` on a machine with no `.actaira/` has to behave exactly as
-    it did before this release existed. The check is that no database appears,
-    because the failure mode is a tool that starts creating a workspace
-    because it now has one to create.
-    """
-    from actaira.cli import main
-
-    artifact = tmp_path / "m.bin"
-    artifact.write_bytes(b"\x80\x04}\x94.")
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(sys, "argv", ["actaira", "scan", str(artifact)])
-    assert main() == 0
-    assert not (tmp_path / ".actaira").exists()
-    assert not list(tmp_path.glob("*.db"))
-
-
 def test_a_scan_of_an_unrecorded_artifact_records_nothing_and_says_so(workspace, tmp_path):
     """Identity is not invented. §3.
 
@@ -196,12 +175,12 @@ def test_a_scan_of_an_unrecorded_artifact_records_nothing_and_says_so(workspace,
     tempting thing is `artifact:<basename>`, and the first time two teams both
     have a `model.pt` that is evidence about whichever was scanned last.
     """
-    from actaira.inspect import inspect_artifact
+    from support.reports import write_report
 
     store, _ = workspace
     stranger = tmp_path / "elsewhere.bin"
     stranger.write_bytes(b"nobody observed this")
-    result = record_mod.artifact_scan(store, inspect_artifact(stranger))
+    result = record_mod.artifact_scan(store, write_report(stranger, payload=stranger.read_bytes()))
     assert not result.written
     assert result.identity.basis == record_mod.UNRECORDED
     assert not any(row["kind"] == "artifact_scan" for row in store.all_evidence())
@@ -214,10 +193,10 @@ def test_a_scan_of_a_recorded_artifact_binds_to_the_asset_watch_uses(workspace):
     observations under, or supersession - which is bound to the digest of a
     subject id - will never reach it.
     """
-    from actaira.inspect import inspect_artifact
+    from support.reports import write_report
 
     store, models = workspace
-    result = record_mod.artifact_scan(store, inspect_artifact(models / "model.bin"))
+    result = record_mod.artifact_scan(store, write_report(models / "model.bin", payload=(models / "model.bin").read_bytes()))
     assert result.written
     assert result.identity.asset_id == _asset_for(store, "model.bin")
     assert result.identity.basis == record_mod.FROM_DIGEST
@@ -229,11 +208,11 @@ def test_the_same_bytes_scanned_twice_produce_one_record(workspace):
     A store that grew a row every time CI ran would be a log rather than a
     ledger, and `watch` would have something new to supersede on every run.
     """
-    from actaira.inspect import inspect_artifact
+    from support.reports import write_report
 
     store, models = workspace
-    first = record_mod.artifact_scan(store, inspect_artifact(models / "model.bin"))
-    second = record_mod.artifact_scan(store, inspect_artifact(models / "model.bin"))
+    first = record_mod.artifact_scan(store, write_report(models / "model.bin", payload=(models / "model.bin").read_bytes()))
+    second = record_mod.artifact_scan(store, write_report(models / "model.bin", payload=(models / "model.bin").read_bytes()))
     assert first.evidence_id == second.evidence_id
     scans = [row for row in store.all_evidence() if row["kind"] == "artifact_scan"]
     assert len(scans) == 1
@@ -246,13 +225,13 @@ def test_changed_bytes_do_not_reuse_the_old_records_identity(workspace):
     new bytes refresh the record about the old ones, and the ledger would
     show a valid scan of a file that no longer exists.
     """
-    from actaira.inspect import inspect_artifact
+    from support.reports import write_report
 
     store, models = workspace
-    before = record_mod.artifact_scan(store, inspect_artifact(models / "model.bin"))
+    before = record_mod.artifact_scan(store, write_report(models / "model.bin", payload=(models / "model.bin").read_bytes()))
     (models / "model.bin").write_bytes(b"weights-two!")
     _observe(store, models)
-    after = record_mod.artifact_scan(store, inspect_artifact(models / "model.bin"))
+    after = record_mod.artifact_scan(store, write_report(models / "model.bin", payload=(models / "model.bin").read_bytes()))
     assert before.evidence_id != after.evidence_id
     assert store.evidence(before.evidence_id)["state"] == EvidenceState.SUPERSEDED.value
     assert store.evidence(after.evidence_id)["state"] == EvidenceState.VALID.value
@@ -265,8 +244,8 @@ def test_an_agent_assessment_is_bound_to_the_agent_digest(tmp_path):
     `Agent.digest` rather than to the agent's name - a declaration that has
     since gained a shell tool keeps its name and not its digest.
     """
-    from actaira.agentgov import assess, load
-    from actaira.agentgov import paths as path_engine
+    from actaira.conformance import assess, load
+    from actaira.conformance import paths as path_engine
 
     agent = load(Path(REPO_ROOT) / "examples" / "agent-ticket-triage.yaml")
     with Store(tmp_path / "state.db") as store:
@@ -294,8 +273,8 @@ def test_an_agent_assessment_does_not_inline_the_routes(tmp_path):
     every node of every route would be a second copy of a document that can
     disagree with the first.
     """
-    from actaira.agentgov import assess, load
-    from actaira.agentgov import paths as path_engine
+    from actaira.conformance import assess, load
+    from actaira.conformance import paths as path_engine
 
     agent = load(Path(REPO_ROOT) / "examples" / "agent-ticket-triage.yaml")
     with Store(tmp_path / "state.db") as store:
@@ -833,7 +812,6 @@ def test_one_proven_reason_outranks_any_number_of_gaps(workspace):
     assert len(row.reasons) == 3
 
 
-
 def test_a_decision_never_depends_on_another_decisions_note(workspace):
     """A `policy_decision` record is the note that a decision happened.
 
@@ -991,72 +969,3 @@ def test_the_export_carries_decision_inputs_beside_the_decisions(workspace):
 # ---------------------------------------------------------------------------
 
 
-def test_a_receipt_issued_from_a_workspace_references_the_evidence_about_its_subjects(tmp_path):
-    """DEF-115. The `evidence` array was empty in every receipt ever issued.
-
-    `_state_for_receipt` matched a record's `subject_id` against the subject's
-    handle - `artifact:model.pkl` - and against `claims.subject`, which for an
-    artifact is its digest. Nothing is ever filed under either: `watch` files
-    per-artifact evidence under the id derived from the artifact's URI, and so
-    do the producers this release adds. The two sets never intersected.
-
-    The failure was silent in the worst way. `receipt issue --state` exited 0,
-    wrote a valid signed document, and the field that was supposed to say which
-    observations the receipt rested on was absent - a published contract field
-    that could not be populated, which is the third time that exact shape has
-    been found in this repository.
-    """
-    from actaira.inspect import inspect_artifact
-    from actaira.state import record as record_mod
-    from actaira.state.snapshot import snapshot_of
-    from actaira.state.store import Store
-    from actaira.state.watch import observe
-
-    models = tmp_path / "models"
-    models.mkdir()
-    weights = models / "model.pkl"
-    weights.write_bytes(b"\x80\x04}\x94\x8c\x07weights\x94]\x94(K\x01K\x02K\x03es.")
-
-    database = tmp_path / "state.db"
-    with Store(database) as store:
-        store.add_source("m", "filesystem", str(models))
-        observe(store, snapshot_of(
-            "m", str(models), "filesystem",
-            [{"uri": weights.as_uri(), "path": weights.name, "size": weights.stat().st_size}],
-            measure_local=True,
-        ))
-        scan = record_mod.artifact_scan(store, inspect_artifact(weights))
-        assert scan.written, "the fixture is only interesting if the scan was filed"
-
-    manifest = tmp_path / "subjects.yaml"
-    manifest.write_text(
-        "schema_version: subject-manifest/v1\n"
-        "system: checkout\n"
-        "subjects:\n"
-        "  - kind: artifact\n"
-        "    name: model\n"
-        f"    path: {weights.as_posix()}\n",
-        encoding="utf-8",
-    )
-
-    out = tmp_path / "receipt.json"
-    code = run_cli([
-        "receipt", "issue", "--subjects", str(manifest), "--out", str(out),
-        "--key", str(tmp_path / "key.json"), "--state", str(database),
-    ])
-    assert code == 0
-
-    document = json.loads(out.read_text(encoding="utf-8"))
-    kinds = {row["kind"] for row in document.get("evidence", [])}
-    assert "artifact_scan" in kinds, (
-        "the receipt references no scan evidence about a subject this workspace "
-        "has scan evidence for"
-    )
-    assert "source_snapshot" in kinds
-    # And it stays a reference rather than a copy: the record's own document is
-    # not embedded, because a second version of a signed fact can disagree with
-    # the first.
-    for row in document["evidence"]:
-        assert set(row) <= {"evidence_id", "subject", "subject_digest", "kind", "state",
-                            "digest", "observed_at", "collector", "collector_version",
-                            "valid_until", "supersedes"}

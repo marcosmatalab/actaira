@@ -1,6 +1,6 @@
 {
   "schema": "actaira.defects/1",
-  "about": "Every defect found in this repository from inside it, with the mechanism that found it and the test that keeps it found. This file is data: scripts/figures.py counts it and checks that every test named here is one pytest actually collects, so the number in the README cannot drift from the repository the way a typed figure does. Two entries are not defects in the shipped tool and say so: one was the eval measuring the cost of a policy, one was a defect in the measuring apparatus. They are here because they were found the same way everything else was.",
+  "about": "Every defect found in this repository from inside it, with the mechanism that found it and the test that keeps it found. This file is data: scripts/figures.py counts it and checks that every test named here is one pytest actually collects, so the number in the README cannot drift from the repository the way a typed figure does. Two entries are not defects in the shipped tool and say so: one was the eval measuring the cost of a policy, one was a defect in the measuring apparatus. They are here because they were found the same way everything else was. At 3.0.0 the model-scanner was archived; the defects it recorded stay here, with `pinned_note` naming the test file that pinned each one at tag v2.3.0, because a defect deleted from the ledger is a defect nobody can learn from.",
   "found_by_meanings": {
     "test suite": "a test that was written for something else failed",
     "adversarial engineering review": "the code read as an attacker would read it, looking for the call that never happens",
@@ -27,9 +27,7 @@
       "found_by": "test suite",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_a_zip_that_was_not_fully_read_must_not_come_back_as_pass"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-02",
@@ -51,10 +49,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
-      "pinned_by": [
-        "tests/test_eval_harness.py::test_the_tamper_mutation_moves_the_verdict_off_whatever_it_was"
-      ],
-      "pinned_note": "the mutation is a named function now, `harness.tampered_entry`, so the property that made this defect possible - that it must never rewrite an entry to itself - is asserted directly instead of living in a comment beside one line"
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_eval_harness.py`"
     },
     {
       "id": "DEF-04",
@@ -64,9 +59,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "the eval measuring the cost of a policy, resolved as two documented risk acceptances",
-      "pinned_by": [
-        "tests/test_policy.py::test_allowlist_admits_the_callables_a_state_dict_actually_imports"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_policy.py`"
     },
     {
       "id": "DEF-05",
@@ -75,9 +68,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_gguf_that_declares_more_tensors_than_it_carries_is_caught"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-06",
@@ -86,10 +77,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_protocol_zero_gadget_inside_a_checkpoint_is_caught",
-        "tests/test_formats.py::test_protocol_zero_gadget_loose_on_disk_is_recognised_as_a_pickle"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-07",
@@ -98,10 +86,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_policy.py::test_no_module_prefix_is_allowed_wholesale",
-        "tests/test_formats.py::test_the_torch_prefix_no_longer_allows_its_own_executable_siblings"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py, test_policy.py`"
     },
     {
       "id": "DEF-08",
@@ -110,11 +95,7 @@
       "found_by": "fuzzing",
       "counts_as": 14,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_fuzz_regressions.py::test_every_saved_fuzz_input_satisfies_the_property",
-        "tests/test_fuzz_regressions.py::test_concatenated_empty_pickles_do_not_blow_up_exponentially",
-        "tests/test_fuzz_regressions.py::test_an_artifact_that_reported_itself_unread_cannot_reach_pass"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_fuzz_regressions.py`"
     },
     {
       "id": "DEF-09",
@@ -123,10 +104,7 @@
       "found_by": "real-serialiser corpus",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_real_artifacts.py::test_the_real_legacy_checkpoint_passes_as_a_recognised_container",
-        "tests/test_real_artifacts.py::test_the_legacy_exemption_does_not_hide_a_gadget"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_real_artifacts.py`"
     },
     {
       "id": "DEF-10",
@@ -136,9 +114,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
-      "pinned_by": [
-        "tests/test_benchmark.py::test_a_declined_artifact_is_not_in_the_detection_denominator"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_benchmark.py`"
     },
     {
       "id": "DEF-11",
@@ -171,9 +147,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_an_oversized_member_is_not_decompressed_into_memory"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-14",
@@ -193,10 +167,7 @@
       "found_by": "running the harness",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_a_member_that_expands_without_bound_is_flagged",
-        "tests/test_formats.py::test_a_compressible_but_ordinary_member_is_not_a_bomb"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-16",
@@ -205,9 +176,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_a_gadget_concatenated_after_the_first_stop_is_reported"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-17",
@@ -216,10 +185,7 @@
       "found_by": "test suite",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_pickle_scan.py::test_memoised_module_string_resolves_both_of_its_reuses",
-        "tests/test_pickle_scan.py::test_every_import_in_a_numpy_state_dict_resolves"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_pickle_scan.py`"
     },
     {
       "id": "DEF-18",
@@ -228,9 +194,7 @@
       "found_by": "reading the tool's own output",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_real_artifacts.py::test_a_real_checkpoint_reports_its_storages_once_not_once_each"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_real_artifacts.py`"
     },
     {
       "id": "DEF-19",
@@ -239,9 +203,7 @@
       "found_by": "reading the tool's own output",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_real_artifacts.py::test_the_legacy_container_rates_its_storages_the_same_way"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_real_artifacts.py`"
     },
     {
       "id": "DEF-20",
@@ -250,9 +212,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_governance.py::test_the_high_risk_deferral_is_published_law_and_nothing_is_provisional"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`"
     },
     {
       "id": "DEF-21",
@@ -261,9 +221,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_governance.py::test_article_4_carries_the_wording_it_has_had_since_july_2026"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`"
     },
     {
       "id": "DEF-22",
@@ -272,9 +230,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_governance.py::test_annex_iv_point_5_is_the_risk_management_system"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`"
     },
     {
       "id": "DEF-23",
@@ -283,9 +239,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_governance.py::test_the_new_article_5_prohibitions_are_the_next_thing_to_fall_due"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`"
     },
     {
       "id": "DEF-24",
@@ -294,9 +248,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_governance.py::test_the_chapter_v_rows_carry_the_article_111_3_transitional"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`"
     },
     {
       "id": "DEF-25",
@@ -305,9 +257,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_governance.py::test_the_catalogue_stays_mostly_honest_about_what_it_cannot_do"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`"
     },
     {
       "id": "DEF-26",
@@ -316,9 +266,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_governance.py::test_article_12_is_not_claimed_by_a_ledger_of_artifact_inspections"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`"
     },
     {
       "id": "DEF-27",
@@ -327,9 +275,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_governance.py::test_the_provisional_marker_still_fires_on_a_row_that_is_provisional"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`"
     },
     {
       "id": "DEF-28",
@@ -338,10 +284,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_a_nested_loader_payload_is_disassembled_not_trusted",
-        "tests/test_policy.py::test_load_from_bytes_is_not_a_reconstruction_entry_point"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py, test_policy.py`"
     },
     {
       "id": "DEF-29",
@@ -350,9 +293,7 @@
       "found_by": "test suite",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_a_protocol_two_nested_payload_is_still_followed"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-30",
@@ -361,10 +302,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_an_ambiguous_member_with_a_trailing_byte_is_not_dropped",
-        "tests/test_formats.py::test_a_raw_blob_under_an_ambiguous_name_stays_quiet"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-31",
@@ -373,9 +311,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_trailing_zero_padding_is_stated_rather_than_ignored"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-32",
@@ -384,10 +320,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_cli.py::test_an_obligation_with_no_evidence_does_not_read_as_provided",
-        "tests/test_cli.py::test_evidence_lines_name_the_artifact_they_came_from"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`"
     },
     {
       "id": "DEF-33",
@@ -396,10 +329,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_a_stream_past_the_concatenation_budget_cannot_reach_pass",
-        "tests/test_fuzz_regressions.py::test_concatenated_empty_pickles_do_not_blow_up_exponentially"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py, test_fuzz_regressions.py`"
     },
     {
       "id": "DEF-34",
@@ -408,9 +338,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_a_nested_loader_called_with_a_mark_tuple_is_still_followed"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-35",
@@ -419,9 +347,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_pickle_scan.py::test_a_module_name_containing_a_space_keeps_its_callable"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_pickle_scan.py`"
     },
     {
       "id": "DEF-36",
@@ -430,10 +356,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_inst_imports_are_judged_like_any_other_import",
-        "tests/test_formats.py::test_inst_inside_a_checkpoint_is_caught_too"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-37",
@@ -442,9 +365,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_a_tail_the_walker_could_not_measure_is_reported"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-38",
@@ -477,11 +398,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_cli.py::test_extends_still_enforces_require_trust",
-        "tests/test_cli.py::test_extends_still_enforces_a_trusted_keyring",
-        "tests/test_cli.py::test_extends_reports_both_results_in_json"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`"
     },
     {
       "id": "DEF-41",
@@ -516,13 +433,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_governance.py::test_the_guard_catches_a_grade_planted_in_the_prose",
-        "tests/test_governance.py::test_the_guard_catches_a_grade_the_score_words_do_not_name",
-        "tests/test_governance.py::test_no_output_surface_carries_anything_that_reads_as_a_grade",
-        "tests/test_governance.py::test_the_cli_text_render_of_the_clock_carries_no_grade",
-        "tests/test_governance.py::test_the_clock_route_serves_nothing_that_reads_as_a_grade"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`"
     },
     {
       "id": "DEF-44",
@@ -531,11 +442,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_governance.py::test_a_relinked_dossier_is_caught_even_when_every_hash_recomputes",
-        "tests/test_governance.py::test_editing_the_subjects_list_to_match_breaks_the_digest_it_is_filed_under",
-        "tests/test_governance.py::test_a_package_with_no_dossier_is_not_asked_about_one"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`"
     },
     {
       "id": "DEF-45",
@@ -545,10 +452,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
-      "pinned_by": [
-        "tests/test_fuzz_regressions.py::test_a_run_publishes_the_cases_it_executed",
-        "tests/test_fuzz_regressions.py::test_a_worker_that_dies_without_leaving_state_is_a_hard_failure"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_fuzz_regressions.py`"
     },
     {
       "id": "DEF-46",
@@ -558,11 +462,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
-      "pinned_by": [
-        "tests/test_fuzz_regressions.py::test_the_fuzzer_uses_the_products_unread_rule_list_and_not_a_copy",
-        "tests/test_fuzz_regressions.py::test_the_coverage_oracle_catches_a_claim_the_report_does_not_admit_to",
-        "tests/test_fuzz_regressions.py::test_the_coverage_oracle_catches_a_report_that_describes_the_wrong_file"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_fuzz_regressions.py`"
     },
     {
       "id": "DEF-47",
@@ -571,12 +471,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_members_left_undecompressed_are_named_and_say_what_they_limit",
-        "tests/test_formats.py::test_an_archive_whose_every_member_was_opened_says_nothing",
-        "tests/test_formats.py::test_the_skipped_member_note_never_fails_an_artifact_on_its_own",
-        "tests/test_formats.py::test_the_rule_limits_raw_tensor_content_and_nothing_else"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-48",
@@ -586,10 +481,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the benchmark that compares the tool, not in the tool",
-      "pinned_by": [
-        "tests/test_benchmark.py::test_a_real_detection_counts_even_when_the_scan_also_reported_an_error",
-        "tests/test_benchmark.py::test_a_declined_picklescan_result_still_leaves_the_artifact_out_of_the_denominator"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_benchmark.py`"
     },
     {
       "id": "DEF-49",
@@ -599,11 +491,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
-      "pinned_by": [
-        "tests/test_eval_harness.py::test_a_signing_layer_that_verifies_nothing_at_all_fails_the_gate",
-        "tests/test_eval_harness.py::test_a_tamper_check_over_nothing_fails_the_gate",
-        "tests/test_eval_harness.py::test_a_run_in_which_everything_worked_exits_zero"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_eval_harness.py`"
     },
     {
       "id": "DEF-50",
@@ -625,11 +513,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_bom.py::test_a_bom_over_the_whole_corpus_validates_against_the_1_6_schema",
-        "tests/test_bom.py::test_the_schema_check_can_fail",
-        "tests/test_bom.py::test_the_same_bytes_twice_in_one_document_keep_two_refs"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_bom.py`"
     },
     {
       "id": "DEF-52",
@@ -638,14 +522,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_web_limits.py::test_a_package_member_that_decompresses_past_the_cap_is_refused_not_read",
-        "tests/test_web_limits.py::test_a_part_with_more_headers_than_any_client_sends_is_refused",
-        "tests/test_web_limits.py::test_a_request_with_more_distinct_field_names_than_the_dictionary_holds_is_refused",
-        "tests/test_web_limits.py::test_the_socket_timeout_is_set_on_the_handler_and_not_on_the_server",
-        "tests/test_web_limits.py::test_a_cross_origin_post_is_refused",
-        "tests/test_web_limits.py::test_a_host_header_that_is_a_name_this_server_does_not_know_is_refused"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_web_limits.py`"
     },
     {
       "id": "DEF-53",
@@ -667,9 +544,7 @@
       "found_by": "test suite",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_connectors.py::test_a_fetch_whose_digests_all_match_exits_zero"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_connectors.py`"
     },
     {
       "id": "DEF-55",
@@ -678,11 +553,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 2,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_connectors.py::test_a_redirect_to_a_plaintext_url_is_refused",
-        "tests/test_connectors.py::test_a_redirect_that_is_followed_is_recorded_as_a_host_contacted",
-        "tests/test_connectors.py::test_the_client_has_no_handler_that_can_speak_plaintext"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_connectors.py`"
     },
     {
       "id": "DEF-56",
@@ -691,10 +562,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_connectors.py::test_a_credential_does_not_travel_across_a_redirect_to_another_host",
-        "tests/test_connectors.py::test_a_credential_survives_a_redirect_that_stays_on_the_same_host"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_connectors.py`"
     },
     {
       "id": "DEF-57",
@@ -704,9 +572,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "found by reading the two URL parsers against each other before this package had a release; it is recorded because the mechanism that caught it is the one this ledger is a claim about",
-      "pinned_by": [
-        "tests/test_connectors.py::test_a_hub_owner_whose_name_is_a_view_marker_is_still_a_repository"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_connectors.py`"
     },
     {
       "id": "DEF-58",
@@ -726,11 +592,7 @@
       "found_by": "product review against a roadmap",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_a_pickle_under_a_raw_storage_name_is_opened_and_reported",
-        "tests/test_formats.py::test_a_blob_whose_first_byte_is_an_opcode_is_still_data",
-        "tests/test_formats.py::test_the_peek_never_decompresses_more_than_its_budget"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`"
     },
     {
       "id": "DEF-60",
@@ -739,10 +601,7 @@
       "found_by": "product review against a roadmap",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_cli.py::test_a_pickle_with_a_text_file_name_is_found_in_a_directory_walk",
-        "tests/test_cli.py::test_files_walked_past_are_counted_rather_than_forgotten"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`"
     },
     {
       "id": "DEF-61",
@@ -751,11 +610,7 @@
       "found_by": "product review against a roadmap",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_formats.py::test_the_rule_limits_raw_tensor_content_and_nothing_else",
-        "tests/test_coverage.py::test_a_surface_nobody_undertook_to_read_cannot_make_a_verdict_inconclusive",
-        "tests/test_coverage.py::test_a_surface_that_was_in_scope_and_failed_still_does"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_coverage.py, test_formats.py`"
     },
     {
       "id": "DEF-62",
@@ -765,10 +620,9 @@
       "counts_as": 1,
       "shipped_defect": true,
       "pinned_by": [
-        "tests/test_io_budget.py::test_a_read_is_bounded_at_the_read_not_after_it",
-        "tests/test_io_budget.py::test_a_pickle_past_the_budget_is_not_scanned_and_says_so",
-        "tests/test_io_budget.py::test_a_gguf_header_past_the_budget_is_not_called_malformed"
-      ]
+        "tests/test_io_budget.py::test_a_read_is_bounded_at_the_read_not_after_it"
+      ],
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_io_budget.py` also pinned it"
     },
     {
       "id": "DEF-63",
@@ -802,9 +656,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "the policy layer is new in this version and the bridge was exercised end to end before the tag",
-      "pinned_by": [
-        "tests/test_cli.py::test_a_trusted_keyring_makes_the_signer_trusted_in_a_policy_decision"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`"
     },
     {
       "id": "DEF-66",
@@ -827,9 +679,7 @@
       "counts_as": 1,
       "shipped_defect": true,
       "shipped_in": "2.0.0 and 2.1.0",
-      "pinned_by": [
-        "tests/test_cli.py::test_the_package_runs_as_a_module"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`"
     },
     {
       "id": "DEF-68",
@@ -838,11 +688,8 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_cli.py::test_policy_check_works_without_an_on_date",
-        "tests/test_cli.py::test_receipt_issue_works_without_an_on_date"
-      ],
-      "shipped_in": "2.1.0"
+      "shipped_in": "2.1.0",
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`"
     },
     {
       "id": "DEF-69",
@@ -939,10 +786,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_cli.py::test_evidence_list_json_carries_the_same_exit_code_as_the_text"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`"
     },
     {
       "id": "DEF-77",
@@ -951,10 +796,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_cli.py::test_graph_build_reports_a_bad_agent_declaration_as_a_usage_error"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`"
     },
     {
       "id": "DEF-78",
@@ -963,10 +806,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_cli.py::test_graph_export_creates_the_directory_it_was_given"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`"
     },
     {
       "id": "DEF-79",
@@ -989,10 +830,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_subjects.py::test_a_bundle_reference_says_which_kind_of_digest_it_carries"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_subjects.py`"
     },
     {
       "id": "DEF-81",
@@ -1052,11 +891,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_trust_paths.py::test_a_rule_that_could_not_be_evaluated_does_not_read_as_satisfied",
-        "tests/test_trust_paths.py::test_a_failure_still_wins_over_an_unevaluated_rule"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_trust_paths.py`"
     },
     {
       "id": "DEF-86",
@@ -1065,11 +901,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_remote_receipt.py::test_a_revision_the_connector_ignored_is_not_written_into_the_provenance",
-        "tests/test_cli.py::test_bundle_refuses_a_revision_on_a_local_directory"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py, test_remote_receipt.py`"
     },
     {
       "id": "DEF-87",
@@ -1078,10 +911,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_remote_receipt.py::test_a_local_uri_resolves_to_the_directory_the_connector_listed"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_remote_receipt.py`"
     },
     {
       "id": "DEF-88",
@@ -1150,10 +981,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_remote_receipt.py::test_a_receipt_never_quietly_covers_fewer_subjects_than_it_was_given"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_remote_receipt.py`"
     },
     {
       "id": "DEF-94",
@@ -1189,11 +1018,10 @@
       "counts_as": 1,
       "shipped_defect": true,
       "pinned_by": [
-        "tests/test_dsse.py::test_attest_dsse_writes_an_envelope_into_the_package",
-        "tests/test_dsse.py::test_a_package_without_the_flag_carries_no_envelope",
         "tests/test_dsse.py::test_verify_checks_the_envelope_it_finds",
         "tests/test_dsse.py::test_an_edited_envelope_is_caught_twice"
-      ]
+      ],
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_dsse.py` also pinned it"
     },
     {
       "id": "DEF-97",
@@ -1202,9 +1030,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_controls.py::test_the_marking_robustness_control_names_the_library_it_needs"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_controls.py`"
     },
     {
       "id": "DEF-98",
@@ -1213,9 +1039,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_connectors.py::test_the_user_agent_is_the_version_this_package_is"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_connectors.py`"
     },
     {
       "id": "DEF-99",
@@ -1224,12 +1048,7 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_state.py::test_a_policy_decision_is_recorded_when_there_is_a_store",
-        "tests/test_state.py::test_deciding_twice_about_the_same_thing_records_one_row",
-        "tests/test_state.py::test_an_issued_receipt_is_noted_in_the_store",
-        "tests/test_state.py::test_a_receipt_is_still_issued_when_the_store_is_missing"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_state.py`"
     },
     {
       "id": "DEF-100",
@@ -1249,9 +1068,7 @@
       "found_by": "using the tool as a person would",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_cli.py::test_a_reader_that_stops_reading_is_not_a_traceback"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`"
     },
     {
       "id": "DEF-102",
@@ -1261,10 +1078,7 @@
       "counts_as": 2,
       "shipped_defect": false,
       "not_shipped_because": "a stale assertion in the nightly suite and in the expectation file it reads, not a defect in the shipped tool: the behaviour they disagreed with is the corrected one",
-      "pinned_by": [
-        "tests/test_real_artifacts.py::test_a_real_artifact_meets_the_expectation_its_writer_recorded",
-        "tests/test_real_artifacts.py::test_both_torch_containers_reach_the_same_verdict_by_different_routes"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_real_artifacts.py`"
     },
     {
       "id": "DEF-103",
@@ -1274,11 +1088,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "the fuzz harness is not part of the distributed package; it is the apparatus that measures it, and this is a defect in the apparatus and in what the apparatus was willing to claim",
-      "pinned_by": [
-        "tests/test_fuzz_regressions.py::test_the_fuzzer_imports_on_a_platform_without_the_posix_facilities",
-        "tests/test_fuzz_regressions.py::test_a_platform_that_cannot_enforce_an_oracle_says_so_in_the_summary",
-        "tests/test_fuzz_regressions.py::test_the_peak_rss_reading_does_not_invent_a_number_it_cannot_measure"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_fuzz_regressions.py`"
     },
     {
       "id": "DEF-104",
@@ -1288,9 +1098,9 @@
       "counts_as": 2,
       "shipped_defect": true,
       "pinned_by": [
-        "tests/test_receipt.py::test_a_receipt_names_the_artifact_and_not_the_directory_it_was_built_in",
-        "tests/test_connectors.py::test_the_listing_spells_a_nested_path_the_same_way_on_every_platform"
-      ]
+        "tests/test_receipt.py::test_a_receipt_names_the_artifact_and_not_the_directory_it_was_built_in"
+      ],
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_connectors.py` also pinned it"
     },
     {
       "id": "DEF-105",
@@ -1299,10 +1109,7 @@
       "found_by": "reading the tool's own output",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_web_frontend.py::test_the_tensor_table_stacks_on_a_phone_instead_of_clipping_a_number",
-        "tests/test_web_frontend.py::test_the_stacked_labels_come_from_the_catalogue_and_not_from_english_literals"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_web_frontend.py`"
     },
     {
       "id": "DEF-106",
@@ -1325,9 +1132,7 @@
       "found_by": "using the tool as a person would",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_cli.py::test_redirected_output_is_utf8_on_every_platform"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`"
     },
     {
       "id": "DEF-108",
@@ -1337,9 +1142,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the documentation the tool ships with rather than in the tool: the interface itself switches language correctly, which is what `tests/test_i18n.py` asserts",
-      "pinned_by": [
-        "tests/test_readme_parity.py::test_the_localised_screenshots_are_not_the_same_image"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_readme_parity.py`"
     },
     {
       "id": "DEF-109",
@@ -1349,9 +1152,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "the shipped tool is correct on both policies and on both spellings; this was a test that could only ever have been run on one kind of host, and an untested branch of the denylist",
-      "pinned_by": [
-        "tests/test_real_artifacts.py::test_the_real_trojan_names_the_os_module_as_the_pickle_spells_it"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_real_artifacts.py`"
     },
     {
       "id": "DEF-110",
@@ -1373,10 +1174,7 @@
       "found_by": "writing a test for an adjacent feature",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_web_frontend.py::test_every_node_prefix_the_engine_emits_has_a_visual_kind",
-        "tests/test_web_frontend.py::test_the_data_prefix_is_mapped_rather_than_renamed"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_web_frontend.py`"
     },
     {
       "id": "DEF-112",
@@ -1386,10 +1184,10 @@
       "counts_as": 1,
       "shipped_defect": true,
       "pinned_by": [
-        "tests/test_state_graph.py::test_impact_on_a_declared_tool_now_reaches_the_system_that_uses_the_agent",
         "tests/test_state_graph.py::test_the_shipped_agents_digest_has_not_moved",
         "tests/test_state_graph.py::test_membership_is_not_in_the_bom_and_does_not_reach_the_digest"
-      ]
+      ],
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_state_graph.py` also pinned it"
     },
     {
       "id": "DEF-113",
@@ -1424,9 +1222,7 @@
       "found_by": "product review against a roadmap",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_state_change.py::test_a_receipt_issued_from_a_workspace_references_the_evidence_about_its_subjects"
-      ]
+      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_state_change.py`"
     }
   ]
 }

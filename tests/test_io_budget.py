@@ -13,14 +13,10 @@ not get audited, and it costs an attacker nothing to produce one.
 from __future__ import annotations
 
 import pickle
-import struct
 
 import pytest
 
 from actaira import io_budget
-from actaira.coverage import CoverageState, Surface
-from actaira.inspect import inspect_artifact
-from actaira.model import Verdict
 
 
 def test_a_read_is_bounded_at_the_read_not_after_it(tmp_path, monkeypatch):
@@ -66,79 +62,6 @@ def test_a_file_exactly_at_the_limit_is_not_over_it(tmp_path):
 
     assert len(payload) == 1024
     assert over is False
-
-
-def test_a_pickle_past_the_budget_is_not_scanned_and_says_so(tmp_path, monkeypatch):
-    """Over the budget nothing is disassembled and nothing is claimed. The
-    execution surface comes back FAILED, which is the honest answer: the file
-    was not read."""
-    import actaira.inspect as inspect_module
-
-    monkeypatch.setattr(inspect_module, "MAX_PICKLE_BYTES", 512)
-    target = tmp_path / "big.pkl"
-    target.write_bytes(pickle.dumps({"w": [1.0] * 2000}))
-    assert target.stat().st_size > 512
-
-    report = inspect_artifact(target)
-
-    assert "ACT-PKL-014" in {finding.rule_id for finding in report.findings}
-    assert report.coverage.state(Surface.LOAD_TIME_EXECUTION) is CoverageState.FAILED
-    assert report.verdict is Verdict.INCONCLUSIVE
-    assert report.inspector_errors == [], "over budget is a result, not a crash"
-
-
-def test_a_pickle_under_the_budget_is_scanned_normally(tmp_path):
-    """The negative control. A budget that changed the answer for ordinary
-    files would be a budget somebody removes."""
-    target = tmp_path / "small.pkl"
-    target.write_bytes(pickle.dumps({"w": [1.0, 2.0]}))
-
-    report = inspect_artifact(target)
-
-    assert "ACT-PKL-014" not in {finding.rule_id for finding in report.findings}
-    assert report.verdict is Verdict.PASS
-
-
-def test_a_gguf_header_past_the_budget_is_not_called_malformed(tmp_path, monkeypatch):
-    """Running out of bytes at the budget and running out because the file is
-    corrupt raise identically and mean opposite things. Reporting the first
-    as "malformed" would call a perfectly good 40 GB model damaged, which is
-    the failure mode that gets a scanner removed from a pipeline."""
-    from actaira.formats import gguf
-
-    monkeypatch.setattr(gguf, "MAX_GGUF_HEADER_BYTES", 64)
-
-    # A structurally valid GGUF header that promises more descriptors than
-    # 64 bytes can hold.
-    payload = b"GGUF" + struct.pack("<I", 3) + struct.pack("<Q", 40) + struct.pack("<Q", 0)
-    # Past the budget on purpose: the header promises forty descriptors and
-    # the file is larger than the prefix this parser will read, which is
-    # exactly the shape of a real multi-gigabyte model.
-    payload += b"\x00" * 4096
-    target = tmp_path / "huge.gguf"
-    target.write_bytes(payload)
-
-    findings, _tensors, _metadata = gguf.inspect(target)
-    rules = {finding.rule_id for finding in findings}
-
-    assert "ACT-GGF-003" in rules, "over the header budget"
-    assert "ACT-GGF-001" not in rules, "and not reported as a malformed file"
-    over = next(item for item in findings if item.rule_id == "ACT-GGF-003")
-    assert over.evidence["limit_bytes"] == 64
-
-
-def test_a_genuinely_malformed_gguf_is_still_called_malformed(tmp_path):
-    """The other side of the same distinction, so the test above is not
-    passing because the parser stopped reporting corruption."""
-    from actaira.formats import gguf
-
-    target = tmp_path / "broken.gguf"
-    target.write_bytes(b"GGUF" + b"\x00" * 8)
-
-    findings, _tensors, _metadata = gguf.inspect(target)
-
-    assert "ACT-GGF-001" in {finding.rule_id for finding in findings}
-
 
 @pytest.mark.parametrize(
     "limit_name",

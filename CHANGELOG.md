@@ -26,6 +26,21 @@ everything else here is checkable against the tree it describes.
 
 Nothing yet.
 
+## [3.0.0] - 2026-09-15
+
+The subject changes from model artifacts to AI agent runs. The scanner - formats,
+controls, connectors, scan, bom, agents, governance, web, the bundle resolver, the
+marking and trust modules and the 2 458-line CLI - is archived whole at tag
+`v2.3.0` on `archive/model-scanner`; what survives is the evidence core: attest,
+state, policy, report, receipt, subject and the conformance package, renamed from
+`agentgov` because it collided with the `agents` module beside it. Two
+cryptographic defects found on the way out are fixed: the chain entry hash
+promised length prefixes and concatenated with `|`, and a demonstrated collision
+moved bytes across a field boundary undetected; the package manifest and the
+receipt both signed 32 bare bytes under the same default key with no domain
+separation. `actaira` is two commands, `verify` and `keygen`, until the trace
+format that the other six need exists.
+
 ## [2.3.0] - 2026-09-12
 
 The release where the pieces become a loop.

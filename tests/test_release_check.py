@@ -157,14 +157,14 @@ def test_a_command_the_documentation_never_mentions_fails(working_tree, tmp_path
     shutil.copytree(working_tree, broken)
     page = broken / "docs" / "CONCEPTS.md"
     page.write_text(
-        page.read_text(encoding="utf-8").replace("actaira receipt", "actaira reciept"),
+        page.read_text(encoding="utf-8").replace("actaira verify", "actaira verfiy"),
         encoding="utf-8",
     )
 
     result = run(broken)
 
     assert result.returncode == 1
-    assert "receipt" in result.stdout
+    assert "verify" in result.stdout
 
 
 def test_the_gate_names_what_it_compared_on_every_check(working_tree):
@@ -282,8 +282,13 @@ def test_an_image_no_document_displays_fails(working_tree, tmp_path):
     """
     broken = tmp_path / "orphan-image"
     shutil.copytree(working_tree, broken)
+    # `docs/img/` is empty at 3.0.0 - the scanner's captures went with the
+    # interface they showed - so the fixture creates the directory it is a
+    # property of. The check is about what lands there, not about what is
+    # there today.
     images = broken / "docs" / "img"
-    shutil.copyfile(next(images.glob("*.png")), images / "01-welcome.png")
+    images.mkdir(parents=True, exist_ok=True)
+    (images / "01-welcome.png").write_bytes(b"\x89PNG" + b"\x00" * 32)
 
     result = run(broken)
 
@@ -297,7 +302,14 @@ def test_a_document_pointing_at_a_missing_image_fails(working_tree, tmp_path):
     broken image is worse than one showing none."""
     broken = tmp_path / "missing-image"
     shutil.copytree(working_tree, broken)
-    (broken / "docs" / "img" / "02-inspect.png").unlink()
+    # A README that points at an image, and no image: the direction a reader
+    # meets. Written here rather than deleted from the tree, because the tree
+    # displays none at 3.0.0.
+    readme = broken / "README.md"
+    readme.write_text(
+        readme.read_text(encoding="utf-8") + "\n![a picture](docs/img/02-inspect.png)\n",
+        encoding="utf-8",
+    )
 
     result = run(broken)
 

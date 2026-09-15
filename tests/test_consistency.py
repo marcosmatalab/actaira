@@ -23,6 +23,7 @@ This file is in four parts:
 from __future__ import annotations
 
 import json
+import sys
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -30,11 +31,11 @@ from pathlib import Path
 import pytest
 
 from actaira import cli
-from actaira.attest import chain, merkle
+from actaira.attest import chain, merkle, package, signing
 from actaira.attest import verify as verify_mod
 from actaira.attest.package import ENTRIES_NAME
 from actaira.model import canonical_json
-from conftest import corpus_build
+from support.reports import write_report
 
 MAX_TREE = 64
 
@@ -323,29 +324,48 @@ def test_an_old_size_outside_the_tree_is_refused(new_size):
 @dataclass
 class ContinuedChain:
     workspace: Path
-    artifacts: list[Path]
+    artifacts: list
     key: Path
     first: Path
     second: Path
 
 
-def clean_artifact(directory: Path, index: int) -> Path:
-    """A safetensors file that passes, distinct from its siblings by content."""
-    path = directory / f"model-{index}.safetensors"
-    path.write_bytes(
-        corpus_build.build_safetensors(
-            {f"block{index}.weight": {"dtype": "F32", "shape": [4, 4], "data_offsets": [0, 64]}},
-            b"\x00" * 64,
-        )
-    )
-    return path
+def clean_artifact(directory: Path, index: int):
+    """A report about a file that passes, distinct from its siblings by content."""
+    return write_report(directory / f"model-{index}.safetensors",
+                        payload=b"weights-" + str(index).encode("ascii"))
 
 
-def attest(paths: list[Path], out: Path, key: Path, continue_from: Path | None = None) -> int:
-    argv = ["attest", *[str(path) for path in paths], "--out", str(out), "--key", str(key)]
+_RUN = 0
+
+
+def attest(reports: list, out: Path, key: Path, continue_from: Path | None = None) -> int:
+    """What `attest [--continue]` assembled, against the library that still has it.
+
+    The command went to archive/model-scanner; `chain.load_entries` and
+    `package.write_package` did not, and they are what `--continue` was. The
+    resumed chain is rebuilt from the earlier package's own bytes rather than
+    re-derived, which is the property D-26 is about and the one these tests
+    are here to check. `verify_package` first, because continuing from a
+    package that does not verify is how a forged history gets adopted.
+    """
+    global _RUN
+    _RUN += 1
+    entries: list[chain.Entry] = []
     if continue_from is not None:
-        argv += ["--continue", str(continue_from)]
-    return cli.main(argv)
+        if not verify_mod.verify_package(continue_from).ok:
+            print(f"refusing to continue from {continue_from}: it does not verify", file=sys.stderr)
+            return cli.EXIT_USAGE
+        entries = chain.load_entries(verify_mod._read_entries(continue_from))
+    for report in reports:
+        # A fresh stamp per run, which is what the clock gave the command. The
+        # restart test depends on it: two runs over the same artifacts must not
+        # produce the same entries, or "restarted" and "continued" look alike.
+        chain.append(entries, report.sha256, report.to_dict(),
+                     timestamp=f"2026-{_RUN:02d}-{len(entries) + 1:02d}T00:00:00")
+    keypair, _ = signing.load_or_create(key)
+    package.write_package(out, entries, keypair)
+    return cli.EXIT_OK
 
 
 def rewrite_one_entry(source: Path, destination: Path) -> Path:

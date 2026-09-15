@@ -37,7 +37,6 @@ import json
 import shutil
 import subprocess
 import sys
-import tempfile
 import tokenize
 import tomllib
 from collections import Counter
@@ -60,7 +59,7 @@ sys.path.insert(0, str(ROOT / "src"))
 #
 # Design note D-236, and the reason the last entry exists. This list was
 # written at 1.0, when `src/actaira` was eight packages and five loose
-# modules, and every package added after it - agentgov, agents, connectors,
+# modules, and every package added after it - conformance, agents, connectors,
 # controls, governance, policy, state, schemas - plus eleven more loose
 # modules were never added to it. By 2.2 it covered 103 of the 161 Python
 # files in the repository while `figures.json` labelled the total "every
@@ -74,31 +73,21 @@ sys.path.insert(0, str(ROOT / "src"))
 # sees it, and `total` is now arithmetic over a partition rather than a sum
 # over whatever somebody remembered.
 AREAS: list[tuple[str, list[str], str]] = [
-    ("formats", ["src/actaira/formats"], "the parsers, one per artifact format"),
     ("attest", ["src/actaira/attest"], "Merkle tree, chain, signing, keyring, RFC 3161, verification"),
-    ("core", ["src/actaira/model.py", "src/actaira/inspect.py", "src/actaira/cli.py",
-              "src/actaira/__init__.py", "src/actaira/__main__.py"], "the model, the verdict rules, the CLI"),
-    ("scan", ["src/actaira/scan"], "the import policy"),
-    ("agentgov", ["src/actaira/agentgov"], "agents, tools, MCP servers, capabilities, attack paths"),
-    ("agents", ["src/actaira/agents"], "the judged pipeline: provider, retriever, judge, verifier"),
-    ("controls", ["src/actaira/controls"], "the executable EU AI Act controls"),
-    ("governance", ["src/actaira/governance"], "the obligation catalogue, the clock, the dossier"),
+    ("core", ["src/actaira/model.py", "src/actaira/cli.py",
+              "src/actaira/__init__.py", "src/actaira/__main__.py"], "the model and the CLI"),
+    ("conformance", ["src/actaira/conformance"], "agents, tools, MCP servers, capabilities, attack paths"),
     ("policy", ["src/actaira/policy"], "the policy document and the decision engine"),
     ("state", ["src/actaira/state"], "the SQLite store, watch, evidence, graph"),
-    ("connectors", ["src/actaira/connectors"], "the discovery layer"),
     ("schemas", ["src/actaira/schemas"], "the published contracts"),
-    ("bom", ["src/actaira/bom"], "CycloneDX 1.6 ML-BOM"),
     ("report", ["src/actaira/report"], "SARIF and JUnit"),
     ("i18n", ["src/actaira/i18n"], "the bilingual catalogue"),
-    ("web", ["src/actaira/web"], "the local review interface"),
     ("rest", ["src/actaira"], "everything in src/ the areas above do not claim"),
     ("tests", ["tests"], "the test suite"),
-    ("evals", ["evals"], "corpus builder, evaluation harness, benchmark"),
-    ("fuzz", ["fuzz"], "the fuzzing harness"),
     ("scripts", ["scripts"], "this script"),
 ]
 
-DOC_FILES = ["docs/DESIGN.md", "docs/FORMATS.md", "docs/THREAT-MODEL.md", "fuzz/README.md"]
+DOC_FILES = ["docs/DESIGN.md", "docs/THREAT-MODEL.md"]
 
 
 # ---------------------------------------------------------------------------
@@ -216,7 +205,7 @@ def measure_areas() -> dict[str, Any]:
 
     everything = {
         path
-        for root in ("src", "tests", "evals", "fuzz", "scripts")
+        for root in ("src", "tests", "scripts")
         for path in python_files(ROOT / root)
     }
     missed = sorted(everything - claimed)
@@ -302,29 +291,6 @@ def measure_catalog() -> dict[str, Any]:
     }
 
 
-def measure_corpus() -> dict[str, Any]:
-    sys.path.insert(0, str(ROOT / "evals"))
-    from corpus.build import build  # type: ignore  # noqa: PLC0415
-
-    with tempfile.TemporaryDirectory(prefix="actaira-figures-") as scratch:
-        cases = build(Path(scratch))
-    families = Counter(case.family for case in cases)
-    labels = Counter(case.label for case in cases)
-    # Every label, not two of them. The page said "64 artifacts: 16 benign, 47
-    # malicious", which is 63, because one case carries a third label,
-    # `hostile-but-inconclusive`: an artifact whose hostility is real and whose
-    # verdict is INCONCLUSIVE rather than FAIL, which is the whole point of the
-    # third verdict and exactly the case that should not be rounded away on a
-    # page whose first line is that nothing here is typed by hand.
-    return {
-        "cases": len(cases),
-        "families": dict(sorted(families.items())),
-        "labels": dict(sorted(labels.items())),
-        "benign": labels.get("benign", 0),
-        "malicious": labels.get("malicious", 0),
-    }
-
-
 def read_json(relative: str, how: str) -> dict[str, Any]:
     path = ROOT / relative
     if not path.exists():
@@ -335,79 +301,6 @@ def read_json(relative: str, how: str) -> dict[str, Any]:
     except ValueError:
         return {"available": False, "source": relative, "produced_by": how, "reason": "not valid JSON"}
 
-
-def measure_eval() -> dict[str, Any]:
-    raw = read_json("evals/results.json", "make eval")
-    if not raw.get("available"):
-        return raw
-    document = raw.pop("document")
-    policies = document.get("policy_comparison", {})
-    raw["figures"] = {
-        "cases": document.get("corpus", {}).get("cases"),
-        "expectations_met": document.get("expectations", {}).get("met"),
-        "expectations_checked": document.get("expectations", {}).get("checked"),
-        "strict": policies.get("strict", {}),
-        "known_bad": policies.get("known-bad", {}),
-        "caught_only_by_strict": policies.get("caught_only_by_strict", {}).get("count"),
-        "median_ms": document.get("timing_ms", {}).get("median_ms"),
-        "max_ms": document.get("timing_ms", {}).get("max_ms"),
-        "determinism": document.get("determinism", {}),
-        "tamper_detection": document.get("tamper_detection", {}),
-    }
-    return raw
-
-
-def measure_benchmark() -> dict[str, Any]:
-    raw = read_json("evals/benchmark.json", "make benchmark")
-    if not raw.get("available"):
-        return raw
-    document = raw.pop("document")
-    raw["figures"] = {
-        "python": document.get("python"),
-        "tools": [{"name": tool["name"], "version": tool["version"]} for tool in document.get("tools", [])],
-        "artifacts": len(document.get("rows", [])),
-        "scoreboard": document.get("scoreboard"),
-    }
-    return raw
-
-
-def measure_fuzz() -> dict[str, Any]:
-    raw = read_json("fuzz/runs/latest/summary.json", "make fuzz")
-    if not raw.get("available"):
-        return raw
-    document = raw.pop("document")
-    targets = document.get("targets", [])
-    raw["figures"] = {
-        "seed": document.get("seed"),
-        "iters_per_target": document.get("iters_per_target"),
-        "targets": len(targets),
-        # Cases the workers actually ran, not the budget the command line
-        # asked for. Summing `iters` published the argument as though it were
-        # a measurement, so a run whose workers died after a few hundred cases
-        # still reported the full figure. A summary written before `executed`
-        # existed has no honest number to offer and reports zero, which is the
-        # right way for a stale figure to fail.
-        "total_cases": sum(target.get("executed", 0) for target in targets),
-        "cases_requested": sum(target.get("iters", 0) for target in targets),
-        "seconds": document.get("seconds"),
-        "findings": sum(len(target.get("findings", [])) for target in targets),
-        "hard_failures": sum(len(target.get("hard_failures", [])) for target in targets),
-        "target_names": sorted(target.get("target", "?") for target in targets),
-        # What the run could NOT hold the parsers to. Two of the fuzzer's four
-        # promises - bounded memory and per-case termination - are enforced by
-        # `RLIMIT_AS` and `SIGALRM`, which are POSIX. Publishing "0 findings"
-        # from a run that could not enforce them, with no mention of it, is
-        # exactly the shape of claim this page exists to refuse: a measurement
-        # reported without what it was measured with. Empty on POSIX.
-        "unenforced_oracles": sorted(document.get("unenforced_oracles", [])),
-    }
-    return raw
-
-
-
-# ---------------------------------------------------------------------------
-# The defect ledger
-# ---------------------------------------------------------------------------
 
 def measure_defects(collected_node_ids: set[str] | None) -> dict[str, Any]:
     """Count `docs/defects.json`, and check it against the test suite.
@@ -475,47 +368,6 @@ def measure_defects(collected_node_ids: set[str] | None) -> dict[str, Any]:
         "checked_against_pytest": collected_node_ids is not None,
     }
 
-
-
-def measure_governance() -> dict[str, Any]:
-    """The obligation catalogue, counted from the catalogue itself.
-
-    The README spends two sections on this module and quotes four numbers from
-    it: how many obligations, how many the tool contributes nothing to, how
-    many it claims full support for, and how the roles split. None of them was
-    produced by anything, which for the module whose entire argument is "do not
-    take a number on trust" was the wrong place to leave a gap.
-
-    `zero fully supported` is the one to read. It is not an aspiration: an
-    obligation reaches `SUPPORTS` only if the tool can carry it on its own, and
-    reading model files never can.
-    """
-    try:
-        from actaira.governance.catalog import ALL_OBLIGATIONS, Coverage
-    except Exception as exc:  # noqa: BLE001 - reported, never raised
-        return {"available": False, "reason": f"{type(exc).__name__}: {exc}"}
-
-    by_coverage: Counter[str] = Counter()
-    by_role: Counter[str] = Counter()
-    with_grace = 0
-    for obligation in ALL_OBLIGATIONS:
-        by_coverage[obligation.coverage.value] += 1
-        by_role[obligation.role.value] += 1
-        if obligation.grace_until is not None:
-            with_grace += 1
-
-    return {
-        "available": True,
-        "source": "src/actaira/governance/catalog.py",
-        "obligations": len(ALL_OBLIGATIONS),
-        "by_coverage": dict(sorted(by_coverage.items())),
-        "by_role": dict(sorted(by_role.items(), key=lambda item: (-item[1], item[0]))),
-        "not_covered": by_coverage[Coverage.NOT_COVERED.value],
-        "fully_supported": by_coverage[Coverage.SUPPORTS.value],
-        "with_grace_period": with_grace,
-        "earliest_applies_from": min(o.applies_from for o in ALL_OBLIGATIONS).isoformat(),
-        "latest_applies_from": max(o.applies_from for o in ALL_OBLIGATIONS).isoformat(),
-    }
 
 
 def measure_package() -> dict[str, Any]:
@@ -623,32 +475,6 @@ class Report:
             lines.append(f"Not available: {tests.get('reason', 'unknown')}. Run `{tests.get('command', 'make test')}`.")
         lines.append("")
 
-        governance = figures["governance"]
-        lines += ["## The obligation catalogue", ""]
-        if governance.get("available"):
-            lines += [
-                f"**{governance['obligations']}** obligations, from "
-                f"`{governance['source']}`. **{governance['not_covered']}** are marked as "
-                f"outside what this tool can show and **{governance['fully_supported']}** as "
-                "fully supported, which is the number that matters: an obligation reaches "
-                "that rating only if reading model files could carry it alone, and none can.",
-                "",
-                "| coverage | obligations |", "|---|---:|",
-            ]
-            lines += [f"| {name} | {count} |" for name, count in governance["by_coverage"].items()]
-            lines.append(f"| **total** | **{governance['obligations']}** |")
-            lines += ["", "| binds | obligations |", "|---|---:|"]
-            lines += [f"| {name} | {count} |" for name, count in governance["by_role"].items()]
-            lines.append("")
-            lines.append(
-                f"{governance['with_grace_period']} carry a transitional grace period. Dates of "
-                f"application run from {governance['earliest_applies_from']} to "
-                f"{governance['latest_applies_from']}."
-            )
-        else:
-            lines.append(f"Not available: {governance.get('reason', 'unknown')}.")
-        lines.append("")
-
         defects = figures["defects"]
         lines += ["## Defects found in this repository", ""]
         if defects.get("available"):
@@ -727,135 +553,6 @@ class Report:
             "",
         ]
 
-        corpus = figures["corpus"]
-        lines += [
-            "## Corpus", "",
-            f"**{corpus['cases']}** artifacts, built from code at measurement time and never "
-            "committed: "
-            + ", ".join(f"{count} {label}" for label, count in corpus["labels"].items())
-            + ".",
-            "",
-            "| family | cases |", "|---|---:|",
-        ]
-        lines += [f"| {name} | {count} |" for name, count in corpus["families"].items()]
-        lines.append("")
-
-        lines += ["## Evaluation", ""]
-        evaluation = figures["eval"]
-        if evaluation.get("available"):
-            numbers = evaluation["figures"]
-            strict = numbers["strict"]
-            known_bad = numbers["known_bad"]
-            tamper = numbers["tamper_detection"]
-            lines += [
-                f"From `{evaluation['source']}`, written by `{evaluation['produced_by']}`.",
-                "",
-                f"- expectations met: **{numbers['expectations_met']}/{numbers['expectations_checked']}**",
-                f"- strict (allowlist): caught **{strict.get('malicious_caught')}/{strict.get('malicious_total')}** "
-                f"malicious, **{strict.get('benign_wrongly_failed')}** benign artifacts wrongly failed",
-                f"- known-bad (denylist): caught **{known_bad.get('malicious_caught')}/{known_bad.get('malicious_total')}** "
-                f"malicious, **{known_bad.get('benign_wrongly_failed')}** benign artifacts wrongly failed",
-                f"- caught only by the allowlist: **{numbers['caught_only_by_strict']}**",
-                f"- per artifact: median **{numbers['median_ms']} ms**, max {numbers['max_ms']} ms",
-                f"- identical output over two runs: "
-                f"**{numbers['determinism'].get('identical')}/{numbers['determinism'].get('cases')}**",
-                f"- tampered packages rejected: "
-                f"**{tamper.get('tampered_packages_rejected')}/{tamper.get('packages_verified_before_tampering')}**",
-            ]
-        else:
-            lines.append(f"Not available. Run `{evaluation.get('produced_by')}`.")
-        lines.append("")
-
-        lines += ["## Against the other scanners", ""]
-        benchmark = figures["benchmark"]
-        if benchmark.get("available"):
-            numbers = benchmark["figures"]
-            lines += [
-                f"From `{benchmark['source']}`, written by `{benchmark['produced_by']}` "
-                f"on Python {numbers['python']}, over {numbers['artifacts']} artifacts.",
-                "",
-                "| tool | version |", "|---|---|",
-            ]
-            lines += [f"| {tool['name']} | {tool['version']} |" for tool in numbers["tools"]]
-            scoreboard = numbers.get("scoreboard") or {}
-            for board, title, note in (
-                ("head_to_head_pickle", "Head to head, on the artifacts every tool reads",
-                 "pickle-bearing formats only, so nobody is scored on a format they never claimed"),
-                ("whole_corpus", "The whole corpus",
-                 "everything, with what each tool declined to read reported beside what it caught"),
-            ):
-                rows = scoreboard.get(board)
-                if not isinstance(rows, dict):
-                    continue
-                lines += ["", f"### {title}", "", note, "",
-                          "| tool | caught | false alarms | declined | median ms |",
-                          "|---|---:|---:|---:|---:|"]
-                for name, row in rows.items():
-                    if not isinstance(row, dict):
-                        continue
-                    lines.append(
-                        f"| {name} | {row.get('malicious_caught')}/{row.get('malicious_total')} "
-                        f"| {row.get('false_alarms')} | {row.get('declined')} | {row.get('median_ms')} |"
-                    )
-            losses = scoreboard.get("losses")
-            if isinstance(losses, dict):
-                beaten = {tool: cases for tool, cases in losses.items() if cases}
-                lines += [
-                    "",
-                    "Artifacts another tool catches and Actaira misses: "
-                    + (", ".join(f"{tool} ({len(cases)})" for tool, cases in beaten.items())
-                       if beaten else "**none**")
-                    + ". The harness computes this every run and prints it either way, because "
-                    "\"nobody beats us\" is only information if you can see it was checked.",
-                ]
-            family = scoreboard.get("by_family")
-            if isinstance(family, dict) and family:
-                tools = sorted({tool for rows in family.values() for tool in rows})
-                lines += ["", "Caught, by corpus family:", "",
-                          "| family | " + " | ".join(tools) + " |",
-                          "|---" * (len(tools) + 1) + "|"]
-                for name, rows in sorted(family.items()):
-                    cells = []
-                    for tool in tools:
-                        row = rows.get(tool, {})
-                        cells.append(f"{row.get('caught', '-')}/{row.get('total', '-')}")
-                    lines.append(f"| {name} | " + " | ".join(cells) + " |")
-        else:
-            lines.append(
-                f"Not available in this checkout: `{benchmark['source']}` is not committed, "
-                "because it names versions of other people's tools and would go stale. "
-                f"Run `{benchmark.get('produced_by')}` to produce it."
-            )
-        lines.append("")
-
-        lines += ["## Fuzzing", ""]
-        fuzz = figures["fuzz"]
-        if fuzz.get("available"):
-            numbers = fuzz["figures"]
-            lines += [
-                f"From `{fuzz['source']}`, written by `{fuzz['produced_by']}`.",
-                "",
-                f"- **{numbers['total_cases']}** cases over **{numbers['targets']}** targets, "
-                f"seed {numbers['seed']}, {numbers['seconds']} s",
-                f"- findings: **{numbers['findings']}**, hard failures: **{numbers['hard_failures']}**",
-                f"- targets: {', '.join(numbers['target_names'])}",
-            ]
-            unenforced = numbers.get("unenforced_oracles") or []
-            if unenforced:
-                lines += [
-                    "",
-                    f"**This run enforced {4 - len(set(item.split(')')[0] for item in unenforced))} "
-                    "of the four promises.** The host it ran on does not provide what the "
-                    "other(s) are enforced with, so the finding count above is a weaker "
-                    "result than the same count from a POSIX run:",
-                    "",
-                    *[f"- {item}" for item in unenforced],
-                ]
-        else:
-            lines.append(
-                f"Not available in this checkout: fuzzing output is not committed "
-                f"(`fuzz/runs/` is ignored). Run `{fuzz.get('produced_by')}`."
-            )
         lines += [
             "",
             "---",
@@ -878,14 +575,9 @@ def collect() -> Report:
         "git": measure_git(),
         "tests": tests,
         "defects": measure_defects(node_ids),
-        "governance": measure_governance(),
         "code": measure_areas(),
         "docs": measure_docs(),
         "catalog": measure_catalog(),
-        "corpus": measure_corpus(),
-        "eval": measure_eval(),
-        "benchmark": measure_benchmark(),
-        "fuzz": measure_fuzz(),
     })
 
 
@@ -909,7 +601,7 @@ def main() -> int:
     print(f"wrote {arguments.markdown_out.relative_to(ROOT)} and {arguments.json_out.relative_to(ROOT)}")
     if tests.get("available"):
         print(f"  {tests['collected']} tests, {report.figures['code']['total']['lines']} lines of Python, "
-              f"{report.figures['catalog']['rules']} rules, {report.figures['corpus']['cases']} corpus artifacts")
+              f"{report.figures['catalog']['rules']} rules")
     return 0
 
 

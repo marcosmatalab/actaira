@@ -9,16 +9,16 @@ either of the others.
 """
 from __future__ import annotations
 
+import dataclasses
+from pathlib import Path
 from xml.etree import ElementTree
 
 import pytest
 
-from actaira import cli
 from actaira.i18n.catalog import Catalog
-from actaira.inspect import inspect_artifact
 from actaira.model import ArtifactReport, Finding, Severity, Verdict
 from actaira.report.junit import build_junit
-from conftest import corpus_build
+from support.reports import finding, write_flagged_report, write_report, write_unread_report
 
 
 @pytest.fixture
@@ -26,19 +26,16 @@ def models(tmp_path):
     """One artifact per verdict: fail, pass, inconclusive."""
     root = tmp_path / "models"
     root.mkdir()
-    (root / "gadget.pkl").write_bytes(corpus_build.craft_reduce("posix", "system", ("id",), 2))
-    (root / "clean.safetensors").write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [4, 4], "data_offsets": [0, 64]}}, b"\x00" * 64
-        )
-    )
-    (root / "mystery.model").write_bytes(b"\x11\x22\x33\x44 not a known format")
-    return root
+    return {
+        "gadget.pkl": write_flagged_report(root / "gadget.pkl"),
+        "clean.safetensors": write_report(root / "clean.safetensors"),
+        "mystery.model": write_unread_report(root / "mystery.model"),
+    }
 
 
-def build(root, *names, **kwargs):
-    reports = [inspect_artifact(root / name) for name in names]
-    return build_junit(reports, base=str(root), **kwargs)
+def build(models, *names, **kwargs):
+    root = Path(next(iter(models.values())).path).parent
+    return build_junit([models[name] for name in names], base=str(root), **kwargs)
 
 
 def cases(xml_text) -> dict[str, ElementTree.Element]:
@@ -162,7 +159,7 @@ def test_the_failure_body_carries_every_finding_and_its_evidence(models):
 
     assert '"callable": "posix.system"' in failure.text
     assert "[critical] ACT-PKL-002" in failure.text
-    assert "[info] ACT-PKL-003" in failure.text, "the lower-severity finding is reported too"
+    assert "[info] ACT-PKL-008" in failure.text, "the lower-severity finding is reported too"
     assert "fully_read: true" in failure.text
 
 
@@ -176,7 +173,7 @@ def test_the_test_name_and_class_say_which_file_and_which_format(models):
 
 def test_the_digest_travels_with_the_test(models):
     case = cases(build(models, "gadget.pkl"))["gadget.pkl"]
-    report = inspect_artifact(models / "gadget.pkl")
+    report = models["gadget.pkl"]
 
     assert report.sha256 in case.find("system-out").text
     assert "findings: 2" in case.find("system-out").text
@@ -184,10 +181,9 @@ def test_the_digest_travels_with_the_test(models):
 
 def test_a_nested_artifact_keeps_its_relative_path_as_the_test_name(tmp_path):
     nested = tmp_path / "models" / "shards" / "part.pkl"
-    nested.parent.mkdir(parents=True)
-    nested.write_bytes(corpus_build.craft_reduce("posix", "system", ("id",), 2))
+    report = write_flagged_report(nested)
 
-    parsed = cases(build_junit([inspect_artifact(nested)], base=str(tmp_path / "models")))
+    parsed = cases(build_junit([report], base=str(tmp_path / "models")))
 
     assert "shards/part.pkl" in parsed
 
@@ -209,11 +205,10 @@ def test_markup_in_a_file_name_is_escaped_and_survives_the_round_trip(tmp_path):
     # name reaching an XML attribute and an element body, which is what the
     # report carries and what a zip member name can be regardless of host.
     written = tmp_path / "hostile.pkl"
-    written.write_bytes(corpus_build.craft_reduce("posix", "system", ("id",), 2))
+    report = write_flagged_report(written)
     import dataclasses
 
     hostile_name = "we<ird&name>.pkl"
-    report = inspect_artifact(written)
     report.path = str(tmp_path / hostile_name)
     report.findings = [
         dataclasses.replace(finding, location=hostile_name) for finding in report.findings
@@ -305,51 +300,25 @@ def test_the_document_is_written_in_the_language_that_was_asked_for(models):
     assert spanish.get("name") == english.get("name"), "identifiers and paths are not translated"
 
 
-def test_the_fail_on_threshold_decides_which_tests_fail(capsys, monkeypatch, tmp_path):
-    """The same artifact, two thresholds. A safetensors file wearing a `.npy`
-    name is MEDIUM-only: it passes by default and fails at `--fail-on medium`,
-    and the JUnit document has to follow the run rather than the rule table."""
-    monkeypatch.chdir(tmp_path)
-    renamed = tmp_path / "array.npy"
-    renamed.write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [4, 4], "data_offsets": [0, 64]}}, b"\x00" * 64
-        )
-    )
+def test_the_document_follows_the_verdict_and_not_the_findings(tmp_path):
+    """The same finding, two verdicts. A MEDIUM finding passes under one
+    threshold and fails under another, and the threshold is the caller's; this
+    writer has to report the verdict it was handed rather than re-deciding it
+    from the rule table."""
+    findings = [finding("ACT-FMT-001", severity=Severity.MEDIUM, location="array.npy")]
+    lenient_report = write_report(tmp_path / "array.npy", findings=findings, verdict=Verdict.PASS)
+    strict_report = dataclasses.replace(lenient_report, verdict=Verdict.FAIL)
 
-    cli.main(["scan", str(renamed), "--format", "junit"])
-    lenient = cases(capsys.readouterr().out)["array.npy"]
-    cli.main(["scan", str(renamed), "--format", "junit", "--fail-on", "medium"])
-    strict = cases(capsys.readouterr().out)["array.npy"]
+    lenient = cases(build_junit([lenient_report], base=str(tmp_path)))["array.npy"]
+    strict = cases(build_junit([strict_report], base=str(tmp_path)))["array.npy"]
 
     assert lenient.find("failure") is None
     assert strict.find("failure") is not None
-    assert "ACT-FMT-002" in strict.find("failure").text
+    assert "ACT-FMT-001" in strict.find("failure").text
 
 
 # ---------------------------------------------------------------------------
 # Through the command line
 # ---------------------------------------------------------------------------
 
-def test_scan_format_junit_writes_xml_to_stdout_and_keeps_the_exit_code(capsys, monkeypatch, models):
-    monkeypatch.chdir(models)
 
-    code = cli.main(["scan", ".", "--format", "junit"])
-    parsed = cases(capsys.readouterr().out)
-
-    assert code == cli.EXIT_FAIL
-    assert sorted(parsed) == ["clean.safetensors", "gadget.pkl", "mystery.model"]
-    assert parsed["gadget.pkl"].find("failure") is not None
-
-
-def test_out_writes_the_xml_and_leaves_stdout_readable(capsys, tmp_path, models):
-    target = tmp_path / "actaira-junit.xml"
-
-    code = cli.main(["scan", str(models), "--format", "junit", "--out", str(target)])
-    printed = capsys.readouterr().out
-
-    assert code == cli.EXIT_FAIL
-    assert ElementTree.fromstring(target.read_text(encoding="utf-8")).tag == "testsuites"
-    assert "FAIL" in printed
-    assert "<testsuite" not in printed, "the XML went to the file, not to the log"
-    assert Catalog("en").line("scan.written", path=str(target)) in printed

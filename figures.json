@@ -1,359 +1,35 @@
 {
-  "benchmark": {
-    "available": true,
-    "figures": {
-      "artifacts": 73,
-      "python": "3.12.12",
-      "scoreboard": {
-        "by_family": {
-          "format": {
-            "actaira (known-bad)": {
-              "caught": 5,
-              "declined": 0,
-              "in_family": 5,
-              "total": 5
-            },
-            "actaira (strict)": {
-              "caught": 5,
-              "declined": 0,
-              "in_family": 5,
-              "total": 5
-            },
-            "fickling": {
-              "caught": 2,
-              "declined": 3,
-              "in_family": 5,
-              "total": 2
-            },
-            "modelscan": {
-              "caught": 0,
-              "declined": 2,
-              "in_family": 5,
-              "total": 3
-            },
-            "picklescan": {
-              "caught": 1,
-              "declined": 3,
-              "in_family": 5,
-              "total": 2
-            }
-          },
-          "gadget-known": {
-            "actaira (known-bad)": {
-              "caught": 25,
-              "declined": 0,
-              "in_family": 25,
-              "total": 25
-            },
-            "actaira (strict)": {
-              "caught": 25,
-              "declined": 0,
-              "in_family": 25,
-              "total": 25
-            },
-            "fickling": {
-              "caught": 21,
-              "declined": 3,
-              "in_family": 25,
-              "total": 22
-            },
-            "modelscan": {
-              "caught": 19,
-              "declined": 0,
-              "in_family": 25,
-              "total": 25
-            },
-            "picklescan": {
-              "caught": 19,
-              "declined": 0,
-              "in_family": 25,
-              "total": 25
-            }
-          },
-          "gadget-unknown": {
-            "actaira (known-bad)": {
-              "caught": 1,
-              "declined": 0,
-              "in_family": 11,
-              "total": 11
-            },
-            "actaira (strict)": {
-              "caught": 11,
-              "declined": 0,
-              "in_family": 11,
-              "total": 11
-            },
-            "fickling": {
-              "caught": 11,
-              "declined": 0,
-              "in_family": 11,
-              "total": 11
-            },
-            "modelscan": {
-              "caught": 1,
-              "declined": 0,
-              "in_family": 11,
-              "total": 11
-            },
-            "picklescan": {
-              "caught": 4,
-              "declined": 0,
-              "in_family": 11,
-              "total": 11
-            }
-          },
-          "real": {
-            "actaira (known-bad)": {
-              "caught": 3,
-              "declined": 0,
-              "in_family": 3,
-              "total": 3
-            },
-            "actaira (strict)": {
-              "caught": 3,
-              "declined": 0,
-              "in_family": 3,
-              "total": 3
-            },
-            "fickling": {
-              "caught": 1,
-              "declined": 2,
-              "in_family": 3,
-              "total": 1
-            },
-            "modelscan": {
-              "caught": 1,
-              "declined": 1,
-              "in_family": 3,
-              "total": 2
-            },
-            "picklescan": {
-              "caught": 1,
-              "declined": 2,
-              "in_family": 3,
-              "total": 1
-            }
-          },
-          "structural": {
-            "actaira (known-bad)": {
-              "caught": 6,
-              "declined": 0,
-              "in_family": 6,
-              "total": 6
-            },
-            "actaira (strict)": {
-              "caught": 6,
-              "declined": 0,
-              "in_family": 6,
-              "total": 6
-            },
-            "fickling": {
-              "caught": 0,
-              "declined": 6,
-              "in_family": 6,
-              "total": 0
-            },
-            "modelscan": {
-              "caught": 0,
-              "declined": 3,
-              "in_family": 6,
-              "total": 3
-            },
-            "picklescan": {
-              "caught": 1,
-              "declined": 3,
-              "in_family": 6,
-              "total": 3
-            }
-          }
-        },
-        "head_to_head_pickle": {
-          "actaira (known-bad)": {
-            "benign_total": 13,
-            "declined": 0,
-            "false_alarm_cases": [],
-            "false_alarms": 0,
-            "malicious_caught": 32,
-            "malicious_in_scope": 42,
-            "malicious_total": 42,
-            "median_ms": 0.647
-          },
-          "actaira (strict)": {
-            "benign_total": 13,
-            "declined": 0,
-            "false_alarm_cases": [
-              "real_full_module.pt"
-            ],
-            "false_alarms": 1,
-            "malicious_caught": 42,
-            "malicious_in_scope": 42,
-            "malicious_total": 42,
-            "median_ms": 0.675
-          },
-          "fickling": {
-            "benign_total": 10,
-            "declined": 10,
-            "false_alarm_cases": [
-              "benign_array.npy",
-              "benign_state_dict_p0.pkl",
-              "benign_state_dict_p1.pkl",
-              "benign_state_dict_p2.pkl",
-              "benign_state_dict_p3.pkl",
-              "benign_state_dict_p4.pkl",
-              "benign_state_dict_p5.pkl",
-              "real_state_dict.pt",
-              "real_state_dict_legacy.pt",
-              "truncated.pkl"
-            ],
-            "false_alarms": 10,
-            "malicious_caught": 35,
-            "malicious_in_scope": 42,
-            "malicious_total": 36,
-            "median_ms": 91.369
-          },
-          "modelscan": {
-            "benign_total": 13,
-            "declined": 1,
-            "false_alarm_cases": [],
-            "false_alarms": 0,
-            "malicious_caught": 21,
-            "malicious_in_scope": 42,
-            "malicious_total": 42,
-            "median_ms": 0.355
-          },
-          "picklescan": {
-            "benign_total": 13,
-            "declined": 1,
-            "false_alarm_cases": [],
-            "false_alarms": 0,
-            "malicious_caught": 26,
-            "malicious_in_scope": 42,
-            "malicious_total": 42,
-            "median_ms": 0.172
-          }
-        },
-        "losses": {
-          "fickling": [],
-          "modelscan": [],
-          "picklescan": []
-        },
-        "whole_corpus": {
-          "actaira (known-bad)": {
-            "benign_total": 22,
-            "declined": 0,
-            "false_alarm_cases": [],
-            "false_alarms": 0,
-            "malicious_caught": 40,
-            "malicious_in_scope": 50,
-            "malicious_total": 50,
-            "median_ms": 0.621
-          },
-          "actaira (strict)": {
-            "benign_total": 22,
-            "declined": 0,
-            "false_alarm_cases": [
-              "real_full_module.pt"
-            ],
-            "false_alarms": 1,
-            "malicious_caught": 50,
-            "malicious_in_scope": 50,
-            "malicious_total": 50,
-            "median_ms": 0.624
-          },
-          "fickling": {
-            "benign_total": 10,
-            "declined": 27,
-            "false_alarm_cases": [
-              "benign_array.npy",
-              "benign_state_dict_p0.pkl",
-              "benign_state_dict_p1.pkl",
-              "benign_state_dict_p2.pkl",
-              "benign_state_dict_p3.pkl",
-              "benign_state_dict_p4.pkl",
-              "benign_state_dict_p5.pkl",
-              "real_state_dict.pt",
-              "real_state_dict_legacy.pt",
-              "truncated.pkl"
-            ],
-            "false_alarms": 10,
-            "malicious_caught": 35,
-            "malicious_in_scope": 50,
-            "malicious_total": 36,
-            "median_ms": 91.369
-          },
-          "modelscan": {
-            "benign_total": 15,
-            "declined": 14,
-            "false_alarm_cases": [],
-            "false_alarms": 0,
-            "malicious_caught": 21,
-            "malicious_in_scope": 50,
-            "malicious_total": 44,
-            "median_ms": 0.351
-          },
-          "picklescan": {
-            "benign_total": 13,
-            "declined": 18,
-            "false_alarm_cases": [],
-            "false_alarms": 0,
-            "malicious_caught": 26,
-            "malicious_in_scope": 50,
-            "malicious_total": 42,
-            "median_ms": 0.172
-          }
-        }
-      },
-      "tools": [
-        {
-          "name": "actaira (strict)",
-          "version": "2.2.0"
-        },
-        {
-          "name": "actaira (known-bad)",
-          "version": "2.2.0"
-        },
-        {
-          "name": "picklescan",
-          "version": "1.0.5"
-        },
-        {
-          "name": "modelscan",
-          "version": "0.8.8"
-        },
-        {
-          "name": "fickling",
-          "version": "0.1.12"
-        }
-      ]
-    },
-    "produced_by": "make benchmark",
-    "source": "evals/benchmark.json"
-  },
   "catalog": {
     "keys_identical_in_both_languages": true,
     "languages": 2,
-    "rule_help": 39,
-    "rules": 80,
+    "rule_help": 22,
+    "rules": 41,
     "rules_by_family": {
       "ACT-AGT": 10,
-      "ACT-BDL": 9,
-      "ACT-CON": 2,
-      "ACT-CTL": 2,
-      "ACT-FMT": 3,
-      "ACT-GGF": 4,
-      "ACT-H5": 4,
-      "ACT-MRK": 5,
-      "ACT-NPY": 2,
-      "ACT-ONX": 4,
+      "ACT-BDL": 1,
+      "ACT-FMT": 2,
+      "ACT-GGF": 3,
+      "ACT-H5": 2,
+      "ACT-NPY": 1,
+      "ACT-ONX": 2,
       "ACT-PATH": 5,
-      "ACT-PKL": 14,
-      "ACT-STF": 7,
-      "ACT-ZIP": 9
+      "ACT-PKL": 6,
+      "ACT-STF": 3,
+      "ACT-ZIP": 6
     },
-    "ui_messages": 250
+    "ui_messages": 169
   },
   "code": {
-    "agentgov": {
+    "attest": {
+      "blank": 540,
+      "code": 2543,
+      "comment": 263,
+      "docstring": 713,
+      "files": 10,
+      "lines": 4059,
+      "note": "Merkle tree, chain, signing, keyring, RFC 3161, verification"
+    },
+    "conformance": {
       "blank": 307,
       "code": 1300,
       "comment": 101,
@@ -362,95 +38,14 @@
       "lines": 2152,
       "note": "agents, tools, MCP servers, capabilities, attack paths"
     },
-    "agents": {
-      "blank": 325,
-      "code": 1107,
-      "comment": 209,
-      "docstring": 760,
-      "files": 7,
-      "lines": 2401,
-      "note": "the judged pipeline: provider, retriever, judge, verifier"
-    },
-    "attest": {
-      "blank": 533,
-      "code": 2523,
-      "comment": 252,
-      "docstring": 709,
-      "files": 10,
-      "lines": 4017,
-      "note": "Merkle tree, chain, signing, keyring, RFC 3161, verification"
-    },
-    "bom": {
-      "blank": 16,
-      "code": 73,
-      "comment": 17,
-      "docstring": 13,
-      "files": 2,
-      "lines": 119,
-      "note": "CycloneDX 1.6 ML-BOM"
-    },
-    "connectors": {
-      "blank": 345,
-      "code": 1562,
-      "comment": 141,
-      "docstring": 639,
-      "files": 10,
-      "lines": 2687,
-      "note": "the discovery layer"
-    },
-    "controls": {
-      "blank": 352,
-      "code": 1765,
-      "comment": 142,
-      "docstring": 585,
-      "files": 7,
-      "lines": 2844,
-      "note": "the executable EU AI Act controls"
-    },
     "core": {
-      "blank": 387,
-      "code": 1978,
-      "comment": 301,
-      "docstring": 331,
-      "files": 5,
-      "lines": 2997,
-      "note": "the model, the verdict rules, the CLI"
-    },
-    "evals": {
-      "blank": 440,
-      "code": 2485,
-      "comment": 250,
-      "docstring": 444,
-      "files": 8,
-      "lines": 3619,
-      "note": "corpus builder, evaluation harness, benchmark"
-    },
-    "formats": {
-      "blank": 305,
-      "code": 1561,
-      "comment": 308,
-      "docstring": 316,
-      "files": 11,
-      "lines": 2490,
-      "note": "the parsers, one per artifact format"
-    },
-    "fuzz": {
-      "blank": 200,
-      "code": 827,
-      "comment": 110,
-      "docstring": 147,
-      "files": 1,
-      "lines": 1284,
-      "note": "the fuzzing harness"
-    },
-    "governance": {
-      "blank": 124,
-      "code": 717,
-      "comment": 45,
-      "docstring": 249,
-      "files": 5,
-      "lines": 1135,
-      "note": "the obligation catalogue, the clock, the dossier"
+      "blank": 80,
+      "code": 262,
+      "comment": 18,
+      "docstring": 101,
+      "files": 4,
+      "lines": 461,
+      "note": "the model and the CLI"
     },
     "i18n": {
       "blank": 11,
@@ -462,12 +57,12 @@
       "note": "the bilingual catalogue"
     },
     "policy": {
-      "blank": 175,
-      "code": 779,
-      "comment": 100,
-      "docstring": 172,
+      "blank": 164,
+      "code": 714,
+      "comment": 96,
+      "docstring": 165,
       "files": 3,
-      "lines": 1226,
+      "lines": 1139,
       "note": "the policy document and the decision engine"
     },
     "report": {
@@ -480,39 +75,30 @@
       "note": "SARIF and JUnit"
     },
     "rest": {
-      "blank": 618,
-      "code": 2839,
-      "comment": 333,
-      "docstring": 868,
-      "files": 13,
-      "lines": 4658,
+      "blank": 249,
+      "code": 895,
+      "comment": 123,
+      "docstring": 440,
+      "files": 6,
+      "lines": 1707,
       "note": "everything in src/ the areas above do not claim"
-    },
-    "scan": {
-      "blank": 22,
-      "code": 154,
-      "comment": 28,
-      "docstring": 29,
-      "files": 2,
-      "lines": 233,
-      "note": "the import policy"
     },
     "schemas": {
       "blank": 20,
-      "code": 41,
+      "code": 28,
       "comment": 14,
       "docstring": 36,
       "files": 1,
-      "lines": 111,
+      "lines": 98,
       "note": "the published contracts"
     },
     "scripts": {
-      "blank": 578,
-      "code": 3109,
-      "comment": 333,
-      "docstring": 623,
-      "files": 11,
-      "lines": 4643,
+      "blank": 374,
+      "code": 1744,
+      "comment": 187,
+      "docstring": 412,
+      "files": 9,
+      "lines": 2717,
       "note": "this script"
     },
     "state": {
@@ -525,49 +111,23 @@
       "note": "the SQLite store, watch, evidence, graph"
     },
     "tests": {
-      "blank": 6655,
-      "code": 16864,
-      "comment": 1445,
-      "docstring": 4082,
-      "files": 58,
-      "lines": 29046,
+      "blank": 3104,
+      "code": 7933,
+      "comment": 644,
+      "docstring": 1791,
+      "files": 36,
+      "lines": 13472,
       "note": "the test suite"
     },
     "total": {
-      "blank": 12262,
-      "code": 43374,
-      "comment": 4707,
-      "docstring": 11659,
-      "files": 176,
-      "lines": 72002,
-      "note": "every Python file under evals, fuzz, scripts, src, tests, each counted once"
-    },
-    "web": {
-      "blank": 284,
-      "code": 1440,
-      "comment": 298,
-      "docstring": 301,
-      "files": 2,
-      "lines": 2323,
-      "note": "the local review interface"
+      "blank": 5414,
+      "code": 17669,
+      "comment": 1726,
+      "docstring": 5013,
+      "files": 89,
+      "lines": 29822,
+      "note": "every Python file under scripts, src, tests, each counted once"
     }
-  },
-  "corpus": {
-    "benign": 16,
-    "cases": 64,
-    "families": {
-      "benign": 12,
-      "format": 7,
-      "gadget-known": 25,
-      "gadget-unknown": 11,
-      "structural": 9
-    },
-    "labels": {
-      "benign": 16,
-      "hostile-but-inconclusive": 1,
-      "malicious": 47
-    },
-    "malicious": 47
   },
   "defects": {
     "available": true,
@@ -594,223 +154,157 @@
     "entries": 115,
     "in_the_shipped_tool": 86,
     "mechanisms": 16,
-    "named_tests": 205,
+    "named_tests": 73,
     "named_tests_not_collected": [],
-    "pinned_by_a_named_test": 130,
+    "pinned_by_a_named_test": 42,
     "pinned_by_a_note_instead": [
-      "DEF-58"
+      "DEF-01",
+      "DEF-03",
+      "DEF-04",
+      "DEF-05",
+      "DEF-06",
+      "DEF-07",
+      "DEF-08",
+      "DEF-09",
+      "DEF-10",
+      "DEF-13",
+      "DEF-15",
+      "DEF-16",
+      "DEF-17",
+      "DEF-18",
+      "DEF-19",
+      "DEF-20",
+      "DEF-21",
+      "DEF-22",
+      "DEF-23",
+      "DEF-24",
+      "DEF-25",
+      "DEF-26",
+      "DEF-27",
+      "DEF-28",
+      "DEF-29",
+      "DEF-30",
+      "DEF-31",
+      "DEF-32",
+      "DEF-33",
+      "DEF-34",
+      "DEF-35",
+      "DEF-36",
+      "DEF-37",
+      "DEF-40",
+      "DEF-43",
+      "DEF-44",
+      "DEF-45",
+      "DEF-46",
+      "DEF-47",
+      "DEF-48",
+      "DEF-49",
+      "DEF-51",
+      "DEF-52",
+      "DEF-54",
+      "DEF-55",
+      "DEF-56",
+      "DEF-57",
+      "DEF-58",
+      "DEF-59",
+      "DEF-60",
+      "DEF-61",
+      "DEF-65",
+      "DEF-67",
+      "DEF-68",
+      "DEF-76",
+      "DEF-77",
+      "DEF-78",
+      "DEF-80",
+      "DEF-85",
+      "DEF-86",
+      "DEF-87",
+      "DEF-93",
+      "DEF-97",
+      "DEF-98",
+      "DEF-99",
+      "DEF-101",
+      "DEF-102",
+      "DEF-103",
+      "DEF-105",
+      "DEF-107",
+      "DEF-108",
+      "DEF-109",
+      "DEF-111",
+      "DEF-115"
     ],
     "source": "docs/defects.json",
     "unpinned": []
   },
   "docs": {
     "docs/DESIGN.md": {
-      "lines": 1677
-    },
-    "docs/FORMATS.md": {
-      "lines": 679
+      "lines": 1588
     },
     "docs/THREAT-MODEL.md": {
       "lines": 537
     },
-    "fuzz/README.md": {
-      "lines": 251
-    },
-    "total_lines": 3144
+    "total_lines": 2125
   },
-  "eval": {
-    "available": true,
-    "figures": {
-      "cases": 64,
-      "caught_only_by_strict": 10,
-      "determinism": {
-        "cases": 64,
-        "identical": 64,
-        "mismatches": []
-      },
-      "expectations_checked": 64,
-      "expectations_met": 64,
-      "known_bad": {
-        "benign_total": 16,
-        "benign_wrongly_failed": 0,
-        "benign_wrongly_failed_cases": [],
-        "malicious_caught": 37,
-        "malicious_missed": 10,
-        "malicious_total": 47,
-        "missed_cases": [
-          "gadget_unknown_logging_config_fileConfig.pkl",
-          "gadget_unknown_numpy_testing__private_utils_runstring.pkl",
-          "gadget_unknown_pydoc_pipepager.pkl",
-          "gadget_unknown_torch_utils_cpp_extension_load.pkl",
-          "gadget_unknown_vendorlib_tasks_run_shell.pkl",
-          "gadget_unknown_venv_create.pkl",
-          "gadget_unknown_xml_sax_make_parser.pkl",
-          "gadget_unknown_zipimport_zipimporter.pkl",
-          "regression_torch_load_inline.pkl",
-          "regression_torch_native.pkl"
-        ]
-      },
-      "max_ms": 16.275,
-      "median_ms": 0.765,
-      "strict": {
-        "benign_total": 16,
-        "benign_wrongly_failed": 0,
-        "benign_wrongly_failed_cases": [],
-        "malicious_caught": 47,
-        "malicious_missed": 0,
-        "malicious_total": 47,
-        "missed_cases": []
-      },
-      "tamper_detection": {
-        "artifacts_tested": 63,
-        "packages_verified_before_tampering": 63,
-        "subject_digest_changed": 63,
-        "subject_digest_unchanged": [],
-        "tampered_packages_accepted": [],
-        "tampered_packages_rejected": 63
-      }
-    },
-    "produced_by": "make eval",
-    "source": "evals/results.json"
-  },
-  "fuzz": {
-    "available": true,
-    "figures": {
-      "cases_requested": 45000,
-      "findings": 0,
-      "hard_failures": 0,
-      "iters_per_target": 5000,
-      "seconds": 155.5,
-      "seed": 1,
-      "target_names": [
-        "archive",
-        "detect",
-        "gguf",
-        "inspect",
-        "keras_h5",
-        "npy",
-        "onnx",
-        "pickle",
-        "safetensors"
-      ],
-      "targets": 9,
-      "total_cases": 45000,
-      "unenforced_oracles": [
-        "(a) per-case termination: SIGALRM is POSIX-only, so a hang is caught by the parent watchdog after the whole worker stalls, not per case",
-        "(c) bounded memory: RLIMIT_AS is POSIX-only, so an unbounded allocation surfaces as this machine swapping rather than as MemoryError",
-        "(c) peak RSS: getrusage is POSIX-only, so an allocation that succeeds is not measured"
-      ]
-    },
-    "produced_by": "make fuzz",
-    "source": "fuzz/runs/latest/summary.json"
-  },
-  "generated_at": "2026-09-12T16:57:07+00:00",
+  "generated_at": "2026-09-15T11:10:00+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 6,
-    "head": "f8e9c18",
+    "commits": 7,
+    "head": "b61f634",
     "head_date": "2026-09-12"
   },
-  "governance": {
-    "available": true,
-    "by_coverage": {
-      "not_covered": 15,
-      "partial": 6
-    },
-    "by_role": {
-      "any": 4,
-      "deployer": 3,
-      "provider": 7,
-      "provider_gpai": 6,
-      "provider_gpai_systemic": 1
-    },
-    "earliest_applies_from": "2025-02-02",
-    "fully_supported": 0,
-    "latest_applies_from": "2027-12-02",
-    "not_covered": 15,
-    "obligations": 21,
-    "source": "src/actaira/governance/catalog.py",
-    "with_grace_period": 8
-  },
   "package": {
-    "declared_version": "2.3.0",
+    "declared_version": "3.0.0",
     "development_dependencies": [
       "pytest>=8",
-      "numpy>=1.26",
       "ruff>=0.6",
-      "jsonschema>=4.18",
-      "pillow>=10"
+      "jsonschema>=4.18"
     ],
     "python_requires": ">=3.11",
     "runtime_dependencies": [
       "cryptography>=41"
     ],
     "runtime_dependency_count": 1,
-    "version": "2.3.0",
+    "version": "3.0.0",
     "version_agrees_with_pyproject": true
   },
   "tests": {
     "available": true,
-    "collected": 3595,
-    "files": 56,
+    "collected": 1643,
+    "files": 32,
     "per_file": {
       "tests/test_action_entrypoint.py": 14,
-      "tests/test_agentgov.py": 54,
-      "tests/test_agents.py": 123,
-      "tests/test_attest_anchor.py": 27,
-      "tests/test_benchmark.py": 25,
-      "tests/test_bom.py": 76,
-      "tests/test_bundle.py": 23,
+      "tests/test_attest_anchor.py": 25,
       "tests/test_chain_and_signing.py": 17,
-      "tests/test_cli.py": 49,
-      "tests/test_cli_ui_parity.py": 18,
-      "tests/test_connectors.py": 118,
+      "tests/test_chain_domain_separation.py": 5,
+      "tests/test_cli.py": 25,
+      "tests/test_conformance.py": 54,
       "tests/test_consistency.py": 285,
-      "tests/test_controls.py": 196,
-      "tests/test_controls_documentation.py": 28,
-      "tests/test_controls_judged.py": 26,
-      "tests/test_controls_records.py": 27,
-      "tests/test_coverage.py": 14,
+      "tests/test_coverage.py": 12,
       "tests/test_defect_ledger.py": 348,
-      "tests/test_design_notes.py": 163,
+      "tests/test_design_notes.py": 74,
       "tests/test_dsse.py": 31,
-      "tests/test_eval_harness.py": 14,
-      "tests/test_formats.py": 63,
-      "tests/test_formats_doc.py": 82,
-      "tests/test_fuzz_regressions.py": 44,
-      "tests/test_governance.py": 201,
-      "tests/test_i18n.py": 276,
-      "tests/test_io_budget.py": 13,
-      "tests/test_junit.py": 21,
-      "tests/test_keyring.py": 34,
-      "tests/test_marking.py": 43,
+      "tests/test_i18n.py": 139,
+      "tests/test_io_budget.py": 9,
+      "tests/test_junit.py": 19,
+      "tests/test_keyring.py": 33,
       "tests/test_merkle.py": 80,
       "tests/test_miniyaml.py": 22,
       "tests/test_package_verify.py": 27,
-      "tests/test_pickle_scan.py": 20,
-      "tests/test_policy.py": 180,
       "tests/test_policy_engine.py": 22,
-      "tests/test_readme_parity.py": 33,
-      "tests/test_real_artifacts.py": 27,
+      "tests/test_readme_parity.py": 22,
       "tests/test_receipt.py": 23,
       "tests/test_release_check.py": 12,
-      "tests/test_remote_receipt.py": 27,
-      "tests/test_sarif.py": 33,
-      "tests/test_schemas.py": 59,
-      "tests/test_state.py": 92,
-      "tests/test_state_change.py": 49,
-      "tests/test_state_graph.py": 29,
-      "tests/test_subjects.py": 52,
+      "tests/test_sarif.py": 29,
+      "tests/test_schemas.py": 26,
+      "tests/test_signing_domain_separation.py": 6,
+      "tests/test_state.py": 88,
+      "tests/test_state_change.py": 47,
+      "tests/test_state_graph.py": 25,
+      "tests/test_subjects.py": 40,
       "tests/test_timestamp.py": 47,
       "tests/test_trust.py": 13,
-      "tests/test_trust_paths.py": 39,
-      "tests/test_web_agents.py": 50,
-      "tests/test_web_evidence.py": 53,
-      "tests/test_web_frontend.py": 19,
-      "tests/test_web_graph.py": 69,
-      "tests/test_web_limits.py": 31,
-      "tests/test_web_policy.py": 34
+      "tests/test_trust_paths.py": 24
     }
   }
 }

@@ -1,151 +1,25 @@
-"""Trust as a local decision, routes as a search, and a manifest that points.
+"""Routes as a search, and a manifest that points.
 
-Design notes D-210, D-213 and D-226. The three modules are tested together
-because they share one property worth asserting from three directions: none of
-them turns an absence into an assertion. No trust policy is UNKNOWN and not
-UNTRUSTED, a route with no declared mitigation is open and not "probably fine",
-and a manifest that names a subject with no loader does not load at all.
+Design notes D-213 and D-226. The two modules are tested together because they
+share one property worth asserting from both directions: neither turns an
+absence into an assertion. A route with no declared mitigation is open and not
+"probably fine", and a manifest that names a subject with no loader does not
+load at all.
+
+The trust-policy third of this file went to archive/model-scanner with
+`trustpolicy.py`. `trust_state` is still a policy predicate and is covered in
+`tests/test_subjects.py`.
 """
 from __future__ import annotations
 
 import pytest
 
-from actaira import trustpolicy
-from actaira.agentgov import load_text as load_agent
-from actaira.agentgov import paths as path_engine
+from actaira.conformance import load_text as load_agent
+from actaira.conformance import paths as path_engine
 from actaira.manifest import ManifestError, handle
 from actaira.manifest import load_text as load_manifest
 from actaira.model import Severity
 from actaira.subject import SubjectKind
-from actaira.trustpolicy import TrustPolicyError, TrustState
-
-# --------------------------------------------------------------------------
-# Trust policy
-# --------------------------------------------------------------------------
-
-
-POLICY = """
-schema_version: trust-policy/v1
-trusted_signers:
-  - fingerprint: sha256:aaaa
-trusted_tsa_roots:
-  - ./roots/company-tsa.pem
-source_rules:
-  - connector: huggingface
-    require_revision_pin: true
-mcp_rules:
-  - publisher: acme-security
-    require_digest: true
-"""
-
-
-def test_no_trust_policy_is_unknown_and_never_untrusted():
-    """An environment that has not written its rules down has not refused
-    anything. Reporting UNTRUSTED there asserts a decision nobody made."""
-    result = trustpolicy.check(None, signer_fingerprint="sha256:whatever")
-
-    assert result.state is TrustState.UNKNOWN
-    assert "has not said what it accepts" in result.reasons[0]
-
-
-def test_a_signer_in_the_list_is_trusted():
-    result = trustpolicy.check(trustpolicy.load_text(POLICY), signer_fingerprint="sha256:aaaa")
-
-    assert result.state is TrustState.TRUSTED
-
-
-def test_a_signer_outside_the_list_is_untrusted_and_says_so():
-    result = trustpolicy.check(trustpolicy.load_text(POLICY), signer_fingerprint="sha256:bbbb")
-
-    assert result.state is TrustState.UNTRUSTED
-    assert "trusted_signers" in result.reasons[0]
-
-
-def test_a_connector_that_requires_a_pin_refuses_a_branch_name():
-    result = trustpolicy.check(
-        trustpolicy.load_text(POLICY), connector="huggingface", revision="main"
-    )
-
-    assert result.state is TrustState.UNTRUSTED
-    assert "immutable revision" in result.reasons[0]
-
-
-def test_the_same_connector_accepts_a_commit():
-    result = trustpolicy.check(
-        trustpolicy.load_text(POLICY), connector="huggingface", revision="7f91a2c"
-    )
-
-    assert result.state is TrustState.TRUSTED
-
-
-def test_a_rule_for_another_connector_does_not_apply():
-    result = trustpolicy.check(trustpolicy.load_text(POLICY), connector="s3", revision="main")
-
-    assert result.state is TrustState.UNKNOWN
-    assert "no rule" in result.reasons[0]
-
-
-def test_an_mcp_rule_reads_the_publisher_it_names():
-    agent = load_agent("""
-agent: demo
-model: m
-model_digest: sha256:1
-prompt_sha256: 2
-tools:
-  - name: search
-    effects:
-      - read
-mcp_servers:
-  - name: scanner
-    reference: ghcr.io/acme/scanner:latest
-    publisher: acme-security
-""")
-
-    result = trustpolicy.check(trustpolicy.load_text(POLICY), mcp_servers=agent.mcp_servers)
-
-    assert result.state is TrustState.UNTRUSTED
-    assert "must carry a digest" in result.reasons[0]
-
-
-def test_a_server_from_another_publisher_is_left_alone():
-    agent = load_agent("""
-agent: demo
-model: m
-model_digest: sha256:1
-prompt_sha256: 2
-tools:
-  - name: search
-    effects:
-      - read
-mcp_servers:
-  - name: other
-    reference: ghcr.io/somebody/else:latest
-    publisher: somebody-else
-""")
-
-    assert trustpolicy.check(
-        trustpolicy.load_text(POLICY), mcp_servers=agent.mcp_servers
-    ).state is TrustState.UNKNOWN
-
-
-def test_a_document_from_another_version_does_not_load():
-    with pytest.raises(TrustPolicyError, match="reads"):
-        trustpolicy.load_text("schema_version: trust-policy/v9\n")
-
-
-def test_a_signer_entry_with_no_fingerprint_does_not_load():
-    with pytest.raises(TrustPolicyError, match="fingerprint"):
-        trustpolicy.load_text("schema_version: trust-policy/v1\ntrusted_signers:\n  - owner: me\n")
-
-
-def test_the_policy_validates_against_its_schema():
-    jsonschema = pytest.importorskip("jsonschema")
-    from actaira import schemas
-
-    jsonschema.Draft202012Validator(schemas.load("trust-policy-v1")).validate(
-        trustpolicy.load_text(POLICY).to_dict()
-    )
-
 
 # --------------------------------------------------------------------------
 # Attack paths
@@ -396,15 +270,6 @@ def test_a_closed_route_is_not_a_finding():
     assert report.findings() == []
 
 
-def test_the_report_validates_against_its_schema():
-    jsonschema = pytest.importorskip("jsonschema")
-    from actaira import schemas
-
-    document = path_engine.find(agent_with(OPEN_EXFILTRATION)).to_dict()
-
-    jsonschema.Draft202012Validator(schemas.load("attack-paths-v1")).validate(document)
-
-
 # --------------------------------------------------------------------------
 # Subject manifest
 # --------------------------------------------------------------------------
@@ -498,55 +363,9 @@ def test_a_source_needs_a_uri_and_a_system_needs_a_name(tmp_path):
         load_manifest("schema_version: subject-manifest/v1\nsubjects:\n  - kind: system\n", base=tmp_path)
 
 
-def test_the_manifest_validates_against_its_schema(tmp_path):
-    jsonschema = pytest.importorskip("jsonschema")
-
-    from actaira import schemas
-    from actaira.miniyaml import loads
-
-    jsonschema.Draft202012Validator(schemas.load("subject-manifest-v1")).validate(loads(MANIFEST))
-
-
 # --------------------------------------------------------------------------
 # The defects an adversarial read of these modules found
 # --------------------------------------------------------------------------
-
-
-def test_a_rule_that_could_not_be_evaluated_does_not_read_as_satisfied():
-    """DEF-85. `require_declared_digest` compared against a parameter no
-    caller ever passed, so it could never fail - and the result came back
-    TRUSTED, naming the rule in `checked`, with the reason "every applicable
-    rule was satisfied" about a rule that had never run."""
-    policy = trustpolicy.load_text("""
-schema_version: trust-policy/v1
-source_rules:
-  - connector: huggingface
-    require_declared_digest: true
-""")
-
-    unknown = trustpolicy.check(policy, connector="huggingface", revision="7f91a2c")
-    yes = trustpolicy.check(policy, connector="huggingface", revision="7f91a2c", declared_digests=True)
-    no = trustpolicy.check(policy, connector="huggingface", revision="7f91a2c", declared_digests=False)
-
-    assert unknown.state is TrustState.UNKNOWN
-    assert unknown.unevaluated and "did not say whether" in unknown.unevaluated[0]
-    assert yes.state is TrustState.TRUSTED
-    assert no.state is TrustState.UNTRUSTED
-
-
-def test_a_failure_still_wins_over_an_unevaluated_rule():
-    policy = trustpolicy.load_text("""
-schema_version: trust-policy/v1
-source_rules:
-  - connector: huggingface
-    require_revision_pin: true
-    require_declared_digest: true
-""")
-
-    result = trustpolicy.check(policy, connector="huggingface", revision="main")
-
-    assert result.state is TrustState.UNTRUSTED
-    assert "immutable revision" in result.reasons[0]
 
 
 def test_a_delegated_route_names_every_declaration_it_passes_through():
@@ -630,7 +449,7 @@ def test_one_tool_that_reads_outside_text_and_acts_is_a_route():
     so the set-based rule named a risk for which this command offered no route
     and no way to break it - the gap routes exist to fill. The EXEC route
     never skipped the case, so the two disagreed."""
-    from actaira.agentgov import assess
+    from actaira.conformance import assess
 
     agent = agent_with("""
   - name: github_pr
@@ -653,7 +472,7 @@ def test_a_manifest_handle_is_the_handle_a_reference_would_give(tmp_path):
     an agent declaring `agent: fraud-review` in `fraud-review-v2.yaml` got a
     node no `uses:` line or `delegates_to` edge could reach."""
     from actaira import subject as subject_mod
-    from actaira.agentgov import load as load_agent_file
+    from actaira.conformance import load as load_agent_file
 
     (tmp_path / "agents").mkdir()
     declaration = tmp_path / "agents" / "fraud-review-v2.yaml"

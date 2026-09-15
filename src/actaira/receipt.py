@@ -247,7 +247,7 @@ def _typed_subjects(subjects: list[Any]) -> list[dict[str, Any]]:
             entry["findings"] = sorted({finding.rule_id for finding in bundle.findings})
         agent = getattr(claims, "agent", None)
         if agent is not None:
-            from .agentgov import assess
+            from .conformance import assess
 
             entry["effects"] = sorted(effect.value for effect in agent.effects)
             entry["findings"] = sorted({finding.rule_id for finding in assess(agent)})
@@ -314,8 +314,21 @@ def _not_covered(merged: Coverage) -> list[dict[str, str]]:
 # --------------------------------------------------------------------------
 
 
+# Domain separation for the receipt signature. The same default key signs the
+# package manifest and this, and Ed25519 over a bare 32-byte digest carries no
+# statement of which one it meant. `dsse.pae` already refuses that class of
+# confusion; this signer did not. Rejected: relying on the two digests being
+# over different document shapes, which is an argument about content, not about
+# what the signature says. The trailing NUL cannot occur in the label.
+RECEIPT_SIGNING_CONTEXT = b"actaira.receipt/receipt-sha256/v1\x00"
+SIGNATURE_SUBJECT_NOTE = (
+    "RECEIPT_SIGNING_CONTEXT || sha256 of the canonical JSON of this document "
+    "without its signature block"
+)
+
+
 def signing_subject(document: dict[str, Any]) -> bytes:
-    """The exact bytes a signature covers: the document without its signature.
+    """The exact bytes hashed into a signature: the document without its signature.
 
     Twenty lines for a third party to reimplement, which is the requirement.
     `canonical_json` is sorted keys, compact separators, UTF-8, no NaN - the
@@ -326,18 +339,23 @@ def signing_subject(document: dict[str, Any]) -> bytes:
     return canonical_json({key: value for key, value in document.items() if key != SIGNATURE_KEY})
 
 
+def signed_bytes(receipt_sha256: str) -> bytes:
+    """What the key actually signs, context included. The other half of the pair."""
+    return RECEIPT_SIGNING_CONTEXT + bytes.fromhex(receipt_sha256)
+
+
 def sign(document: dict[str, Any], keypair: KeyPair) -> dict[str, Any]:
     subject = signing_subject(document)
     digest = hashlib.sha256(subject).hexdigest()
     signed = dict(document)
     signed[SIGNATURE_KEY] = {
         "algorithm": "ed25519",
-        "over": "sha256 of the canonical JSON of this document without its signature block",
+        "over": SIGNATURE_SUBJECT_NOTE,
         "receipt_sha256": digest,
         "key_id": keypair.key_id,
         "public_key_b64": keypair.public_b64,
         "fingerprint_sha256": keypair.fingerprint,
-        "value_b64": base64.b64encode(keypair.sign(bytes.fromhex(digest))).decode("ascii"),
+        "value_b64": base64.b64encode(keypair.sign(signed_bytes(digest))).decode("ascii"),
     }
     return signed
 
@@ -431,7 +449,7 @@ def verify(
         result.fail("the signature is not valid base64")
         return result
 
-    result.signature_verified = verify_signature(public, signature, bytes.fromhex(recomputed))
+    result.signature_verified = verify_signature(public, signature, signed_bytes(recomputed))
     if not result.signature_verified:
         result.fail("the signature does not verify over this document")
 

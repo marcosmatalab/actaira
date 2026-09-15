@@ -25,23 +25,17 @@ from actaira.attest.dsse import (
     to_envelope,
     verify_envelope,
 )
-from actaira.inspect import inspect_artifact
 from actaira.model import Severity, Verdict
-from conftest import corpus_build
+from support.reports import write_flagged_report, write_report, write_unread_report
 
 
 @pytest.fixture
 def reports(tmp_path):
     """One clean artifact and one with a gadget, so the predicate has both."""
-    clean = tmp_path / "clean.safetensors"
-    clean.write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [2, 2], "data_offsets": [0, 16]}}, b"\x00" * 16
-        )
-    )
-    gadget = tmp_path / "checkpoint.pkl"
-    gadget.write_bytes(corpus_build.craft_reduce("posix", "system", ("id",)))
-    return [inspect_artifact(clean), inspect_artifact(gadget)]
+    return [
+        write_report(tmp_path / "clean.safetensors"),
+        write_flagged_report(tmp_path / "checkpoint.pkl"),
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -302,10 +296,7 @@ def test_the_predicate_carries_the_verdict_the_policy_and_the_rules(reports):
 def test_the_predicate_says_which_artifacts_were_not_fully_read(tmp_path):
     """"Clean" and "not looked at" have to be distinguishable without opening
     the findings. D-04, carried into the envelope."""
-    broken = tmp_path / "broken.gguf"
-    broken.write_bytes(b"GGUF" + b"\x03\x00\x00\x00" + b"\xff" * 8)
-
-    predicate = to_envelope([inspect_artifact(broken)]).statement()["predicate"]
+    predicate = to_envelope([write_unread_report(tmp_path / "broken.gguf")]).statement()["predicate"]
 
     assert predicate["artifacts"][0]["fully_read"] is False
     assert predicate["verdict"] == "inconclusive"
@@ -348,7 +339,26 @@ def test_a_missing_signatures_array_loads_as_unsigned_rather_than_raising():
 # --------------------------------------------------------------------------
 
 
-def test_attest_dsse_writes_an_envelope_into_the_package(tmp_path):
+def _package_with_envelope(tmp_path, reports, keypair, *, dsse=True):
+    """A package, with or without the DSSE member. What `attest --dsse` wrote.
+
+    The command that assembled this went to archive/model-scanner; the
+    assembly did not. Writing it out here keeps the property under test -
+    an envelope is an ordinary package member, covered by the manifest and
+    by its own signature - attached to the code that still implements it.
+    """
+    from actaira.attest import chain, package
+
+    entries: list[chain.Entry] = []
+    for report in reports:
+        chain.append(entries, report.sha256, report.to_dict(), timestamp="2026-01-01T00:00:00")
+    envelope = to_envelope(reports, keypair).to_json().encode("utf-8") if dsse else None
+    out = tmp_path / "attestation.zip"
+    package.write_package(out, entries, keypair, envelope=envelope)
+    return out
+
+
+def test_a_package_can_carry_a_signed_envelope(tmp_path, reports, keypair):
     """The defect, as the behaviour that was missing.
 
     `attest/dsse.py` shipped in 2.0 with 27 tests and nothing ever called it.
@@ -357,22 +367,12 @@ def test_attest_dsse_writes_an_envelope_into_the_package(tmp_path):
     command exited 2 with `unrecognized arguments`. Five hundred lines of
     tested code no user can reach is not interoperability, it is a claim.
     """
-    import pickle
     import zipfile
 
-    from actaira import cli
     from actaira.attest.package import DSSE_NAME
 
-    artifact = tmp_path / "m.pkl"
-    artifact.write_bytes(pickle.dumps({"w": [1.0]}))
-    out = tmp_path / "r.zip"
+    out = _package_with_envelope(tmp_path, reports, keypair)
 
-    code = cli.main([
-        "attest", str(artifact), "--out", str(out),
-        "--key", str(tmp_path / "k.pem"), "--dsse",
-    ])
-
-    assert code == 0
     with zipfile.ZipFile(out) as archive:
         assert DSSE_NAME in archive.namelist()
         envelope = Envelope.from_json(archive.read(DSSE_NAME).decode("utf-8"))
@@ -380,40 +380,26 @@ def test_attest_dsse_writes_an_envelope_into_the_package(tmp_path):
     assert envelope.statement()["_type"] == STATEMENT_TYPE
 
 
-def test_a_package_without_the_flag_carries_no_envelope(tmp_path):
+def test_a_package_without_one_carries_no_envelope(tmp_path, reports, keypair):
     """Off by default: an existing package format does not change shape
     because a new option exists."""
-    import pickle
     import zipfile
 
-    from actaira import cli
     from actaira.attest.package import DSSE_NAME
 
-    artifact = tmp_path / "m.pkl"
-    artifact.write_bytes(pickle.dumps({"w": [1.0]}))
-    out = tmp_path / "r.zip"
-    cli.main(["attest", str(artifact), "--out", str(out), "--key", str(tmp_path / "k.pem")])
+    out = _package_with_envelope(tmp_path, reports, keypair, dsse=False)
 
     with zipfile.ZipFile(out) as archive:
         assert DSSE_NAME not in archive.namelist()
 
 
-def test_verify_checks_the_envelope_it_finds(tmp_path):
+def test_verify_checks_the_envelope_it_finds(tmp_path, reports, keypair):
     """Writing it without reading it back would repeat the same shape one
     layer along: a document in the package that no code in the package has
     ever checked."""
-    import pickle
-
-    from actaira import cli
     from actaira.attest import verify as verify_mod
 
-    artifact = tmp_path / "m.pkl"
-    artifact.write_bytes(pickle.dumps({"w": [1.0]}))
-    out = tmp_path / "r.zip"
-    cli.main([
-        "attest", str(artifact), "--out", str(out),
-        "--key", str(tmp_path / "k.pem"), "--dsse",
-    ])
+    out = _package_with_envelope(tmp_path, reports, keypair)
 
     result = verify_mod.verify_package(out)
 
@@ -421,24 +407,16 @@ def test_verify_checks_the_envelope_it_finds(tmp_path):
     assert result.checks["dsse_envelope_valid"] is True
 
 
-def test_an_edited_envelope_is_caught_twice(tmp_path):
+def test_an_edited_envelope_is_caught_twice(tmp_path, reports, keypair):
     """Once by the manifest digest, because it is an ordinary member, and
     once by its own signature. That is the structural property this module
     argues for: nothing hangs outside a signature."""
-    import pickle
     import zipfile
 
-    from actaira import cli
     from actaira.attest import verify as verify_mod
     from actaira.attest.package import DSSE_NAME
 
-    artifact = tmp_path / "m.pkl"
-    artifact.write_bytes(pickle.dumps({"w": [1.0]}))
-    out = tmp_path / "r.zip"
-    cli.main([
-        "attest", str(artifact), "--out", str(out),
-        "--key", str(tmp_path / "k.pem"), "--dsse",
-    ])
+    out = _package_with_envelope(tmp_path, reports, keypair)
 
     with zipfile.ZipFile(out) as archive:
         members = {name: archive.read(name) for name in archive.namelist()}

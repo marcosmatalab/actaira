@@ -23,27 +23,22 @@ from datetime import date
 import pytest
 
 from actaira.coverage import CoverageState, Surface
-from actaira.inspect import inspect_artifact
 from actaira.policy import Decision, Effect, decide, load_policy_text
 from actaira.policy.engine import Claims, PolicyError
+from support.reports import write_flagged_report, write_report, write_unread_report
 
 TODAY = date(2026, 9, 11)
 
 
 @pytest.fixture
 def clean_report(tmp_path):
-    path = tmp_path / "clean.pkl"
-    path.write_bytes(pickle.dumps({"w": [1.0, 2.0]}))
-    return inspect_artifact(path)
+    return write_report(tmp_path / "clean.pkl", payload=pickle.dumps({"w": [1.0, 2.0]}),
+                        detected_format="pickle")
 
 
 @pytest.fixture
 def gadget_report(tmp_path):
-    from evals.corpus import build as corpus_build
-
-    path = tmp_path / "gadget.pkl"
-    path.write_bytes(corpus_build.craft_reduce("posix", "system", ("id",), 2))
-    return inspect_artifact(path)
+    return write_flagged_report(tmp_path / "gadget.pkl", "ACT-PKL-001")
 
 
 MINIMAL = """
@@ -124,9 +119,7 @@ def test_a_requirement_that_is_not_met_denies(tmp_path):
     """The asymmetry between `require` and `deny`, and the easiest thing in
     this file to get backwards. A `require` rule that does NOT match is the
     failure; a `deny` rule that does not match is fine."""
-    path = tmp_path / "mystery.pkl"
-    path.write_bytes(b"\x11\x22\x33\x44 not a known format")
-    report = inspect_artifact(path)
+    report = write_unread_report(tmp_path / "mystery.pkl", detected_format="pickle")
     assert report.coverage.state(Surface.LOAD_TIME_EXECUTION) is CoverageState.FAILED
 
     policy = load_policy_text(
@@ -320,9 +313,7 @@ def test_a_waiver_also_covers_a_requirement_that_was_not_met(tmp_path):
     exception against a `deny` rule worked. A requirement that is NOT met is
     exactly the case an exception exists to cover.
     """
-    path = tmp_path / "mystery.pkl"
-    path.write_bytes(b"\x11\x22\x33\x44 not a known format")
-    report = inspect_artifact(path)
+    report = write_unread_report(tmp_path / "mystery.pkl", detected_format="pickle")
 
     policy = load_policy_text(
         """

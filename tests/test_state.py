@@ -557,24 +557,6 @@ def test_the_graph_loads_back_out_of_the_store(watched):
 # --------------------------------------------------------------------------
 
 
-def test_the_export_validates_against_its_schema(watched):
-    jsonschema = pytest.importorskip("jsonschema")
-    from actaira import schemas
-
-    observe(watched, snap("s1", listing(("a", 1, "aa"))))
-
-    jsonschema.Draft202012Validator(schemas.load("state-export-v1")).validate(watched.export())
-
-
-def test_a_snapshot_validates_against_its_schema():
-    jsonschema = pytest.importorskip("jsonschema")
-    from actaira import schemas
-
-    validator = jsonschema.Draft202012Validator(schemas.load("source-snapshot-v1"))
-    validator.validate(snap("s1", listing(("a", 1, "aa"))).to_dict())
-    validator.validate(snap("s1", [], complete=False, reason="503").to_dict())
-
-
 def test_an_evidence_record_validates_against_its_schema():
     jsonschema = pytest.importorskip("jsonschema")
     from actaira import schemas
@@ -582,13 +564,6 @@ def test_an_evidence_record_validates_against_its_schema():
     record = evidence_mod.for_subject("artifact:a", "artifact_scan", subject_digest="sha256:aa")
 
     jsonschema.Draft202012Validator(schemas.load("evidence-record-v1")).validate(record.to_dict())
-
-
-def test_a_graph_validates_against_its_schema():
-    jsonschema = pytest.importorskip("jsonschema")
-    from actaira import schemas
-
-    jsonschema.Draft202012Validator(schemas.load("asset-graph-v1")).validate(built_graph().to_dict())
 
 
 def test_a_snapshot_artifact_keeps_only_the_fields_it_declares():
@@ -919,130 +894,50 @@ def test_an_acyclic_graph_reports_none_and_claims_completeness():
 # ---------------------------------------------------------------------------
 # DEF-99: a published field nothing could ever populate
 # ---------------------------------------------------------------------------
-def test_a_policy_decision_is_recorded_when_there_is_a_store(tmp_path, monkeypatch):
-    """`state-export/v1` publishes `decisions`, and nothing wrote to it.
 
-    `Store.record_decision` shipped in 2.2.0 with no caller, so the array was
-    empty in every export ever produced and a consumer reading it was reading
-    a field that could not be anything else. See D-233.
+
+
+
+# ---------------------------------------------------------------------------
+# The receipt table
+# ---------------------------------------------------------------------------
+
+def test_a_recorded_receipt_comes_back_with_what_was_written(store):
+    """The store notes that a receipt was issued; it never holds the receipt.
+
+    A second copy of a signed document can disagree with the first, so what is
+    filed is the digest, where it was written, who signed it and when.
     """
-    from actaira import cli
-    from conftest import corpus_build
+    store.record_receipt("sha256:" + "a" * 64, "receipts/one.json", "key:1635cd10", "2026-01-01T00:00:00+00:00")
 
-    monkeypatch.chdir(tmp_path)
-    models = tmp_path / "models"
-    models.mkdir()
-    (models / "clean.safetensors").write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [4, 4], "data_offsets": [0, 64]}}, b"\x00" * 64
-        )
-    )
-    policy = tmp_path / "policy.yaml"
-    policy.write_text(
-        "policy: t\nversion: 1\nrules:\n"
-        "  - id: no-critical\n    effect: deny\n"
-        "    when:\n      finding_severity_at_least: critical\n",
-        encoding="utf-8",
-    )
-    assert cli.main(["init", "--state", str(tmp_path / "state.db")]) == cli.EXIT_OK
-    cli.main([
-        "policy", "check", str(models),
-        "--policy-file", str(policy),
-        "--state", str(tmp_path / "state.db"),
-    ])
+    rows = store.receipts()
 
-    with Store(tmp_path / "state.db", create=False) as store:
-        recorded = store.decisions()
-        exported = store.export()
-    assert len(recorded) == 1
-    assert recorded[0]["decision"] in ("allow", "deny", "review")
-    assert exported["decisions"], "the published array is still empty"
+    assert len(rows) == 1
+    assert rows[0]["receipt_digest"] == "sha256:" + "a" * 64
+    assert rows[0]["path"] == "receipts/one.json"
+    assert rows[0]["signer"] == "key:1635cd10"
 
 
-def test_deciding_twice_about_the_same_thing_records_one_row(tmp_path, monkeypatch):
-    """The identifier is the digest of the decision, so a store is not a log
-    of how many times CI ran over an unchanged tree."""
-    from actaira import cli
-    from conftest import corpus_build
+def test_the_same_receipt_written_twice_is_one_row_with_the_newer_path(store):
+    """Re-issuing the same bytes to a new location is a move, not a second
+    receipt: the digest is the identity and a second row would double-count it."""
+    digest = "sha256:" + "b" * 64
+    store.record_receipt(digest, "receipts/one.json", "key:1635cd10", "2026-01-01T00:00:00+00:00")
+    store.record_receipt(digest, "receipts/moved.json", "key:1635cd10", "2026-01-02T00:00:00+00:00")
 
-    monkeypatch.chdir(tmp_path)
-    models = tmp_path / "models"
-    models.mkdir()
-    (models / "clean.safetensors").write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [4, 4], "data_offsets": [0, 64]}}, b"\x00" * 64
-        )
-    )
-    policy = tmp_path / "policy.yaml"
-    policy.write_text(
-        "policy: t\nversion: 1\nrules:\n"
-        "  - id: no-critical\n    effect: deny\n"
-        "    when:\n      finding_severity_at_least: critical\n",
-        encoding="utf-8",
-    )
-    cli.main(["init", "--state", str(tmp_path / "state.db")])
-    argv = [
-        "policy", "check", str(models),
-        "--policy-file", str(policy),
-        "--on", "2026-01-01",
-        "--state", str(tmp_path / "state.db"),
+    rows = store.receipts()
+
+    assert len(rows) == 1
+    assert rows[0]["path"] == "receipts/moved.json"
+
+
+def test_receipts_come_back_in_the_order_they_were_observed(store):
+    """`export()` is asserted byte-identical over the same observation, which
+    it cannot be if any table comes back in whatever order SQLite chose."""
+    for index, day in enumerate(("03", "01", "02"), start=1):
+        store.record_receipt(f"sha256:{index}" + "c" * 63, f"receipts/{day}.json",
+                             "key:1635cd10", f"2026-01-{day}T00:00:00+00:00")
+
+    assert [row["path"] for row in store.receipts()] == [
+        "receipts/01.json", "receipts/02.json", "receipts/03.json",
     ]
-    cli.main(argv)
-    cli.main(argv)
-    with Store(tmp_path / "state.db", create=False) as store:
-        assert len(store.decisions()) == 1
-
-
-def test_an_issued_receipt_is_noted_in_the_store(tmp_path, monkeypatch):
-    """The same hole on the other published array, and the same fix."""
-    from actaira import cli
-    from conftest import corpus_build
-
-    monkeypatch.chdir(tmp_path)
-    models = tmp_path / "models"
-    models.mkdir()
-    (models / "clean.safetensors").write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [4, 4], "data_offsets": [0, 64]}}, b"\x00" * 64
-        )
-    )
-    cli.main(["init", "--state", str(tmp_path / "state.db")])
-    cli.main([
-        "receipt", "issue", str(models),
-        "--out", str(tmp_path / "r.json"),
-        "--key", str(tmp_path / "key.pem"),
-        "--state", str(tmp_path / "state.db"),
-    ])
-
-    with Store(tmp_path / "state.db", create=False) as store:
-        noted = store.receipts()
-        exported = store.export()
-    assert len(noted) == 1
-    assert noted[0]["path"].endswith("r.json")
-    assert noted[0]["receipt_digest"] == json.loads(
-        (tmp_path / "r.json").read_text(encoding="utf-8")
-    )["signature"]["receipt_sha256"]
-    assert exported["receipts"], "the published array is still empty"
-
-
-def test_a_receipt_is_still_issued_when_the_store_is_missing(tmp_path, monkeypatch):
-    """Filing a note about a document must not be able to destroy the document."""
-    from actaira import cli
-    from conftest import corpus_build
-
-    monkeypatch.chdir(tmp_path)
-    models = tmp_path / "models"
-    models.mkdir()
-    (models / "clean.safetensors").write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [4, 4], "data_offsets": [0, 64]}}, b"\x00" * 64
-        )
-    )
-    code = cli.main([
-        "receipt", "issue", str(models),
-        "--out", str(tmp_path / "r.json"),
-        "--key", str(tmp_path / "key.pem"),
-        "--state", str(tmp_path / "nowhere.db"),
-    ])
-    assert code == cli.EXIT_OK
-    assert (tmp_path / "r.json").is_file()

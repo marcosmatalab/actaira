@@ -1,0 +1,576 @@
+{
+  "schema": "eu-ai-act-obligations-v1",
+  "source": "Regulation (EU) 2024/1689 (CELEX 32024R1689)",
+  "amended_by": "as amended by Regulation (EU) 2026/1744 of 8 July 2026 (Digital Omnibus on AI, CELEX 32026R1744), OJ L, 24 July 2026, in force 27 July 2026",
+  "extracted_from": "src/actaira/governance/catalog.py at tag v2.3.0",
+  "note": "Data, not code. This is the whole of what survived the model-scanner archive: 21 obligations, each with the reason Actaira does not bear on it in `why_not`. Nothing imports this file today; it is kept so the legal reading is not lost with the module that held it.",
+  "obligations": [
+    {
+      "id": "AIA-4",
+      "article": "Art. 4",
+      "title": "AI literacy",
+      "applies_from": "2025-02-02",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "any",
+      "summary": "Providers and deployers take measures to support the development of AI literacy among their staff and other persons dealing with the operation and use of AI systems on their behalf. The current wording does not require them to guarantee any particular level of literacy.",
+      "evidence_expected": [
+        "a description of the measures taken to support AI literacy, proportionate to the role",
+        "records of the training or guidance actually made available to staff"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "anything at all: this obligation is about people, not artifacts"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 4 as amended by Regulation (EU) 2026/1744 of 8 July 2026 (Digital Omnibus on AI, CELEX 32026R1744), OJ L, 24 July 2026, in force 27 July 2026; applicable per Art. 113(a), current wording since 27 July 2026",
+      "note": "Replaced in full by Regulation (EU) 2026/1744 and in that wording since 27 July 2026. It moved from ensuring a sufficient level of literacy to supporting its development, and it now says expressly that no particular level has to be guaranteed, so evidence of measures offered carries the obligation where evidence of attainment used to be asked for. The duty itself has bound almost every organisation using AI since 2 February 2025, and is the one most often missed.",
+      "checkability": "evidence_judged",
+      "why_not": "Judged, not machine-checkable. The obligation is to take measures supporting AI literacy among staff. Whether a measure was taken is a fact about people; what a supplied training policy says is a fact about a document, and only the second is readable. Actaira judges the document and abstains when it cannot ground the judgement in the text."
+    },
+    {
+      "id": "AIA-4a",
+      "article": "Art. 4a",
+      "title": "Special categories of data for bias detection",
+      "applies_from": "2026-07-27",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "any",
+      "summary": "Processing special categories of personal data is permitted, under conditions, where it is strictly necessary to detect and correct bias in an AI system. The conditions include technical limits on reuse, security measures reflecting the state of the art, and deletion once the bias has been corrected.",
+      "evidence_expected": [
+        "a record of why processing special categories was strictly necessary to detect bias",
+        "the technical limits on reuse and the security measures applied",
+        "evidence that the data was deleted once the bias had been corrected"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "anything: no property of a weight file records which personal data was processed, on what basis, or whether it was deleted afterwards"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 4a, inserted as amended by Regulation (EU) 2026/1744 of 8 July 2026 (Digital Omnibus on AI, CELEX 32026R1744), OJ L, 24 July 2026, in force 27 July 2026; Chapter I is applicable per Art. 113(a), so this binds from entry into force",
+      "note": "Inserted by Regulation (EU) 2026/1744 and binding since 27 July 2026, because Chapter I was already applicable and a provision added to it binds from the day the amending Regulation entered into force. It reaches providers of high-risk systems and also providers and deployers of systems that are not high-risk, which is why it is listed against a role of any.",
+      "checkability": "organizational",
+      "why_not": "Organizational. The Article governs the legal basis for processing special categories of personal data to detect and correct bias. Whether that basis exists, and whether the safeguards were applied, is a determination about a processing operation and its documentation under the GDPR. Nothing in a model artifact records it, and a tool that inferred it from a dataset would be inventing a legal conclusion."
+    },
+    {
+      "id": "AIA-5",
+      "article": "Art. 5",
+      "title": "Prohibited AI practices",
+      "applies_from": "2025-02-02",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "any",
+      "summary": "Placing on the market, putting into service or using the listed practices is prohibited, including manipulative techniques, social scoring, and untargeted scraping of facial images.",
+      "evidence_expected": [
+        "a documented assessment that the system falls outside Art. 5",
+        "records of the intended purpose and deployment context"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "any judgement about purpose or use: a prohibited practice is a property of what a system does, and no property of a weight file reveals it"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 5; applicable per Art. 113(a)",
+      "note": "The two prohibitions added by Regulation (EU) 2026/1744 are catalogued separately as AIA-5-1ba, because Art. 113(a) gives them a later date than the rest of Art. 5.",
+      "checkability": "organizational",
+      "why_not": "Organizational. Article 5 prohibits practices, not artifacts. Whether a system is placed on the market for social scoring or for exploiting a vulnerability depends on its purpose and its deployment context, neither of which is a property of a file. The same weights are lawful in one deployment and prohibited in another."
+    },
+    {
+      "id": "AIA-5-1ba",
+      "article": "Art. 5(1)(ba)-(bb)",
+      "title": "Prohibited generation of intimate imagery and child sexual abuse material",
+      "applies_from": "2026-12-02",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "any",
+      "summary": "Placing on the market, putting into service or using an AI system that generates or manipulates realistic intimate imagery of an identifiable natural person without their explicit consent is prohibited, as is one that generates or manipulates child sexual abuse material. Art. 5(1a) puts the provider limb on systems intended for that outcome or where it is reasonably foreseeable and reproducible without adequate safeguards, and the deployer limb on actually using a system to produce such material.",
+      "evidence_expected": [
+        "an assessment of whether the system can produce such material, and whether that outcome is reasonably foreseeable and reproducible without significant modification",
+        "the safeguards implemented against it, and evidence that they hold under pressure",
+        "for a deployer, records of the use to which the system was actually put"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "any judgement about what a system generates: this prohibition turns on outputs and on the safeguards around them, and neither is a property of a weight file",
+        "any evaluation of whether a safeguard is adequate, which requires running the model against adversarial prompts and looking at what comes out"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 5(1)(ba)-(bb) and Art. 5(1a)-(1b), inserted as amended by Regulation (EU) 2026/1744 of 8 July 2026 (Digital Omnibus on AI, CELEX 32026R1744), OJ L, 24 July 2026, in force 27 July 2026; Art. 113(a) excepts them to 2 December 2026",
+      "note": "Inserted into Art. 5(1) by Regulation (EU) 2026/1744 as points (ba) and (bb), together with paragraphs 1a and 1b. Art. 113(a) excepts them from the 2 February 2025 date and applies them from 2 December 2026, so this is the only new duty in this catalogue falling due before the end of 2026. Point (bb) carries a carve-out for conduct that is not without right, which covers lawful law-enforcement work.",
+      "checkability": "organizational",
+      "why_not": "Organizational, for the same reason as the rest of Article 5. The prohibitions added by the Digital Omnibus are about what a system is used to do, which no artifact records."
+    },
+    {
+      "id": "AIA-52",
+      "article": "Art. 52",
+      "title": "Notification of a model that meets the systemic-risk condition",
+      "applies_from": "2025-08-02",
+      "grace_until": "2027-08-02",
+      "grace_scope": "general-purpose AI models placed on the market before 2 August 2025",
+      "status": "in_force",
+      "role": "provider_gpai",
+      "summary": "A provider whose general-purpose AI model meets, or will foreseeably meet, the condition in Art. 51(1)(a) notifies the Commission without delay and in any event within two weeks of that becoming the case. The notification carries the information needed to show the condition is met, and the provider may argue that the model should nonetheless not be classified as carrying systemic risk.",
+      "evidence_expected": [
+        "the notification sent to the Commission, and the date it was sent",
+        "the cumulative amount of computation used for training, in floating point operations, and the method used to arrive at that figure",
+        "any argument submitted that the model should not be classified despite meeting the condition"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "the training compute, which is a fact about how a model was made and is nowhere in the file it was made into",
+        "any view on whether the Art. 51(1)(a) condition is met, and so no trigger for the two-week deadline"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 52(1); applicable per Art. 113(b); transitional for legacy models in Art. 111(3)",
+      "note": "This is the gate into Art. 55, so it belongs next to it: a provider who never notifies is not thereby outside Art. 55, because Art. 51(1)(b) lets the Commission classify a model on its own motion. Since 2 August 2026 the Commission can also fine providers of general-purpose AI models under Art. 101, which Art. 113(b) had excepted from the 2 August 2025 date.",
+      "checkability": "organizational",
+      "why_not": "Organizational. The obligation is to notify the Commission when a model meets the Article 51 classification condition. Whether the condition is met turns on capability and on cumulative training compute, neither of which is readable from the weights, and the notification itself is a communication to an authority."
+    },
+    {
+      "id": "AIA-53-1a",
+      "article": "Art. 53(1)(a)",
+      "title": "Technical documentation of the model (Annex XI)",
+      "applies_from": "2025-08-02",
+      "grace_until": "2027-08-02",
+      "grace_scope": "general-purpose AI models placed on the market before 2 August 2025",
+      "status": "in_force",
+      "role": "provider_gpai",
+      "summary": "Providers of general-purpose AI models draw up and keep up to date the technical documentation of the model, including its training and testing process and the results of its evaluation, containing at least the information in Annex XI, for the purpose of providing it on request to the AI Office and national competent authorities.",
+      "evidence_expected": [
+        "Annex XI, Section 1, point 1(a): tasks the model is intended to perform, and the type and nature of AI systems it can be integrated in",
+        "Annex XI, Section 1, point 1(b): acceptable use policies",
+        "Annex XI, Section 1, point 1(c): date of release and methods of distribution",
+        "Annex XI, Section 1, point 1(d): architecture and number of parameters",
+        "Annex XI, Section 1, point 1(e): modality and format of inputs and outputs",
+        "Annex XI, Section 1, point 1(f): the licence",
+        "Annex XI, Section 1, point 2(a) to (e): technical means for integration, design specifications and training methodologies, training and validation data, computational resources used, and known or estimated energy consumption",
+        "Annex XI, Section 2, for a model with systemic risk only: evaluation strategies and results, adversarial testing, and a description of the system architecture"
+      ],
+      "coverage": "partial",
+      "actaira_provides": [
+        "the number of parameters, counted from the tensor headers of a GGUF or safetensors file rather than taken from a model card; other formats carry no such count and none is invented for them",
+        "tensor dtypes, shapes and count, observed",
+        "serialisation format and container, detected from the bytes",
+        "for GGUF, the architecture and quantisation the file declares in its own metadata block, carried through labelled as declared and never as observed",
+        "a SHA-256 of the artifact, so the documentation is bound to a specific file"
+      ],
+      "actaira_does_not_provide": [
+        "intended tasks, acceptable use policies, release date or licence: those are declarations, and this tool reports only what it observed",
+        "anything about the training process, the data, the computational resources or the energy consumption of Section 1, point 2",
+        "any part of Section 2: evaluation strategies, results and adversarial testing are behaviour, and this tool never runs the model"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 53(1)(a) and Annex XI Section 1; applicable per Art. 113(b); transitional for legacy models in Art. 111(3)",
+      "note": "Art. 53(2) disapplies points (a) and (b) of Art. 53(1) for a model released under a free and open-source licence that allows access, usage, modification and distribution, and whose parameters including the weights, the information on the model architecture and the information on model usage are made publicly available. All of those conditions have to hold together. The exception never applies to a model with systemic risk, and it never reaches points (c) and (d), so the copyright policy and the training-content summary bind an open-source provider in full. Compliance may be demonstrated through the Code of Practice for general-purpose AI until a harmonised standard is published.",
+      "checkability": "generatable",
+      "why_not": "Generatable, never satisfied. Same reason as Annex IV: Actaira can fill the parts of Annex XI it actually observed and name the rest, and the document remains the provider's to write and sign."
+    },
+    {
+      "id": "AIA-53-1b",
+      "article": "Art. 53(1)(b)",
+      "title": "Information for downstream providers (Annex XII)",
+      "applies_from": "2025-08-02",
+      "grace_until": "2027-08-02",
+      "grace_scope": "general-purpose AI models placed on the market before 2 August 2025",
+      "status": "in_force",
+      "role": "provider_gpai",
+      "summary": "Providers draw up, keep up to date and make available information and documentation to providers of AI systems who intend to integrate the model into their systems, so those integrators understand its capabilities and limitations and can comply with their own obligations.",
+      "evidence_expected": [
+        "Annex XII, point 1(a) to (c): intended tasks and the AI systems the model can be integrated into, acceptable use policies, and date of release and methods of distribution",
+        "Annex XII, point 1(d) and (e): how the model interacts with hardware or software that is not part of it, and the versions of relevant software",
+        "Annex XII, point 1(f) to (h): architecture and number of parameters, modality and format of inputs and outputs, and the licence for the model",
+        "Annex XII, point 2(a) and (b): the technical means required for integration, and the modality, format and maximum size of inputs and outputs, such as the context window length",
+        "Annex XII, point 2(c): information on the data used for training, testing and validation, including type, provenance and curation methodologies"
+      ],
+      "coverage": "partial",
+      "actaira_provides": [
+        "the architecture and number of parameters of Annex XII, point 1(f), observed from the tensor headers",
+        "a CycloneDX 1.6 ML-BOM listing the observed components of the artifact",
+        "cryptographic hashes an integrator can recompute independently",
+        "a signed attestation the integrator verifies offline, without contacting the provider and without trusting this tool"
+      ],
+      "actaira_does_not_provide": [
+        "ten of the eleven items Annex XII lists: intended tasks and integration targets, acceptable use policies, release date and distribution, hardware and software interaction, software versions, modality and format of inputs and outputs, the licence, technical means for integration, input and output size limits, and the description of training, testing and validation data",
+        "any assurance that what the integrator received is complete, as opposed to unaltered: a hash answers the second question and is silent on the first"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 53(1)(b) and Annex XII; applicable per Art. 113(b); transitional for legacy models in Art. 111(3)",
+      "note": "Annex XII asks for none of what this tool is best at. A hash, a bill of materials and an offline verifier answer the integrator's other question, whether this is the artifact the provider said it was, and that is worth supplying, but it is not a substantial part of the Annex. This entry read SUPPORTS until a hostile review pointed that out; it is PARTIAL now, and the catalogue has no SUPPORTS entry left. The Art. 53(2) open-source exception disapplies this point as well as point (a), on the conditions set out under AIA-53-1a, and never for a model with systemic risk.",
+      "checkability": "generatable",
+      "why_not": "Generatable, never satisfied. Annex XII is information handed to downstream providers. Actaira can draft the technical parts it observed; what the provider chooses to disclose is theirs."
+    },
+    {
+      "id": "AIA-53-1c",
+      "article": "Art. 53(1)(c)",
+      "title": "Copyright policy",
+      "applies_from": "2025-08-02",
+      "grace_until": "2027-08-02",
+      "grace_scope": "general-purpose AI models placed on the market before 2 August 2025",
+      "status": "in_force",
+      "role": "provider_gpai",
+      "summary": "Providers put in place a policy to comply with Union law on copyright and related rights, and in particular to identify and comply with, including through state-of-the-art technologies, a reservation of rights expressed under Article 4(3) of Directive (EU) 2019/790.",
+      "evidence_expected": [
+        "a written copyright policy",
+        "records of how reservations of rights are identified and honoured"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "anything: a policy is a document about conduct, not a property of a file"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 53(1)(c); transitional for legacy models in Art. 111(3)",
+      "note": "Not covered by the open-source exception in Art. 53(2), which reaches only points (a) and (b). A provider releasing a model under a free and open-source licence owes this one in full.",
+      "checkability": "evidence_judged",
+      "why_not": "Judged. The obligation is to put in place a policy to comply with Union copyright law, including honouring reservations of rights. Whether the policy is applied is an operating fact; whether a supplied policy document addresses what the Article asks is a judgement about text."
+    },
+    {
+      "id": "AIA-53-1d",
+      "article": "Art. 53(1)(d)",
+      "title": "Public summary of training content",
+      "applies_from": "2025-08-02",
+      "grace_until": "2027-08-02",
+      "grace_scope": "general-purpose AI models placed on the market before 2 August 2025",
+      "status": "in_force",
+      "role": "provider_gpai",
+      "summary": "Providers draw up and make publicly available a sufficiently detailed summary about the content used for training the general-purpose AI model, according to the template provided by the AI Office.",
+      "evidence_expected": [
+        "the public summary, following the AI Office template",
+        "records of the datasets and data sources used"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "any knowledge of training data. A weight file does not carry its training corpus, and a tool that inferred one would be guessing"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 53(1)(d); transitional for legacy models in Art. 111(3)",
+      "note": "If datasets are declared in an accompanying BOM, Actaira carries the declaration through and labels it as declared, never as observed. Like point (c), this is outside the open-source exception in Art. 53(2).",
+      "checkability": "generatable",
+      "why_not": "Generatable, and thinly. The sufficiently detailed summary of training content is about the data a model was trained on, and Actaira reads weights, not training corpora. It drafts the structure and marks nearly every point as one the operator must fill."
+    },
+    {
+      "id": "AIA-54",
+      "article": "Art. 54",
+      "title": "Authorised representative of a third-country GPAI provider",
+      "applies_from": "2025-08-02",
+      "grace_until": "2027-08-02",
+      "grace_scope": "general-purpose AI models placed on the market before 2 August 2025",
+      "status": "in_force",
+      "role": "provider_gpai",
+      "summary": "A provider established in a third country appoints, by written mandate, an authorised representative established in the Union before placing a general-purpose AI model on the Union market. The representative verifies the technical documentation, keeps it and the mandate at the disposal of the AI Office for ten years after the model was placed on the market, and cooperates with the authorities.",
+      "evidence_expected": [
+        "the written mandate, and the representative's acceptance of it",
+        "the Annex XI technical documentation kept available for ten years after the model was placed on the market",
+        "a record of information supplied to the AI Office on request, and of cooperation with it"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "the appointment, the mandate, or any part of the relationship between provider and representative",
+        "any judgement about whether the open-source exception in Art. 54(6) applies to a given model"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 54(1) to (3); open-source exception in Art. 54(6); applicable per Art. 113(b); transitional in Art. 111(3)",
+      "note": "The documentation the representative has to keep for ten years is the same package produced under AIA-53-1a, so a signed and time-anchored copy is useful here. It is deliberately not claimed as coverage: what this obligation asks for is an appointment and a standing relationship, and neither is in a file. Art. 54(6) exempts a provider releasing the model under a free and open-source licence on the same conditions as Art. 53(2), and, as there, never for a model with systemic risk.",
+      "checkability": "organizational",
+      "why_not": "Organizational. The obligation is to appoint an authorised representative established in the Union by written mandate. An appointment is a legal act between two parties; the mandate is a contract, and its existence is not a property of any technical artifact."
+    },
+    {
+      "id": "AIA-55",
+      "article": "Art. 55",
+      "title": "Obligations for models with systemic risk",
+      "applies_from": "2025-08-02",
+      "grace_until": "2027-08-02",
+      "grace_scope": "general-purpose AI models placed on the market before 2 August 2025",
+      "status": "in_force",
+      "role": "provider_gpai_systemic",
+      "summary": "Providers of general-purpose AI models with systemic risk additionally perform model evaluation including documented adversarial testing, assess and mitigate systemic risks at Union level, track document and report serious incidents to the AI Office, and ensure an adequate level of cybersecurity for the model and its physical infrastructure.",
+      "evidence_expected": [
+        "model evaluation and adversarial testing records, against standardised protocols reflecting the state of the art",
+        "the systemic risk assessment and the mitigation measures taken",
+        "a serious incident reporting process running to the AI Office",
+        "cybersecurity measures for the model and for its physical infrastructure"
+      ],
+      "coverage": "partial",
+      "actaira_provides": [
+        "evidence for the cybersecurity limb only: artifact integrity, a verifiable chain of custody over model files, and detection of executable payloads in serialised models"
+      ],
+      "actaira_does_not_provide": [
+        "model evaluation, adversarial testing of behaviour, systemic risk assessment, or incident reporting",
+        "any part of the physical infrastructure limb, which is about data centres and access control rather than about files"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 55(1); classification and the 10^25 FLOP presumption in Art. 51(1) and 51(2); transitional in Art. 111(3)",
+      "note": "This binds only providers of models classified under Art. 51, which is a narrower group than providers of general-purpose AI models. It carries its own role for that reason and is never handed to a GPAI provider by default: the user has to declare it. The 10^25 FLOP figure in Art. 51(2) is a rebuttable presumption about the model, not a property of the file, so Actaira cannot evaluate it, and Art. 51(1)(b) lets the Commission classify a model that is nowhere near it. Art. 55(1)(c) is the only serious-incident reporting duty that binds anybody today.",
+      "checkability": "evidence_judged",
+      "why_not": "Judged, and narrowly. Article 55 asks for model evaluation, adversarial testing, systemic risk assessment and incident tracking. Actaira does not run any of them. It can judge whether a supplied evaluation report addresses what the Article asks, which is a question about a document and not about the model."
+    },
+    {
+      "id": "AIA-50-1",
+      "article": "Art. 50(1)",
+      "title": "Disclosure of interaction with an AI system",
+      "applies_from": "2026-08-02",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "provider",
+      "summary": "Providers ensure that AI systems intended to interact directly with natural persons are designed and developed so those persons are informed they are interacting with an AI system, unless this is obvious from the point of view of a natural person who is reasonably well-informed, observant and circumspect, taking into account the circumstances and context of use.",
+      "evidence_expected": [
+        "the disclosure as implemented in the interface",
+        "a record of where and how it is shown, and at what point in the interaction",
+        "where the law-enforcement exception is relied on, the legal basis and the safeguards for third-party rights"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "anything about runtime behaviour: this obligation is discharged by the running system, not by the file it was loaded from"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 50(1); applicable per the general date in Art. 113",
+      "note": "Art. 50(1) binds the provider of an AI system, which is not the same person as the provider of a general-purpose AI model. Publishing weights does not by itself put anyone under this article.",
+      "checkability": "machine_checkable",
+      "why_not": "Machine-checkable over the surface supplied. The control reads the greeting, system prompt or transcript handed to it and looks for an explicit statement that the counterpart is an AI system. It cannot judge whether the disclosure is timely or prominent, which the Article also requires."
+    },
+    {
+      "id": "AIA-50-2",
+      "article": "Art. 50(2)",
+      "title": "Machine-readable marking of synthetic content",
+      "applies_from": "2026-08-02",
+      "grace_until": "2026-12-02",
+      "grace_scope": "generative systems already placed on the Union market before 2 August 2026",
+      "status": "in_force",
+      "role": "provider",
+      "summary": "Providers of AI systems, including general-purpose AI systems, generating synthetic audio, image, video or text ensure the outputs are marked in a machine-readable format and detectable as artificially generated or manipulated, effectively, interoperably, robustly and reliably as far as technically feasible. Systems performing an assistive function for standard editing, or not substantially altering the input data, are outside it.",
+      "evidence_expected": [
+        "the marking implementation and the standard it follows, for example C2PA",
+        "evidence that the marking survives the output pipeline",
+        "an assessment of technical feasibility where marking is limited",
+        "where the assistive-editing exclusion is relied on, the reasoning behind it"
+      ],
+      "coverage": "partial",
+      "actaira_provides": [
+        "a signed record of which model version is deployed, so a marking claim is bound to a specific artifact rather than to a product name",
+        "for GGUF only, the architecture and quantisation the file declares about itself, which may suggest a generative model without establishing anything"
+      ],
+      "actaira_does_not_provide": [
+        "any determination of scope: Art. 50(2) catches a system because it generates synthetic content, not because a weight file declares a particular architecture",
+        "any inspection of the outputs themselves, which is where the marking lives",
+        "any verification that a C2PA manifest is present or survives re-encoding",
+        "any architecture signal at all for safetensors, ONNX, Keras or NumPy artifacts, which carry no such declaration"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 50(2); applicable per the general date in Art. 113; transitional period in Art. 111(4), inserted as amended by Regulation (EU) 2026/1744 of 8 July 2026 (Digital Omnibus on AI, CELEX 32026R1744), OJ L, 24 July 2026, in force 27 July 2026",
+      "note": "The transitional period to 2 December 2026 is in Art. 111(4), inserted by Regulation (EU) 2026/1744, not in Art. 50 itself. It covers only the provider marking limb and only systems already on the market on 2 August 2026. Deployer duties under Art. 50(3) and 50(4) got no transitional period. The Commission's Code of Practice on Transparency of AI-generated Content, confirmed as adequate in 2026, is the practical route to demonstrating compliance with this paragraph. This entry claimed until recently that an observed architecture is what puts a system in scope; it does not, and the claim has been withdrawn.",
+      "checkability": "machine_checkable",
+      "why_not": "Machine-checkable over the files supplied, and this is the one obligation in the Regulation that a file really can answer. The control reads each output for a machine-readable marking. It says nothing about output it was never given, and nothing about markings carried in the signal rather than in metadata, which cannot be read without the detector key."
+    },
+    {
+      "id": "AIA-50-3",
+      "article": "Art. 50(3)",
+      "title": "Disclosure for emotion recognition and biometric categorisation",
+      "applies_from": "2026-08-02",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "deployer",
+      "summary": "Deployers of an emotion recognition system or a biometric categorisation system inform the natural persons exposed to it of the operation of the system, and process personal data in accordance with data protection law.",
+      "evidence_expected": [
+        "the notice given to affected persons",
+        "the GDPR lawful basis and the records of processing"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "anything: this is a deployment-time notice"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 50(3); applicable per the general date in Art. 113",
+      "note": "",
+      "checkability": "evidence_judged",
+      "why_not": "Judged. The duty is to inform the people exposed to an emotion recognition or biometric categorisation system. The informing happens in a place, a product or a sign, and Actaira never sees it. A supplied notice can be judged for whether it says what the Article requires."
+    },
+    {
+      "id": "AIA-50-4",
+      "article": "Art. 50(4)",
+      "title": "Labelling of deep fakes and AI-generated text on matters of public interest",
+      "applies_from": "2026-08-02",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "deployer",
+      "summary": "Deployers who generate or manipulate image, audio or video constituting a deep fake disclose that it has been artificially generated or manipulated. Deployers publishing AI-generated text to inform the public on matters of public interest disclose it, unless the content underwent human review or editorial control and someone holds editorial responsibility.",
+      "evidence_expected": [
+        "the disclosure as published",
+        "records of human review or editorial control where the exemption is relied on",
+        "where the work is artistic, creative, satirical or fictional, the reasoning for disclosing in a way that does not hamper the display or enjoyment of the work"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "anything: this obligation attaches to published content"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 50(4); applicable per the general date in Art. 113",
+      "note": "No transitional period applies to deployer obligations under Art. 50. The Art. 111(4) grace period reaches the provider marking limb of Art. 50(2) and nothing else.",
+      "checkability": "machine_checkable",
+      "why_not": "Machine-checkable over the files supplied, as evidence toward the duty and not as the duty. The disclosure a deployer owes is made to the people who see the content; the marking in the file is evidence that supports it. The artistic and satirical exemptions are a judgement about the work."
+    },
+    {
+      "id": "AIA-49",
+      "article": "Art. 49",
+      "title": "Registration in the EU database",
+      "applies_from": "2026-08-02",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "provider",
+      "summary": "Before a high-risk AI system listed in Annex III is placed on the market or put into service, its provider registers itself and the system in the EU database. A provider that concludes under Art. 6(3) that its system is not high-risk registers that conclusion. Deployers that are public authorities, or Union institutions, bodies, offices or agencies, register themselves as well.",
+      "evidence_expected": [
+        "the registration entry, and the date it was made",
+        "for an Art. 6(3) conclusion, the documented assessment behind it",
+        "for a public-authority deployer, its own registration under Art. 49(3)"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "anything: registration is an administrative filing in a database this tool does not talk to, and nothing in a model file establishes that it was made"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 49, amended as amended by Regulation (EU) 2026/1744 of 8 July 2026 (Digital Omnibus on AI, CELEX 32026R1744), OJ L, 24 July 2026, in force 27 July 2026; Chapter III Section 5 is not deferred by Art. 113(c) and applies on the general date",
+      "note": "Chapter III Section 5 is not in the Art. 113(c) deferral, so Art. 49 applies from 2 August 2026 even though the classification rules in Section 1 do not apply until 2 December 2027. In practice that leaves the Art. 6(3) registration, whose content Regulation (EU) 2026/1744 simplified, as the part of this article with a subject before that date.",
+      "checkability": "organizational",
+      "why_not": "Organizational. The obligation is to register the system in the EU database before placing it on the market. Registration is an act performed against a registry Actaira has no access to, and its completion is recorded there, not in any file the provider holds."
+    },
+    {
+      "id": "AIA-73",
+      "article": "Art. 73",
+      "title": "Reporting serious incidents",
+      "applies_from": "2026-08-02",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "provider",
+      "summary": "A provider of a high-risk AI system placed on the Union market reports any serious incident to the market surveillance authorities of the Member State where the incident occurred, immediately after establishing a causal link between the system and the incident, and investigates and takes corrective action.",
+      "evidence_expected": [
+        "the report sent, and the date the provider became aware of the incident",
+        "the deadline met: fifteen days as a rule, two days for a widespread infringement or an incident that seriously and irreversibly disrupts critical infrastructure, and ten days where a person died",
+        "the investigation carried out and the corrective action taken"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "anything: a serious incident is something that happens to people while a system runs, and no property of a weight file records that it happened"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 73(1) to (4); Chapter IX is not deferred by Art. 113(c) and applies on the general date",
+      "note": "Chapter IX is not in the Art. 113(c) deferral, so this applies from 2 August 2026. Its subject, though, is a provider of a high-risk AI system, and there is none under Annex III until 2 December 2027, so the duty applies before it has anyone to bind. The incident reporting that does bind today is Art. 55(1)(c), for models with systemic risk, and it runs to the AI Office rather than to a national authority.",
+      "checkability": "organizational",
+      "why_not": "Organizational. The obligation is to report a serious incident to the market surveillance authority within a deadline. Actaira holds no incident record and cannot observe a report being filed. A tool that claimed otherwise would be reporting on its own inbox."
+    },
+    {
+      "id": "AIA-11",
+      "article": "Art. 11 + Annex IV",
+      "title": "Technical documentation for high-risk systems",
+      "applies_from": "2027-12-02",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "provider",
+      "summary": "Providers of high-risk AI systems draw up technical documentation containing at least the elements of Annex IV before the system is placed on the market or put into service, and keep it up to date.",
+      "evidence_expected": [
+        "Annex IV, point 1: general description of the system, its intended purpose, its versions and the hardware it runs on",
+        "Annex IV, point 2(b): design specifications, including the general logic and the algorithms",
+        "Annex IV, point 2(d): data requirements, including datasheets describing the training methodologies and the training data sets",
+        "Annex IV, point 2(g): validation and testing procedures used, the validation and testing data, and the metrics for accuracy, robustness and compliance",
+        "Annex IV, point 5: a detailed description of the risk management system required by Article 9"
+      ],
+      "coverage": "partial",
+      "actaira_provides": [
+        "the observable part of the general description: formats, parameter counts where the format carries them, component inventory and hashes, for each model the system embeds"
+      ],
+      "actaira_does_not_provide": [
+        "design specifications, data requirements, validation and testing results, the risk management system of point 5, or the human oversight measures of point 2(e)",
+        "any part of the post-market monitoring plan of point 9 or the declaration of conformity of point 8"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 11 and Annex IV; Chapter III Section 2 deferred by Art. 113(c) as amended by Regulation (EU) 2026/1744 of 8 July 2026 (Digital Omnibus on AI, CELEX 32026R1744), OJ L, 24 July 2026, in force 27 July 2026",
+      "note": "Deferred by Art. 113(c) as rewritten by Regulation (EU) 2026/1744: 2 December 2027 for Art. 6(2) and Annex III systems, and 2 August 2028 for Art. 6(1) and Annex I systems. The catalogue carries the earlier date. That deferral is published law, not a political agreement: this entry was marked provisional while it was one. Regulation (EU) 2026/1744 also lets SMEs and small mid-cap companies supply this documentation in a simplified form, on a template the Commission establishes. Annex IV, point 5 used to be cited here as validation and testing; that is point 2(g), and point 5 is the risk management system.",
+      "checkability": "generatable",
+      "why_not": "Generatable, never satisfied. Actaira drafts the Annex IV file point by point and marks each one filled from evidence, declared by the operator, or missing. A draft nobody signed is not documentation: Annex IV binds the provider, and the signature is the part that makes it theirs."
+    },
+    {
+      "id": "AIA-12",
+      "article": "Art. 12",
+      "title": "Record-keeping (automatic logging)",
+      "applies_from": "2027-12-02",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "provider",
+      "summary": "High-risk AI systems technically allow for the automatic recording of events over the lifetime of the system, with logging capabilities appropriate to the intended purpose and sufficient for the traceability the Regulation asks for.",
+      "evidence_expected": [
+        "the logging capability the system has, and what it records",
+        "that the logs serve Art. 12(2): identifying situations of risk or substantial modification, feeding post-market monitoring under Art. 72, and supporting the deployer's monitoring under Art. 26(5)",
+        "for a remote biometric identification system, the Art. 12(3) elements: periods of use, the reference database, the input data that produced a match, and who verified the result",
+        "retention and integrity of the logs"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "the logging capability itself, which Art. 12 requires the high-risk system to have and which no inspection of a model file can create or observe",
+        "any record of events over the system's lifetime, because Actaira never sees the system run",
+        "any of the Art. 12(3) elements"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 12; Chapter III Section 2 deferred by Art. 113(c) as amended by Regulation (EU) 2026/1744 of 8 July 2026 (Digital Omnibus on AI, CELEX 32026R1744), OJ L, 24 July 2026, in force 27 July 2026",
+      "note": "Actaira keeps an append-only, hash-linked and signed ledger of its own inspections, whose integrity a third party verifies offline and whose append-only growth is provable with an RFC 6962 consistency proof. This entry used to claim that as partial coverage of Art. 12. It is not: traceability over an artifact is not the system's automatic recording of events, and the two answer different questions. The ledger and its consistency proof are claimed under AIA-15, where the claim holds; the hashes and the component inventory are claimed under AIA-11.",
+      "checkability": "machine_checkable",
+      "why_not": "Machine-checkable in form only. The control reads the logs supplied and checks that their entries carry the fields traceability needs. It cannot check that the log is complete, that it covers the system's whole lifetime, or that anything in it is true."
+    },
+    {
+      "id": "AIA-15",
+      "article": "Art. 15",
+      "title": "Accuracy, robustness and cybersecurity",
+      "applies_from": "2027-12-02",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "provider",
+      "summary": "High-risk AI systems achieve an appropriate level of accuracy, robustness and cybersecurity, and are resilient against attempts by unauthorised third parties to alter their use, outputs or performance by exploiting vulnerabilities.",
+      "evidence_expected": [
+        "accuracy metrics and the methodology behind them, declared in the instructions for use",
+        "robustness testing results",
+        "cybersecurity measures, including against data poisoning, model poisoning and adversarial examples"
+      ],
+      "coverage": "partial",
+      "actaira_provides": [
+        "supply-chain controls for the cybersecurity limb: detection of executable payloads in serialised models, artifact integrity, and a verifiable record of which artifact was deployed"
+      ],
+      "actaira_does_not_provide": [
+        "accuracy or robustness measurement, which require running the model",
+        "any defence against poisoning that happened before the artifact reached this tool: a poisoned model with an intact hash still passes"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 15; Chapter III Section 2 deferred by Art. 113(c) as amended by Regulation (EU) 2026/1744 of 8 July 2026 (Digital Omnibus on AI, CELEX 32026R1744), OJ L, 24 July 2026, in force 27 July 2026",
+      "note": "Deferred by Art. 113(c) as rewritten by Regulation (EU) 2026/1744, to 2 December 2027 for Annex III systems and 2 August 2028 for Annex I systems.",
+      "checkability": "machine_checkable",
+      "why_not": "Machine-checkable in two narrow places. One control inspects the artifact for the cybersecurity part; another measures whether an Article 50(2) marking survives a published battery of ordinary transformations. The accuracy and robustness of the system itself are not measured, because measuring them means running the model, which this tool never does."
+    },
+    {
+      "id": "AIA-26",
+      "article": "Art. 26",
+      "title": "Deployer obligations for high-risk systems",
+      "applies_from": "2027-12-02",
+      "grace_until": null,
+      "grace_scope": null,
+      "status": "in_force",
+      "role": "deployer",
+      "summary": "Deployers use the high-risk system according to its instructions for use, assign human oversight to natural persons with the necessary competence, training and authority, ensure that input data under their control is relevant and sufficiently representative, monitor operation, suspend use and inform the provider where a risk appears, keep the logs, and inform workers and affected persons.",
+      "evidence_expected": [
+        "the assignment of human oversight, and the competence, training and authority of the persons assigned",
+        "monitoring records under Art. 26(5), and the notifications sent to the provider or distributor where a risk appeared",
+        "the automatically generated logs, kept for at least six months under Art. 26(6) unless other Union or national law provides otherwise",
+        "the information given to workers under Art. 26(7) and to affected persons under Art. 26(11)"
+      ],
+      "coverage": "not_covered",
+      "actaira_provides": [],
+      "actaira_does_not_provide": [
+        "anything: every limb of Art. 26 is about how an organisation runs a system, and none of it is in the file the system loaded"
+      ],
+      "citation": "Regulation (EU) 2024/1689 (CELEX 32024R1689), Art. 26, in particular 26(5) and 26(6); Chapter III Section 3 deferred by Art. 113(c) as amended by Regulation (EU) 2026/1744 of 8 July 2026 (Digital Omnibus on AI, CELEX 32026R1744), OJ L, 24 July 2026, in force 27 July 2026",
+      "note": "Listed because this catalogue previously carried three high-risk obligations, all of them on the provider, which reads as though the deployer had none. Art. 26(6) is the deployer's counterpart to the provider's Art. 12: the system has to be able to log, and the deployer has to keep what it logged. Deferred with the rest of Chapter III Section 3 to 2 December 2027 for Annex III systems and 2 August 2028 for Annex I systems.",
+      "checkability": "evidence_judged",
+      "why_not": "Judged. Deployer duties are operating duties: use according to the instructions, assign competent human oversight, monitor. Whether that happened is a fact about an operation. What a supplied deployment procedure says about it is readable, and that is what Actaira judges."
+    }
+  ]
+}

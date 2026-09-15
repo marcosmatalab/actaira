@@ -91,35 +91,6 @@ def test_every_repository_link_resolves(name):
         assert (Path(REPO_ROOT) / target).exists(), f"{name} links to a missing path: {target}"
 
 
-def test_the_headline_figures_are_the_ones_the_harnesses_measured():
-    """The numbers at the top, which are the ones a reader remembers.
-
-    These were three hardcoded pairs in this file until 2.2.0 closed, which is
-    a second hand-maintained copy rather than a source: the test asserted the
-    README still said what the test said, and would have kept passing while
-    both drifted from the harness together. `evals/benchmark.json` is tracked
-    now, so all three derive, and `scripts/figures_contract.py` owns them
-    alongside every other figure the prose may state.
-    """
-    import sys
-
-    sys.path.insert(0, str(Path(REPO_ROOT) / "scripts"))
-    from figures_contract import derive  # noqa: PLC0415
-
-    value = derive()
-    headline = (
-        (f"{value['unknown_gadgets_strict']} of {value['unknown_gadgets_total']}",
-         f"{value['unknown_gadgets_strict']} de {value['unknown_gadgets_total']}"),
-        (f"{value['marking_naive_survived']} of {value['marking_naive_trials']}",
-         f"{value['marking_naive_survived']} de {value['marking_naive_trials']}"),
-        (f"{value['marking_aware_survived']} of {value['marking_aware_trials']}",
-         f"{value['marking_aware_survived']} de {value['marking_aware_trials']}"),
-    )
-    for english, spanish in headline:
-        assert english in ENGLISH, f"README.md lost the headline figure {english!r}"
-        assert spanish in SPANISH, f"README.es.md lost the headline figure {spanish!r}"
-
-
 # ---------------------------------------------------------------------------
 # Figures against the files that produce them
 # ---------------------------------------------------------------------------
@@ -184,13 +155,6 @@ def test_the_line_count_and_rule_count_match_the_measurement():
         assert str(rules) in text
 
 
-@pytest.mark.skipif(not FIGURES, reason="figures.json is absent; run make figures")
-def test_the_corpus_size_matches_the_built_corpus():
-    cases = FIGURES["corpus"]["cases"]
-    for text in (ENGLISH, SPANISH):
-        assert str(cases) in text
-
-
 # ---------------------------------------------------------------------------
 # The pictures, against the code and the measurements that produce them
 # ---------------------------------------------------------------------------
@@ -204,51 +168,6 @@ DIAGRAMS = (
     "coverage-ladder.svg",
     "marking-survival.svg",
 )
-
-
-@pytest.mark.parametrize("name", DIAGRAMS)
-def test_every_generated_diagram_is_committed(name):
-    assert (Path(REPO_ROOT) / "docs" / "img" / name).is_file(), (
-        f"{name} is referenced by the READMEs and missing; run `make diagrams`"
-    )
-
-
-def test_the_survival_chart_shows_the_figures_the_harness_measured():
-    """The picture cannot say something the measurement does not.
-
-    This repository has published a stale figure twice, and a picture is the
-    worst place for it because a reader has no way to check it against the
-    prose. The chart is generated from `evals/marking/results.json`, so this
-    test only has to prove the generated file agrees with that file today.
-    """
-    results_path = Path(REPO_ROOT) / "evals" / "marking" / "results.json"
-    if not results_path.is_file():
-        pytest.skip("evals/marking/results.json is absent; run make eval-marking")
-    measured = json.loads(results_path.read_text(encoding="utf-8"))
-    chart = (Path(REPO_ROOT) / "docs" / "img" / "marking-survival.svg").read_text(encoding="utf-8")
-    naive = measured["naive_pipeline"]
-    aware = measured["metadata_aware_pipeline"]
-    assert f'{naive["survived"]} of {naive["trials"]}' in chart
-    assert f'{aware["survived"]} of {aware["trials"]}' in chart
-    for text in (ENGLISH, SPANISH):
-        assert f'{naive["survived"]} of {naive["trials"]}'.replace(" of ", " de ") in text or (
-            f'{naive["survived"]} of {naive["trials"]}' in text
-        )
-
-
-def test_the_coverage_ladder_shows_the_tier_counts_the_catalogue_holds():
-    from actaira.governance.catalog import ALL_OBLIGATIONS, Checkability
-
-    chart = (Path(REPO_ROOT) / "docs" / "img" / "coverage-ladder.svg").read_text(encoding="utf-8")
-    for tier in Checkability:
-        count = sum(1 for o in ALL_OBLIGATIONS if o.checkability is tier)
-        assert f">{count}</text>" in chart, (
-            f"the ladder does not show {count} for {tier.value}; run `make diagrams`"
-        )
-        for text in (ENGLISH, SPANISH):
-            assert f"| **{count}** |" in text, (
-                f"a README tier row lost the count {count} for {tier.value}"
-            )
 
 
 # ---------------------------------------------------------------------------
@@ -310,37 +229,6 @@ def test_the_example_fixtures_build_to_the_digests_the_readmes_print():
                 f"{readme} prints a digest for {name} that the recipe does not produce; "
                 f"the recipe gives sha256:{digest}"
             )
-
-
-def test_the_localised_screenshots_are_not_the_same_image():
-    """DEF-108. Two files claiming to show two languages have to differ.
-
-    `scripts/screenshots.py` selected the language only when it was not
-    English, on the assumption that an unprimed page shows English - and it
-    does not, it follows `navigator.language`. So every capture came out in
-    whatever language the capturing browser preferred, and the two governance
-    pairs were byte-identical: one README showed a screenshot in the other's
-    language, and the only thing that would have noticed was a reader who
-    speaks both.
-
-    Asserted on the bytes rather than on the generator, because the generator
-    is not what the READMEs display.
-    """
-    import hashlib
-
-    images = Path(REPO_ROOT) / "docs" / "img"
-    pairs = [
-        ("04-governance.png", "06-governance-es.png"),
-        ("05-governance-dark.png", "08-governance-dark-es.png"),
-    ]
-    for english, spanish in pairs:
-        left, right = images / english, images / spanish
-        assert left.is_file() and right.is_file(), f"{english} or {spanish} is missing"
-        assert hashlib.sha256(left.read_bytes()).digest() != hashlib.sha256(right.read_bytes()).digest(), (
-            f"{english} and {spanish} are the same image. They are the same panel in "
-            "two languages; if they are identical the capture never switched language, "
-            "and one README is showing the other's screenshot."
-        )
 
 
 # ---------------------------------------------------------------------------

@@ -19,159 +19,70 @@ decision without the third part is not a decision, it is a preference.
 | Note | Subject | Location |
 |---|---|---|
 | D-01 | One `Finding` shape for every inspector | `src/actaira/model.py:3` |
-| D-02 | Allowlist by default, denylist available | `src/actaira/scan/policy.py:3` |
 | D-03 | Canonical JSON under every hash | `src/actaira/model.py:157` |
 | D-04 | `INCONCLUSIVE` is a result, not an error | `src/actaira/model.py:46` |
-| D-05 | `pickletools.genops`, exact stack and memo | `src/actaira/formats/pickle_scan.py:3` |
-| D-06 | Format detection by content, never extension | `src/actaira/formats/detect.py:3` |
 | D-07 | Rule identifiers are the stable interface | `src/actaira/i18n/catalog.py:3` |
-| D-08 | Hand-written protobuf reader for ONNX | `src/actaira/formats/onnx.py:3` |
-| D-09 | HDF5 is a bounded byte scan, and says so | `src/actaira/formats/keras_h5.py:3` |
-| D-10 | Verdict rules in one place | `src/actaira/inspect.py:3` |
 | D-11 | RFC 6962 Merkle tree | `src/actaira/attest/merkle.py:3` |
 | D-12 | Ed25519 | `src/actaira/attest/signing.py:3` |
 | D-13 | Hash-linked entries, and no claim about time on their own | `src/actaira/attest/chain.py:3` |
 | D-14 | Package is a plain zip, one signature | `src/actaira/attest/package.py:3` |
 | D-15 | Integrity and identity kept separate | `src/actaira/attest/verify.py:3` |
-| D-16 | CycloneDX rather than SPDX | `src/actaira/bom/cyclonedx.py:3` |
-| D-17 | Zero third-party dependencies in the web layer | `src/actaira/web/server.py:3` |
-| D-18 | The server treats every request as hostile | `src/actaira/web/server.py:11` |
-| D-19 | Corpus generated from code, not downloaded | `evals/corpus/build.py:3` |
-| D-20 | What the eval measures and refuses to measure | `evals/harness.py:3` |
-| D-21 | Disassembly shows the mechanism instead of asserting it | `src/actaira/formats/disassembly.py:3` |
-| D-22 | The opcode view and the sample strip inherit the server's rules | `src/actaira/web/server.py:48` |
-| D-23 | Artifacts written by the real serialisers | `evals/corpus/real.py:3` |
-| D-24 | Comparison against the other scanners, on the same corpus | `evals/benchmark.py:3` |
 | D-25 | Consistency proofs, so append-only is evidence | `src/actaira/attest/merkle.py:97` |
-| D-25b | The same question at the package boundary | `src/actaira/attest/verify.py:145` |
-| D-26 | Resuming a chain, because a log you restart is not a log | `src/actaira/attest/chain.py:115` |
+| D-25b | The same question at the package boundary | `src/actaira/attest/verify.py:146` |
+| D-26 | Resuming a chain, because a log you restart is not a log | `src/actaira/attest/chain.py:141` |
 | D-27 | RFC 3161 time anchoring, optional and narrow | `src/actaira/attest/timestamp.py:3` |
 | D-27b | Stamping the manifest before the manifest is finished | `src/actaira/attest/package.py:11` |
 | D-28 | Several keys, with validity windows and a status | `src/actaira/attest/keyring.py:3` |
-| D-29 | An obligation catalogue, and what makes it worth having | `src/actaira/governance/catalog.py:3` |
-| D-30 | The clock takes the date as an argument, never the machine's | `src/actaira/governance/clock.py:3` |
-| D-31 | No score, by construction | `src/actaira/governance/assess.py:3` |
-| D-32 | An assessment is bound to the artifacts it was computed from | `src/actaira/governance/pack.py:3` |
-| D-33 | Structure in the catalogue, prose in the message catalogues | `src/actaira/governance/catalog.py:32` |
-| D-34 | What a coverage rating is allowed to claim | `src/actaira/governance/catalog.py:44` |
-| D-35 | The bytes a nested loader is handed are disassembled, not trusted | `src/actaira/formats/pickle_scan.py:729` |
-| D-36 | The governance routes inherit the server's rules | `src/actaira/web/server.py:752` |
-| D-40 | A draft nobody signed is not evidence | `src/actaira/controls/model.py:3` |
-| D-41 | No aggregate: controls are counted, never summed into a figure | `src/actaira/controls/model.py:32` |
-| D-42 | How, if at all, software can bear on an obligation | `src/actaira/governance/catalog.py:157` |
-| D-43 | The registry is the file a compliance tool has to be most careful with | `src/actaira/controls/registry.py:3` |
-| D-44 | A control that raises is a defect, not a failing control | `src/actaira/controls/engine.py:3` |
-| D-45 | What the agent layer is allowed to be, and what it is not | `src/actaira/agents/provider.py:3` |
-| D-46 | The corpus answers with a citation, never with the legal text | `src/actaira/agents/corpus.py:3` |
-| D-47 | BM25 over a dense retriever, argued on this corpus | `src/actaira/agents/retriever.py:3` |
-| D-48 | The judge quotes the document at exact offsets | `src/actaira/agents/judge.py:3` |
-| D-49 | Two questions of every citation, and how each one fails | `src/actaira/agents/verifier.py:3` |
 | D-50 | DSSE and in-toto, so the report is speakable by other tools | `src/actaira/attest/dsse.py:4` |
 | D-51 | PAE, and the dangling-file class the envelope removes | `src/actaira/attest/dsse.py:33` |
-| D-52 | Checking the form of a record is not checking the record | `src/actaira/controls/records.py:3` |
-| D-53 | An absence observed outranks a remainder unread | `src/actaira/controls/records.py:32` |
-| D-54 | `ACT-C-15-ARTIFACT` is a bridge to the scanner, not a second one | `src/actaira/controls/records.py:47` |
-| D-55 | filled_from_evidence, declared_by_operator, missing | `src/actaira/controls/documentation.py:3` |
-| D-56 | A generated document is never SATISFIED, and where that is enforced | `src/actaira/controls/documentation.py:34` |
-| D-57 | Annex text stays in Python, and is marked as a paraphrase | `src/actaira/controls/documentation.py:52` |
-| D-60 | Machine-readable marking: which formats resolve to what, and what is refused | `src/actaira/marking.py:3` |
-| D-61 | Article 50 is four duties on two actors, kept apart | `src/actaira/controls/art50.py:3` |
-| D-62 | A marking control answers for the files it read, never for the obligation | `src/actaira/controls/art50.py:26` |
-| D-63 | The Article 111(4) grace period, and why the date is an argument | `src/actaira/controls/art50.py:34` |
-| D-64 | Article 50(1) is lexical on purpose, and the marker list is published | `src/actaira/controls/art50.py:271` |
-| D-65 | Marking robustness is an Article 15 question, not an Article 50 one | `src/actaira/controls/art50.py:367` |
-| D-66 | How often a marking survives the pipeline, and why Pillow is dev-only | `src/actaira/evals_support/robustness.py:3` |
-| D-70 | Diagrams are generated from the code and the measurements, never drawn | `scripts/diagrams.py:5` |
-| D-71 | The palette clears 3:1 on both GitHub surfaces, and colour is never alone | `scripts/diagrams.py:17` |
-| D-80 | A connector enumerates; it never concludes | `src/actaira/connectors/model.py:3` |
-| D-81 | Every connector speaks its protocol with the standard library | `src/actaira/connectors/model.py:35` |
-| D-82 | An explicit TLS seam for the tests, which cannot turn verification off | `src/actaira/connectors/model.py:203` |
-| D-83 | A refusal carries its status and headers, because one protocol lives in them | `src/actaira/connectors/model.py:94` |
-| D-84 | One connector per source, and `accepts` predicates that do not overlap | `src/actaira/connectors/registry.py:3` |
-| D-85 | The reference connector, and the digest it refuses to invent | `src/actaira/connectors/filesystem.py:3` |
-| D-85c | A symlink is a claim about a path outside the tree, so it is not followed | `src/actaira/connectors/filesystem.py:31` |
-| D-85b | A digest Actaira computed is not a digest the source declared | `src/actaira/connectors/filesystem.py:17` |
-| D-86 | An LFS oid is a sha256; a git oid is not | `src/actaira/connectors/huggingface.py:3` |
-| D-86b | The Hub cursor is not followed; a full page means the listing is a prefix | `src/actaira/connectors/huggingface.py:26` |
-| D-87 | `truncated: true` is the field that decides a GitHub listing | `src/actaira/connectors/github.py:3` |
-| D-87c | A release asset digest is believed only when it says sha256 | `src/actaira/connectors/github.py:25` |
-| D-87b | Release assets and tree blobs are listed together and never blurred | `src/actaira/connectors/github.py:14` |
-| D-88 | A registry digest is content-addressed and still a claim | `src/actaira/connectors/oci.py:3` |
-| D-88b | The anonymous bearer challenge, followed once and never in a loop | `src/actaira/connectors/oci.py:18` |
-| D-89 | No SigV4, stated in the docstring and in every listing | `src/actaira/connectors/s3.py:3` |
-| D-89d | XML from a stranger: no doctype reaches the parser | `src/actaira/connectors/s3.py:45` |
-| D-89c | An ETag is not a sha256 and sometimes not a digest at all | `src/actaira/connectors/s3.py:33` |
-| D-89b | An anonymous bucket listing is never complete, even when nothing was truncated | `src/actaira/connectors/s3.py:21` |
-| D-90 | The registry that knows the most and publishes no digest | `src/actaira/connectors/mlflow.py:3` |
-| D-90b | Only a bearer token, never a username and password from the environment | `src/actaira/connectors/mlflow.py:20` |
-| D-91 | A manifest of URLs, for every source this tool does not support | `src/actaira/connectors/url.py:3` |
-| D-91c | The line format has nowhere to put a digest; the JSON one does | `src/actaira/connectors/url.py:29` |
-| D-91b | What `complete` is allowed to mean when the source is a file somebody wrote | `src/actaira/connectors/url.py:17` |
-| D-92 | What `discover` exits with, and why incomplete is not zero | `src/actaira/cli.py:1234` |
-| D-93 | Redirects stay on HTTPS and are recorded like any other hop | `src/actaira/connectors/model.py:252` |
-| D-93b | A credential does not follow a redirect to another host | `src/actaira/connectors/model.py:271` |
 | D-100 | Coverage is per surface, not one boolean over the whole file | `src/actaira/coverage.py:3` |
 | D-101 | Every rule says which surface it limits, so a scope note cannot fail a verdict | `src/actaira/coverage.py:255` |
-| D-102 | An archive member is classified by its first bytes, never by its name | `src/actaira/formats/archive.py:57` |
-| D-103 | Members left undecompressed limit raw tensor content and nothing else | `src/actaira/formats/archive.py:185` |
-| D-104 | `fully_read` is derived from coverage, so the old contract still holds | `src/actaira/inspect.py:53` |
-| D-105 | A surface nobody undertook to read cannot make a verdict inconclusive | `src/actaira/inspect.py:298` |
-| D-106 | A directory walk classifies by content; an extension may order, never exclude | `src/actaira/cli.py:90` |
+| D-104 | `fully_read` is derived from coverage, so the old contract still holds | `src/actaira/coverage.py:37` |
 | D-110 | One hand-written YAML subset, shared by control declarations and policies | `src/actaira/miniyaml.py:3` |
 | D-111 | A policy is a document with a digest, not an `if` in a CI config | `src/actaira/policy/__init__.py:3` |
 | D-112 | A decision carries the proof that lets someone else re-derive it | `src/actaira/policy/model.py:3` |
 | D-113 | A condition that cannot be evaluated is REVIEW, never False | `src/actaira/policy/engine.py:3` |
 | D-114 | The shipped policy is a starting point to argue with, not a standard | `policies/production-model.yaml:3` |
 | D-120 | A signed statement of observed state that is not a certification and not a score | `src/actaira/receipt.py:3` |
-| D-130 | A model is a repository, and the risk is in the relations between its files | `src/actaira/bundle.py:3` |
-| D-140 | Agents, tools and MCP servers as versioned components with digests | `src/actaira/agentgov/__init__.py:3` |
-| D-140b | The interface's agent routes call the functions the CLI calls, and a declaration gets a ceiling of its own rather than an artifact's | `src/actaira/web/server.py:576` |
-| D-33b | The interface's policy routes decide with the engine's own `decide`, and the subject kind is stated by the operator rather than sniffed from the bytes | `src/actaira/web/server.py:662` |
-| D-141 | Effects are consequences, not implementations, so a new transport needs no new entry | `src/actaira/agentgov/model.py:3` |
-| D-142 | The capability rules take the agent as their subject, because the risk is the combination | `src/actaira/agentgov/capability.py:3` |
-| D-143 | A declaration that says less than it means does not load | `src/actaira/agentgov/declare.py:3` |
+| D-140 | Agents, tools and MCP servers as versioned components with digests | `src/actaira/conformance/__init__.py:3` |
+| D-141 | Effects are consequences, not implementations, so a new transport needs no new entry | `src/actaira/conformance/model.py:3` |
+| D-142 | The capability rules take the agent as their subject, because the risk is the combination | `src/actaira/conformance/capability.py:3` |
+| D-143 | A declaration that says less than it means does not load | `src/actaira/conformance/declare.py:3` |
 | D-150 | Versioned schemas, and what a version number promises | `src/actaira/schemas/__init__.py:3` |
 | D-160 | A bound applied after the read is not a bound | `src/actaira/io_budget.py:3` |
 | D-170 | Chain validation against anchors the caller supplied, and what it still does not check | `src/actaira/attest/trust.py:3` |
 | D-180 | One gate that refuses a release whose parts disagree with each other | `scripts/release_check.py:3` |
 | D-181 | A gate whose only remedy is a manual edit gets routed around | `scripts/sync_readme_figures.py:3` |
-| D-200 | A digest over the shape is not the identity of the weights | `src/actaira/bundle.py:59` |
-| D-201 | A vocabulary that is not enumerated is one nobody can check | `src/actaira/agentgov/vocabulary.py:3` |
-| D-202 | Relations are declared and validated, not inferred from matching strings | `src/actaira/agentgov/model.py:18` |
-| D-203 | A digest that moved with nothing else reported is the worst output a change review can give | `src/actaira/agentgov/model.py:497` |
-| D-204 | Which gaps refuse a declaration and which are reported as findings | `src/actaira/agentgov/declare.py:18` |
-| D-205 | A mitigation with nowhere to be written down is one that gets waived | `src/actaira/agentgov/capability.py:95` |
-| D-210 | Not "these are dangerous together" but "here is the route, and what breaks it" | `src/actaira/agentgov/paths.py:3` |
+| D-201 | A vocabulary that is not enumerated is one nobody can check | `src/actaira/conformance/vocabulary.py:3` |
+| D-202 | Relations are declared and validated, not inferred from matching strings | `src/actaira/conformance/model.py:18` |
+| D-203 | A digest that moved with nothing else reported is the worst output a change review can give | `src/actaira/conformance/model.py:497` |
+| D-204 | Which gaps refuse a declaration and which are reported as findings | `src/actaira/conformance/declare.py:18` |
+| D-205 | A mitigation with nowhere to be written down is one that gets waived | `src/actaira/conformance/capability.py:95` |
+| D-210 | Not "these are dangerous together" but "here is the route, and what breaks it" | `src/actaira/conformance/paths.py:3` |
 | D-211 | One shape for every subject a policy can decide about | `src/actaira/subject.py:3` |
-| D-212 | A predicate reads what was observed, and absence is never falsehood | `src/actaira/policy/engine.py:483` |
-| D-212a | A kind guard short-circuits, or a rule that does not apply makes the run inconclusive | `src/actaira/policy/engine.py:830` |
+| D-212 | A predicate reads what was observed, and absence is never falsehood | `src/actaira/policy/engine.py:477` |
+| D-212a | A kind guard short-circuits, or a rule that does not apply makes the run inconclusive | `src/actaira/policy/engine.py:743` |
 | D-213 | A manifest points at subjects; it does not restate what they say | `src/actaira/manifest.py:3` |
-| D-214 | Separate identities do not close a route that carries text through one model's context | `src/actaira/agentgov/paths.py:303` |
+| D-214 | Separate identities do not close a route that carries text through one model's context | `src/actaira/conformance/paths.py:303` |
 | D-220 | Memory, because "what changed" cannot be answered from the bytes in front of you | `src/actaira/state/__init__.py:3` |
 | D-221 | Forward-only numbered migrations, and a snapshot that is complete or absent | `src/actaira/state/store.py:3` |
 | D-222 | A canonical snapshot, and an incomplete listing that never looks like an empty one | `src/actaira/state/snapshot.py:3` |
 | D-223 | Five evidence states, and supersession bound to a digest rather than a name | `src/actaira/state/evidence.py:3` |
 | D-224 | An edge exists because something said so, and an answer comes with its route | `src/actaira/state/graph.py:3` |
 | D-225 | First observation, source drift, content drift and a failed listing are four things | `src/actaira/state/watch.py:3` |
-| D-226 | What this environment accepts, kept apart from what cryptography proved | `src/actaira/trustpolicy.py:3` |
-| D-227 | The state commands live apart, so the stateless ones stay stateless | `src/actaira/statecli.py:3` |
 | D-228 | A receipt about a system, not about a list of files, with v1 still verifying | `src/actaira/receipt.py:113` |
-| D-229 | Provenance survives the download, and half a listing cannot be a whole identity | `src/actaira/remote.py:3` |
 | D-230 | A figure that is derivable is never maintained by hand, in prose either | `scripts/figures_contract.py:3` |
-| D-231 | The version this tool tells a remote host is the one it is, not the one it was | `src/actaira/connectors/model.py:66` |
 | D-232 | The index of published contracts is generated, because an index with a hole in it still looks complete | `scripts/contracts_doc.py:4` |
-| D-233 | A published field that nothing can populate is a claim, so the writes were wired rather than the field removed | `src/actaira/cli.py:1587` |
 | D-234 | The console blocks are output this tool produced, and the gate re-runs them under two hash seeds | `scripts/cli_transcripts.py:4` |
-| D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:578` |
-| D-236 | The published line count is a sum over a partition of the tree, checked, not a sum over a list somebody maintained | `scripts/figures.py:61` |
+| D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:269` |
+| D-236 | The published line count is a sum over a partition of the tree, checked, not a sum over a list somebody maintained | `scripts/figures.py:60` |
 | D-237 | A line number in the note table is derived, because a reference wrong by four hundred lines is not stale, it is wrong | `scripts/design_notes.py:4` |
 | D-238 | One spelling of "the last path segment", because three spellings put the producer's absolute path inside signed documents | `src/actaira/model.py:135` |
 | D-239 | A build writes into `dist/` and is then opened and checked, because the one artifact nobody looks at is a package | `scripts/build_package.py:4` |
-| D-240 | The default key path is resolved when a parser is built, not at import, so a host with no home does not break every command | `src/actaira/cli.py:68` |
-| D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:608` |
+| D-240 | The default key path is resolved when a parser is built, not at import, so a host with no home does not break every command | `src/actaira/cli.py:44` |
+| D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:236` |
 | D-242 | Type checking is a ratchet: the exemption list is empty, a new error fails, and a stale exemption fails as loudly | `scripts/type_check.py:4` |
 | D-243 | Recorded is not current, and the third answer is that this store cannot tell | `src/actaira/state/graph.py:379` |
-| D-244 | The workspace is chosen when the server starts, and a read never creates or migrates one | `src/actaira/web/server.py:2003` |
 | D-245 | A decision is history and whether it still applies is a separate, three-valued question | `src/actaira/state/decide.py:3` |
 | D-246 | Evidence is filed only against an asset the workspace already records, because a basename is not an identity | `src/actaira/state/record.py:3` |
 | D-247 | What a decision depended on is rows, not a sentence, and a decision with none is undetermined rather than fine | `src/actaira/state/store.py:187` |

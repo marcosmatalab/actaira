@@ -19,8 +19,8 @@ rather than an accident of which dataclass was to hand.
 Two properties are kept from 2.1 because they are the reason the engine is
 worth anything. Nothing here executes user code or accepts an arbitrary
 expression: the vocabulary stays small, enumerable and documentable. And
-nothing here turns absence into falsehood - a subject with no bundle attached
-makes `bundle_content_identity` unevaluable, never unsatisfied.
+nothing here turns absence into falsehood - a subject nobody searched for
+routes makes `attack_path_severity_at_least` unevaluable, never unsatisfied.
 """
 from __future__ import annotations
 
@@ -96,10 +96,9 @@ class SubjectClaims:
     """Everything a policy is allowed to see about one subject.
 
     A deliberate narrowing: the predicates receive this, not the underlying
-    report, bundle or agent. The three payload slots are typed because the
-    predicates that read them are typed - `bundle_finding` means something
-    different from `agent_finding`, and a single `findings` list would have
-    made a policy unable to say which it meant.
+    report or agent. The payload slots stay separate because findings are
+    read per kind - a single merged `findings` list would have made a policy
+    unable to say which subject a rule fired on.
 
     Backwards compatible on purpose: `SubjectClaims(report)` is the 2.1
     `Claims(report)` call, with the same keyword arguments, so every policy
@@ -157,7 +156,7 @@ class SubjectClaims:
         self.evidence = list(evidence or [])
         self.provenance = dict(provenance or {})
         self.trust = dict(trust or {})
-        self.ref = ref or _infer_ref(report, bundle, agent, subject)
+        self.ref = ref or _infer_ref(report, agent, subject)
         self.subject = subject or (self.ref.digest or self.ref.handle if self.ref else "")
         self.relations = list(relations) if relations is not None else _infer_relations(agent)
         # An agent's relations are always gathered, because `Agent.relations()`
@@ -197,7 +196,7 @@ class SubjectClaims:
         if kind is SubjectKind.BUNDLE and self.bundle is not None:
             return list(self.bundle.findings)
         if kind is SubjectKind.AGENT and self.agent is not None:
-            from .agentgov import assess
+            from .conformance import assess
 
             return assess(self.agent)
         return []
@@ -233,16 +232,12 @@ class SubjectClaims:
         return document
 
 
-def _infer_ref(
-    report: ArtifactReport | None, bundle: Any, agent: Any, subject: str
-) -> SubjectRef | None:
+def _infer_ref(report: ArtifactReport | None, agent: Any, subject: str) -> SubjectRef | None:
     """Work out the reference from whatever payload was supplied.
 
-    Deliberately simple and deliberately explicit about the bundle case: the
-    reference carries the STRUCTURAL digest, because that is the only digest a
-    default resolution has, and it is labelled as such. A `SubjectRef` whose
-    `digest` silently held a layout hash under a name that reads as identity
-    would reintroduce D-200 one layer up.
+    The bundle branch went to archive/model-scanner with the resolver that
+    fed it. Rejected: keeping it against a duck-typed object, which would
+    leave a code path nothing in the tree can reach or test.
     """
     if report is not None:
         return SubjectRef(
@@ -250,17 +245,6 @@ def _infer_ref(
             id=Path(report.path).name,
             digest=f"sha256:{report.sha256}",
             source=report.path,
-        )
-    if bundle is not None:
-        identity = bundle.content_identity()
-        return SubjectRef(
-            kind=SubjectKind.BUNDLE,
-            id=Path(bundle.root).name or bundle.root,
-            digest=identity.get("digest") or bundle.structural_digest,
-            source=bundle.source_uri or bundle.root,
-            version=bundle.source_revision,
-            # Said, not implied. See DEF-80.
-            digest_kind="content" if identity.get("digest") else "structural",
         )
     if agent is not None:
         return SubjectRef(
@@ -285,26 +269,15 @@ def for_artifact(report: ArtifactReport, **kwargs: Any) -> SubjectClaims:
     return SubjectClaims(report, **kwargs)
 
 
-def for_bundle(bundle: Any, **kwargs: Any) -> SubjectClaims:
-    return SubjectClaims(bundle=bundle, **kwargs)
+def for_agent(agent: Any, **kwargs: Any) -> SubjectClaims:
+    """Claims about an agent. Routes are passed in, never computed here.
 
-
-def for_agent(agent: Any, *, with_paths: bool = True, **kwargs: Any) -> SubjectClaims:
-    """Claims about an agent, with its attack paths computed by default.
-
-    Computed rather than optional because `attack_path_severity_at_least` must
-    be evaluable for an agent subject. A predicate that raised `Unevaluable`
-    whenever the caller forgot a flag would push every policy that used it
-    into REVIEW for a reason that has nothing to do with the agent.
+    Rejected: computing them by importing the conformance path engine, which
+    is what this did. That made the subject layer depend on a rule package.
+    DEF-81 still holds - `paths_searched` follows from whether the caller
+    passed `attack_paths` at all, so "found none" stays distinct from
+    "nobody looked", which is `Unevaluable` rather than False.
     """
-    if with_paths and "attack_paths" not in kwargs:
-        from .agentgov import paths as path_engine
-
-        kwargs["attack_paths"] = [item.to_dict() for item in path_engine.find(agent).paths]
-    # Stated rather than inferred from the list being non-empty: an agent with
-    # no untrusted input has no routes, and "searched and found none" has to
-    # be distinguishable from "nobody searched". DEF-81.
-    kwargs.setdefault("paths_searched", with_paths)
     return SubjectClaims(agent=agent, **kwargs)
 
 
