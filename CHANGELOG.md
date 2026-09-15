@@ -28,6 +28,14 @@ Nothing yet.
 
 ## [3.0.0] - 2026-09-15
 
+**Why a major, decided rather than inherited.** Semantic versioning asks whether
+a consumer written against the last release still works, and none does: ten
+published contracts are withdrawn, twenty of twenty-two commands are gone, and
+the entry hash and both signature preimages changed shape, so packages and
+receipts issued by 2.3.0 no longer verify here. The alternative was 2.4.0 with a
+long deprecation, rejected because there is nothing to deprecate toward - the
+tool no longer reads model artifacts at all.
+
 The subject changes from model artifacts to AI agent runs. The scanner - formats,
 controls, connectors, scan, bom, agents, governance, web, the bundle resolver, the
 marking and trust modules and the 2 458-line CLI - is archived whole at tag
