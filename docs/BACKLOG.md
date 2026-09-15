@@ -85,3 +85,9 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
 - `.github/actions/actaira-scan/` sigue apuntando al escáner, por orden. **Fase 4.**
 - `.github/workflows/ci.yml` todavía puede invocar pasos de `make` que ya no
   existen. No se tocó: la puerta de la fase 0 es `make all`, no CI. **Fase 4.**
+- `figures.json` registra `git.head` del momento en que se generó, y commitearlo
+  cambia el head, así que siempre va un commit por detrás (572f86f registra
+  6cec2ec). `release-check` lo tolera por diseño. No se puede arreglar dentro del
+  propio fichero: es el problema del punto fijo, el mismo que resuelven los
+  árboles de Merkle anclando la constancia fuera del objeto. Candidato a ejemplo
+  del ensayo de la fase 4.5A.
