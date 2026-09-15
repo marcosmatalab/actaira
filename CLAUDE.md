@@ -113,6 +113,10 @@ estaba en alcance y falló, sí.
    `wsl -e bash -lc 'cd /mnt/c/Users/Usuario/Desktop/actaira && PY=/tmp/actaira-venv/bin/python make all'`
    Ahí la suite tarda ~85 s en vez de ~205 s, y no se salta el test de bits de
    permiso POSIX que Windows no puede correr.
+8. UN PRESUPUESTO QUE SOLO VIVE EN EL CHAT NO EXISTE. Cuando yo autorice una
+   ampliación de presupuesto o de alcance, esa autorización se escribe en el
+   mensaje del commit de la fase, con el número, el motivo y qué ficheros la
+   consumen. Una sesión posterior solo puede leer el repo.
 
 ## Reglas de código
 
