@@ -6,6 +6,7 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
 
 ## Fase 0 — la amputación
 
+- main local (f706527, 275ecf4) no publicado; vive en pivot/agent-conformance hasta que la fase 5 reescriba el README.
 - `README.md` y `README.es.md` siguen describiendo el escáner de modelos entero.
   Cada una de esas frases es también una frase de posicionamiento, y la
   autorización de la fase 0 era mecánica, así que solo se borraron los bloques
