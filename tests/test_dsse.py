@@ -339,7 +339,7 @@ def test_a_missing_signatures_array_loads_as_unsigned_rather_than_raising():
 # --------------------------------------------------------------------------
 
 
-def _package_with_envelope(tmp_path, reports, keypair, *, dsse=True):
+def _package_with_envelope(tmp_path, reports, keypair, *, dsse=True, signed_envelope=True):
     """A package, with or without the DSSE member. What `attest --dsse` wrote.
 
     The command that assembled this went to archive/model-scanner; the
@@ -352,7 +352,8 @@ def _package_with_envelope(tmp_path, reports, keypair, *, dsse=True):
     entries: list[chain.Entry] = []
     for report in reports:
         chain.append(entries, report.sha256, report.to_dict(), timestamp="2026-01-01T00:00:00")
-    envelope = to_envelope(reports, keypair).to_json().encode("utf-8") if dsse else None
+    signer = keypair if signed_envelope else None
+    envelope = to_envelope(reports, signer).to_json().encode("utf-8") if dsse else None
     out = tmp_path / "attestation.zip"
     package.write_package(out, entries, keypair, envelope=envelope)
     return out
@@ -410,7 +411,16 @@ def test_verify_checks_the_envelope_it_finds(tmp_path, reports, keypair):
 def test_an_edited_envelope_is_caught_twice(tmp_path, reports, keypair):
     """Once by the manifest digest, because it is an ordinary member, and
     once by its own signature. That is the structural property this module
-    argues for: nothing hangs outside a signature."""
+    argues for: nothing hangs outside a signature.
+
+    Both halves are asserted separately. They used to be one
+    `any("files" in problem or DSSE_NAME in problem ...)`, and that `or` let
+    the manifest digest satisfy the whole test on its own - which it did, for
+    a release in which the envelope's own signature check set
+    `dsse_envelope_valid: False` and changed nothing about the verdict. A test
+    called "caught twice" that passes when it is caught once is worse than no
+    test: it is a green light over the exact gap it is named after.
+    """
     import zipfile
 
     from actaira.attest import verify as verify_mod
@@ -431,4 +441,31 @@ def test_an_edited_envelope_is_caught_twice(tmp_path, reports, keypair):
     result = verify_mod.verify_package(tampered)
 
     assert not result.ok
-    assert any("files" in problem or DSSE_NAME in problem for problem in result.problems)
+    # First: an ordinary member whose digest no longer matches the manifest.
+    assert result.checks["files_match_manifest"] is False
+    assert any(f"{DSSE_NAME}: sha256 mismatch" == problem for problem in result.problems)
+    # Second, and independently: the envelope's own signature over its own
+    # payload. This is the half the `or` hid.
+    assert result.checks["dsse_envelope_valid"] is False
+    assert any(
+        problem.startswith(f"{DSSE_NAME}: no signature verifies")
+        for problem in result.problems
+    ), result.problems
+
+
+def test_the_envelopes_own_signature_alone_fails_the_package(tmp_path, reports, keypair):
+    """The second half with the first one removed, which is the case that was
+    passing with `Result: OK` on the screen: the envelope is exactly the bytes
+    the manifest declares, and nobody signed it."""
+    from actaira.attest import verify as verify_mod
+    from actaira.attest.package import DSSE_NAME
+
+    out = _package_with_envelope(tmp_path, reports, keypair, signed_envelope=False)
+
+    result = verify_mod.verify_package(out)
+
+    assert result.checks["files_match_manifest"] is True, "the digest is honest"
+    assert result.checks["signature_valid"] is True, "the manifest is honest"
+    assert result.checks["dsse_envelope_valid"] is False
+    assert not result.ok, "a package carrying an unsigned statement is not verified"
+    assert any(f"{DSSE_NAME}: envelope carries no signatures" == p for p in result.problems)

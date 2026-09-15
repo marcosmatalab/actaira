@@ -27,9 +27,9 @@ decision without the third part is not a decision, it is a preference.
 | D-13 | Hash-linked entries, and no claim about time on their own | `src/actaira/attest/chain.py:3` |
 | D-14 | Package is a plain zip, one signature | `src/actaira/attest/package.py:3` |
 | D-15 | Integrity and identity kept separate | `src/actaira/attest/verify.py:3` |
-| D-25 | Consistency proofs, so append-only is evidence | `src/actaira/attest/merkle.py:97` |
-| D-25b | The same question at the package boundary | `src/actaira/attest/verify.py:146` |
-| D-26 | Resuming a chain, because a log you restart is not a log | `src/actaira/attest/chain.py:141` |
+| D-25 | Consistency proofs, so append-only is evidence | `src/actaira/attest/merkle.py:127` |
+| D-25b | The same question at the package boundary | `src/actaira/attest/verify.py:210` |
+| D-26 | Resuming a chain, because a log you restart is not a log | `src/actaira/attest/chain.py:178` |
 | D-27 | RFC 3161 time anchoring, optional and narrow | `src/actaira/attest/timestamp.py:3` |
 | D-27b | Stamping the manifest before the manifest is finished | `src/actaira/attest/package.py:11` |
 | D-28 | Several keys, with validity windows and a status | `src/actaira/attest/keyring.py:3` |
@@ -74,13 +74,13 @@ decision without the third part is not a decision, it is a preference.
 | D-230 | A figure that is derivable is never maintained by hand, in prose either | `scripts/figures_contract.py:3` |
 | D-232 | The index of published contracts is generated, because an index with a hole in it still looks complete | `scripts/contracts_doc.py:4` |
 | D-234 | The console blocks are output this tool produced, and the gate re-runs them under two hash seeds | `scripts/cli_transcripts.py:4` |
-| D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:269` |
+| D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:276` |
 | D-236 | The published line count is a sum over a partition of the tree, checked, not a sum over a list somebody maintained | `scripts/figures.py:60` |
 | D-237 | A line number in the note table is derived, because a reference wrong by four hundred lines is not stale, it is wrong | `scripts/design_notes.py:4` |
 | D-238 | One spelling of "the last path segment", because three spellings put the producer's absolute path inside signed documents | `src/actaira/model.py:135` |
 | D-239 | A build writes into `dist/` and is then opened and checked, because the one artifact nobody looks at is a package | `scripts/build_package.py:4` |
 | D-240 | The default key path is resolved when a parser is built, not at import, so a host with no home does not break every command | `src/actaira/cli.py:44` |
-| D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:236` |
+| D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:243` |
 | D-242 | Type checking is a ratchet: the exemption list is empty, a new error fails, and a stale exemption fails as loudly | `scripts/type_check.py:4` |
 | D-243 | Recorded is not current, and the third answer is that this store cannot tell | `src/actaira/state/graph.py:379` |
 | D-245 | A decision is history and whether it still applies is a separate, three-valued question | `src/actaira/state/decide.py:3` |

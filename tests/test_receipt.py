@@ -220,13 +220,18 @@ def test_the_coverage_of_a_set_is_the_weakest_coverage_in_it(clean_report, tmp_p
     assert merged.state(Surface.LOAD_TIME_EXECUTION) is CoverageState.FAILED
 
 
-def test_no_percentage_grade_or_score_appears_anywhere_in_a_receipt(clean_report, gadget_report, keypair):
-    """The refusal the whole product rests on, asserted over the actual bytes.
+# CLAUDE.md, first negative, word for word: "No hay score, grade, rating,
+# percent, confidence ni ranking en ningún documento emitido. El test que
+# greppea esas palabras se mantiene y se amplía, nunca se relaja."
+#
+# This list is that sentence and nothing else. It used to be four of the six
+# plus two inventions (`compliance_level`, `risk_score`), which made it look
+# broader than the rule while being narrower than it: `confidence` is in the
+# rule, was not in the list, and is in the bytes.
+NEGATIVE_ONE_WORDS = ("score", "grade", "rating", "percent", "confidence", "ranking")
 
-    A receipt is the document most likely to be asked for a single number, by
-    the reader least able to check one. Anything named like a score is a
-    defect here even if it would have been accurate.
-    """
+
+def _signed_receipt(clean_report, gadget_report, keypair):
     policy = load_policy_text(
         """
 policy: demo
@@ -239,7 +244,7 @@ rules:
 """
     )
     decision = decide(policy, [Claims(gadget_report)], on=date(2026, 9, 11))
-    document = receipt.sign(
+    return receipt.sign(
         receipt.build(
             [clean_report, gadget_report],
             observed_at=OBSERVED,
@@ -248,10 +253,86 @@ rules:
         keypair,
     )
 
-    blob = json.dumps(document).lower()
 
-    for forbidden in ("score", "grade", "rating", "percent", "compliance_level", "risk_score"):
+def test_no_percentage_grade_or_score_appears_anywhere_in_a_receipt(clean_report, gadget_report, keypair):
+    """The refusal the whole product rests on, asserted over the actual bytes.
+
+    A receipt is the document most likely to be asked for a single number, by
+    the reader least able to check one. Anything named like a score is a
+    defect here even if it would have been accurate.
+
+    Five of the six words. The sixth has a test of its own below, red on
+    purpose, because splitting them is the difference between a suite that
+    states the rule and one that states the subset the code happens to meet.
+    """
+    blob = json.dumps(_signed_receipt(clean_report, gadget_report, keypair)).lower()
+
+    for forbidden in [word for word in NEGATIVE_ONE_WORDS if word != "confidence"]:
         assert forbidden not in blob, f"a receipt must not carry a {forbidden}"
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "`format_confidence` reaches the signed bytes from `ArtifactReport` "
+        "(src/actaira/model.py:96) through `receipt.build` (src/actaira/receipt.py:142). "
+        "It is the scanner's shape: how a file's format was identified, which the "
+        "trace-era subject does not have. Phase 3 replaces the subject and the field "
+        "goes with it. strict=True so that this turns red for passing on the day it "
+        "does, rather than sitting here as a marker nobody removes."
+    ),
+)
+def test_the_word_confidence_does_not_appear_in_a_receipt(clean_report, gadget_report, keypair):
+    """The sixth word of the first negative, which the old list omitted."""
+    blob = json.dumps(_signed_receipt(clean_report, gadget_report, keypair)).lower()
+
+    assert "confidence" not in blob
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "`dsse._aggregate_rules` (src/actaira/attest/dsse.py:341-349) folds the "
+        "severities one rule fired at across artifacts and keeps the worst, using "
+        "`Severity.rank`. CLAUDE.md's first negative says an author's `severity` is "
+        "an attributed label and is NOT aggregated or summed with others. Phase 2 "
+        "replaces the scanner vocabulary with the trace rule packages and this "
+        "aggregation has no subject left to run over."
+    ),
+)
+def test_actaira_never_folds_two_severities_into_one(gadget_report, clean_report):
+    """One rule firing at two severities must stay two attributed labels."""
+    from actaira.attest import dsse
+    from actaira.model import Finding, Severity
+
+    rule = "ACT-PKL-001"
+    clean_report.findings = [Finding(rule_id=rule, severity=Severity.LOW, location="a")]
+    gadget_report.findings = [Finding(rule_id=rule, severity=Severity.CRITICAL, location="b")]
+
+    rows = dsse._aggregate_rules([clean_report, gadget_report])
+
+    assert [row["severity"] for row in rows if row["rule_id"] == rule] != ["critical"], (
+        "the worst of two authors' labels was computed and published as one"
+    )
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "`ArtifactReport.max_severity` (src/actaira/model.py:108-112) is a maximum "
+        "over the severities of every finding, and it is emitted into the signed "
+        "DSSE predicate as `max_severity` (src/actaira/attest/dsse.py:331). Same "
+        "clause of the first negative as the test above, same phase: the field is "
+        "part of the scanner's report shape and leaves with it in phase 2."
+    ),
+)
+def test_no_emitted_document_carries_a_maximum_over_severities(gadget_report):
+    """An aggregate Actaira computed, not a label an author wrote."""
+    from actaira.attest import dsse
+
+    payload = dsse.to_envelope([gadget_report], None, inspected_at="2026-01-01T00:00:00").payload
+
+    assert b"max_severity" not in payload
 
 
 # --------------------------------------------------------------------------

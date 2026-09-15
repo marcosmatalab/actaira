@@ -519,3 +519,95 @@ def test_something_that_is_not_a_zip_is_refused_without_raising(tmp_path):
 
     assert result.ok is False
     assert result.problems and "not a readable zip" in result.problems[0]
+
+
+# ---------------------------------------------------------------------------
+# Hostile input: a verdict, never a traceback
+# ---------------------------------------------------------------------------
+#
+# CLAUDE.md, code rules: a format error is caught at load time and is a message,
+# not a traceback. `_read_member` already obeyed that and the three readers
+# after it did not. Each of these came out of `verify_package` as an exception,
+# so `actaira verify` printed a Python stack to stderr on a package anyone can
+# build. One test per input, because they fail through three different types.
+
+
+def _forged(tmp_path: Path, attested, name: str, **replacements: bytes) -> Path:
+    result_written, _reports, _keypair = attested
+    members = read_members(result_written.path)
+    members.update(replacements)
+    return write_members(tmp_path / name, members)
+
+
+def test_a_payload_carrying_a_nan_token_is_a_verdict(tmp_path, attested):
+    """`json.loads` accepts the bare token `NaN`; `canonical_json` is
+    `allow_nan=False` and is called by `verify_chain` and by `leaf_hash`,
+    outside any `try`. The result was `ValueError: Out of range float values`."""
+    result_written, _reports, _keypair = attested
+    line = json.loads(read_members(result_written.path)["entries.jsonl"].splitlines()[0])
+    line["payload"] = {"claim": "observed"}
+    blob = json.dumps(line).replace('"observed"', "NaN").encode("utf-8") + b"\n"
+
+    result = verify_mod.verify_package(_forged(tmp_path, attested, "nan.zip", **{"entries.jsonl": blob}))
+
+    assert result.ok is False
+    assert any("NaN" in problem for problem in result.problems), result.problems
+
+
+def test_a_manifest_file_row_without_a_path_is_a_verdict(tmp_path, attested):
+    """`{row["path"]: row for row in ...}` raised `KeyError: 'path'`."""
+    result_written, _reports, _keypair = attested
+    manifest = json.loads(read_members(result_written.path)["manifest.json"])
+    manifest["files"] = [{"sha256": "0" * 64}]
+    blob = json.dumps(manifest).encode("utf-8")
+
+    result = verify_mod.verify_package(
+        _forged(tmp_path, attested, "nopath.zip", **{"manifest.json": blob})
+    )
+
+    assert result.ok is False
+    assert result.checks["files_match_manifest"] is False
+    assert any("declares no `path`" in problem for problem in result.problems), result.problems
+
+
+def test_a_manifest_whose_files_is_not_a_list_is_a_verdict(tmp_path, attested):
+    """The same line raised `TypeError: string indices must be integers`."""
+    result_written, _reports, _keypair = attested
+    manifest = json.loads(read_members(result_written.path)["manifest.json"])
+    manifest["files"] = "entries.jsonl"
+    blob = json.dumps(manifest).encode("utf-8")
+
+    result = verify_mod.verify_package(
+        _forged(tmp_path, attested, "filesstr.zip", **{"manifest.json": blob})
+    )
+
+    assert result.ok is False
+    assert result.checks["files_match_manifest"] is False
+    assert any("not a list of members" in problem for problem in result.problems), result.problems
+
+
+def test_no_hostile_package_in_this_file_reaches_the_caller_as_an_exception(tmp_path, attested):
+    """The property behind the three above, over a handful more shapes. A
+    verifier that crashes has not refused the package: it has told a CI job
+    that Actaira is broken, which is where the operator looks next."""
+    result_written, _reports, _keypair = attested
+    original = read_members(result_written.path)
+    manifest = json.loads(original["manifest.json"])
+
+    shapes = {
+        "manifest is a list": {"manifest.json": b"[]"},
+        "manifest files rows are strings": {
+            "manifest.json": json.dumps({**manifest, "files": ["entries.jsonl"]}).encode("utf-8")
+        },
+        "entries line is not an object": {"entries.jsonl": b'"just a string"\n'},
+        "entries carry Infinity": {"entries.jsonl": b'{"index": Infinity}\n'},
+        "manifest head_hash is an object": {
+            "manifest.json": json.dumps({**manifest, "head_hash": {}}).encode("utf-8")
+        },
+    }
+    for label, replacement in shapes.items():
+        result = verify_mod.verify_package(
+            _forged(tmp_path, attested, f"{label.replace(' ', '-')}.zip", **replacement)
+        )
+        assert result.ok is False, label
+        assert result.problems, label

@@ -9,45 +9,45 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-15T11:44:03+00:00 for actaira 3.0.0, at commit f706527.
+Generated 2026-09-15T18:36:11+00:00 for actaira 3.0.0, at commit 6cec2ec.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, ruff>=0.6, jsonschema>=4.18
-- 8 commits, most recent 2026-09-15
+- 10 commits, most recent 2026-09-15
 
 ## Tests
 
-**1643** tests collected by pytest across 32 files.
+**1751** tests collected by pytest across 33 files.
 
 | file | tests |
 |---|---:|
 | `tests/test_action_entrypoint.py` | 14 |
 | `tests/test_attest_anchor.py` | 25 |
 | `tests/test_chain_and_signing.py` | 17 |
-| `tests/test_chain_domain_separation.py` | 5 |
+| `tests/test_chain_domain_separation.py` | 14 |
 | `tests/test_cli.py` | 25 |
 | `tests/test_conformance.py` | 54 |
 | `tests/test_consistency.py` | 285 |
 | `tests/test_coverage.py` | 12 |
 | `tests/test_defect_ledger.py` | 348 |
 | `tests/test_design_notes.py` | 74 |
-| `tests/test_dsse.py` | 31 |
-| `tests/test_i18n.py` | 139 |
+| `tests/test_dsse.py` | 32 |
+| `tests/test_i18n.py` | 140 |
 | `tests/test_io_budget.py` | 9 |
 | `tests/test_junit.py` | 19 |
 | `tests/test_keyring.py` | 33 |
-| `tests/test_merkle.py` | 80 |
+| `tests/test_merkle.py` | 146 |
 | `tests/test_miniyaml.py` | 22 |
-| `tests/test_package_verify.py` | 27 |
+| `tests/test_package_verify.py` | 31 |
 | `tests/test_policy_engine.py` | 22 |
 | `tests/test_readme_parity.py` | 22 |
-| `tests/test_receipt.py` | 23 |
+| `tests/test_receipt.py` | 26 |
 | `tests/test_release_check.py` | 12 |
 | `tests/test_sarif.py` | 29 |
-| `tests/test_schemas.py` | 26 |
+| `tests/test_schemas.py` | 27 |
 | `tests/test_signing_domain_separation.py` | 6 |
 | `tests/test_state.py` | 88 |
 | `tests/test_state_change.py` | 47 |
@@ -56,7 +56,8 @@ Generated 2026-09-15T11:44:03+00:00 for actaira 3.0.0, at commit f706527.
 | `tests/test_timestamp.py` | 47 |
 | `tests/test_trust.py` | 13 |
 | `tests/test_trust_paths.py` | 24 |
-| **total** | **1643** |
+| `tests/test_verify_strictness.py` | 23 |
+| **total** | **1751** |
 
 ## Defects found in this repository
 
@@ -93,8 +94,8 @@ and the modules are the source of truth.
 
 | area | files | lines | code | docstrings | comments | blank |
 |---|---:|---:|---:|---:|---:|---:|
-| attest | 10 | 4059 | 2543 | 713 | 263 | 540 |
-| core | 4 | 461 | 262 | 101 | 18 | 80 |
+| attest | 10 | 4271 | 2644 | 756 | 309 | 562 |
+| core | 4 | 468 | 266 | 101 | 21 | 80 |
 | conformance | 6 | 2152 | 1300 | 444 | 101 | 307 |
 | policy | 3 | 1139 | 714 | 165 | 96 | 164 |
 | state | 9 | 3527 | 1970 | 821 | 238 | 498 |
@@ -102,9 +103,9 @@ and the modules are the source of truth.
 | report | 3 | 435 | 250 | 83 | 35 | 67 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
 | rest | 6 | 1707 | 895 | 440 | 123 | 249 |
-| tests | 36 | 13472 | 7933 | 1791 | 644 | 3104 |
+| tests | 37 | 14310 | 8417 | 1922 | 687 | 3284 |
 | scripts | 9 | 2717 | 1744 | 412 | 187 | 374 |
-| **total** | 89 | 29822 | 17669 | 5013 | 1726 | 5414 |
+| **total** | 90 | 30879 | 18258 | 5187 | 1818 | 5616 |
 
 Documentation, in lines of Markdown:
 
