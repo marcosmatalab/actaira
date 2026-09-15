@@ -49,6 +49,21 @@ receipt both signed 32 bare bytes under the same default key with no domain
 separation. `actaira` is two commands, `verify` and `keygen`, until the trace
 format that the other six need exists.
 
+Phase 0.1, which closed the seven findings of an external review on top of this
+release, ended at 17 authored files against an initial budget of 14. The three
+extensions were authorised in conversation, each with its reason, and all three
+had the same one: two of the findings were not bugs but an inverted default, and
+inverting a default has a blast radius that lives in the tests which encoded the
+old one. `dsse_envelope_valid` printing [FAIL] beside `Result: OK` was fixed by
+making failure the default in `verify.settle`, and that reached `test_receipt`,
+`test_schemas`, `test_dsse`, `test_merkle`, `test_chain_domain_separation` and
+`test_package_verify` - six files that were correct about the code as it was and
+wrong about the code as it had to become. That count cannot be made in advance,
+which is why the budget was a real constraint and was raised rather than
+quietly exceeded. Work rule 8 in `CLAUDE.md` now requires such an authorisation
+to be written into the phase's commit message, because this one lived only in
+the chat and the next session had no way to read it.
+
 ## [2.3.0] - 2026-09-12
 
 The release where the pieces become a loop.
