@@ -18,10 +18,8 @@ import pytest
 
 from actaira.attest import chain, package, signing
 from actaira.attest import verify as verify_mod
-from actaira.bom.cyclonedx import build_bom
-from actaira.inspect import inspect_artifact
 from actaira.model import Verdict, canonical_json
-from conftest import corpus_build
+from support.reports import write_flagged_report, write_report
 
 INTEGRITY_CHECKS = (
     "files_match_manifest",
@@ -36,28 +34,27 @@ INTEGRITY_CHECKS = (
 def artifacts(tmp_path: Path) -> list[Path]:
     """One clean artifact and one that fails, so the attested payload has
     something worth lying about."""
-    clean = tmp_path / "clean.safetensors"
-    clean.write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [4, 4], "data_offsets": [0, 64]}}, b"\x00" * 64
-        )
-    )
-    gadget = tmp_path / "gadget.pkl"
-    gadget.write_bytes(corpus_build.craft_reduce("posix", "system", ("id",), 2))
-    return [clean, gadget]
+    return [
+        write_report(tmp_path / "clean.safetensors"),
+        write_flagged_report(tmp_path / "gadget.pkl", "ACT-PKL-001"),
+    ]
 
 
 @pytest.fixture
 def attested(tmp_path: Path, artifacts: list[Path], keypair):
     """Inspect, attest, and hand back everything a verifier would be given."""
-    reports = [inspect_artifact(path) for path in artifacts]
+    reports = list(artifacts)
     assert [report.verdict for report in reports] == [Verdict.PASS, Verdict.FAIL]
 
     entries: list[chain.Entry] = []
     boms: dict[str, dict] = {}
     for report in reports:
         chain.append(entries, report.sha256, report.to_dict())
-        boms[report.sha256] = build_bom([report])
+        # Any JSON document. The packaging layer stores a BOM by digest and
+        # never reads inside it; the CycloneDX writer that used to fill this in
+        # is on archive/model-scanner. What is under test is the manifest's
+        # coverage of the member, not the member's schema.
+        boms[report.sha256] = {"subject": report.sha256, "verdict": report.verdict.value}
 
     result = package.write_package(tmp_path / "attestation.zip", entries, keypair, boms)
     return result, reports, keypair
@@ -96,10 +93,10 @@ def resign(members: dict[str, bytes], keypair) -> dict[str, bytes]:
     members["manifest.sig"] = json.dumps(
         {
             "algorithm": "ed25519",
-            "over": "sha256(manifest.json)",
+            "over": package.SIGNATURE_SUBJECT_NOTE,
             "key_id": keypair.key_id,
             "signature_b64": base64.b64encode(
-                keypair.sign(hashlib.sha256(manifest_blob).digest())
+                keypair.sign(package.manifest_signing_subject(manifest_blob))
             ).decode("ascii"),
         },
         indent=2,

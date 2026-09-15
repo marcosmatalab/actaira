@@ -57,6 +57,21 @@ from .chain import Entry
 from .keyring import Keyring, single_key_ring
 from .signing import KeyPair
 
+# Domain separation for the manifest signature. Ed25519 over a bare 32-byte
+# digest is context-free, and the same default key signs the package manifest,
+# the receipt and DSSE envelopes: a signature made in one context is bytes that
+# verify in another. `dsse.pae` already refuses that; these two signers did not.
+# Rejected: one shared "actaira" prefix, which separates us from other tools but
+# not these signers from each other. The trailing NUL cannot occur in the label.
+MANIFEST_SIGNING_CONTEXT = b"actaira.attest.package/manifest-sha256/v1\x00"
+SIGNATURE_SUBJECT_NOTE = "MANIFEST_SIGNING_CONTEXT || sha256(manifest.json)"
+
+
+def manifest_signing_subject(manifest_blob: bytes) -> bytes:
+    """The exact bytes the manifest signature covers. A verifier reimplements this."""
+    return MANIFEST_SIGNING_CONTEXT + hashlib.sha256(manifest_blob).digest()
+
+
 PACKAGE_FORMAT_VERSION = 2
 ENTRIES_NAME = "entries.jsonl"
 MANIFEST_NAME = "manifest.json"
@@ -222,7 +237,7 @@ def write_package(
         }
 
     manifest_blob = canonical_json(manifest)
-    signature = keypair.sign(hashlib.sha256(manifest_blob).digest())
+    signature = keypair.sign(manifest_signing_subject(manifest_blob))
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -234,7 +249,7 @@ def write_package(
             json.dumps(
                 {
                     "algorithm": "ed25519",
-                    "over": "sha256(manifest.json)",
+                    "over": SIGNATURE_SUBJECT_NOTE,
                     "key_id": keypair.key_id,
                     "signature_b64": base64.b64encode(signature).decode("ascii"),
                 },

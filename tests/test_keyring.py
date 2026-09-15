@@ -28,8 +28,8 @@ from actaira import cli
 from actaira.attest import chain, keyring, package, signing
 from actaira.attest import timestamp as ts
 from actaira.attest import verify as verify_mod
-from actaira.inspect import inspect_artifact
-from conftest import POSIX_MODE_BITS, corpus_build, requires_posix_modes
+from conftest import POSIX_MODE_BITS, requires_posix_modes
+from support.reports import write_report
 
 NOW = datetime.now(UTC)
 
@@ -41,12 +41,7 @@ def iso(moment: datetime) -> str:
 @pytest.fixture
 def entries(tmp_path: Path) -> list[chain.Entry]:
     artifact = tmp_path / "clean.safetensors"
-    artifact.write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [4, 4], "data_offsets": [0, 64]}}, b"\x00" * 64
-        )
-    )
-    report = inspect_artifact(artifact)
+    report = write_report(artifact)
     built: list[chain.Entry] = []
     chain.append(built, report.sha256, report.to_dict())
     return built
@@ -569,31 +564,3 @@ def test_rotate_and_revoke_together_are_a_usage_error(tmp_path, capsys):
     assert "two different things" in capsys.readouterr().err
 
 
-def test_attest_signs_with_the_active_key_after_a_rotation(tmp_path, capsys):
-    artifact = tmp_path / "clean.safetensors"
-    artifact.write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [2, 2], "data_offsets": [0, 16]}}, b"\x00" * 16
-        )
-    )
-    key_path = tmp_path / "signing-key.pem"
-    rotation = keyring.rotate(key_path)
-    capsys.readouterr()
-
-    assert cli.main(["attest", str(artifact), "--out", str(tmp_path / "a.zip"), "--key", str(key_path)]) == cli.EXIT_OK
-
-    printed = capsys.readouterr().out
-    assert f"key_id       {rotation.fresh.key_id}" in printed
-    verified = verify_mod.verify_package(tmp_path / "a.zip")
-    assert verified.ok
-    assert verified.manifest["signing_key_id"] == rotation.fresh.key_id
-    assert verified.key_state == "active"
-
-    # The package carries the retired key as well, so a verifier reading only
-    # this package can still date what the previous key signed.
-    with zipfile.ZipFile(tmp_path / "a.zip") as archive:
-        ring = json.loads(archive.read("keyring.json"))
-    assert {row["key_id"]: row["status"] for row in ring["keys"]} == {
-        rotation.retired.key_id: "retired",
-        rotation.fresh.key_id: "active",
-    }

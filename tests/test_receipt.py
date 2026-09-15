@@ -21,9 +21,9 @@ import pytest
 from actaira import receipt
 from actaira.attest import signing
 from actaira.coverage import CoverageState, Surface
-from actaira.inspect import inspect_artifact
 from actaira.policy import decide, load_policy_text
 from actaira.policy.engine import Claims
+from support.reports import write_flagged_report, write_report, write_unread_report
 
 OBSERVED = datetime(2026, 9, 11, 10, 0, tzinfo=UTC)
 
@@ -35,18 +35,13 @@ def keypair():
 
 @pytest.fixture
 def clean_report(tmp_path):
-    path = tmp_path / "clean.pkl"
-    path.write_bytes(pickle.dumps({"w": [1.0, 2.0]}))
-    return inspect_artifact(path)
+    return write_report(tmp_path / "clean.pkl", payload=pickle.dumps({"w": [1.0, 2.0]}),
+                        detected_format="pickle")
 
 
 @pytest.fixture
 def gadget_report(tmp_path):
-    from evals.corpus import build as corpus_build
-
-    path = tmp_path / "gadget.pkl"
-    path.write_bytes(corpus_build.craft_reduce("posix", "system", ("id",), 2))
-    return inspect_artifact(path)
+    return write_flagged_report(tmp_path / "gadget.pkl", "ACT-PKL-001")
 
 
 @pytest.fixture
@@ -217,9 +212,7 @@ def test_every_severity_appears_including_the_zeroes(clean_report):
 def test_the_coverage_of_a_set_is_the_weakest_coverage_in_it(clean_report, tmp_path):
     """One unreadable file must not hide behind nine clean ones. It is the
     unreadable one the reader needs to know about."""
-    broken = tmp_path / "mystery.pkl"
-    broken.write_bytes(b"\x11\x22\x33\x44 not a known format")
-    broken_report = inspect_artifact(broken)
+    broken_report = write_unread_report(tmp_path / "mystery.pkl", detected_format="pickle")
 
     merged = receipt.merge_coverage([clean_report, broken_report])
 

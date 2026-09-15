@@ -47,6 +47,7 @@ from .package import (
     TIMESTAMP_NAME,
     TIMESTAMP_TOKEN_DIGEST_KEY,
     UNDECLARED_BY_CONSTRUCTION,
+    manifest_signing_subject,
     timestamp_subject,
 )
 
@@ -362,7 +363,7 @@ def verify_package(
                 public = signing.public_from_b64(key_row["public_key_b64"])
             except Exception:
                 continue
-            if signing.verify(public, signature, hashlib.sha256(manifest_blob).digest()):
+            if signing.verify(public, signature, manifest_signing_subject(manifest_blob)):
                 signature_ok = True
                 signing_fingerprint = signing.fingerprint_of(public)
                 signing_row = key_row if isinstance(key_row, dict) else None

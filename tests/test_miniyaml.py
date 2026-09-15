@@ -178,7 +178,7 @@ def test_the_shipped_declaration_keeps_its_scopes_verbatim():
     the diff unreadable in the one place it mattered."""
     from pathlib import Path
 
-    from actaira.agentgov import load
+    from actaira.conformance import load
     from conftest import REPO_ROOT
 
     agent = load(Path(REPO_ROOT) / "examples" / "agent-ticket-triage.yaml")
@@ -226,7 +226,7 @@ def test_an_inline_list_survives_inside_a_block_sequence():
 
 def test_a_declaration_written_with_inline_lists_loads():
     """End to end, because that is how the defect was found."""
-    from actaira.agentgov import load_text
+    from actaira.conformance import load_text
 
     agent = load_text("""
 agent: demo

@@ -25,7 +25,7 @@ src/actaira/
   trustpolicy.py  what this environment accepts, apart from what cryptography proved
   receipt.py   a signed statement of observed state, verifiable offline
   state/       SQLite with numbered migrations: snapshots, watch, evidence, graph
-  agentgov/    agents, tools, MCP servers, the A-BOM, capabilities and attack paths
+  conformance/    agents, tools, MCP servers, the A-BOM, capabilities and attack paths
   agents/      cassette provider, BM25 retriever, judge, verifier, pipeline
   attest/      Merkle (RFC 6962), chain, signing, keyring, RFC 3161, DSSE, verify
   connectors/  sources that enumerate and stage, and never conclude

@@ -40,8 +40,8 @@ abstract: >-
   percent and fails on any of them.
 repository-code: "https://github.com/marcosmatalab/actaira"
 type: software
-version: 2.3.0
-date-released: "2026-09-12"
+version: 3.0.0
+date-released: "2026-09-15"
 license: MIT
 authors:
   - given-names: Marcos

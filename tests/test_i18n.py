@@ -17,11 +17,10 @@ import pytest
 from actaira.i18n.catalog import SUPPORTED, Catalog, load
 from conftest import REPO_ROOT, SRC_DIR
 
-# Sections whose values are plain strings. `governance` is nested (an
-# obligation id maps to a row of strings and lists of strings) and gets its
+# Sections whose values are plain strings. The `governance` and `controls`
+# sections went to archive/model-scanner with the modules whose ids keyed
 # own tests further down rather than a shape exception here.
 SECTIONS = ("ui", "rules", "rule_help")
-GOVERNANCE = "governance"
 CATALOGUES = {lang: json.loads((SRC_DIR / "actaira" / "i18n" / f"{lang}.json").read_text("utf-8")) for lang in SUPPORTED}
 
 # `grep -rn 'ACT-...' src/`, done in-process so the failure message can name the
@@ -36,19 +35,6 @@ CATALOGUES = {lang: json.loads((SRC_DIR / "actaira" / "i18n" / f"{lang}.json").r
 # catalogue entry, which they are not: they are prefixes of identifiers that
 # never reach `Finding.rule_id`. A rule id is the whole token or it is not one.
 RULE_LITERAL = re.compile(r"ACT-[A-Z0-9]+-\d+(?![-\w])")
-# The same trick for the EU AI Act catalogue: obligation ids are literals in
-# `governance/catalog.py`, the prose is in the message catalogues, and the two
-# must describe the same set.
-#
-# The pattern was `AIA-\d+(?:-\d+[a-z]?)?`, which assumed every id segment
-# after the first was digits and at most one letter. Two entries added when
-# the catalogue was corrected break that assumption: AIA-4a, for the Art. 4a
-# inserted by Regulation (EU) 2026/1744, has a letter glued to the first
-# segment, and AIA-5-1ba, for the Art. 5(1)(ba) and (bb) prohibitions, has two
-# letters in the second. Under the old pattern both would have been scanned as
-# a shorter id and then reported as orphan prose, so the pattern now takes any
-# hyphen-separated run of digits and lowercase letters.
-OBLIGATION_LITERAL = re.compile(r"AIA-[0-9a-z]+(?:-[0-9a-z]+)*")
 
 
 def python_files(*roots: Path) -> list[Path]:
@@ -110,158 +96,13 @@ def test_no_catalogue_entry_is_empty(section):
 
 
 # ---------------------------------------------------------------------------
-# The governance section: nested, and the part a Spanish consultant reads
-# ---------------------------------------------------------------------------
-
-def governance_leaves(catalogue: dict) -> dict[str, str]:
-    """`AIA-4.title` -> text, flattening the lists so each line is comparable."""
-    leaves: dict[str, str] = {}
-    for obligation_id, row in catalogue.get(GOVERNANCE, {}).items():
-        for field, value in row.items():
-            if isinstance(value, list):
-                for index, line in enumerate(value):
-                    leaves[f"{obligation_id}.{field}[{index}]"] = line
-            else:
-                leaves[f"{obligation_id}.{field}"] = value
-    return leaves
-
-
-GOVERNANCE_LEAVES = {lang: governance_leaves(CATALOGUES[lang]) for lang in SUPPORTED}
-
-
-def obligation_ids_in_source() -> dict[str, list[str]]:
-    """obligation id -> the source locations that mention it."""
-    found: dict[str, list[str]] = {}
-    for path in python_files(SRC_DIR):
-        for number, line in enumerate(path.read_text("utf-8").splitlines(), start=1):
-            for obligation_id in OBLIGATION_LITERAL.findall(line):
-                found.setdefault(obligation_id, []).append(f"{path.relative_to(REPO_ROOT)}:{number}")
-    return found
-
-
-SOURCE_OBLIGATIONS = obligation_ids_in_source()
-
-
-def test_the_source_actually_yielded_obligations_to_check():
-    assert len(SOURCE_OBLIGATIONS) >= 10, "the scan for obligation ids found almost nothing"
-    assert "AIA-53-1a" in SOURCE_OBLIGATIONS, "the compound ids were missed"
-    assert "AIA-4" in SOURCE_OBLIGATIONS
-    # The two shapes the previous pattern truncated. Asserted as whole ids,
-    # because truncation is silent: it yields a real id that happens to be a
-    # prefix of the one in the source, and the orphan check fires somewhere
-    # else entirely.
-    assert "AIA-4a" in SOURCE_OBLIGATIONS, "a letter on the first segment was truncated"
-    assert "AIA-5-1ba" in SOURCE_OBLIGATIONS, "two letters on a later segment were truncated"
-
-
-@pytest.mark.parametrize("lang", SUPPORTED)
-def test_every_obligation_in_the_source_has_prose_in_every_language(lang):
-    missing = {
-        obligation_id: locations
-        for obligation_id, locations in sorted(SOURCE_OBLIGATIONS.items())
-        if obligation_id not in CATALOGUES[lang][GOVERNANCE]
-    }
-
-    assert missing == {}
-
-
-@pytest.mark.parametrize("lang", SUPPORTED)
-def test_no_translated_obligation_is_one_the_catalogue_dropped(lang):
-    """The other direction, as for rules: prose for an obligation the code no
-    longer carries is text that gets translated and reviewed forever."""
-    orphans = set(CATALOGUES[lang][GOVERNANCE]) - set(SOURCE_OBLIGATIONS)
-
-    assert orphans == set()
-
-
-def test_both_languages_describe_each_obligation_with_the_same_fields():
-    """Field for field and line for line: a Spanish row with one fewer item
-    in `actaira_does_not_provide` is a limitation that vanished in
-    translation, which is the one thing this catalogue must not do."""
-    english = set(GOVERNANCE_LEAVES["en"])
-    spanish = set(GOVERNANCE_LEAVES["es"])
-
-    assert english - spanish == set(), "missing from es.governance"
-    assert spanish - english == set(), "present in es.governance only"
-    assert len(english) > 100, "the governance section is too small to be complete"
-
-
-def test_no_spanish_obligation_text_is_just_the_english_one():
-    untranslated = [
-        key for key, text in GOVERNANCE_LEAVES["es"].items()
-        if text == GOVERNANCE_LEAVES["en"].get(key)
-    ]
-
-    assert untranslated == []
-
-
-@pytest.mark.parametrize("lang", SUPPORTED)
-def test_no_obligation_text_is_blank(lang):
-    blank = [key for key, text in GOVERNANCE_LEAVES[lang].items() if not str(text).strip()]
-
-    assert blank == []
-
-
-@pytest.mark.parametrize("lang", SUPPORTED)
-def test_every_obligation_row_has_at_least_a_title_a_summary_and_an_expectation(lang):
-    for obligation_id, row in CATALOGUES[lang][GOVERNANCE].items():
-        assert row.get("title"), f"{lang}.{obligation_id}"
-        assert len(row.get("summary", "")) > 40, f"{lang}.{obligation_id}"
-        assert row.get("evidence_expected"), f"{lang}.{obligation_id}"
-        assert row.get("actaira_provides") or row.get("actaira_does_not_provide"), (
-            f"{lang}.{obligation_id} says neither what Actaira gives nor what it does not"
-        )
-
-
-def test_the_spanish_governance_text_carries_no_em_dash():
-    """An em dash in this section is the signature of a machine translation
-    pasted in, and this is the text a Spanish consultant actually reads."""
-    offenders = [key for key, text in GOVERNANCE_LEAVES["es"].items() if "\u2014" in str(text)]
-
-    assert offenders == []
-
-
-# Function words that appear in almost any English sentence and in no Spanish
-# one. Matched as whole words, so `de` inside `modelo` cannot trip them.
-ENGLISH_TELLS = re.compile(r"\b(the|and|of|with|which|from|their|does not)\b", re.IGNORECASE)
-
-
-def test_no_spanish_governance_line_still_carries_english():
-    """A partial translation is worse than none: it passes the key-set test,
-    it differs from the English string, and it still reads as English to the
-    consultant who has to sign under it."""
-    left_in_english = [
-        key for key, text in GOVERNANCE_LEAVES["es"].items()
-        if ENGLISH_TELLS.search(str(text))
-    ]
-
-    assert left_in_english == []
-
-
-def test_the_english_tell_detector_fires_on_the_english_catalogue():
-    """Negative control for the test above, run against real text of exactly
-    the kind being checked: most English lines here trip the detector, so a
-    Spanish set that trips it zero times is a result rather than an accident
-    of the pattern being too narrow to match anything."""
-    caught = [
-        key for key, text in GOVERNANCE_LEAVES["en"].items()
-        if ENGLISH_TELLS.search(str(text))
-    ]
-
-    assert len(caught) > len(GOVERNANCE_LEAVES["en"]) // 2
-    assert not ENGLISH_TELLS.search(
-        "registros de la finalidad prevista y del contexto de despliegue"
-    )
-
-
-# ---------------------------------------------------------------------------
 # Every rule the code can emit has text in both languages
 # ---------------------------------------------------------------------------
 
 def test_the_source_actually_yielded_rules_to_check():
     assert len(SOURCE_RULES) >= 30, "the source scan found almost nothing; it is not scanning"
     assert "ACT-PKL-002" in SOURCE_RULES, "the conditional rule assignment was missed"
-    assert "ACT-PKL-007" in SOURCE_RULES
+    assert "ACT-PATH-002" in SOURCE_RULES, "the conformance package was missed"
 
 
 @pytest.mark.parametrize("lang", SUPPORTED)

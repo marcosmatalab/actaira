@@ -24,7 +24,15 @@ from typing import Any
 from ..model import canonical_json
 
 GENESIS = "0" * 64
-ENTRY_VERSION = 1
+# 2 is the length-prefixed preimage. Version 1 joined the fields with "|" and
+# is not accepted by anything here any more: see `compute_entry_hash`.
+ENTRY_VERSION = 2
+
+# Separator-free framing, the same construction `dsse.pae` uses. Every field is
+# preceded by its own byte length, so no content a field carries can be read as
+# a field boundary. The spaces are decoration, not delimiters.
+ENTRY_HEADER = b"actaira chain entry v2"
+SP = b" "
 
 
 @dataclass
@@ -54,15 +62,33 @@ def compute_payload_hash(payload: dict[str, Any]) -> str:
     return hashlib.sha256(canonical_json(payload)).hexdigest()
 
 
-def compute_entry_hash(prev_hash: str, payload_hash: str, timestamp: str, subject: str, index: int) -> str:
-    """Length-prefixed concatenation.
+def entry_pae(prev_hash: str, payload_hash: str, timestamp: str, subject: str, index: int) -> bytes:
+    """The preimage one entry hash is taken over, length-prefixed per field.
 
-    Fields are joined with a separator that cannot appear in any of them
-    (they are hex, ISO timestamps and integers) so that two different field
-    splits cannot produce the same preimage.
+    Rejected: joining with "|" and asserting the separator cannot occur,
+    which is what version 1 did. Nothing enforced that assertion - `verify_chain`
+    calls `str()` on `timestamp` and `subject_sha256` and checks neither - so
+    a subject of "deadbeef|" + digest collided with a timestamp of
+    "...|deadbeef" and the verifier accepted both. A length prefix removes the
+    question instead of answering it. See `tests/test_chain_domain_separation.py`.
     """
-    preimage = "|".join([str(ENTRY_VERSION), str(index), prev_hash, payload_hash, timestamp, subject])
-    return hashlib.sha256(preimage.encode("utf-8")).hexdigest()
+    fields = [
+        str(ENTRY_VERSION).encode("utf-8"),
+        str(index).encode("utf-8"),
+        prev_hash.encode("utf-8"),
+        payload_hash.encode("utf-8"),
+        timestamp.encode("utf-8"),
+        subject.encode("utf-8"),
+    ]
+    parts = [ENTRY_HEADER, str(len(fields)).encode("ascii")]
+    for field_bytes in fields:
+        parts.append(str(len(field_bytes)).encode("ascii"))
+        parts.append(field_bytes)
+    return SP.join(parts)
+
+
+def compute_entry_hash(prev_hash: str, payload_hash: str, timestamp: str, subject: str, index: int) -> str:
+    return hashlib.sha256(entry_pae(prev_hash, payload_hash, timestamp, subject, index)).hexdigest()
 
 
 def append(entries: list[Entry], subject_sha256: str, payload: dict[str, Any], timestamp: str | None = None) -> Entry:

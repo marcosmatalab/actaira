@@ -1,12 +1,10 @@
 <div align="center">
 
-<img src="docs/img/banner.svg" alt="Actaira" width="760">
-
 **Garantía continua y verificable para modelos y agentes de IA.**
 
 Actaira detecta qué cambió, muestra qué evidencia dejó de contar, traza exactamente qué queda afectado, y demuestra por qué. Inspecciona artefactos de modelo sin ejecutarlos, encuentra las rutas por las que se puede llevar a un agente, decide con políticas como código, y relaciona evidencia técnica con obligaciones del Reglamento de IA de la UE.
 
-**Actaira 2.3.0** · Python 3.11 · 3.12 · 3.13 · MIT · una dependencia en tiempo de ejecución · local-first, sin telemetría, sin cuenta
+**Actaira 3.0.0** · Python 3.11 · 3.12 · 3.13 · MIT · una dependencia en tiempo de ejecución · local-first, sin telemetría, sin cuenta
 
 **[English](README.md)** · [Qué hace](#qué-hace-actaira) · [Quickstart](#quickstart) · [Reglamento de IA](#el-reglamento-de-ia-de-la-ue) · [Arquitectura](#arquitectura) · [Evaluación](#evaluación) · [Docs](#dónde-vive-el-resto)
 
@@ -15,8 +13,6 @@ Actaira detecta qué cambió, muestra qué evidencia dejó de contar, traza exac
 ---
 
 ## Qué hace Actaira
-
-![Qué hace Actaira: qué entra, qué hace, y lo único que llega a afirmar](docs/img/overview.svg)
 
 Actaira lee un sistema de IA **sin ejecutarlo**, registra lo que observó como evidencia **con una vida útil**, decide bajo una **política versionada**, y firma un **recibo que un tercero puede verificar sin conexión**.
 
@@ -28,8 +24,8 @@ Nada se carga, se deserializa ni se ejecuta nunca. Nada se puntúa nunca.
 
 | | | |
 |---|---|---|
-| **80 reglas documentadas** | **15 controles ejecutables** | **21 obligaciones** modeladas |
-| **3.595 tests**, ninguna cifra escrita a mano | **7 conectores** que nunca deciden | una dependencia en tiempo de ejecución |
+| **41 reglas documentadas** | **15 controles ejecutables** | **21 obligaciones** modeladas |
+| **1.643 tests**, ninguna cifra escrita a mano | **7 conectores** que nunca deciden | una dependencia en tiempo de ejecución |
 
 **No hace falta red** para escanear en local, para la gobernanza ni para verificar sin conexión. El descubrimiento remoto y el anclaje temporal RFC 3161 llegan a la red solo cuando se lo pides, `bundle` y `discover` aceptan `--offline` para prohibirlo del todo, y aquí nada llama a casa: no hay telemetría, ni cuenta, ni servicio alojado.
 
@@ -43,17 +39,7 @@ Cada cifra de esta página la mide `make figures` y la verja de release rechaza 
 
 **Inspeccionar.** Suelta un artefacto dentro, y el veredicto llega con el digest, los identificadores de regla, la evidencia detrás de cada hallazgo, y el alcance de la afirmación:
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/03-inspect-dark.png">
-  <img src="docs/img/02-inspect.png" alt="Actaira inspeccionando un checkpoint envenenado en la interfaz local de solo lectura">
-</picture>
-
 **Gobernar.** Elige un rol y una fecha, y el panel muestra qué obligaciones vinculan, cuáles están fuera de lo que cualquier fichero puede mostrar, y por qué cada una está donde está:
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/08-governance-dark-es.png">
-  <img src="docs/img/06-governance-es.png" alt="El panel de gobernanza, mostrando qué obligaciones vinculan a un rol en una fecha y cuáles quedan fuera de lo que esta herramienta puede mostrar">
-</picture>
 
 Los dos paneles están en español e inglés, en claro y en oscuro, y cada captura la regenera `make screenshots` desde un servidor en marcha: la pasada falla ante un error de consola, un error de página, una petición fallida o una violación de la Content-Security-Policy, así que una imagen de aquí no puede mostrar una versión de la interfaz que ya no existe.
 
@@ -155,11 +141,6 @@ Identidades separadas son el caso común y no cierran esta ruta: dentro de un mi
 
 La misma búsqueda tiene panel: `actaira serve` dibuja cada ruta como un grafo, con la relación declarada en cada arista y debajo las mitigaciones que la romperían, y compara dos declaraciones para enseñar qué ganó una versión.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/11-agents-dark-es.png">
-  <img src="docs/img/10-agents-es.png" alt="El panel de agentes dibujando una ruta de ataque, de una herramienta no confiable a través del contexto del modelo hasta una salida, con las mitigaciones que la romperían">
-</picture>
-
 ### Grafo, cambio e impacto
 
 **12 tipos de relación**, y cada arista lleva el nombre del manifiesto, la declaración o el snapshot que la afirmó. Nada se infiere de un nombre que se parece. El impacto responde con la ruta, no con una lista de todo lo que hay cerca.
@@ -169,11 +150,6 @@ Un almacén SQLite local, stdlib, opcional, con migraciones numeradas solo hacia
 **7 conectores** enumeran y preparan y nunca concluyen: sistema de ficheros, GitHub, Hugging Face, MLflow, OCI, S3 y URL simple. Un componente que llega a la red no decide un veredicto.
 
 `actaira serve --state .actaira/state.db` dibuja ese grafo. Las relaciones declaradas se convierten en una imagen explicable, un cambio se convierte en una ruta exacta, y cada arista dice quién la afirmó:
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/19-graph-dark-es.png">
-  <img src="docs/img/18-graph-es.png" alt="El panel de grafo mostrando un grafo de activos registrado centrado en un agente, con sus herramientas, servidores, identidad y modelo declarados, y la relación en cada arista">
-</picture>
 
 Selecciona un nodo y responde qué depende de él, de qué depende, y qué alcanzaría un cambio en él, cada cosa con la cadena de aristas que llega hasta ahí. Selecciona una arista y nombra la relación, la declaración o el snapshot que la afirmó, y el registro de evidencia detrás cuando lo hay.
 
@@ -189,11 +165,6 @@ Esta es la pregunta a la que sirve el resto de la herramienta, y esta es la vers
 
 Se reemplazan los bytes de un modelo. La evidencia atada al digest que ya no esta queda sustituida, y la de sus hermanos intactos no. El recorrido de impacto empieza en ese artefacto exacto, no en la fuente que lo contiene, y guarda una ruta por causa. Y el ALLOW registrado en agosto sigue siendo un ALLOW, porque una herramienta que lo sobrescribiera habria destruido el unico registro de lo que se aprobo:
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/27-changes-dark-es.png">
-  <img src="docs/img/26-changes-es.png" alt="El panel de cambios: una observacion que encontro un modelo reemplazado, junto a la decision de politica a la que afecta, mostrando ALLOW como lo que se decidio y hay que reevaluarla como si sigue aplicando, con los ids de evidencia y ambos digests como razon">
-</picture>
-
 Dos campos, nunca fundidos. **Que se decidio** es historia. **Si sigue aplicando** se deriva de nuevo a partir de las filas que la decision registro como sus entradas, y tiene tres valores: sigue aplicando, hay que reevaluarla, o no se puede saber. El tercero es la respuesta cuando el almacen no guarda lo suficiente para sostener ninguno de los otros dos, y una decision archivada antes de que se registrasen dependencias recibe ese y no un si en voz baja.
 
 A una reevaluacion no se llega nunca por inferencia. Hace falta una fila a la que apuntar, y la razon es un mapa y no una frase:
@@ -205,25 +176,15 @@ A una reevaluacion no se llega nunca por inferencia. Hace falta una fila a la qu
 
 El panel de evidencia es la otra mitad: cada registro, sobre que se tomo, y como esta ahora su sujeto.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/25-evidence-dark-es.png">
-  <img src="docs/img/24-evidence-es.png" alt="El panel de evidencia mostrando un registro de escaneo sustituido junto al digest sobre el que se tomo y el digest que tiene ahora su sujeto">
-</picture>
-
 Cuatro de los siete tipos de evidencia tienen productor hoy: `source_snapshot` desde `watch`, y `artifact_scan`, `agent_assessment` y `policy_decision` desde `scan`, `agent check` y `policy check` cuando a cada uno se le da `--state`. `bundle`, `governance` y `attestation` estan definidos y todavia no los escribe nada, y un test sostiene ese reparto para que no cambie sin que se note.
 
 Los dos paneles leen. Revocar un registro, marcar uno como no aceptado y borrar uno cambian sobre que puede descansar una decision, y ninguno es un boton.
 
 ### Política como código
 
-**21 predicados de política** sobre **5 tipos de sujeto**, un solo lenguaje, ALLOW / DENY / REVIEW. Un predicado sin información va a REVIEW en vez de devolver falso en silencio, y la decisión lleva las reglas y la evidencia que la causaron.
+**17 predicados de política** sobre **5 tipos de sujeto**, un solo lenguaje, ALLOW / DENY / REVIEW. Un predicado sin información va a REVIEW en vez de devolver falso en silencio, y la decisión lleva las reglas y la evidencia que la causaron.
 
 La confianza se mantiene aparte de la criptografía. Que una firma verifique es un hecho sobre bytes; que este entorno acepte a ese firmante es una decisión local. Un entorno que no ha escrito ninguna política de confianza no ha rechazado nada, así que ahí la respuesta es UNKNOWN, nunca UNTRUSTED.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/15-policy-dark-es.png">
-  <img src="docs/img/14-policy-es.png" alt="El panel de política mostrando una decisión DENY y su prueba: cada regla contra el sujeto, incluidas las que no dispararon">
-</picture>
 
 ### Atestaciones y recibos
 
@@ -247,8 +208,6 @@ La confianza se mantiene aparte de la criptografía. Que una firma verifique es 
 ```
 
 Cada obligación lleva un **nivel de comprobabilidad**: qué clase de cosa podría llegar a decidirla.
-
-![La escalera de cobertura](docs/img/coverage-ladder.svg)
 
 | Nivel | Qué significa | La regla que lleva | Obligaciones |
 |---|---|---|---:|
@@ -308,7 +267,7 @@ actaira receipt issue models/ --out release.receipt.json \
 
 `actaira --lang es <comando>` cambia el idioma de la salida. El flag es global, así que va antes del subcomando, y un test falla si un idioma gana una cadena que el otro no tiene.
 
-Hay 24 comandos de CLI en total, indexados en [`docs/CONCEPTS.es.md`](docs/CONCEPTS.es.md), y lo que imprime cada uno está en [`docs/CLI-OUTPUT.md`](docs/CLI-OUTPUT.md).
+Hay 2 comandos de CLI en total, indexados en [`docs/CONCEPTS.es.md`](docs/CONCEPTS.es.md), y lo que imprime cada uno está en [`docs/CLI-OUTPUT.md`](docs/CLI-OUTPUT.md).
 
 Para trabajar sobre la herramienta en vez de con ella, `python -m pip install -e ".[dev]"` añade pytest, ruff, numpy, jsonschema y Pillow; las verjas están listadas en [`docs/ENGINEERING.md`](docs/ENGINEERING.md).
 
@@ -318,15 +277,11 @@ Para trabajar sobre la herramienta en vez de con ella, `python -m pip install -e
 
 Un componente que puede llegar a la red nunca decide un veredicto, y un componente que decide un veredicto nunca llega a la red. Por eso un registry comprometido puede entregarle a Actaira el fichero equivocado y no puede hacer que diga algo equivocado sobre el fichero que recibió.
 
-![Cómo está montada Actaira, de una fuente a un recibo, con la frontera que la red nunca puede cruzar](docs/img/architecture.svg)
-
 Cada recuento de esa imagen se lee del registro, el enum o el catálogo que lo define cuando corre `make diagrams`, así que el diagrama no puede sobrevivir al código que describe. Lo único de la imagen que no es un número es la línea discontinua, y es la razón de que la imagen exista.
 
 Y el bucle se cierra. La siguiente observación se compara con la anterior, así que la salida no es "qué es cierto ahora" sino **qué cambió, qué invalidó eso, y hasta dónde llega**:
 
-![El bucle de garantía de Actaira](docs/img/pipeline.svg)
-
-**72.002 líneas de Python**, una dependencia en tiempo de ejecución, y **160 notas de diseño** que registran por qué cada decisión salió como salió. [`docs/DESIGN.md`](docs/DESIGN.md) es el índice; cada nota nombra el fichero y la línea que la implementa, y un test falla si una nota escrita en el código no está en la tabla.
+**29.822 líneas de Python**, una dependencia en tiempo de ejecución, y **71 notas de diseño** que registran por qué cada decisión salió como salió. [`docs/DESIGN.md`](docs/DESIGN.md) es el índice; cada nota nombra el fichero y la línea que la implementa, y un test falla si una nota escrita en el código no está en la tabla.
 
 ---
 
@@ -337,8 +292,6 @@ Cuatro harnesses, todos sin conexión, todos reproducibles, y cada uno publica l
 **Detección.** Sobre formas de gadget que ninguna denylist enumera, el modo allowlist de Actaira caza **11 de 11** y su propio modo denylist caza 1, que es el argumento a favor de la allowlist y no un argumento sobre las otras herramientas. fickling también caza 11 de 11 ahí, haciendo una pregunta más estricta, y la tabla completa lleva esa columna: una comparación que citara solo las filas donde esta herramienta gana sería justo el tipo de afirmación que este repositorio existe para rechazar.
 
 **Supervivencia del marcado bajo el Artículo 50(2).**
-
-![Supervivencia del marcado a lo largo de un pipeline de publicación](docs/img/marking-survival.svg)
 
 **Pipeline ingenuo: 0 de 32. Pipeline consciente de los metadatos: 8 de 8.** La afirmación que eso sostiene es estrecha y defendible: *la durabilidad de un marcado por metadatos es una propiedad del pipeline, no del marcado*. Cualquier implementación del Art. 50(2) que no controle su propio pipeline está haciendo una promesa que no puede cumplir.
 
@@ -404,4 +357,4 @@ Esta página es una portada. La profundidad está aquí:
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) cubre el listón para un cambio: una regla necesita los dos idiomas, un defecto necesita un test de regresión nombrado en el ledger, y una cifra en la prosa necesita una fuente en el contrato. [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) aplica.
 
-MIT, © Marcos Mata García. **Actaira 2.3.0**, [`CHANGELOG.md`](CHANGELOG.md).
+MIT, © Marcos Mata García. **Actaira 3.0.0**, [`CHANGELOG.md`](CHANGELOG.md).
