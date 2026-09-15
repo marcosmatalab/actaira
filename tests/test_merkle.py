@@ -34,7 +34,7 @@ def test_every_leaf_proves_its_own_inclusion(size):
 
     for index in range(size):
         proof = merkle.build_proof(leaves, index)
-        assert merkle.verify_proof(leaves[index], index, proof, root), (
+        assert merkle.verify_proof(leaves[index], index, proof, root, size), (
             f"leaf {index} of {size} failed its own proof"
         )
 
@@ -55,7 +55,46 @@ def test_a_proof_never_verifies_for_a_different_leaf(size):
         for other in range(size):
             if other == index:
                 continue
-            assert not merkle.verify_proof(leaves[other], other, proof, root)
+            assert not merkle.verify_proof(leaves[other], other, proof, root, size)
+
+
+@pytest.mark.parametrize("size", TREE_SIZES)
+def test_a_proof_never_verifies_for_a_different_position(size):
+    """The half the test above does not reach, and the one that was false.
+
+    `test_a_proof_never_verifies_for_a_different_leaf` varies the LEAF, so it
+    passes on any implementation that hashes a path - which is why it stayed
+    green while `verify_proof` ignored `index` entirely and a proof built for
+    position 0 verified for every position in the tree. Here the leaf is held
+    fixed and only the claimed position moves, which is the statement the
+    module docstring makes about `is_right` carrying the position.
+    """
+    leaves = leaves_for(size)
+    root = merkle.build_root(leaves)
+
+    checked = 0
+    for index in range(size):
+        proof = merkle.build_proof(leaves, index)
+        assert merkle.verify_proof(leaves[index], index, proof, root, size)
+        for other in range(size):
+            if other == index:
+                continue
+            assert not merkle.verify_proof(leaves[index], other, proof, root, size), (
+                f"the proof for leaf {index} of {size} also verified at position {other}"
+            )
+            checked += 1
+    assert checked > 0 or size == 1, "no other position was tried"
+
+
+@pytest.mark.parametrize("size", TREE_SIZES)
+def test_a_position_outside_the_tree_is_refused_by_the_verifier(size):
+    """`build_proof` raises on one; the verifier must not accept one either."""
+    leaves = leaves_for(size)
+    root = merkle.build_root(leaves)
+    proof = merkle.build_proof(leaves, 0)
+
+    assert not merkle.verify_proof(leaves[0], -1, proof, root, size)
+    assert not merkle.verify_proof(leaves[0], size, proof, root, size)
 
 
 @pytest.mark.parametrize("size", [2, 3, 5, 8, 17])
@@ -73,7 +112,7 @@ def test_flipping_the_side_of_a_single_proof_step_breaks_it(size):
             flipped[step_index] = replace(
                 flipped[step_index], is_right=not flipped[step_index].is_right
             )
-            assert not merkle.verify_proof(leaves[index], index, flipped, root)
+            assert not merkle.verify_proof(leaves[index], index, flipped, root, size)
             checked += 1
     assert checked > 0, "no proof had a step to flip; the test asserted nothing"
 
@@ -174,5 +213,5 @@ def test_single_leaf_tree_roots_at_that_leaf_and_has_an_empty_proof():
     leaf = merkle.leaf_hash(b"only")
     assert merkle.build_root([leaf]) == leaf
     assert merkle.build_proof([leaf], 0) == []
-    assert merkle.verify_proof(leaf, 0, [], leaf)
-    assert not merkle.verify_proof(merkle.leaf_hash(b"other"), 0, [], leaf)
+    assert merkle.verify_proof(leaf, 0, [], leaf, 1)
+    assert not merkle.verify_proof(merkle.leaf_hash(b"other"), 0, [], leaf, 1)

@@ -143,13 +143,27 @@ anyone's configuration.
 | Code | Meaning |
 |---|---|
 | 0 | The command succeeded and nothing it checked objected |
-| 1 | A finding at or above `--fail-on`, or a policy DENY, or a verification that failed |
-| 2 | Usage: bad arguments, a document that does not load, nothing to inspect |
-| 3 | Inconclusive, or a policy REVIEW: something was in scope and could not be established |
+| 1 | A verification that failed |
+| 2 | Usage: bad arguments, or a key operation this tool refuses to perform |
 
-Code 3 exists so that "I could not tell" is distinguishable from "I decided
-no". A team that cannot tell them apart treats both as failure and then
-weakens the rules that produce the first.
+This table says what the two commands of 3.0.0 can actually return, which is
+less than 2.3.0 published. `--fail-on` and code `3` went to
+`archive/model-scanner` with `scan` and `policy check`: a threshold flag and an
+INCONCLUSIVE verdict are things a scanner produces, and nothing here inspects
+an artifact any more. Leaving them in this table would have been the one thing
+a compatibility document must never do, which is describe a surface that is not
+there - a pipeline branching on `3` would have waited for an exit this tool
+cannot reach.
+
+Code `3` is expected back. "I could not tell" has to stay distinguishable from
+"I decided no", and the trace-era equivalent is a contract whose conformance is
+INDETERMINADO. It returns with the command that can be indeterminate, and it
+will be published here on the release that adds it and not before.
+
+One code is deliberately absent from the table above, because it is not part of
+this contract: a `verify` whose stdout is closed early - `actaira verify --json
+| head -3` - exits `141`, which is the shell's own convention for a process
+killed by SIGPIPE. It reports a pipe that went away, never a verdict.
 
 ## Rule identifiers
 

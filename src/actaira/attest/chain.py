@@ -62,7 +62,14 @@ def compute_payload_hash(payload: dict[str, Any]) -> str:
     return hashlib.sha256(canonical_json(payload)).hexdigest()
 
 
-def entry_pae(prev_hash: str, payload_hash: str, timestamp: str, subject: str, index: int) -> bytes:
+def entry_pae(
+    prev_hash: str,
+    payload_hash: str,
+    timestamp: str,
+    subject: str,
+    index: int | str,
+    version: str = str(ENTRY_VERSION),
+) -> bytes:
     """The preimage one entry hash is taken over, length-prefixed per field.
 
     Rejected: joining with "|" and asserting the separator cannot occur,
@@ -71,9 +78,15 @@ def entry_pae(prev_hash: str, payload_hash: str, timestamp: str, subject: str, i
     a subject of "deadbeef|" + digest collided with a timestamp of
     "...|deadbeef" and the verifier accepted both. A length prefix removes the
     question instead of answering it. See `tests/test_chain_domain_separation.py`.
+
+    `version` is the value the entry DECLARES, not this module's constant. It
+    was the constant, so the one field that says how to read the other five was
+    the one field the hash did not bind: an entry could claim `"version": 1`
+    and still verify, hashed by the v2 rule it was not written under. Same
+    class as the collision above - a field outside the preimage.
     """
     fields = [
-        str(ENTRY_VERSION).encode("utf-8"),
+        version.encode("utf-8"),
         str(index).encode("utf-8"),
         prev_hash.encode("utf-8"),
         payload_hash.encode("utf-8"),
@@ -87,8 +100,17 @@ def entry_pae(prev_hash: str, payload_hash: str, timestamp: str, subject: str, i
     return SP.join(parts)
 
 
-def compute_entry_hash(prev_hash: str, payload_hash: str, timestamp: str, subject: str, index: int) -> str:
-    return hashlib.sha256(entry_pae(prev_hash, payload_hash, timestamp, subject, index)).hexdigest()
+def compute_entry_hash(
+    prev_hash: str,
+    payload_hash: str,
+    timestamp: str,
+    subject: str,
+    index: int | str,
+    version: str = str(ENTRY_VERSION),
+) -> str:
+    return hashlib.sha256(
+        entry_pae(prev_hash, payload_hash, timestamp, subject, index, version)
+    ).hexdigest()
 
 
 def append(entries: list[Entry], subject_sha256: str, payload: dict[str, Any], timestamp: str | None = None) -> Entry:
@@ -117,6 +139,20 @@ def verify_chain(entries: list[dict[str, Any]]) -> list[str]:
         index = raw.get("index")
         if index != position:
             problems.append(f"entry[{position}]: index is {index}, expected {position}")
+        declared_version = raw.get("version")
+        # `type(...) is int` rather than `isinstance`, and rather than plain
+        # equality: `2.0 == 2` and `True == 1` are both true in Python, so a
+        # document declaring a float or a boolean would have been read as
+        # declaring version 2.
+        if type(declared_version) is not int or declared_version != ENTRY_VERSION:
+            # Refused rather than read anyway. The version says which rule the
+            # other five fields were hashed under, so reading an entry that
+            # declares a different one means applying this rule to bytes
+            # written under another - which is how a v1 entry verified here.
+            problems.append(
+                f"entry[{position}]: version is {declared_version!r}, this verifier reads "
+                f"only {ENTRY_VERSION}"
+            )
         if raw.get("prev_hash") != expected_prev:
             problems.append(f"entry[{position}]: prev_hash does not match previous entry_hash")
         recomputed_payload = compute_payload_hash(raw.get("payload", {}))
@@ -127,7 +163,8 @@ def verify_chain(entries: list[dict[str, Any]]) -> list[str]:
             str(raw.get("payload_hash")),
             str(raw.get("timestamp")),
             str(raw.get("subject_sha256")),
-            int(raw.get("index", position)),
+            str(raw.get("index", position)),
+            str(declared_version),
         )
         if recomputed_entry != raw.get("entry_hash"):
             problems.append(f"entry[{position}]: entry_hash does not match its own fields")

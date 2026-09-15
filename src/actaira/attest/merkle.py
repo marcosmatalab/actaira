@@ -82,12 +82,42 @@ def build_proof(leaves: list[bytes], index: int) -> list[ProofStep]:
     return proof
 
 
-def verify_proof(leaf: bytes, index: int, proof: list[ProofStep], root: bytes) -> bool:
-    running = leaf
-    for step in proof:
-        sibling = bytes.fromhex(step.sibling)
-        running = node_hash(running, sibling) if step.is_right else node_hash(sibling, running)
-    return running == root
+def verify_proof(
+    leaf: bytes, index: int, proof: list[ProofStep], root: bytes, tree_size: int
+) -> bool:
+    """Check that `leaf` sits at `index` in a tree of `tree_size` with `root`.
+
+    The side at each step comes from the position, and `is_right` is checked
+    against it rather than believed: the flag is data a forger writes. `index`
+    used to appear in the signature and in no line of the body, so a proof
+    built for position 0 verified for all eight positions of an eight-leaf
+    tree - the exact failure the note above says the `is_right` flag exists to
+    prevent. Rejected: keeping the four-argument signature and deriving the
+    position from the flags, which cannot be done here: a node with no pair is
+    promoted without emitting a step (`build_root`), so the number of steps is
+    not the depth and only the size says which levels were skipped. RFC 6962's
+    reference verifier takes the size for the same reason.
+    """
+    if not 0 <= index < tree_size:
+        return False
+    running, position, size = leaf, index, tree_size
+    steps = list(proof)
+    while size > 1:
+        paired = size - (size % 2)
+        if position < paired:
+            if not steps:
+                return False
+            step = steps.pop(0)
+            on_left = position % 2 == 0
+            if step.is_right != on_left:
+                return False
+            sibling = bytes.fromhex(step.sibling)
+            running = node_hash(running, sibling) if on_left else node_hash(sibling, running)
+        # A node with no pair is promoted unchanged and carries no step, so the
+        # level is walked without consuming one.
+        position //= 2
+        size = paired // 2 + (size % 2)
+    return not steps and running == root
 
 
 # ---------------------------------------------------------------------------

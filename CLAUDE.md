@@ -106,6 +106,13 @@ estaba en alcance y falló, sí.
    de noventa líneas es un pasivo.
 6. NINGUNA CIFRA PUBLICADA SIN UN COMANDO QUE LA MIDA. `make figures` la mide y
    el gate de release falla si deriva. Esto ya existe y se mantiene.
+7. LA PUERTA SE CORRE EN WSL, porque Windows no tiene `make` y probar los cuatro
+   comandos a mano no prueba el Makefile. Ubuntu 24.04, GNU Make 4.3, venv en
+   `/tmp/actaira-venv` con `pip install -e ".[dev]"`, el repo por su ruta
+   montada:
+   `wsl -e bash -lc 'cd /mnt/c/Users/Usuario/Desktop/actaira && PY=/tmp/actaira-venv/bin/python make all'`
+   Ahí la suite tarda ~85 s en vez de ~205 s, y no se salta el test de bits de
+   permiso POSIX que Windows no puede correr.
 
 ## Reglas de código
 
