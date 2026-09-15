@@ -1,25 +1,21 @@
 """Shared test fixtures.
 
 The project is not installed, so `src/` goes on `sys.path` here rather than in
-every test file. `evals/corpus/build.py` is loaded by path under a private
-module name: it is a script, not a package, and importing it as plain `build`
-would fight with anything else called that.
+every test file. `tests/` goes on it too, so `support.reports` imports the same
+way from every test file.
 
-The corpus is built once per test session into a temporary directory. It is
-cheap (~40 ms, no network, no ML frameworks) and it is the same corpus the eval
-harness measures, so a test that asserts on it is asserting on the artefacts
-the project publishes numbers for.
+The generated artifact corpus went to archive/model-scanner with the inspector
+that read it. Tests that used it as a fixture factory build an `ArtifactReport`
+directly instead: see `tests/support/reports.py` for why that is the honest
+replacement rather than a stand-in inspector.
 """
 from __future__ import annotations
 
-import atexit
 import importlib.util
 import os
 import sys
-import tempfile
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -40,50 +36,6 @@ def _load_module_by_path(name: str, path: Path):
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
-
-
-corpus_build = _load_module_by_path(
-    "actaira_corpus_build", REPO_ROOT / "evals" / "corpus" / "build.py"
-)
-
-_CORPUS_TMP = tempfile.TemporaryDirectory(prefix="actaira-corpus-")
-atexit.register(_CORPUS_TMP.cleanup)
-
-CORPUS_DIR = Path(_CORPUS_TMP.name)
-CORPUS_CASES = corpus_build.build(CORPUS_DIR)
-
-
-def cases_in_family(family: str) -> list[Any]:
-    """Corpus cases of one family, sorted by name so parametrisation is stable."""
-    return sorted(
-        (case for case in CORPUS_CASES if case.family == family),
-        key=lambda case: case.name,
-    )
-
-
-def corpus_path(case: Any) -> Path:
-    return CORPUS_DIR / case.name
-
-
-@pytest.fixture(scope="session")
-def corpus_dir() -> Path:
-    return CORPUS_DIR
-
-
-@pytest.fixture
-def numpy_state_dict() -> dict[str, Any]:
-    """The shape of a real checkpoint: two float32 arrays plus a config dict.
-
-    Built with numpy itself, so the pickle streams under test come from
-    CPython's own pickler rather than from something this repository wrote.
-    """
-    import numpy as np
-
-    return {
-        "encoder.weight": np.zeros((8, 8), dtype=np.float32),
-        "encoder.bias": np.arange(8, dtype=np.float32),
-        "config": {"hidden": 8, "layers": 2, "labels": ["a", "b"]},
-    }
 
 
 @pytest.fixture

@@ -279,8 +279,6 @@ def schemas_match_modules() -> str:
         ("actaira.policy.model", "POLICY_SCHEMA_VERSION", "policy-v1"),
         ("actaira.policy.model", "SCHEMA_VERSION", "policy-decision-v1"),
         ("actaira.receipt", "SCHEMA_VERSION", "assurance-receipt-v2"),
-        ("actaira.agentgov.model", "SCHEMA_VERSION", "agent-bom-v2"),
-        ("actaira.bundle", "SCHEMA_VERSION", "model-bundle-v2"),
     ]
     for module_path, constant, name in pairs:
         module = importlib.import_module(module_path)
@@ -474,7 +472,8 @@ def every_image_is_displayed() -> str:
             if reference.startswith(("docs/img/", "img/")) or f"{prefix}img/" in reference:
                 shown.add(name)
 
-    on_disk = {path.name for path in (ROOT / "docs" / "img").iterdir() if path.is_file()}
+    images = ROOT / "docs" / "img"
+    on_disk = {path.name for path in images.iterdir() if path.is_file()} if images.is_dir() else set()
     orphans = sorted(on_disk - shown)
     if orphans:
         raise DriftError(
@@ -486,6 +485,11 @@ def every_image_is_displayed() -> str:
     missing = sorted(shown - on_disk)
     if missing:
         raise DriftError("a document displays image(s) that are not there: " + ", ".join(missing))
+    if not on_disk:
+        # Not a hole in the check: the scanner's 26 captures and six diagrams
+        # went with the interface they showed, and phase 5 draws the two this
+        # product needs. Zero displayed images is the honest state until then.
+        return "no images in docs/img, and no document displays one"
     return f"{len(on_disk)} image(s) in docs/img, every one of them displayed"
 
 
@@ -592,7 +596,7 @@ def defects_point_at_real_tests() -> str:
 
 @check("the shipped policy and the shipped agent example still load")
 def examples_still_load() -> str:
-    from actaira.agentgov import load as load_agent
+    from actaira.conformance import load as load_agent
     from actaira.policy import load_policy
 
     policy = load_policy(ROOT / "policies" / "production-model.yaml")
@@ -627,8 +631,6 @@ def superseded_contracts_are_kept_and_not_written() -> str:
                 raise DriftError(f"{version} was published and its schema file is gone")
 
     emitters = {
-        "agent-bom": ("actaira.agentgov.model", "SCHEMA_VERSION"),
-        "model-bundle": ("actaira.bundle", "SCHEMA_VERSION"),
         "assurance-receipt": ("actaira.receipt", "SCHEMA_VERSION"),
     }
     for family, (module_path, constant) in emitters.items():
@@ -700,7 +702,7 @@ def migrations_are_exercised() -> str:
 def relations_are_documented() -> str:
     """An edge kind that appears in a graph view under a word nobody defined
     is how one diagram starts meaning two things to two readers."""
-    from actaira.agentgov.model import RELATIONS as AGENT_RELATIONS
+    from actaira.conformance.model import RELATIONS as AGENT_RELATIONS
     from actaira.state.graph import RELATIONS as GRAPH_RELATIONS
 
     orphans = sorted(set(AGENT_RELATIONS) - set(GRAPH_RELATIONS))
@@ -854,17 +856,14 @@ def run_output_stays_out_of_the_index() -> str:
     return f"{len(foreign)} foreign run artifact(s), ignored and untracked"
 
 
-@check("the shipped trust policy and subject manifest still load")
+@check("the shipped subject manifest still loads")
 def new_examples_still_load() -> str:
-    from actaira import trustpolicy
+    """`examples/trust-policy.yaml` went with `trustpolicy.py`. A shipped
+    example nothing can load is worse than no example."""
     from actaira.manifest import load as load_manifest
 
-    policy = trustpolicy.load(ROOT / "examples" / "trust-policy.yaml")
     manifest = load_manifest(ROOT / "examples" / "subjects.yaml")
-    return (
-        f"trust policy with {len(policy.source_rules)} source rule(s), "
-        f"manifest with {len(manifest.entries)} subject(s)"
-    )
+    return f"manifest with {len(manifest.entries)} subject(s)"
 
 
 def main() -> int:

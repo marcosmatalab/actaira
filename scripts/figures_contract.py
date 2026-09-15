@@ -56,10 +56,8 @@ PAGES = tuple(SEPARATORS)
 # disagree with.
 BILINGUAL_PAGES = ("README.md", "README.es.md")
 
-
 def thousands(value: int, separator: str) -> str:
     return f"{value:,}".replace(",", separator)
-
 
 @dataclass(frozen=True)
 class Figure:
@@ -83,16 +81,12 @@ class Figure:
         assert isinstance(self.value, int)
         return thousands(self.value, SEPARATORS[readme])
 
-
 def derive() -> dict[str, Any]:
     """Read every canonical source once. Raises rather than guessing."""
     from actaira import __version__, schemas
-    from actaira.agentgov.capability import CAPABILITY_RULES
     from actaira.cli import build_parser
-    from actaira.connectors import registry as connector_registry
-    from actaira.controls import registry as control_registry
+    from actaira.conformance.capability import CAPABILITY_RULES
     from actaira.coverage import CoverageState, Surface
-    from actaira.governance.catalog import ALL_OBLIGATIONS
     from actaira.policy.engine import PREDICATES
     from actaira.state.evidence import EvidenceState
     from actaira.state.graph import RELATIONS
@@ -112,17 +106,10 @@ def derive() -> dict[str, Any]:
     if not measured.get("tests", {}).get("available"):
         raise ValueError("figures.json records no test count. Run `make figures`.")
 
-    # The two harnesses `scripts/figures.py` does not read, and the benchmark.
-    # Their figures were in the prose with nothing comparing them to anything:
-    # `tests/test_readme_parity.py` pinned three of them against a literal in
-    # the test file, which is a second hand-maintained copy rather than a
-    # source. All three files are tracked, so all of them derive.
-    judged = harness("evals/agents/results.json", "python3 evals/agents/harness.py")
-    judged_all = judged["accuracy_conditional_on_answering"]["all"]
-    marking = harness("evals/marking/results.json", "make eval-marking")
-    bench = harness("evals/benchmark.json", "make benchmark")
-    unknown = bench["scoreboard"]["by_family"]["gadget-unknown"]
-
+    # `evals/` and `fuzz/` went to archive/model-scanner, and with them the
+    # judged-retrieval, marking-survival and benchmark figures. Nothing here
+    # falls back to a literal: a figure with no command that measures it is a
+    # figure this file does not carry. See CLAUDE.md, work rule 6.
     defects = measured["defects"]
     parser = build_parser()
     commands: set[str] = set()
@@ -136,8 +123,6 @@ def derive() -> dict[str, Any]:
         "tests": measured["tests"]["collected"],
         "lines": measured["code"]["total"]["lines"],
         "rules": measured["catalog"]["rules"],
-        "corpus": measured["corpus"]["cases"],
-        "fuzz_targets": measured["fuzz"]["figures"]["targets"],
         "defects": defects["defects"],
         "defects_pinned": defects["pinned_by_a_named_test"],
         "defects_by_note": len(defects["pinned_by_a_note_instead"]),
@@ -154,25 +139,10 @@ def derive() -> dict[str, Any]:
         "subject_kinds": len(list(SubjectKind)),
         "surfaces": len(list(Surface)),
         "coverage_states": len(list(CoverageState)),
-        "connectors": len(connector_registry.all_connectors()),
-        "controls": len(control_registry.all_controls()),
-        "obligations": len(ALL_OBLIGATIONS),
         "commands": len(commands),
         "design_notes": len(set(re.findall(r"^\| (D-\d+[a-z]?) \|", design, re.M))),
         "runtime_dependencies": 1,
-        "judged_pairs": judged_all["pairs"],
-        "judged_answered": judged_all["answered"],
-        "judged_correct": judged_all["answered_correct"],
-        "judged_abstained": judged_all["abstained"],
-        "marking_naive_survived": marking["naive_pipeline"]["survived"],
-        "marking_naive_trials": marking["naive_pipeline"]["trials"],
-        "marking_aware_survived": marking["metadata_aware_pipeline"]["survived"],
-        "marking_aware_trials": marking["metadata_aware_pipeline"]["trials"],
-        "unknown_gadgets_strict": unknown["actaira (strict)"]["caught"],
-        "unknown_gadgets_known_bad": unknown["actaira (known-bad)"]["caught"],
-        "unknown_gadgets_total": unknown["actaira (strict)"]["total"],
     }
-
 
 def figures() -> list[Figure]:
     """The table, with one pattern per language for each figure.
@@ -230,10 +200,6 @@ def figures() -> list[Figure]:
                r"\b[\d,.]+(?= lines of Python)", r"\b[\d,.]+(?= líneas de Python)", True),
         figure("rules", "i18n catalogue",
                r"\b\d+(?= documented rules)", r"\b\d+(?= reglas documentadas)"),
-        figure("corpus", "figures.json: evals/corpus",
-               r"\b\d+(?= corpus artifacts)", r"\b\d+(?= artefactos de corpus)"),
-        figure("fuzz_targets", "figures.json: fuzz targets",
-               r"\b\d+(?= fuzz targets)", r"\b\d+(?= objetivos de fuzz)"),
         # The ledger's counts live in `docs/ENGINEERING.md`. A landing page is
         # not where a reader meets a defect count, and the page that argues
         # about how the repository is held up is. Guarded there rather than
@@ -252,7 +218,7 @@ def figures() -> list[Figure]:
                r"\b\d+(?= superseded versions)", r"\b\d+(?= versiones sustituidas)"),
         figure("coverage_states", "coverage.CoverageState",
                r"\b\d+(?= coverage states)", r"\b\d+(?= estados de cobertura)"),
-        figure("capability_rules", "agentgov.capability.CAPABILITY_RULES",
+        figure("capability_rules", "conformance.capability.CAPABILITY_RULES",
                r"\b\d+(?= capability rules)", r"\b\d+(?= reglas de capacidades)"),
         figure("watch_states", "state.watch.ObservationState",
                r"\b\d+(?= observation states)", r"\b\d+(?= estados de observación)"),
@@ -266,49 +232,15 @@ def figures() -> list[Figure]:
                r"\b\d+(?= kinds of subject)", r"\b\d+(?= tipos de sujeto)"),
         figure("surfaces", "coverage.Surface",
                r"\b\d+(?= coverage surfaces)", r"\b\d+(?= superficies de cobertura)"),
-        figure("connectors", "connectors.registry",
-               r"\b\d+(?= connectors)", r"\b\d+(?= conectores)"),
-        figure("controls", "controls.registry",
-               r"\b\d+(?= executable controls)", r"\b\d+(?= controles ejecutables)"),
-        figure("obligations", "governance.catalog.ALL_OBLIGATIONS",
-               r"\b\d+(?= obligations)", r"\b\d+(?= obligaciones)"),
         figure("commands", "cli.build_parser",
                r"\b\d+(?= CLI commands)", r"\b\d+(?= comandos de CLI)"),
         # The ledger sentence's third figure, which the sync script writes
         # through its own regex and the gate never looked at.
         doc_figure("defects_by_note", "docs/defects.json: pinned_by_a_note_instead",
                    r"\b\d+(?= by a written note)"),
-        # The judged tier, from the gold set the harness wrote.
-        figure("judged_pairs", "evals/agents/results.json",
-               r"\b\d+(?= pairs it answers)", r"\b\d+(?= pares responde)"),
-        figure("judged_answered", "evals/agents/results.json",
-               r"(?<=it answers )\d+", r"(?<=pares responde )\d+"),
-        figure("judged_correct", "evals/agents/results.json",
-               r"(?<=is correct on )\d+", r"(?<=acierta en )\d+"),
-        figure("judged_abstained", "evals/agents/results.json",
-               r"(?<=abstaining )\d+(?= times)", r"(?<=absteniéndose )\d+(?= veces)"),
-        # The Article 50(2) survival matrix, from the harness that measured it.
-        figure("marking_naive_survived", "evals/marking/results.json",
-               r"(?<=Naive pipeline: )\d+", r"(?<=Pipeline ingenuo: )\d+"),
-        figure("marking_naive_trials", "evals/marking/results.json",
-               r"(?<=Naive pipeline: \d of )\d+", r"(?<=Pipeline ingenuo: \d de )\d+"),
-        figure("marking_aware_survived", "evals/marking/results.json",
-               r"(?<=Metadata-aware pipeline: )\d+",
-               r"(?<=Pipeline consciente de los metadatos: )\d+"),
-        figure("marking_aware_trials", "evals/marking/results.json",
-               r"(?<=Metadata-aware pipeline: \d of )\d+",
-               r"(?<=Pipeline consciente de los metadatos: \d de )\d+"),
-        # The head to head, from the benchmark, which is tracked now.
-        figure("unknown_gadgets_strict", "evals/benchmark.json: gadget-unknown family",
-               r"(?<=catches \*\*)\d+(?= of )", r"(?<=caza \*\*)\d+(?= de )"),
-        figure("unknown_gadgets_total", "evals/benchmark.json: gadget-unknown family",
-               r"(?<=catches \*\*\d of )\d+(?=\*\*)", r"(?<=caza \*\*\d de )\d+(?=\*\*)"),
-        figure("unknown_gadgets_known_bad", "evals/benchmark.json: gadget-unknown family",
-               r"(?<=denylist mode catches )\d+", r"(?<=modo denylist caza )\d+"),
         figure("design_notes", "docs/DESIGN.md table",
                r"\b\d+(?= design notes)", r"\b\d+(?= notas de diseño)"),
     ]
-
 
 # The spelled-out forms of figures this table owns. A number written as a word
 # is one no regex can keep current, and every stale figure the 2.2.0 audit
@@ -351,7 +283,6 @@ COUNTED_NOUNS = {
     ),
 }
 
-
 def number_word_problems(readme: str, text: str) -> list[str]:
     """Figures written as words, where this table owns the figure."""
     problems: list[str] = []
@@ -365,7 +296,6 @@ def number_word_problems(readme: str, text: str) -> list[str]:
     for match in re.finditer(rf"\b({words})[\s-]+({nouns})\b", text, re.IGNORECASE):
         problems.append(f"{readme}: {match.group(0)!r} - write the figure as digits so it can be synced")
     return problems
-
 
 def markup_split_problems(readme: str, text: str) -> list[str]:
     r"""Figures this table owns that markup has separated from their noun.

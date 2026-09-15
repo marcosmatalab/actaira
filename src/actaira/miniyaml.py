@@ -185,7 +185,7 @@ def _flow_sequence(raw: str) -> list[Any]:
 
     Defect DEF-94. This parser only read block sequences, so `effects: [read,
     write]` came back as the STRING "[read, write]" - and every caller then
-    did something different and wrong with it. `agentgov._as_list` raised
+    did something different and wrong with it. `conformance._as_list` raised
     "expected a list, got str", which is at least an error;
     `manifest.load_text` did `tuple(str(name) for name in value)` and iterated
     the string CHARACTER BY CHARACTER, producing a manifest that claimed to

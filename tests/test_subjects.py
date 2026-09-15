@@ -1,4 +1,4 @@
-"""One policy language over artifacts, bundles, agents, systems and sources.
+"""One policy language over artifacts, agents, systems and sources.
 
 Design notes D-211 to D-213. Two properties are asserted over and over here
 because they are the ones that make the language worth having.
@@ -8,26 +8,24 @@ Never False. A policy that requires a complete weight identity and is handed
 an agent has not found a compliant agent; it has asked a question with no
 answer, and the difference between those two is the whole design.
 
-And nothing merges. A bundle's findings and an agent's findings are reachable
+And nothing merges. An artifact's findings and an agent's findings are reachable
 through different predicates, because a proof that could not say which subject
 a rule fired on is not a proof anybody can act on.
 """
 from __future__ import annotations
 
-import json
 import pickle
 from datetime import date
 
 import pytest
 
 from actaira import subject as subject_mod
-from actaira.agentgov import load_text as load_agent
-from actaira.bundle import resolve
-from actaira.inspect import inspect_artifact
+from actaira.conformance import load_text as load_agent
 from actaira.policy import decide, load_policy_text
 from actaira.policy.engine import Claims, PolicyError, Unevaluable
 from actaira.policy.model import Decision
 from actaira.subject import SubjectClaims, SubjectKind, SubjectRef
+from support.reports import write_report
 
 ON = date(2026, 9, 11)
 
@@ -60,22 +58,25 @@ def agent():
 
 
 @pytest.fixture
-def bundle(tmp_path):
-    root = tmp_path / "repo"
-    root.mkdir()
-    (root / "config.json").write_text(
-        json.dumps({"architectures": ["X"], "auto_map": {"AutoModel": "modeling.X"}}), encoding="utf-8"
-    )
-    (root / "modeling.py").write_text("import os\n", encoding="utf-8")
-    (root / "model.safetensors").write_text("{}", encoding="utf-8")
-    return resolve(root)
-
-
-@pytest.fixture
 def report(tmp_path):
-    path = tmp_path / "clean.pkl"
-    path.write_bytes(pickle.dumps({"w": [1.0]}))
-    return inspect_artifact(path)
+    return write_report(tmp_path / "clean.pkl", payload=pickle.dumps({"w": [1.0]}),
+                        detected_format="pickle")
+
+
+def agent_claims(agent, **kwargs):
+    """An agent subject with its routes searched.
+
+    `for_agent` used to run the search itself by importing the conformance
+    path engine. It does not any more - the subject layer must not depend on a
+    rule package - so the caller supplies the routes and `paths_searched`
+    follows. Not searching is still `Unevaluable`, which is what DEF-81 is
+    about and what the tests below check.
+    """
+    from actaira.conformance import paths as path_engine
+
+    return subject_mod.for_agent(
+        agent, attack_paths=[item.to_dict() for item in path_engine.find(agent).paths], **kwargs
+    )
 
 
 def run(policy_text: str, subjects: list, on: date = ON):
@@ -87,9 +88,8 @@ def run(policy_text: str, subjects: list, on: date = ON):
 # --------------------------------------------------------------------------
 
 
-def test_a_reference_is_inferred_from_whichever_payload_was_given(report, bundle, agent):
+def test_a_reference_is_inferred_from_whichever_payload_was_given(report, agent):
     assert subject_mod.for_artifact(report).ref.kind is SubjectKind.ARTIFACT
-    assert subject_mod.for_bundle(bundle).ref.kind is SubjectKind.BUNDLE
     assert subject_mod.for_agent(agent).ref.kind is SubjectKind.AGENT
     assert subject_mod.for_system("fraud-review").ref.kind is SubjectKind.SYSTEM
     assert subject_mod.for_source("hf://a/b").ref.kind is SubjectKind.SOURCE
@@ -97,33 +97,6 @@ def test_a_reference_is_inferred_from_whichever_payload_was_given(report, bundle
 
 def test_a_handle_names_the_kind_and_the_id(agent):
     assert subject_mod.for_agent(agent).ref.handle == "agent:demo"
-
-
-def test_a_bundle_reference_carries_the_content_digest_when_there_is_one(bundle):
-    """Small repository, every member hashed: the reference names the weights."""
-    ref = subject_mod.for_bundle(bundle).ref
-
-    assert bundle.content_identity()["state"] == "complete"
-    assert ref.digest == bundle.content_identity()["digest"]
-
-
-def test_a_bundle_reference_falls_back_to_the_layout_digest_and_says_so(tmp_path, monkeypatch):
-    """D-200, one layer up. When nothing identified the weights the reference
-    carries the layout digest, and `bundle_content_identity` is the predicate
-    a policy asks before treating that as the identity of a model."""
-    import actaira.bundle as bundle_module
-
-    monkeypatch.setattr(bundle_module, "MAX_DIGEST_BYTES", 4)
-    root = tmp_path / "big"
-    root.mkdir()
-    (root / "config.json").write_text(json.dumps({"architectures": ["X"]}), encoding="utf-8")
-    (root / "model.safetensors").write_bytes(b"\x00" * 512)
-    unhashed = resolve(root)
-
-    ref = subject_mod.for_bundle(unhashed).ref
-
-    assert unhashed.content_identity()["state"] == "unavailable"
-    assert ref.digest == unhashed.structural_digest
 
 
 def test_the_2_1_constructor_still_builds_the_same_claims(report):
@@ -136,21 +109,19 @@ def test_the_2_1_constructor_still_builds_the_same_claims(report):
     assert old.report is report
 
 
-def test_findings_are_never_merged_across_kinds(bundle, agent, report):
-    claims = SubjectClaims(report, bundle=bundle, agent=agent)
+def test_findings_are_never_merged_across_kinds(agent, report):
+    claims = SubjectClaims(report, agent=agent)
 
     artifact_rules = {finding.rule_id for finding in claims.findings_of(SubjectKind.ARTIFACT)}
-    bundle_rules = {finding.rule_id for finding in claims.findings_of(SubjectKind.BUNDLE)}
     agent_rules = {finding.rule_id for finding in claims.findings_of(SubjectKind.AGENT)}
 
-    assert "ACT-BDL-002" in bundle_rules
-    assert "ACT-BDL-002" not in agent_rules and "ACT-BDL-002" not in artifact_rules
     assert any(rule.startswith("ACT-AGT") for rule in agent_rules)
+    assert not any(rule.startswith("ACT-AGT") for rule in artifact_rules)
+    assert agent_rules.isdisjoint(artifact_rules)
 
 
-def test_coverage_comes_from_the_payload_that_read_bytes(report, bundle, agent):
+def test_coverage_comes_from_the_payload_that_read_bytes(report, agent):
     assert subject_mod.for_artifact(report).coverage is report.coverage
-    assert subject_mod.for_bundle(bundle).coverage is bundle.coverage
     assert subject_mod.for_agent(agent).coverage is None, (
         "a declaration has no surfaces, so asking about coverage has no answer rather than a bad one"
     )
@@ -165,16 +136,16 @@ KIND_POLICY = """
 policy: kinds
 version: 1
 rules:
-  - id: agents-must-not-pay
+  - id: agents-must-not-route-untrusted-input-to-an-effect
     effect: deny
     when:
       subject_kind: agent
-      agent_effect: pay
+      attack_path_severity_at_least: high
 """
 
 
 def test_a_rule_gated_on_kind_fires_on_that_kind(agent):
-    assert run(KIND_POLICY, [subject_mod.for_agent(agent)]).decision is Decision.DENY
+    assert run(KIND_POLICY, [agent_claims(agent)]).decision is Decision.DENY
 
 
 def test_the_same_rule_is_simply_not_matched_by_another_kind(report):
@@ -184,33 +155,6 @@ def test_the_same_rule_is_simply_not_matched_by_another_kind(report):
     decision = run(KIND_POLICY, [subject_mod.for_artifact(report)])
 
     assert decision.decision is Decision.ALLOW
-
-
-def test_a_kind_guard_stops_the_rest_of_the_rule_from_running(report):
-    """Design note D-212a, and a bug that would have made every multi-kind
-    policy permanently inconclusive.
-
-    Predicates run in sorted order, so `bundle_content_identity` runs before
-    `subject_kind`. Without the guard short-circuiting, a bundle rule handed
-    an artifact would evaluate the bundle predicate first, raise
-    `Unevaluable`, and send the decision to REVIEW because a rule correctly
-    did not apply.
-    """
-    decision = run("""
-policy: guarded
-version: 1
-rules:
-  - id: bundles-only
-    effect: require
-    when:
-      subject_kind: bundle
-      bundle_content_identity: complete
-""", [subject_mod.for_artifact(report)])
-
-    assert decision.decision is Decision.ALLOW
-    outcome = decision.outcomes[0]
-    assert outcome.applicable is False
-    assert "bundle_content_identity" not in outcome.evidence
 
 
 def test_a_requirement_that_does_not_apply_is_not_a_denial(report):
@@ -258,8 +202,6 @@ rules:
         "subject_kind: spaceship",
         "finding_severity_at_least: criticl",
         "attack_path_severity_at_least: severe",
-        "bundle_content_identity: totally",
-        "agent_effect: payy",
         "evidence_state: fine",
         "trust_state: maybe",
         "verdict_is: probably",
@@ -275,132 +217,8 @@ def test_every_closed_vocabulary_is_checked_at_load_time(condition):
 
 
 # --------------------------------------------------------------------------
-# bundle predicates
-# --------------------------------------------------------------------------
-
-
-BUNDLE_POLICY = """
-policy: bundles
-version: 1
-rules:
-  - id: no-executable-code
-    effect: deny
-    when:
-      subject_kind: bundle
-      bundle_finding: ACT-BDL-002
-  - id: weights-must-be-identified
-    effect: require
-    when:
-      subject_kind: bundle
-      bundle_content_identity:
-        - complete
-        - externally_bound
-"""
-
-
-def test_a_bundle_finding_can_deny(bundle):
-    decision = run(BUNDLE_POLICY, [subject_mod.for_bundle(bundle)])
-
-    assert decision.decision is Decision.DENY
-    outcome = next(item for item in decision.outcomes if item.rule_id == "no-executable-code")
-    assert outcome.evidence["bundle_finding"]["present"] == ["ACT-BDL-002"]
-
-
-def test_an_unhashed_bundle_fails_the_identity_requirement(tmp_path, monkeypatch):
-    import actaira.bundle as bundle_module
-
-    monkeypatch.setattr(bundle_module, "MAX_DIGEST_BYTES", 4)
-    root = tmp_path / "repo"
-    root.mkdir()
-    (root / "config.json").write_text(json.dumps({"architectures": ["X"]}), encoding="utf-8")
-    (root / "model.safetensors").write_bytes(b"\x00" * 512)
-
-    decision = run(BUNDLE_POLICY, [subject_mod.for_bundle(resolve(root))])
-
-    assert decision.decision is Decision.DENY
-    outcome = next(item for item in decision.outcomes if item.rule_id == "weights-must-be-identified")
-    assert outcome.matched is False
-    assert outcome.evidence["bundle_content_identity"]["state"] == "unavailable"
-
-
-def test_hashing_the_weights_satisfies_it(tmp_path, monkeypatch):
-    import actaira.bundle as bundle_module
-
-    monkeypatch.setattr(bundle_module, "MAX_DIGEST_BYTES", 4)
-    root = tmp_path / "repo"
-    root.mkdir()
-    (root / "config.json").write_text(json.dumps({"architectures": ["X"]}), encoding="utf-8")
-    (root / "model.safetensors").write_bytes(b"\x00" * 512)
-
-    claims = subject_mod.for_bundle(resolve(root, hash_weights=True))
-    outcome = next(
-        item
-        for item in run(BUNDLE_POLICY, [claims]).outcomes
-        if item.rule_id == "weights-must-be-identified"
-    )
-
-    assert outcome.matched is True
-
-
-def test_a_bundle_predicate_on_an_agent_is_unevaluable_not_false(agent):
-    """The property this whole layer rests on.
-
-    A policy that requires a complete weight identity and is handed an agent
-    has not found a compliant agent. It has asked a question with no answer,
-    and returning False there would make a `require` rule silently fail and a
-    `deny` rule silently pass.
-    """
-    decision = run("""
-policy: mixed
-version: 1
-rules:
-  - id: weights
-    effect: require
-    when:
-      bundle_content_identity: complete
-""", [subject_mod.for_agent(agent)])
-
-    assert decision.decision is Decision.REVIEW
-    outcome = decision.outcomes[0]
-    assert "no bundle resolution" in outcome.evidence["bundle_content_identity"]["unevaluable"]
-
-
-# --------------------------------------------------------------------------
 # agent predicates
 # --------------------------------------------------------------------------
-
-
-def test_an_agent_effect_can_send_a_decision_to_review(agent):
-    decision = run("""
-policy: agents
-version: 1
-rules:
-  - id: paying-agents-get-a-look
-    effect: review
-    when:
-      agent_effect:
-        - pay
-        - exec
-""", [subject_mod.for_agent(agent)])
-
-    assert decision.decision is Decision.REVIEW
-    outcome = decision.outcomes[0]
-    assert outcome.evidence["agent_effect"]["present"] == ["pay"]
-    assert outcome.evidence["agent_effect"]["tools"] == ["pay_invoice"]
-
-
-def test_an_agent_finding_can_deny(agent):
-    decision = run("""
-policy: agents
-version: 1
-rules:
-  - id: no-injection-to-action
-    effect: deny
-    when:
-      agent_finding: ACT-AGT-001
-""", [subject_mod.for_agent(agent)])
-
-    assert decision.decision is Decision.DENY
 
 
 def test_an_open_attack_path_can_deny_and_a_closed_one_cannot():
@@ -445,8 +263,8 @@ rules:
       attack_path_severity_at_least: high
 """
 
-    assert run(policy, [subject_mod.for_agent(open_agent)]).decision is Decision.DENY
-    assert run(policy, [subject_mod.for_agent(closed_agent)]).decision is Decision.ALLOW
+    assert run(policy, [agent_claims(open_agent)]).decision is Decision.DENY
+    assert run(policy, [agent_claims(closed_agent)]).decision is Decision.ALLOW
 
 
 # --------------------------------------------------------------------------
@@ -689,7 +507,7 @@ rules:
 # --------------------------------------------------------------------------
 
 
-def test_one_policy_decides_over_an_artifact_a_bundle_and_an_agent(report, bundle, agent):
+def test_one_policy_decides_over_an_artifact_and_an_agent(report, agent):
     """The thing 2.1 could not do at all."""
     decision = run("""
 policy: everything
@@ -700,53 +518,45 @@ rules:
     when:
       subject_kind: artifact
       finding_severity_at_least: critical
-  - id: no-remote-code
-    effect: deny
-    when:
-      subject_kind: bundle
-      bundle_finding: ACT-BDL-002
-  - id: no-paying-agents
+  - id: no-open-high-routes
     effect: deny
     when:
       subject_kind: agent
-      agent_effect: pay
+      attack_path_severity_at_least: high
 """, [
         subject_mod.for_artifact(report),
-        subject_mod.for_bundle(bundle),
-        subject_mod.for_agent(agent),
+        agent_claims(agent),
     ])
 
     assert decision.decision is Decision.DENY
     denied = {outcome.rule_id for outcome in decision.reasons}
-    assert denied == {"no-remote-code", "no-paying-agents"}
-    # Three subjects, three distinct handles in the proof.
-    assert len({outcome.subject for outcome in decision.outcomes}) == 3
+    assert denied == {"no-open-high-routes"}
+    # Two subjects, two distinct handles in the proof.
+    assert len({outcome.subject for outcome in decision.outcomes}) == 2
 
 
-def test_the_proof_says_which_subject_each_rule_fired_on(report, bundle, agent):
+def test_the_proof_says_which_subject_each_rule_fired_on(report, agent):
     decision = run("""
 policy: everything
 version: 1
 rules:
-  - id: no-remote-code
+  - id: no-open-high-routes
     effect: deny
     when:
-      bundle_finding: ACT-BDL-002
+      attack_path_severity_at_least: high
 """, [
         subject_mod.for_artifact(report),
-        subject_mod.for_bundle(bundle),
-        subject_mod.for_agent(agent),
+        agent_claims(agent),
     ])
 
     fired = [outcome for outcome in decision.outcomes if outcome.matched and outcome.effect.value == "deny"]
 
     assert len(fired) == 1
-    assert fired[0].subject == subject_mod.for_bundle(bundle).subject
+    assert fired[0].subject == agent_claims(agent).subject
 
 
 def test_unevaluable_is_an_exception_type_a_reader_can_find():
     assert issubclass(Unevaluable, Exception)
-
 
 
 # --------------------------------------------------------------------------
@@ -784,8 +594,8 @@ rules:
 """
 
     assert run(policy, [SubjectClaims(agent=open_agent)]).decision is Decision.REVIEW
-    assert run(policy, [subject_mod.for_agent(open_agent, with_paths=False)]).decision is Decision.REVIEW
-    assert run(policy, [subject_mod.for_agent(open_agent)]).decision is Decision.DENY
+    assert run(policy, [subject_mod.for_agent(open_agent)]).decision is Decision.REVIEW
+    assert run(policy, [agent_claims(open_agent)]).decision is Decision.DENY
 
 
 def test_searched_and_found_nothing_is_not_unevaluable():
@@ -810,7 +620,7 @@ rules:
     effect: deny
     when:
       attack_path_severity_at_least: high
-""", [subject_mod.for_agent(quiet)])
+""", [agent_claims(quiet)])
 
     assert decision.decision is Decision.ALLOW
 
@@ -841,27 +651,9 @@ rules:
       relation_exists:
         from: tool:read_deploy_key
         relation: runs_as
-""", [subject_mod.for_agent(unbound)])
+""", [agent_claims(unbound)])
 
     assert decision.decision is Decision.DENY
     assert unbound.relations() == [], "the fixture really does declare none"
 
 
-def test_a_bundle_reference_says_which_kind_of_digest_it_carries(tmp_path, monkeypatch):
-    """Defect DEF-80. `claims.subject` is this digest and waivers match on it,
-    so an unlabelled field meant turning on `--hash-weights` silently
-    invalidated every subject-scoped waiver on a bundle."""
-    import actaira.bundle as bundle_module
-
-    monkeypatch.setattr(bundle_module, "MAX_DIGEST_BYTES", 4)
-    root = tmp_path / "repo"
-    root.mkdir()
-    (root / "config.json").write_text(json.dumps({"architectures": ["X"]}), encoding="utf-8")
-    (root / "model.safetensors").write_bytes(b"\x00" * 512)
-
-    unhashed = subject_mod.for_bundle(resolve(root)).ref
-    hashed = subject_mod.for_bundle(resolve(root, hash_weights=True)).ref
-
-    assert unhashed.digest_kind == "structural"
-    assert hashed.digest_kind == "content"
-    assert unhashed.to_dict()["digest_kind"] == "structural"

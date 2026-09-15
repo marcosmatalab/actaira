@@ -26,7 +26,7 @@ of the component rather than of "Actaira".
 | Component | Does | Network | Executes the artifact | Writes to disk |
 |---|---|---|---|---|
 | `actaira.formats`, `inspect`, `bom`, `coverage` | Parses hostile bytes, decides a verdict | Never | Never | Never |
-| `actaira.policy`, `receipt`, `bundle`, `agentgov` | Reads the core's output and documents the operator wrote, decides, signs | Never | Never | Only where told to (`--out`) |
+| `actaira.policy`, `receipt`, `bundle`, `conformance` | Reads the core's output and documents the operator wrote, decides, signs | Never | Never | Only where told to (`--out`) |
 | `actaira.attest` | Signs, verifies, builds the hash chain | Only `--tsa-url`, only when passed | Never | The package it is asked to write |
 | `actaira.connectors` | Enumerates and stages remote artifacts | **Yes, by design** | Never | The staging directory |
 | `actaira.web` | A local read-only interface. With `--state PATH` it also reads one workspace database | Listens on a loopback address | Never | Its own temporary uploads. Never the workspace: the state routes open it read-only and never create or migrate it |

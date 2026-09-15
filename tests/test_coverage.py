@@ -27,8 +27,6 @@ from actaira.coverage import (
     classified_rules,
     rule_effect,
 )
-from actaira.inspect import UNREAD_RULE_IDS, inspect_artifact
-from actaira.model import Verdict
 
 
 def zip_bytes(entries, compression=zipfile.ZIP_DEFLATED) -> bytes:
@@ -45,64 +43,6 @@ CLEAN = pickle.dumps({"w": [1.0, 2.0]}, protocol=2)
 # --------------------------------------------------------------------------
 # The invariant the whole design rests on
 # --------------------------------------------------------------------------
-
-
-def test_a_surface_nobody_undertook_to_read_cannot_make_a_verdict_inconclusive(tmp_path):
-    """The defect that made every clean checkpoint exit 3.
-
-    A checkpoint is mostly float buffers. Declining to decompress them is a
-    scope statement about raw tensor content, and raw tensor content was
-    never in scope, so it cannot lower a verdict about the execution surface.
-    """
-    path = tmp_path / "clean.pt"
-    path.write_bytes(
-        zip_bytes([("archive/data.pkl", CLEAN), ("archive/data/0", b"\x00" * 512), ("archive/version", b"3\n")])
-    )
-
-    report = inspect_artifact(path)
-
-    assert report.verdict is Verdict.PASS
-    assert report.coverage.state(Surface.RAW_TENSOR_CONTENT) is CoverageState.NOT_ASSESSED
-    assert report.coverage.state(Surface.LOAD_TIME_EXECUTION) is CoverageState.COMPLETE
-
-
-def test_a_surface_that_was_in_scope_and_failed_still_does(tmp_path):
-    """The other direction, and the reason the first test is not a loophole.
-
-    A file whose format is not recognised had an execution surface in scope
-    and nothing was read of it. That is FAILED, not NOT_ASSESSED, and it must
-    still produce an inconclusive verdict.
-    """
-    path = tmp_path / "mystery.pkl"
-    path.write_bytes(b"\x11\x22\x33\x44 not a known format")
-
-    report = inspect_artifact(path)
-
-    assert report.coverage.state(Surface.LOAD_TIME_EXECUTION) is CoverageState.FAILED
-    assert report.verdict is Verdict.INCONCLUSIVE
-
-
-def test_an_inspector_that_raised_fails_every_surface_it_was_asked_to_read(tmp_path, monkeypatch):
-    """A traceback in one parser says nothing about the others; it says the
-    run is void. Marking only the surface the exception happened to be in
-    would leave the report claiming coverage that was never established."""
-    from actaira.formats import archive as archive_module
-
-    path = tmp_path / "boom.pt"
-    path.write_bytes(zip_bytes([("archive/data.pkl", CLEAN)]))
-
-    def explode(*args, **kwargs):
-        raise RuntimeError("inspector blew up")
-
-    monkeypatch.setattr(archive_module, "inspect", explode)
-
-    report = inspect_artifact(path)
-
-    assert report.inspector_errors
-    for entry in report.coverage.in_scope():
-        assert entry.state is CoverageState.FAILED, entry
-    assert report.verdict is Verdict.INCONCLUSIVE
-
 
 # --------------------------------------------------------------------------
 # The model itself
@@ -186,35 +126,39 @@ def test_coverage_survives_a_round_trip_through_json():
 # --------------------------------------------------------------------------
 
 
-def test_every_rule_the_inspector_can_emit_is_classified():
-    """A rule with no surface is a rule whose effect on coverage is silence,
-    which is how the flat set rotted in the first place."""
-    import json
-    from pathlib import Path
 
-    from conftest import REPO_ROOT
+# ---------------------------------------------------------------------------
+# The rule table, which the inspector used to read
+# ---------------------------------------------------------------------------
 
-    catalogue = json.loads((Path(REPO_ROOT) / "src" / "actaira" / "i18n" / "en.json").read_text("utf-8"))
-    # Only the rules that speak about reading an artifact need a surface. A
-    # rule about what was FOUND - a gadget, a traversal - is a finding, not a
-    # coverage statement, and classifying it would be a category error.
-    coverage_rules = {
-        rule for rule in catalogue["rules"]
-        if rule in classified_rules() or rule in UNREAD_RULE_IDS
-    }
-    assert coverage_rules, "the catalogue is loaded"
-    for rule in coverage_rules:
-        assert rule_effect(rule) is not None, rule
+def test_every_classified_rule_names_a_surface_a_state_and_a_reason():
+    """`rule_effect` is the whole of design note D-101: a rule has to say what
+    it limits, which is what separates "I did not decompress 3.9 GB of
+    float32" from "the header is truncated"."""
+    classified = classified_rules()
+
+    assert classified, "the table is empty, so the assertions below are vacuous"
+    for rule_id in classified:
+        effect = rule_effect(rule_id)
+
+        assert effect is not None
+        surface, state, reason = effect
+        assert isinstance(surface, Surface)
+        assert isinstance(state, CoverageState)
+        assert reason, f"{rule_id} limits a surface and does not say why"
 
 
-def test_the_legacy_unread_set_is_derived_and_agrees_with_the_table():
-    """`UNREAD_RULE_IDS` is kept for anything importing it, computed from the
-    table rather than maintained beside it. Two hand-maintained lists of the
-    same thing is exactly the shape of the bug this replaced."""
-    derived = {
-        rule for rule in classified_rules()
-        if (effect := rule_effect(rule)) and effect[1].in_scope and effect[1] is not CoverageState.COMPLETE
-    }
+def test_a_rule_the_table_does_not_know_has_no_effect():
+    """Negative control. A rule id from a package this release never saw must
+    not silently pick up the effect of one it did."""
+    assert rule_effect("ACT-NOT-A-RULE") is None
+    assert "ACT-NOT-A-RULE" not in classified_rules()
 
-    assert UNREAD_RULE_IDS == derived
-    assert "ACT-ZIP-007" not in UNREAD_RULE_IDS
+
+def test_the_rule_that_the_table_exists_for_limits_only_raw_tensor_content():
+    """ACT-ZIP-007 fires on every PyTorch checkpoint ever made. Design note
+    D-101: before the table it meant the same as a truncated header."""
+    surface, state, _ = rule_effect("ACT-ZIP-007")
+
+    assert surface is Surface.RAW_TENSOR_CONTENT
+    assert state is CoverageState.NOT_ASSESSED

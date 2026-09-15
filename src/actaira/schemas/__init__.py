@@ -44,36 +44,23 @@ HERE = Path(__file__).parent
 # version whose shape it does not have.
 VERSIONS = {
     "coverage": "coverage/v1",
-    "report": "report/v1",
     "policy": "policy/v1",
     "policy-decision": "policy-decision/v1",
     "assurance-receipt": "assurance-receipt/v2",
-    "agent-bom": "agent-bom/v2",
-    "model-bundle": "model-bundle/v2",
-    "source-snapshot": "source-snapshot/v1",
     "evidence-record": "evidence-record/v1",
-    "asset-graph": "asset-graph/v1",
-    "trust-policy": "trust-policy/v1",
-    "state-export": "state-export/v1",
-    "attack-paths": "attack-paths/v1",
-    "subject-manifest": "subject-manifest/v1",
 }
 
-# The versions this release still reads, per family, oldest first. A major is
-# a change of meaning, and a consumer that was written against the old meaning
-# is not wrong - it is old. `docs/COMPATIBILITY.md` promises that a published
-# contract stays published, so the file stays on disk, `actaira schema` keeps
-# listing it, and the reader that accepts it keeps working.
+# The versions this release still reads, per family, oldest first. Emitting is
+# the asymmetric half: this tool writes `VERSIONS` and reads everything here.
 #
-# Emitting is the asymmetric half: this tool writes `VERSIONS` and reads
-# everything in here. Nothing in the codebase may emit a superseded version,
-# because a producer that can still write the old shape is a producer that
-# will, in some branch nobody tested.
-SUPERSEDED = {
-    "assurance-receipt": ("assurance-receipt/v1",),
-    "agent-bom": ("agent-bom/v1",),
-    "model-bundle": ("model-bundle/v1",),
-}
+# Empty at 3.0.0, and that is a break rather than a tidy-up. The scanner's
+# contracts - report, model-bundle, agent-bom, asset-graph, attack-paths,
+# source-snapshot, subject-manifest, trust-policy, state-export and
+# assurance-receipt/v1 - describe documents nothing in this tree can produce
+# any more. They stay readable at tag v2.3.0 and on archive/model-scanner.
+# Rejected: shipping the files with no emitter, which publishes a contract the
+# tool cannot honour and reads to a consumer as still supported.
+SUPERSEDED: dict[str, tuple[str, ...]] = {}
 
 
 def stem(version: str) -> str:

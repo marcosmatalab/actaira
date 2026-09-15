@@ -2,7 +2,7 @@
 # action builds or pulls an image on every run, and this tool is a few hundred
 # kilobytes of Python with one dependency. `pip install` from the action's own
 # checkout is faster and, more importantly, it pins the tool to the tag the
-# workflow asked for, so `@v2.3.0` scans with Actaira 2.3.0 and nothing else.
+# workflow asked for, so `@v3.0.0` scans with Actaira 3.0.0 and nothing else.
 name: "Actaira scan"
 description: "Static inspection of ML model artifacts. Emits SARIF for code scanning and fails the job on the severity you choose. Nothing is ever loaded or executed."
 author: "Marcos Mata Garcia"

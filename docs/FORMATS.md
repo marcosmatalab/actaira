@@ -532,21 +532,21 @@ artifact into INCONCLUSIVE rather than PASS.
 | `ACT-BDL-007` | MEDIUM | bundle | The tokenizer ships a chat template containing Jinja control flow or a call | no | no | `src/actaira/bundle.py:388` |
 | `ACT-BDL-008` | HIGH | bundle | The repository contains importable Python or native code | yes | no | `src/actaira/bundle.py:421` |
 | `ACT-BDL-009` | MEDIUM | bundle | The source listing was incomplete, so this resolution covers part of the repository | no | no | `src/actaira/remote.py:214` |
-| `ACT-AGT-001` | HIGH | agent | Untrusted text reaches the model beside a tool that acts without approval | yes | no | `src/actaira/agentgov/capability.py:231` |
-| `ACT-AGT-002` | HIGH | agent | A tool can read credentials beside a tool that can reach outside | yes | no | `src/actaira/agentgov/capability.py:232` |
-| `ACT-AGT-003` | HIGH | agent | A tool executes code the model composes | yes | no | `src/actaira/agentgov/capability.py:233` |
-| `ACT-AGT-004` | HIGH | agent | An MCP server is referenced by tag rather than by digest | yes | no | `src/actaira/agentgov/capability.py:234` |
-| `ACT-AGT-005` | MEDIUM | agent | An MCP server has no publisher recorded | no | no | `src/actaira/agentgov/capability.py:235` |
-| `ACT-AGT-006` | MEDIUM | agent | The model is named but not pinned to a digest | no | no | `src/actaira/agentgov/capability.py:236` |
-| `ACT-AGT-007` | MEDIUM | agent | No digest covers the system prompt | no | no | `src/actaira/agentgov/capability.py:237` |
-| `ACT-AGT-008` | HIGH | agent | A tool writes to production without approval | yes | no | `src/actaira/agentgov/capability.py:238` |
-| `ACT-AGT-009` | MEDIUM | agent | An MCP server exposes a tool the declaration does not describe | no | no | `src/actaira/agentgov/declare.py:243` |
-| `ACT-AGT-010` | MEDIUM | agent | A sub-agent is delegated to without a digest | no | no | `src/actaira/agentgov/capability.py:260` |
-| `ACT-PATH-001` | HIGH | agent | A route carries sensitive material from untrusted input to a way out | yes | no | `src/actaira/agentgov/paths.py:330` |
-| `ACT-PATH-002` | HIGH | agent | A route turns text an outsider wrote into an action | yes | no | `src/actaira/agentgov/paths.py:318` |
-| `ACT-PATH-003` | CRITICAL | agent | A route carries untrusted text into a step that runs code | yes | no | `src/actaira/agentgov/paths.py:310` |
-| `ACT-PATH-004` | HIGH | agent | A route reaches a delegate's capabilities from this agent's untrusted input | yes | no | `src/actaira/agentgov/paths.py:355` |
-| `ACT-PATH-009` | MEDIUM | agent | Delegation forms a cycle, so the reachable capability set cannot be enumerated | no | no | `src/actaira/agentgov/paths.py:170` |
+| `ACT-AGT-001` | HIGH | agent | Untrusted text reaches the model beside a tool that acts without approval | yes | no | `src/actaira/conformance/capability.py:231` |
+| `ACT-AGT-002` | HIGH | agent | A tool can read credentials beside a tool that can reach outside | yes | no | `src/actaira/conformance/capability.py:232` |
+| `ACT-AGT-003` | HIGH | agent | A tool executes code the model composes | yes | no | `src/actaira/conformance/capability.py:233` |
+| `ACT-AGT-004` | HIGH | agent | An MCP server is referenced by tag rather than by digest | yes | no | `src/actaira/conformance/capability.py:234` |
+| `ACT-AGT-005` | MEDIUM | agent | An MCP server has no publisher recorded | no | no | `src/actaira/conformance/capability.py:235` |
+| `ACT-AGT-006` | MEDIUM | agent | The model is named but not pinned to a digest | no | no | `src/actaira/conformance/capability.py:236` |
+| `ACT-AGT-007` | MEDIUM | agent | No digest covers the system prompt | no | no | `src/actaira/conformance/capability.py:237` |
+| `ACT-AGT-008` | HIGH | agent | A tool writes to production without approval | yes | no | `src/actaira/conformance/capability.py:238` |
+| `ACT-AGT-009` | MEDIUM | agent | An MCP server exposes a tool the declaration does not describe | no | no | `src/actaira/conformance/declare.py:243` |
+| `ACT-AGT-010` | MEDIUM | agent | A sub-agent is delegated to without a digest | no | no | `src/actaira/conformance/capability.py:260` |
+| `ACT-PATH-001` | HIGH | agent | A route carries sensitive material from untrusted input to a way out | yes | no | `src/actaira/conformance/paths.py:330` |
+| `ACT-PATH-002` | HIGH | agent | A route turns text an outsider wrote into an action | yes | no | `src/actaira/conformance/paths.py:318` |
+| `ACT-PATH-003` | CRITICAL | agent | A route carries untrusted text into a step that runs code | yes | no | `src/actaira/conformance/paths.py:310` |
+| `ACT-PATH-004` | HIGH | agent | A route reaches a delegate's capabilities from this agent's untrusted input | yes | no | `src/actaira/conformance/paths.py:355` |
+| `ACT-PATH-009` | MEDIUM | agent | Delegation forms a cycle, so the reachable capability set cannot be enumerated | no | no | `src/actaira/conformance/paths.py:170` |
 
 10 rules also carry a `rule_help` string, which the CLI and the UI show
 alongside the rule text: `ACT-PKL-002`, `ACT-PKL-001`, `ACT-PKL-009`, `ACT-STF-003`, `ACT-NPY-001`, `ACT-H5-001`, `ACT-FMT-002`, `ACT-PKL-010`, `ACT-PKL-011`, `ACT-PKL-013`. The other 33 return an

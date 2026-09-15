@@ -24,7 +24,7 @@ from pathlib import Path
 
 import pytest
 
-from actaira.agentgov import load as load_agent
+from actaira.conformance import load as load_agent
 from actaira.state import graph as graph_mod
 from actaira.state.graph import Edge, Graph
 from actaira.state.snapshot import snapshot_of
@@ -77,52 +77,6 @@ def test_an_artifact_the_latest_observation_did_not_see_stays_in_the_graph(store
     after = Graph.from_store(store)
     assert len(after.nodes()) == 3, "a removed artifact left the recorded graph"
     assert len(after.edges) == 2, "a relation was deleted when an observation stopped seeing it"
-
-
-def test_a_relation_a_rebuilt_manifest_no_longer_declares_stays_recorded(tmp_path):
-    """The same question for the declared half, and the same answer.
-
-    A manifest is recorded, then rebuilt without one of its `uses` lines. The
-    edge stays. There is nothing wrong with that - it is what a record is -
-    and it is the reason the currentness of a declared edge is reported as
-    undetermined rather than guessed at: this store has no notion of which run
-    of a declaration is the live one.
-    """
-    from actaira import manifest as manifest_mod
-    from actaira.statecli import _record_manifest
-
-    agent = Path(REPO_ROOT) / "examples" / "agent-ticket-triage.yaml"
-    both = tmp_path / "both.yaml"
-    both.write_text(
-        "schema_version: subject-manifest/v1\n"
-        "system: svc\n"
-        "subjects:\n"
-        f"  - kind: agent\n    path: {agent.as_posix()}\n"
-        "  - kind: system\n    name: svc\n    uses: [agent:ticket-triage]\n",
-        encoding="utf-8",
-    )
-    fewer = tmp_path / "fewer.yaml"
-    fewer.write_text(
-        "schema_version: subject-manifest/v1\n"
-        "system: svc\n"
-        "subjects:\n"
-        f"  - kind: agent\n    path: {agent.as_posix()}\n"
-        "  - kind: system\n    name: svc\n",
-        encoding="utf-8",
-    )
-    with Store(tmp_path / "state.db") as store:
-        _record_manifest(store, manifest_mod.load(both), both)
-        with_edge = {(edge.source, edge.relation, edge.target)
-                     for edge in Graph.from_store(store).edges}
-        assert ("system:svc", "uses", "agent:ticket-triage") in with_edge
-
-        _record_manifest(store, manifest_mod.load(fewer), fewer)
-        after = {(edge.source, edge.relation, edge.target)
-                 for edge in Graph.from_store(store).edges}
-    assert ("system:svc", "uses", "agent:ticket-triage") in after, (
-        "the graph dropped a relation a later manifest did not repeat, which would make "
-        "`recorded` mean something else again"
-    )
 
 
 def test_the_projection_tells_a_current_observation_from_an_earlier_one(store):
@@ -320,18 +274,6 @@ def test_two_walks_over_one_graph_give_byte_identical_answers():
     )
 
 
-def test_a_neighbourhood_serialises_as_asset_graph_v1_through_the_subgraph():
-    """A view is a question asked of the graph, not a new kind of graph, so it
-    comes back through the published contract rather than beside it."""
-    jsonschema = pytest.importorskip("jsonschema")
-    from actaira import schemas
-
-    graph = chain_graph()
-    view = graph_mod.neighbourhood(graph, "agent:review", depth=2)
-    document = graph_mod.subgraph(graph, view).to_dict()
-    jsonschema.Draft202012Validator(schemas.load("asset-graph-v1")).validate(document)
-
-
 def test_every_edge_of_a_view_keeps_its_provenance():
     graph = chain_graph()
     view = graph_mod.neighbourhood(graph, "agent:review", depth=2)
@@ -409,38 +351,3 @@ def test_nothing_in_membership_is_inferred_from_a_name():
     assert {edge.target for edge in agent.membership_relations()} == declared_names
 
 
-def test_impact_on_a_declared_tool_now_reaches_the_system_that_uses_the_agent(tmp_path):
-    """The connectivity this increment added, measured end to end.
-
-    Before it, `impact` on any of the agent's five tools reported nothing
-    affected - not because nothing was, but because no edge joined a tool to
-    the agent that declares it.
-    """
-    from actaira import manifest as manifest_mod
-    from actaira.statecli import _record_manifest
-
-    subjects = Path(REPO_ROOT) / "examples" / "subjects.yaml"
-    with Store(tmp_path / "state.db") as store:
-        _record_manifest(store, manifest_mod.load(subjects), subjects)
-        graph = Graph.from_store(store)
-    answer = graph_mod.impact(graph, "tool:fetch_url")
-
-    assert answer["found"] is True
-    reached = {row["asset"] for row in answer["affected"]}
-    assert "agent:ticket-triage" in reached
-    assert "system:ticket-triage-service" in reached
-    routes = {row["asset"]: row["route"] for row in answer["affected"]}
-    assert all(hop["stated_by"] for hop in routes["system:ticket-triage-service"])
-
-
-def test_a_recorded_membership_edge_names_the_declaration_that_stated_it(tmp_path):
-    from actaira import manifest as manifest_mod
-    from actaira.statecli import _record_manifest
-
-    subjects = Path(REPO_ROOT) / "examples" / "subjects.yaml"
-    with Store(tmp_path / "state.db") as store:
-        _record_manifest(store, manifest_mod.load(subjects), subjects)
-        edges = Graph.from_store(store).edges
-    for edge in edges:
-        if edge.target.startswith(("tool:", "mcp:")):
-            assert edge.stated_by.startswith("declaration "), edge

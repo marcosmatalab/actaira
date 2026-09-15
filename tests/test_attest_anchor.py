@@ -23,9 +23,8 @@ import tsa
 from actaira.attest import chain, package, signing
 from actaira.attest import timestamp as ts
 from actaira.attest import verify as verify_mod
-from actaira.inspect import inspect_artifact
 from actaira.model import canonical_json
-from conftest import corpus_build
+from support.reports import write_report
 
 
 @pytest.fixture(scope="module")
@@ -54,12 +53,7 @@ def stamper(authority):
 @pytest.fixture
 def entries(tmp_path: Path) -> list[chain.Entry]:
     artifact = tmp_path / "clean.safetensors"
-    artifact.write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [4, 4], "data_offsets": [0, 64]}}, b"\x00" * 64
-        )
-    )
-    report = inspect_artifact(artifact)
+    report = write_report(artifact)
     built: list[chain.Entry] = []
     chain.append(built, report.sha256, report.to_dict())
     return built
@@ -99,9 +93,13 @@ def resign(members: dict[str, bytes], manifest: dict, keypair) -> dict[str, byte
     members["manifest.sig"] = json.dumps(
         {
             "algorithm": "ed25519",
-            "over": "sha256(manifest.json)",
+            "over": package.SIGNATURE_SUBJECT_NOTE,
             "key_id": keypair.key_id,
-            "signature_b64": base64.b64encode(keypair.sign(hashlib.sha256(blob).digest())).decode("ascii"),
+            # The attacker holds the key, so they sign the way the tool does,
+            # domain prefix included. Anything less is not the threat model.
+            "signature_b64": base64.b64encode(
+                keypair.sign(package.manifest_signing_subject(blob))
+            ).decode("ascii"),
         },
         indent=2,
     ).encode("utf-8")
@@ -300,57 +298,6 @@ def test_an_extension_of_an_anchored_package_keeps_verifying(tmp_path, entries, 
 # ---------------------------------------------------------------------------
 # Through the command line, over a socket
 # ---------------------------------------------------------------------------
-
-def test_the_cli_anchors_a_package_against_a_live_authority(tmp_path, capsys, authority):
-    from actaira import cli
-
-    artifact = tmp_path / "clean.safetensors"
-    artifact.write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [2, 2], "data_offsets": [0, 16]}}, b"\x00" * 16
-        )
-    )
-    out = tmp_path / "cli.zip"
-    with tsa.serving(authority) as (url, state):
-        code = cli.main([
-            "attest", str(artifact), "--out", str(out),
-            "--key", str(tmp_path / "keys" / "signing-key.pem"), "--tsa-url", url,
-        ])
-
-    assert code == cli.EXIT_OK
-    assert state["requests"] == 1
-    printed = capsys.readouterr().out
-    assert "time_anchor  rfc3161" in printed
-    assert "Time-stamped by" in printed
-
-    assert cli.main(["verify", str(out)]) == cli.EXIT_OK
-    verify_output = capsys.readouterr().out
-    assert "Time anchor: rfc3161 (rfc3161)" in verify_output
-    assert "gen_time" in verify_output
-    assert "tsa_chain unknown" in verify_output
-
-
-def test_the_cli_writes_no_package_at_all_when_the_authority_refuses(tmp_path, capsys, authority):
-    """A downgrade to an unanchored package would be the worst outcome: the
-    caller asked for an anchor and would get a package that quietly lacks one."""
-    from actaira import cli
-
-    artifact = tmp_path / "clean.safetensors"
-    artifact.write_bytes(
-        corpus_build.build_safetensors(
-            {"w": {"dtype": "F32", "shape": [2, 2], "data_offsets": [0, 16]}}, b"\x00" * 16
-        )
-    )
-    out = tmp_path / "refused.zip"
-    with tsa.serving(authority, status=2) as (url, _):
-        code = cli.main([
-            "attest", str(artifact), "--out", str(out),
-            "--key", str(tmp_path / "keys" / "signing-key.pem"), "--tsa-url", url,
-        ])
-
-    assert code == cli.EXIT_USAGE
-    assert not out.exists()
-    assert "timestamp authority" in capsys.readouterr().err
 
 
 def test_the_json_verify_output_carries_the_anchor_for_a_machine_to_read(

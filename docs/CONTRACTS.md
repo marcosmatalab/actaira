@@ -22,20 +22,11 @@ actaira schema report-v1       # print one
 
 | Contract | What it is | Produced by |
 |---|---|---|
-| `agent-bom/v2` | An agent's bill of materials: model, tools with declared effects, MCP servers, sub-agents, and the digest that covers the system prompt too. | `actaira agent bom` |
-| `asset-graph/v1` | Assets and the declared relations between them, every edge carrying the manifest, declaration or snapshot that stated it. | `actaira graph export` |
 | `assurance-receipt/v2` | The one document meant to leave the organisation that produced it: subjects by digest, coverage, findings, the policy decision and the supply-chain state, signed over the canonical JSON of itself minus the signature. | `actaira receipt issue` |
-| `attack-paths/v1` | The routes found through an agent declaration, each with what it carries, what would break it, and any control that already closes it. | `actaira agent paths --json` |
 | `coverage/v1` | The per-surface matrix on its own, so a consumer can read the scope of a claim without parsing the claim. | `embedded in every report` |
 | `evidence-record/v1` | One observation, bound to the digest of what was observed, with its state and the collector that made it. | `actaira evidence show --json` |
-| `model-bundle/v2` | A model repository resolved into members, relations and gaps, with `content_identity` kept separate from `structural_digest`. | `actaira bundle --json` |
 | `policy/v1` | A decision document: rules, their verdicts, exceptions with an owner and an expiry, and the digest the decision will cite. | `actaira policy show` |
 | `policy-decision/v1` | What a policy decided about one run, with the rule and the evidence behind every verdict, including the ones that could not be evaluated. | `actaira policy check --json` |
-| `report/v1` | What one scan found in one artifact: the findings, the detected format, the digest, and the coverage matrix that bounds the claim. | `actaira scan --format json` |
-| `source-snapshot/v1` | What a connector listed for one source at one moment: members, digests, the revision, and whether the listing was complete. | `actaira snapshot` |
-| `state-export/v1` | The whole store as one deterministic document, so two states can be diffed. Two runs over the same observation are byte-identical. | `actaira graph export, actaira snapshot` |
-| `subject-manifest/v1` | What a policy or a receipt is about when it is not a list of files: the subjects, their kinds, and the relations the document itself declares. | `written by hand, read by --subjects` |
-| `trust-policy/v1` | What this environment accepts from a signer, kept apart from what cryptography proved about the bytes. | `written by hand, read by actaira trust check` |
 
 ## Superseded
 
@@ -43,9 +34,6 @@ Still on disk, still readable, never emitted again. A consumer written against o
 
 | Contract | Replaced by |
 |---|---|
-| `agent-bom/v1` | `agent-bom/v2` |
-| `assurance-receipt/v1` | `assurance-receipt/v2` |
-| `model-bundle/v1` | `model-bundle/v2` |
 
 ## Not a contract yet, deliberately
 
@@ -61,20 +49,8 @@ Each contract's required fields are frozen in the test suite, so dropping one fa
 
 | Contract | Required |
 |---|---|
-| `agent-bom-v1` | `schema_version`, `agent`, `tools`, `mcp_servers`, `effects` |
-| `agent-bom-v2` | `schema_version`, `agent`, `tools`, `mcp_servers`, `effects`, `relations`, `vocabulary` |
-| `asset-graph-v1` | `schema_version`, `nodes`, `edges`, `cycles` |
-| `assurance-receipt-v1` | `schema_version`, `tool`, `observed_at`, `subjects`, `coverage`, `findings_by_severity`, `supply_chain`, `states_what_it_does_not_cover` |
 | `assurance-receipt-v2` | `schema_version`, `tool`, `observed_at`, `subjects`, `coverage`, `findings_by_severity`, `supply_chain`, `states_what_it_does_not_cover` |
-| `attack-paths-v1` | `schema_version`, `agent`, `paths`, `open_paths`, `cycles` |
 | `coverage-v1` | `schema_version`, `surfaces` |
 | `evidence-record-v1` | `schema_version`, `evidence_id`, `subject`, `kind`, `collector`, `collector_version`, `observed_at`, `state`, `digest` |
-| `model-bundle-v1` | `schema_version`, `root`, `bundle_digest`, `members`, `findings`, `coverage` |
-| `model-bundle-v2` | `schema_version`, `root`, `structural_digest`, `content_identity`, `members`, `findings`, `coverage` |
 | `policy-decision-v1` | `schema_version`, `decision`, `policy`, `decided_on`, `subjects`, `proof` |
 | `policy-v1` | `schema_version`, `policy`, `version`, `rules` |
-| `report-v1` | `path`, `size_bytes`, `sha256`, `detected_format`, `format_confidence`, `verdict`, `findings`, `coverage` |
-| `source-snapshot-v1` | `schema_version`, `source`, `connector`, `listing_complete`, `observed_at`, `artifacts`, `snapshot_digest` |
-| `state-export-v1` | `schema_version`, `store_schema_version`, `sources`, `snapshots`, `assets`, `edges`, `evidence` |
-| `subject-manifest-v1` | `schema_version`, `subjects` |
-| `trust-policy-v1` | `schema_version` |

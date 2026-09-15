@@ -211,8 +211,6 @@ ARGUMENT_CHECKS: dict[str, Callable[[str, Any], None]] = {}
 
 
 def _register_argument_checks() -> None:
-    from ..agentgov.model import Effect as AgentEffect
-    from ..bundle import ContentIdentity
     from ..model import Verdict
     from ..subject import SubjectKind
 
@@ -225,10 +223,6 @@ def _register_argument_checks() -> None:
                 "attack_path_severity_at_least", lambda: {item.value for item in Severity}
             ),
             "subject_kind": _enum_check("subject_kind", lambda: {item.value for item in SubjectKind}),
-            "bundle_content_identity": _enum_check(
-                "bundle_content_identity", lambda: {item.value for item in ContentIdentity}
-            ),
-            "agent_effect": _enum_check("agent_effect", lambda: {item.value for item in AgentEffect}),
             "verdict_is": _enum_check("verdict_is", lambda: {item.value for item in Verdict}),
             "evidence_state": _enum_check(
                 "evidence_state",
@@ -511,83 +505,6 @@ def _subject_kind(claims: Claims, argument: Any, _on: date) -> tuple[bool, dict[
     return claims.kind.value in wanted, {"kind": claims.kind.value, "accepted": sorted(wanted)}
 
 
-def _bundle_finding(claims: Claims, argument: Any, _on: date) -> tuple[bool, dict[str, Any]]:
-    if claims.bundle is None:
-        raise Unevaluable("no bundle resolution for this subject")
-    wanted = {str(item) for item in (argument if isinstance(argument, list) else [argument])}
-    present = sorted({finding.rule_id for finding in claims.bundle.findings} & wanted)
-    return bool(present), {"looked_for": sorted(wanted), "present": present}
-
-
-def _bundle_content_identity(claims: Claims, argument: Any, _on: date) -> tuple[bool, dict[str, Any]]:
-    """How firmly the weights are identified, as a policy question.
-
-    The predicate D-200 exists for. "This is the model we approved" is a claim
-    about bytes, and a bundle whose shards were never read cannot support it
-    however stable its layout digest is. A production policy says
-    `bundle_content_identity: [complete, externally_bound]` and a repository
-    that has not been hashed goes to REVIEW rather than through.
-    """
-    from ..bundle import ContentIdentity
-
-    if claims.bundle is None:
-        raise Unevaluable("no bundle resolution for this subject")
-    wanted = {str(item) for item in (argument if isinstance(argument, list) else [argument])}
-    unknown = sorted(wanted - {item.value for item in ContentIdentity})
-    if unknown:
-        raise PolicyError(
-            f"bundle_content_identity: {', '.join(unknown)} is not a state. Known: "
-            f"{', '.join(item.value for item in ContentIdentity)}"
-        )
-    identity = claims.bundle.content_identity()
-    return identity["state"] in wanted, {
-        "state": identity["state"],
-        "accepted": sorted(wanted),
-        "binding_source": identity["binding_source"],
-        "members_unidentified": identity["members_unidentified"],
-    }
-
-
-def _agent_effect(claims: Claims, argument: Any, _on: date) -> tuple[bool, dict[str, Any]]:
-    from ..agentgov.model import Effect as AgentEffect
-
-    # The argument is checked before the payload is. Order matters: with the
-    # checks the other way round a misspelt effect passed silently for every
-    # artifact and bundle subject and raised on the first agent, so whether a
-    # policy was well-formed depended on what it was pointed at.
-    wanted = {str(item) for item in (argument if isinstance(argument, list) else [argument])}
-    unknown = sorted(wanted - {item.value for item in AgentEffect})
-    if unknown:
-        raise PolicyError(
-            f"agent_effect: {', '.join(unknown)} is not an effect. Known: "
-            f"{', '.join(item.value for item in AgentEffect)}"
-        )
-    if claims.agent is None:
-        raise Unevaluable("no agent declaration for this subject")
-    held = {effect.value for effect in claims.agent.effects}
-    present = sorted(held & wanted)
-    return bool(present), {
-        "looked_for": sorted(wanted),
-        "present": present,
-        "tools": sorted(
-            tool.name
-            for tool in claims.agent.tools
-            for effect in tool.effects
-            if effect.value in present
-        ),
-    }
-
-
-def _agent_finding(claims: Claims, argument: Any, _on: date) -> tuple[bool, dict[str, Any]]:
-    if claims.agent is None:
-        raise Unevaluable("no agent declaration for this subject")
-    wanted = {str(item) for item in (argument if isinstance(argument, list) else [argument])}
-    present = sorted(
-        {finding.rule_id for finding in claims.findings_of(SubjectKind.AGENT)} & wanted
-    )
-    return bool(present), {"looked_for": sorted(wanted), "present": present}
-
-
 def _attack_path_severity_at_least(claims: Claims, argument: Any, _on: date) -> tuple[bool, dict[str, Any]]:
     """An OPEN route at or above a severity. Closed ones do not count.
 
@@ -755,10 +672,6 @@ PREDICATES: dict[str, Predicate] = {
     "fact_is": _fact_is,
     # 2.2, design note D-212
     "subject_kind": _subject_kind,
-    "bundle_finding": _bundle_finding,
-    "bundle_content_identity": _bundle_content_identity,
-    "agent_effect": _agent_effect,
-    "agent_finding": _agent_finding,
     "attack_path_severity_at_least": _attack_path_severity_at_least,
     "relation_exists": _relation_exists,
     "evidence_state": _evidence_state,
@@ -828,12 +741,12 @@ def _evaluate(rule: Rule, claims: Claims, policy: Policy, on: date) -> RuleOutco
 
     # `subject_kind` is a guard, not a condition, so it is evaluated first and
     # it short-circuits. Design note D-212a: without this, a rule reading
-    # `subject_kind: bundle` plus `bundle_content_identity: complete` would
-    # evaluate its second predicate against an agent - predicates run in
-    # sorted order and `bundle_content_identity` sorts first - and that
-    # predicate would raise `Unevaluable`, sending the whole decision to
-    # REVIEW because a bundle rule was correctly not about this agent. Every
-    # multi-kind policy would be permanently inconclusive.
+    # `subject_kind: workspace` plus `attack_path_severity_at_least: high`
+    # would evaluate its second predicate against an artifact - predicates run
+    # in sorted order and `attack_path_severity_at_least` sorts first - and
+    # that predicate would raise `Unevaluable`, sending the whole decision to
+    # REVIEW because a workspace rule was correctly not about this artifact.
+    # Every multi-kind policy would be permanently inconclusive.
     if "subject_kind" in rule.when:
         try:
             applies, detail = PREDICATES["subject_kind"](claims, rule.when["subject_kind"], on)

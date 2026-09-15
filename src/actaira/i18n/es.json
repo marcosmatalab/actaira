@@ -1,14 +1,8 @@
 {
   "ui": {
-    "scan.format": "formato",
-    "scan.written": "Informe escrito en {path}",
-    "scan.format_conflict": "--json y --format piden dos formatos distintos; usa solo uno.",
     "report.inconclusive": "el artefacto no se pudo leer por completo",
-    "scan.no_artifacts": "No se han encontrado artefactos en las rutas indicadas.",
-    "scan.summary": "{total} artefacto(s): {passed} correctos, {failed} fallidos, {inconclusive} no concluyentes",
     "key.created": "Se ha creado una clave de firma nueva en {path} (permisos 0600).",
     "key.loaded": "Clave de firma cargada desde {path}.",
-    "bom.written": "ML-BOM escrito en {path}",
     "attest.written": "Paquete de atestación escrito en {path}",
     "verify.header": "Verificando paquete de atestación (escrito por actaira {path})",
     "verify.trust": "Estado de confianza",
@@ -34,68 +28,11 @@
     "verify.key_state": "Clave de firma",
     "check.timestamp_matches_manifest": "el sello RFC 3161 cubre este manifiesto",
     "check.signing_key_in_validity": "la clave que firma estaba autorizada a firmar en ese momento",
-    "gov.header": "Mapa de evidencia del AI Act a {on}, rol {role}, sobre {n} artefacto(s)",
-    "gov.provides": "aporta",
-    "gov.not_provided": "no aporta",
-    "gov.no_evidence": "en esta ejecución no se ha aportado evidencia para esta obligación",
-    "gov.would_provide": "aportaría, con evidencia",
-    "gov.evidence_from": "evidencia",
-    "gov.evidence_more": "y {n} más, todas listadas en el informe JSON",
-    "gov.counts": "{applicable} obligaciones aplican, {touched} las toca esta evidencia, {outside} quedan fuera de lo que esta herramienta puede demostrar. Son recuentos, no una nota.",
-    "gov.unread": "Artefactos que no se pudieron leer del todo, así que no se deriva evidencia de ellos: {files}",
-    "gov.pack_written": "Dossier de evidencia firmado escrito en {path}",
-    "gov.clock.header": "Obligaciones del Reglamento de IA a fecha de {on}",
-    "gov.clock.applies_now": "YA SE APLICA",
-    "gov.clock.not_yet": "TODAVÍA NO",
-    "gov.clock.since": "desde",
-    "gov.clock.from": "desde el",
-    "gov.clock.days": "faltan {days} días",
-    "gov.clock.grace": "periodo de gracia hasta el {until}: {scope}",
-    "gov.clock.provisional": "PROVISIONAL: acordado por los colegisladores pero todavía sin publicar en el\nDiario Oficial. Mientras no se publique, la fecha que vincula es la original.\nNo deje de prepararse porque una herramienta le haya impreso una fecha.",
     "check.dossier_covers_its_inspections": "el expediente de gobernanza describe los artefactos inspeccionados junto a él",
-    "controls.list.header": "Controles registrados, con las obligaciones sobre las que actúa cada uno:",
-    "controls.list.count": "control(es) registrados",
-    "controls.mark.written": "marcado escrito en",
-    "controls.covers": "cubre",
-    "controls.does_not_cover": "no cubre",
-    "controls.ran": "control(es) ejecutados",
     "outcome.satisfied": "CUMPLIDO",
     "outcome.not_satisfied": "NO CUMPLIDO",
     "outcome.inconclusive": "NO CONCLUYENTE",
     "outcome.not_applicable": "NO APLICABLE",
-    "discover.list_header": "Conectores registrados, y lo que necesita cada uno:",
-    "discover.list_count": "conector(es) registrados",
-    "discover.network": "red",
-    "discover.local": "en disco",
-    "discover.source": "origen",
-    "discover.connector": "conector",
-    "discover.revision": "referencia",
-    "discover.artifacts": "artefactos",
-    "discover.listing": "listado",
-    "discover.complete": "completo: este conector puede demostrar que ha listado todo",
-    "discover.incomplete": "INCOMPLETO: este listado es menor que el origen, lea las notas",
-    "discover.hosts": "servidores",
-    "discover.hosts_none": "ninguno; no se ha contactado con nada",
-    "discover.notes": "lo que este listado no promete:",
-    "discover.no_digest": "sin resumen declarado",
-    "discover.no_uri": "discover necesita un origen, o --list para ver los conectores",
-    "discover.try_list": "ejecute `actaira discover --list` para ver a donde llega esta version",
-    "discover.fetch_needs_out": "--fetch escribe ficheros, asi que necesita --out para saber donde",
-    "discover.offline_refused": "se ha indicado --offline y {connector} solo existe a traves de la red; se rechaza en lugar de devolver un listado vacio",
-    "discover.local_no_fetch": "--fetch no ha hecho nada: este origen ya esta en este disco, y copiarlo produciria una segunda copia comprobada contra ningun resumen declarado",
-    "discover.fetched": "descargados {n} artefacto(s) en {seconds}s con {requests} peticion(es)",
-    "discover.digest_confirmed": "coincide con lo declarado",
-    "discover.digest_unchecked": "no se declaro nada",
-    "connector.filesystem": "un directorio de esta maquina; el unico origen aqui que puede demostrar un listado completo",
-    "connector.huggingface": "modelos y datasets del Hub de HuggingFace; solo publica sha256 para ficheros LFS",
-    "connector.github": "activos de release de GitHub y el arbol de una referencia; respeta los listados truncados",
-    "connector.oci": "registros OCI y Docker distribution, incluido el desafio de token anonimo",
-    "connector.s3": "buckets compatibles con S3 que permiten listado anonimo, o una URL prefirmada; sin SigV4",
-    "connector.mlflow": "un servidor de seguimiento MLflow y su registro de modelos; no publica ningun resumen",
-    "connector.url": "un manifiesto local de URLs, para todo origen que esta herramienta no soporta",
-    "discover.out_needs_fetch": "--out solo indica donde debe escribir --fetch; por si solo no produciria nada",
-    "scan.none_recognised": "Aquí no hay ningún fichero con un formato que esta herramienta lea. Se han recorrido {walked} fichero(s) y se han clasificado por contenido, no por nombre.",
-    "scan.walked_past": "Se han recorrido {walked} fichero(s) cuyos bytes no corresponden a ningún formato que esta herramienta lea.",
     "coverage.heading": "cobertura",
     "coverage.surface.load_time_execution": "ejecución en carga",
     "coverage.surface.archive_structure": "estructura del archivo",
@@ -138,14 +75,6 @@
     "receipt.trusted": "está entre las anclas de confianza aportadas",
     "receipt.untrusted": "NO está entre las anclas de confianza aportadas",
     "receipt.decision": "decisión de la política",
-    "bundle.not_a_directory": "{path} no es un directorio. Un bundle es un repositorio de modelo, no un solo fichero.",
-    "bundle.no_markers": "{path} no contiene config.json, ni un índice, ni adapter_config.json, ni tokenizer_config.json, así que no hay relaciones declaradas que leer. Lo que sigue es un listado.",
-    "bundle.digest": "digest del bundle",
-    "bundle.members": "{n} miembro(s)",
-    "bundle.architectures": "arquitecturas",
-    "bundle.base_model": "modelo base",
-    "bundle.shards": "{promised} prometidos, {missing} ausentes, {unlisted} sin listar",
-    "bundle.nothing": "nada que informar sobre cómo se relacionan estos ficheros entre sí",
     "agent.digest": "digest del agente",
     "agent.effects": "efectos",
     "agent.nothing": "ninguna combinación peligrosa en esta declaración",
@@ -159,14 +88,6 @@
     "agent.diff.tool_lost": "{tool} ha perdido: {effects}",
     "agent.diff.model_changed": "el modelo ha cambiado",
     "agent.diff.prompt_changed": "el prompt de sistema ha cambiado",
-    "bundle.structural_digest": "digest de estructura",
-    "bundle.content_identity": "identidad de los pesos",
-    "bundle.identity.complete": "completa - todos los ficheros de pesos se han leído y hasheado aquí",
-    "bundle.identity.partial": "parcial - algunos ficheros de pesos no tienen digest de ninguna fuente",
-    "bundle.identity.externally_bound": "vinculada externamente - los digests vienen de quien sirvió los bytes, no de leerlos",
-    "bundle.identity.unavailable": "no disponible - nada aquí identifica qué pesos son estos",
-    "bundle.identity.unidentified": "{n} miembro(s) sin identificar; usa --hash-weights para leerlos",
-    "bundle.identity.declared_by": "declarado por {who}",
     "agent.diff.risk_increasing": "cambios que amplían lo que el agente puede hacer",
     "agent.diff.identities_added": "identidades añadidas",
     "agent.diff.identities_removed": "identidades eliminadas",
@@ -217,8 +138,6 @@
     "watch.impact": "Impacto",
     "watch.why": "¿Por qué?",
     "state.graph_built": "registrados {assets} activos y {edges} relaciones declaradas",
-    "bundle.revision": "revisión",
-    "bundle.revision_needs_uri": "--revision nombra una revisión de una fuente, y esto es un directorio de este disco. Da un URI de fuente, o quita la opción.",
     "watch.explain.baseline": "Primera observación. No había nada con lo que comparar, así que se escribe una línea base y no se informa de ningún cambio.",
     "watch.explain.unchanged": "Mismo listado, mismos digests. No se reanaliza nada y no se escribe nada nuevo.",
     "watch.explain.source_drift": "La revisión cambió y todos los digests son los mismos. Un re-tag o una resubida a un mirror: se registra, y no es la alarma que sí es un fichero de pesos cambiando.",
@@ -252,68 +171,30 @@
     "change.supersession_unknown": "Lo que cada una invalido en su momento no queda registrado. Un registro de evidencia guarda su estado actual y no su historia, asi que esta lista dice que cambio y no que dejo de contar por ello."
   },
   "rules": {
-    "ACT-CON-001": "No se ha podido obtener un artefacto que el origen habia listado",
-    "ACT-CON-002": "El resumen declarado por el origen no coincide con los bytes recibidos",
-    "ACT-CTL-001": "Un control lanzó una excepción al ejecutarse y no pudo decidir",
-    "ACT-CTL-002": "Una declaración de controles no contiene ningún control",
     "ACT-FMT-001": "Formato no reconocido; el artefacto no se ha inspeccionado",
-    "ACT-FMT-002": "La extensión del fichero afirma un formato que los bytes contradicen",
     "ACT-FMT-003": "El fichero está vacío",
     "ACT-GGF-001": "El fichero GGUF está truncado o mal formado",
-    "ACT-GGF-002": "GGUF declara una versión que esta herramienta no conoce",
     "ACT-GGF-003": "GGUF declara recuentos de claves o de tensores inverosímiles",
     "ACT-GGF-004": "El recuento de tensores de GGUF no concuerda con los que hay de verdad",
-    "ACT-H5-001": "El modelo de Keras contiene una capa Lambda, cuyo cuerpo se ejecuta al cargar",
-    "ACT-H5-002": "El modelo de Keras referencia clases fuera del conjunto de capas conocidas",
     "ACT-H5-003": "No se ha podido leer la configuración del modelo de Keras; el artefacto queda sin leer",
     "ACT-H5-004": "El fichero dice ser HDF5 pero no lleva el número mágico de HDF5",
-    "ACT-MRK-001": "La salida no lleva marcado legible por máquina de origen sintético",
-    "ACT-MRK-002": "La salida lleva un marcado que no declara origen sintético",
-    "ACT-MRK-003": "No se pudo leer el marcado en este contenedor",
-    "ACT-MRK-004": "La superficie de interacción no informa de que la contraparte es un sistema de IA",
-    "ACT-MRK-005": "El marcado no sobrevivió a una transformación ordinaria",
-    "ACT-NPY-001": "El array de NumPy usa dtype object, así que su contenido es un pickle",
     "ACT-NPY-002": "La cabecera de NumPy está mal formada",
-    "ACT-ONX-001": "ONNX importa un dominio de operadores que ejecuta Python del usuario",
-    "ACT-ONX-002": "ONNX importa un dominio de operadores no estándar, que resuelve un kernel propio",
     "ACT-ONX-003": "No se ha podido analizar por completo el protobuf de ONNX",
     "ACT-ONX-004": "El fichero ONNX supera el presupuesto de tamaño de inspección",
     "ACT-PKL-001": "El pickle importa un invocable que no está en la lista de permitidos de deserialización de tensores",
     "ACT-PKL-002": "El pickle importa un invocable con una vía documentada a ejecución de código",
-    "ACT-PKL-003": "El pickle contiene opcodes que llaman o instancian al cargar",
-    "ACT-PKL-004": "El pickle usa el registro de extensiones de copyreg para resolver un invocable por número",
-    "ACT-PKL-005": "El pickle usa un identificador persistente, que resuelve la aplicación que carga",
     "ACT-PKL-006": "El flujo del pickle está truncado o mal formado",
-    "ACT-PKL-007": "El pickle invoca un cargador anidado y vuelve a deserializar datos del atacante",
     "ACT-PKL-008": "El pickle supera el presupuesto de opcodes y solo se ha analizado en parte",
-    "ACT-PKL-009": "El pickle construye una importación de forma dinámica; el destino no se puede resolver estáticamente",
-    "ACT-PKL-010": "Hay más datos de pickle después del final del primer flujo",
-    "ACT-PKL-011": "El pickle entrega una cadena de bytes a un cargador anidado; la carga se ha desensamblado como un pickle propio",
-    "ACT-PKL-012": "Después del último flujo hay bytes que son relleno a cero, no otro pickle",
     "ACT-PKL-013": "Después del último flujo que este escáner pudo leer hay bytes que no se han analizado",
     "ACT-STF-001": "safetensors declara una longitud de cabecera inverosímil",
     "ACT-STF-002": "La cabecera de safetensors se extiende más allá del final del fichero",
-    "ACT-STF-003": "Los desplazamientos de un tensor de safetensors caen fuera de la región de datos",
-    "ACT-STF-004": "La longitud en bytes del tensor no concuerda con su dtype y su forma",
-    "ACT-STF-005": "safetensors declara un dtype que esta versión no conoce",
-    "ACT-STF-006": "Dos tensores de safetensors se solapan en la región de datos",
     "ACT-STF-007": "La cabecera de safetensors está mal formada",
-    "ACT-ZIP-001": "Un miembro del archivo se sale del directorio de extracción",
-    "ACT-ZIP-002": "Un miembro del archivo se expande muy por encima de su tamaño comprimido",
     "ACT-ZIP-003": "No se ha podido leer un miembro del archivo",
     "ACT-ZIP-004": "El archivo tiene más miembros de los que permite el presupuesto de inspección",
     "ACT-ZIP-005": "El fichero no es un archivo comprimido legible",
     "ACT-ZIP-006": "Un miembro del archivo supera el tope de tamaño de inspección y no se ha inspeccionado",
     "ACT-ZIP-007": "Hay miembros del archivo clasificados por contenido como datos, así que el resto de sus bytes no se ha descomprimido",
-    "ACT-ZIP-008": "Un miembro del archivo cuyo nombre indica almacenamiento en bruto contiene un flujo pickle",
     "ACT-ZIP-009": "No se han podido leer los primeros bytes de un miembro, así que su contenido es desconocido",
-    "ACT-BDL-001": "Un fichero JSON que define la estructura de este bundle no se ha podido analizar",
-    "ACT-BDL-002": "La configuración designa módulos de Python de este repositorio para que el cargador los importe",
-    "ACT-BDL-003": "El repositorio responde por el llamante a la pregunta de trust_remote_code",
-    "ACT-BDL-004": "Un adaptador nombra un modelo base pero no registra ningún digest de él",
-    "ACT-BDL-005": "El índice de shards promete ficheros de pesos que no están en el repositorio",
-    "ACT-BDL-006": "El repositorio contiene ficheros de pesos que el índice de shards no menciona",
-    "ACT-BDL-007": "El tokenizador incluye una plantilla de chat con control de flujo o una llamada de Jinja",
     "ACT-BDL-008": "El repositorio contiene código Python o nativo importable",
     "ACT-AGT-001": "Texto no confiable llega al modelo junto a una herramienta que actúa sin aprobación",
     "ACT-AGT-002": "Una herramienta puede leer credenciales junto a otra que puede salir al exterior",
@@ -330,31 +211,14 @@
     "ACT-PATH-002": "Una ruta convierte texto escrito por un tercero en una acción",
     "ACT-PATH-003": "Una ruta lleva texto no confiable hasta un paso que ejecuta código",
     "ACT-PATH-004": "Una ruta alcanza las capacidades de un subagente desde la entrada no confiable de este agente",
-    "ACT-PATH-009": "La delegación forma un ciclo, así que el conjunto de capacidades alcanzables no se puede enumerar",
-    "ACT-BDL-009": "El listado de la fuente estaba incompleto, así que esta resolución cubre parte del repositorio"
+    "ACT-PATH-009": "La delegación forma un ciclo, así que el conjunto de capacidades alcanzables no se puede enumerar"
   },
   "rule_help": {
-    "ACT-FMT-002": "Renombrar un pickle con una extensión de aspecto inofensivo es una forma conocida de saltarse filtros que se fían del nombre del fichero.",
-    "ACT-H5-001": "Una capa Lambda guarda un objeto de código Python serializado con marshal que Keras ejecuta al cargar el modelo.",
-    "ACT-NPY-001": "numpy.load sobre este fichero ejecuta código salvo que uses allow_pickle=False. Vuelve a guardar el array con un dtype concreto.",
     "ACT-PKL-001": "La importación puede ser legítima, pero no es uno de los invocables que necesita un state_dict de tensores. Revísala, o vuelve a exportar el modelo a safetensors.",
     "ACT-PKL-002": "Cargar este fichero con torch.load o pickle.load ejecuta el invocable referenciado. Trata el artefacto como código no fiable, no como datos.",
-    "ACT-PKL-009": "Una importación indecidible estáticamente no es un certificado de buena salud. Actaira la reporta en lugar de suponer que es segura.",
-    "ACT-PKL-010": "Un artefacto legítimo contiene exactamente un pickle. Los flujos añadidos al final los lee cualquier consumidor que cargue más de un objeto, y se reportan con sus propios hallazgos.",
-    "ACT-PKL-011": "El pickle exterior es solo una envoltura. Invocables como torch.storage._load_from_bytes llaman a torch.load sobre su argumento con weights_only=False, así que los bytes que reciben se ejecutan como un segundo pickle. Los hallazgos del flujo interior se reportan junto a este.",
     "ACT-PKL-013": "El recorrido se detuvo por el presupuesto de flujos o ante un flujo cuya longitud no se pudo calcular, y en los dos casos los bytes de detrás no se han desensamblado nunca. Por esos dos silencios se llegó a dos PASS limpios con salida 0. La evidencia dice cuál de los dos ha sido.",
-    "ACT-STF-003": "Un lector que se fíe de estos desplazamientos lee fuera de la región de tensores. La cabecera no es un mapa fiel del fichero.",
     "ACT-ZIP-007": "De cada miembro se leen y desensamblan los primeros 64 KiB, de modo que el código se distingue de los datos por los bytes y no por el nombre. Los miembros que aquí se enumeran se desensamblaron como datos -almacenamiento de tensores en bruto, un marcador de versión- y el resto de sus bytes no se descomprimió, porque descomprimir gigabytes de buffers de coma flotante no establecería nada sobre si cargar el artefacto ejecuta código. Eso limita una sola superficie, el contenido de tensores en bruto, que un escáner estático nunca afirma evaluar, y deja COMPLETA la superficie de ejecución en carga. Este hallazgo existe para que al informe se le pueda preguntar qué se ha declinado; es INFO y por sí solo no impide que un artefacto sea apto.",
-    "ACT-CON-002": "El origen publico un sha256 para este artefacto y los bytes que sirvio despues resumen a otra cosa. Una de las dos afirmaciones es falsa y esta herramienta no puede saber cual, asi que el fichero se ha borrado en lugar de dejarlo en disco para que lo lea un inspector. Vuelva a descargarlo: una segunda discrepancia no es un error de transferencia.",
-    "ACT-ZIP-008": "Los miembros se clasifican por sus primeros bytes, no por su nombre. Este se llama como lo que un checkpoint de PyTorch usa para almacenar tensores en bruto -`data/0`, `version`, un shard- y sus bytes se desensamblan como un pickle. Eso no lo produce nadie por accidente: es la forma de una carga colocada donde un escáner basado en nombres no miraría. El miembro se analiza entero como cualquier otro pickle, así que lo que importe o llame se informa junto a este hallazgo.",
     "ACT-ZIP-009": "De cada miembro se leen los primeros bytes para poder distinguir código de datos. La cabecera de este no se ha podido descomprimir, así que ni se ha clasificado ni se ha analizado, y lo que hay dentro es desconocido. Contenido desconocido no es lo mismo que datos de tensores: limita la superficie de ejecución en carga, y el artefacto queda como no concluyente en vez de apto.",
-    "ACT-BDL-001": "Un bundle se resuelve a partir de sus propios metadatos: config.json dice qué arquitectura es, el índice dice qué shards contienen qué tensores, adapter_config.json dice a qué modelo base pertenece un adaptador. Un fichero que no se analiza es una relación que no se ha podido leer, así que la superficie de metadatos queda PARCIAL en vez de COMPLETA y aquí se nombra la relación que falta.",
-    "ACT-BDL-002": "`auto_map` es el mecanismo, y conviene separarlo del flag que casi todo el mundo nombra. `trust_remote_code=True` es una pregunta de consentimiento que responde el llamante; `auto_map` es la lista de módulos de este repositorio a los que se aplica ese consentimiento. Un repositorio que lleva uno espera ejecutar su propio Python dentro del proceso de carga, antes de leer ningún peso. Eso es una funcionalidad legítima de la que depende mucho trabajo real, y por eso esto es un hallazgo y no un rechazo, pero no puede ser invisible: un análisis fichero a fichero del mismo directorio no encuentra nada, porque cada fichero por separado es inocuo.",
-    "ACT-BDL-003": "La pregunta de consentimiento existe para que sea una persona quien decida si ejecuta código que viaja con un modelo. Una configuración que activa el flag por su cuenta ha eliminado el paso en el que se tomaba esa decisión. No todos los cargadores respetan un valor puesto por el repositorio, así que no siempre es explotable; siempre es un repositorio pidiendo algo que debería pedirse a quien carga.",
-    "ACT-BDL-004": "Un adaptador es una diferencia sobre un modelo base, y el mismo adaptador aplicado sobre otra base es otro modelo. Sin el digest del modelo base la pareja no se puede identificar: un informe sobre el adaptador describe la mitad de lo que se va a cargar. Esto es una carencia de lo que registra el formato, no un fallo del artefacto, y se declara para que una política pueda decidir si acepta un adaptador sin vincular.",
-    "ACT-BDL-005": "El índice asigna cada tensor al shard que lo contiene. Un shard que el índice promete y el repositorio no tiene significa que la descarga está incompleta o que el índice es de otra revisión. El cargador fallará, así que no es un riesgo silencioso, pero la estructura del bundle se ha leído hasta donde se podía y la superficie de estructura queda PARCIAL.",
-    "ACT-BDL-006": "La dirección más silenciosa, y la que merece más atención. Un fichero de pesos que ningún índice menciona es un fichero del que nadie ha dado cuenta: un cargador guiado por el índice no lo cargará, ningún manifiesto lo cubre, y un repositorio cuyo contenido e índice no coinciden es uno cuyo digest nadie puede reproducir.",
-    "ACT-BDL-007": "Una plantilla de chat es un programa Jinja que viaja con el modelo y se renderiza sobre el texto que pase el llamante en inferencia. No se ejecuta dentro del cargador, así que no es la misma clase de riesgo que auto_map, y por eso es MEDIA. Sigue siendo código que viaja con un modelo, y un informe que no lo mencionara dejaría al lector creyendo que el repositorio solo contiene datos y configuración.",
     "ACT-BDL-008": "No es un hallazgo sobre lo que hace el código -`scan` inspecciona artefactos serializados, y un .py es código fuente-. Es un hallazgo sobre su presencia: un directorio del que un cargador puede importar, con módulos importables dentro. La severidad es ALTA cuando auto_map nombra alguno de ellos, porque entonces existe un camino documentado desde cargar el modelo hasta ejecutar ese fichero, y MEDIA en caso contrario.",
     "ACT-AGT-001": "La forma de todos los incidentes de inyección de prompt que han importado. Una herramienta trae texto escrito por alguien fuera de la frontera de confianza -un comentario de ticket, una página web, un buzón- y otra puede escribir, enviar, borrar o pagar sin una persona en medio. Ninguna es un hallazgo por separado, y una comprobación que mirase las herramientas de una en una no podría expresar esto. La aprobación rompe la cadena, así que una herramienta que la exige no cuenta en el lado que actúa: lo preocupante no es que el agente pueda actuar, sino que pueda actuar siguiendo instrucciones que escribió ese tercero.",
     "ACT-AGT-002": "La vía de exfiltración. Una herramienta puede leer una credencial, otra puede alcanzar la red o enviar un mensaje, y el modelo está en medio y puede pasar lo que devolvió la primera a la segunda. No hace falta que sean la misma herramienta, y por eso una revisión herramienta a herramienta no lo ve. Acotar el secreto para que la vía de salida no pueda usarlo, o ejecutar ambas con identidades distintas, lo cierra.",
@@ -371,420 +235,6 @@
     "ACT-PATH-002": "La forma de todos los incidentes de inyección de prompt que importaron, con los saltos nombrados. El problema no es que el agente pueda actuar: es que actúa según instrucciones escritas por quien estaba leyendo, sin nadie en medio. La aprobación en el paso que actúa es lo que la rompe.",
     "ACT-PATH-003": "La ejecución arbitraria engloba a cualquier otro destino: una shell es a la vez una herramienta de escritura, de red y de lectura de secretos. Una ruta que acaba ahí se reporta como CRÍTICA porque enumerar las consecuencias por separado la subestimaría.",
     "ACT-PATH-004": "Lo que pueda hacer un subagente, lo puede provocar el agente que lo llama. Una revisión que se parase en la primera declaración informaría de un agente con tres herramientas inofensivas; esta ruta es la razón de leer también la declaración del subagente, y de que un subagente sin fijar sea ACT-AGT-010.",
-    "ACT-PATH-009": "A delega en B y B vuelve a delegar en A. El recorrido corta el ciclo y lo dice, en lugar de recursar hasta agotar la pila. La consecuencia es real y conviene registrarla: el conjunto de capacidades alcanzables desde este agente no se puede enumerar a partir de estas declaraciones, así que cualquier afirmación sobre lo que puede hacer está incompleta.",
-    "ACT-BDL-009": "Un conector que no pudo enumerar la fuente entera no te ha enseñado el modelo entero. Las relaciones que informa esta resolución -lo que nombra el config, lo que promete el índice, qué ficheros Python hay- son sobre los ficheros que llegaron, y un fichero que no llegó no se puede informar como ausente. Por eso un listado incompleto limita lo que `content_identity` puede afirmar."
-  },
-  "governance": {
-    "AIA-4": {
-      "title": "Alfabetización en materia de IA",
-      "summary": "Los proveedores y los responsables del despliegue adoptan medidas para impulsar el desarrollo de la alfabetización en materia de IA de su personal y de quienes se ocupan por su cuenta del funcionamiento y el uso de los sistemas de IA. La redacción vigente no les exige garantizar ningún nivel concreto.",
-      "evidence_expected": [
-        "una descripción de las medidas adoptadas para impulsar la alfabetización, proporcionadas al puesto de cada persona",
-        "registros de la formación o las orientaciones puestas efectivamente a disposición del personal"
-      ],
-      "actaira_does_not_provide": [
-        "absolutamente nada: esta obligación trata de personas, no de artefactos"
-      ],
-      "note": "Sustituido íntegramente por el Reglamento (UE) 2026/1744 y vigente con esa redacción desde el 27 de julio de 2026. Pasó de garantizar un nivel suficiente de alfabetización a impulsar su desarrollo, y ahora dice de forma expresa que no hay que garantizar ningún nivel concreto, de modo que la obligación se sostiene con la prueba de las medidas ofrecidas allí donde antes se pedía la del nivel alcanzado. El deber vincula a casi cualquier organización que use IA desde el 2 de febrero de 2025 y es el que más se pasa por alto.",
-      "why_not": "Se juzga, no se comprueba de forma automática. La obligación es tomar medidas para la alfabetización en IA del personal. Que una medida se tomara es un hecho sobre personas; lo que dice una política de formación aportada es un hecho sobre un documento, y solo lo segundo se puede leer. Actaira juzga el documento y se abstiene cuando no puede fundamentar el juicio."
-    },
-    "AIA-4a": {
-      "title": "Categorías especiales de datos para la detección de sesgos",
-      "summary": "Se permite tratar categorías especiales de datos personales, con condiciones, cuando resulte estrictamente necesario para detectar y corregir sesgos en un sistema de IA. Entre las condiciones figuran límites técnicos a la reutilización, medidas de seguridad conformes al estado de la técnica y la supresión de los datos una vez corregido el sesgo.",
-      "evidence_expected": [
-        "constancia de por qué era estrictamente necesario tratar categorías especiales para detectar el sesgo",
-        "los límites técnicos a la reutilización y las medidas de seguridad aplicadas",
-        "prueba de que los datos se suprimieron una vez corregido el sesgo"
-      ],
-      "actaira_does_not_provide": [
-        "nada: ninguna propiedad de un fichero de pesos registra qué datos personales se trataron, con qué base ni si después se suprimieron"
-      ],
-      "note": "Insertado por el Reglamento (UE) 2026/1744 y vinculante desde el 27 de julio de 2026, porque el capítulo I ya era aplicable y una disposición que se le añade vincula desde el día en que entra en vigor el reglamento modificativo. Alcanza a los proveedores de sistemas de alto riesgo y también a proveedores y responsables del despliegue de sistemas que no son de alto riesgo, por eso figura con rol universal.",
-      "why_not": "Organizativa. El artículo regula la base jurídica para tratar categorías especiales de datos personales con el fin de detectar y corregir sesgos. Que esa base exista, y que se aplicaran las garantías, es una determinación sobre una operación de tratamiento y su documentación bajo el RGPD. Nada en un artefacto de modelo lo registra, y una herramienta que lo dedujera de un conjunto de datos estaría inventando una conclusión jurídica."
-    },
-    "AIA-5": {
-      "title": "Prácticas de IA prohibidas",
-      "summary": "Queda prohibido introducir en el mercado, poner en servicio o utilizar las prácticas enumeradas, entre ellas las técnicas manipuladoras, la puntuación social y la extracción no selectiva de imágenes faciales.",
-      "evidence_expected": [
-        "una evaluación documentada de que el sistema queda fuera del artículo 5",
-        "registros de la finalidad prevista y del contexto de despliegue"
-      ],
-      "actaira_does_not_provide": [
-        "ningún juicio sobre la finalidad o el uso: una práctica prohibida es una propiedad de lo que hace un sistema, y ninguna propiedad de un fichero de pesos la revela"
-      ],
-      "note": "Las dos prohibiciones que añadió el Reglamento (UE) 2026/1744 figuran aparte, como AIA-5-1ba, porque el artículo 113, letra a), les da una fecha posterior a la del resto del artículo 5.",
-      "why_not": "Organizativa. El artículo 5 prohíbe prácticas, no artefactos. Que un sistema se comercialice para puntuación social o para explotar una vulnerabilidad depende de su finalidad y de su contexto de despliegue, y ninguno de los dos es una propiedad de un fichero. Los mismos pesos son lícitos en un despliegue y están prohibidos en otro."
-    },
-    "AIA-5-1ba": {
-      "title": "Prohibición de generar imágenes íntimas y material de abuso sexual infantil",
-      "summary": "Queda prohibido introducir en el mercado, poner en servicio o utilizar un sistema de IA que genere o manipule material íntimo realista de una persona física identificable sin su consentimiento explícito, así como uno que genere o manipule material de abuso sexual infantil. El artículo 5, apartado 1 bis, sitúa la vertiente del proveedor en los sistemas destinados a ese resultado o en los que ese resultado sea razonablemente previsible y reproducible sin salvaguardias adecuadas, y la vertiente del responsable del despliegue en el uso efectivo del sistema para producir ese material.",
-      "evidence_expected": [
-        "una evaluación de si el sistema puede producir ese material y de si ese resultado es razonablemente previsible y reproducible sin modificaciones significativas",
-        "las salvaguardias implantadas para impedirlo y la prueba de que aguantan",
-        "en el caso del responsable del despliegue, registros del uso al que se destinó realmente el sistema"
-      ],
-      "actaira_does_not_provide": [
-        "ningún juicio sobre lo que genera un sistema: esta prohibición depende de las salidas y de las salvaguardias que las rodean, y ninguna de las dos cosas es una propiedad de un fichero de pesos",
-        "ninguna evaluación de si una salvaguardia es adecuada, cosa que exige ejecutar el modelo contra indicaciones adversarias y mirar lo que sale"
-      ],
-      "note": "Insertadas en el artículo 5, apartado 1, por el Reglamento (UE) 2026/1744 como letras b bis) y b ter), junto a los apartados 1 bis y 1 ter. El artículo 113, letra a), las exceptúa de la fecha del 2 de febrero de 2025 y las aplica desde el 2 de diciembre de 2026, así que es el único deber nuevo de este catálogo que vence antes de que acabe 2026. La letra b ter) incorpora una salvedad para la conducta amparada por un derecho, que cubre la actividad policial lícita.",
-      "why_not": "Organizativa, por el mismo motivo que el resto del artículo 5. Las prohibiciones añadidas por el Omnibus Digital tratan de para qué se usa un sistema, y eso no lo registra ningún artefacto."
-    },
-    "AIA-52": {
-      "title": "Notificación de un modelo que alcanza el umbral de riesgo sistémico",
-      "summary": "El proveedor cuyo modelo de IA de uso general cumpla, o vaya previsiblemente a cumplir, la condición del artículo 51, apartado 1, letra a), lo notifica a la Comisión sin dilación indebida y, en todo caso, en un plazo de dos semanas desde que eso ocurre. La notificación incorpora la información necesaria para acreditar que se cumple la condición, y el proveedor puede alegar que, aun así, el modelo no debe clasificarse como de riesgo sistémico.",
-      "evidence_expected": [
-        "la notificación remitida a la Comisión y la fecha en que se envió",
-        "la cantidad acumulada de cómputo empleada en el entrenamiento, en operaciones de coma flotante, y el método seguido para calcularla",
-        "cualquier alegación presentada para que el modelo no se clasifique pese a cumplir la condición"
-      ],
-      "actaira_does_not_provide": [
-        "el cómputo de entrenamiento, que es un hecho sobre cómo se hizo un modelo y no está en ninguna parte del fichero en el que se convirtió",
-        "ninguna opinión sobre si se cumple la condición del artículo 51, apartado 1, letra a), ni, por tanto, ningún disparador para el plazo de dos semanas"
-      ],
-      "grace_scope": "modelos de IA de uso general introducidos en el mercado antes del 2 de agosto de 2025",
-      "note": "Es la puerta de entrada al artículo 55, por eso figura al lado: un proveedor que nunca notifique no queda por ello fuera del artículo 55, porque el artículo 51, apartado 1, letra b), permite a la Comisión clasificar un modelo de oficio. Desde el 2 de agosto de 2026 la Comisión puede además multar a los proveedores de modelos de IA de uso general al amparo del artículo 101, que el artículo 113, letra b), había exceptuado de la fecha del 2 de agosto de 2025.",
-      "why_not": "Organizativa. La obligación es notificar a la Comisión cuando un modelo cumple la condición de clasificación del artículo 51. Que se cumpla depende de la capacidad y del cómputo acumulado de entrenamiento, y ninguno de los dos se lee de los pesos, y la notificación en sí es una comunicación a una autoridad."
-    },
-    "AIA-53-1a": {
-      "title": "Documentación técnica del modelo (anexo XI)",
-      "summary": "Los proveedores de modelos de IA de uso general elaboran y mantienen actualizada la documentación técnica del modelo, incluidos su proceso de entrenamiento y de prueba y los resultados de su evaluación, con al menos la información que exige el anexo XI, para facilitarla cuando se la pidan la Oficina de IA o las autoridades nacionales competentes.",
-      "evidence_expected": [
-        "anexo XI, sección 1, punto 1, letra a): las tareas que el modelo debe realizar y el tipo y la naturaleza de los sistemas de IA en los que puede integrarse",
-        "anexo XI, sección 1, punto 1, letra b): las políticas de uso aceptable",
-        "anexo XI, sección 1, punto 1, letra c): la fecha de publicación y los métodos de distribución",
-        "anexo XI, sección 1, punto 1, letra d): la arquitectura y el número de parámetros",
-        "anexo XI, sección 1, punto 1, letra e): la modalidad y el formato de las entradas y las salidas",
-        "anexo XI, sección 1, punto 1, letra f): la licencia",
-        "anexo XI, sección 1, punto 2, letras a) a e): los medios técnicos de integración, las especificaciones de diseño y las metodologías de entrenamiento, los datos de entrenamiento y validación, los recursos de cómputo empleados y el consumo energético conocido o estimado",
-        "anexo XI, sección 2, solo para modelos con riesgo sistémico: las estrategias de evaluación y sus resultados, las pruebas adversarias y una descripción de la arquitectura del sistema"
-      ],
-      "actaira_provides": [
-        "el número de parámetros, contado a partir de las cabeceras de los tensores de un fichero GGUF o safetensors y no tomado de una ficha de modelo; el resto de formatos no llevan ese recuento y aquí no se inventa ninguno",
-        "los tipos de dato, las formas y el recuento de los tensores, observados",
-        "el formato de serialización y el contenedor, detectados a partir de los bytes",
-        "en GGUF, la arquitectura y la cuantización que el propio fichero declara en su bloque de metadatos, arrastradas siempre con la etiqueta de declaradas y nunca como observadas",
-        "un SHA-256 del artefacto, con lo que la documentación queda atada a un fichero concreto"
-      ],
-      "actaira_does_not_provide": [
-        "las tareas previstas, las políticas de uso aceptable, la fecha de publicación o la licencia: son declaraciones, y esta herramienta solo informa de lo que ha observado",
-        "nada sobre el proceso de entrenamiento, los datos, los recursos de cómputo ni el consumo energético del punto 2 de la sección 1",
-        "ninguna parte de la sección 2: las estrategias de evaluación, sus resultados y las pruebas adversarias son comportamiento, y esta herramienta nunca ejecuta el modelo"
-      ],
-      "grace_scope": "modelos de IA de uso general introducidos en el mercado antes del 2 de agosto de 2025",
-      "note": "El artículo 53, apartado 2, deja sin aplicación las letras a) y b) del apartado 1 a los modelos publicados con licencia libre y de código abierto que permita el acceso, el uso, la modificación y la distribución, y cuyos parámetros, incluidos los pesos, la información sobre la arquitectura del modelo y la información sobre su uso se pongan a disposición del público. Todas esas condiciones han de darse a la vez. La excepción no alcanza nunca a un modelo con riesgo sistémico, ni llega jamás a las letras c) y d), de modo que la política de derechos de autor y el resumen de contenidos de entrenamiento vinculan por completo a un proveedor de código abierto. El cumplimiento puede acreditarse mediante el Código de buenas prácticas para la IA de uso general mientras no se publique una norma armonizada.",
-      "why_not": "Generable, nunca satisfecha. Mismo motivo que el Anexo IV: Actaira puede rellenar las partes del Anexo XI que ha observado de verdad y nombrar el resto, y el documento sigue siendo del proveedor, que es quien lo escribe y lo firma."
-    },
-    "AIA-53-1b": {
-      "title": "Información para los proveedores posteriores (anexo XII)",
-      "summary": "Los proveedores elaboran, mantienen actualizadas y ponen a disposición de los proveedores de sistemas de IA que vayan a integrar el modelo la información y la documentación necesarias para que comprendan sus capacidades y limitaciones y puedan cumplir sus propias obligaciones.",
-      "evidence_expected": [
-        "anexo XII, punto 1, letras a) a c): las tareas previstas y los sistemas de IA en los que puede integrarse el modelo, las políticas de uso aceptable, y la fecha de publicación y los métodos de distribución",
-        "anexo XII, punto 1, letras d) y e): cómo interactúa el modelo con equipos o programas que no forman parte de él, y las versiones de los programas pertinentes",
-        "anexo XII, punto 1, letras f) a h): la arquitectura y el número de parámetros, la modalidad y el formato de las entradas y las salidas, y la licencia del modelo",
-        "anexo XII, punto 2, letras a) y b): los medios técnicos necesarios para la integración, y la modalidad, el formato y el tamaño máximo de las entradas y las salidas, como la longitud de la ventana de contexto",
-        "anexo XII, punto 2, letra c): información sobre los datos utilizados para entrenar, probar y validar, incluidos su tipo, su procedencia y las metodologías de tratamiento"
-      ],
-      "actaira_provides": [
-        "la arquitectura y el número de parámetros del anexo XII, punto 1, letra f), observados en las cabeceras de los tensores",
-        "un ML-BOM CycloneDX 1.6 con los componentes observados del artefacto",
-        "hashes criptográficos que el integrador puede recalcular por su cuenta",
-        "una atestación firmada que el integrador verifica sin conexión, sin contactar con el proveedor y sin tener que fiarse de esta herramienta"
-      ],
-      "actaira_does_not_provide": [
-        "diez de los once elementos que enumera el anexo XII: tareas previstas y sistemas de destino, políticas de uso aceptable, fecha de publicación y distribución, interacción con equipos y programas, versiones de los programas, modalidad y formato de entradas y salidas, licencia, medios técnicos de integración, límites de tamaño de entradas y salidas, y la descripción de los datos de entrenamiento, prueba y validación",
-        "ninguna garantía de que lo recibido por el integrador esté completo, cosa distinta de que esté inalterado: un hash responde a lo segundo y calla sobre lo primero"
-      ],
-      "grace_scope": "modelos de IA de uso general introducidos en el mercado antes del 2 de agosto de 2025",
-      "note": "El anexo XII no pide nada de aquello en lo que esta herramienta es mejor. Un hash, un inventario de componentes y un verificador sin conexión responden a la otra pregunta del integrador, la de si esto es el artefacto que le dijeron que era, y eso merece la pena aportarlo, pero no constituye una parte sustancial del anexo. Esta entrada decía SUPPORTS hasta que una revisión hostil lo señaló; ahora dice PARTIAL, y el catálogo se ha quedado sin ninguna entrada en SUPPORTS. La excepción de código abierto del artículo 53, apartado 2, deja sin aplicación esta letra igual que la letra a), en las condiciones descritas en AIA-53-1a, y nunca para un modelo con riesgo sistémico.",
-      "why_not": "Generable, nunca satisfecha. El Anexo XII es información que se entrega a los proveedores posteriores. Actaira puede redactar las partes técnicas que observó; lo que el proveedor decide revelar es cosa suya."
-    },
-    "AIA-53-1c": {
-      "title": "Política de derechos de autor",
-      "summary": "Los proveedores implantan una política para cumplir el Derecho de la Unión en materia de derechos de autor y derechos afines, en particular para detectar y respetar, incluso mediante tecnologías punteras, las reservas de derechos expresadas al amparo del artículo 4, apartado 3, de la Directiva (UE) 2019/790.",
-      "evidence_expected": [
-        "una política de derechos de autor por escrito",
-        "registros de cómo se detectan y se respetan las reservas de derechos"
-      ],
-      "actaira_does_not_provide": [
-        "nada: una política es un documento sobre la conducta de una organización, no una propiedad de un fichero"
-      ],
-      "grace_scope": "modelos de IA de uso general introducidos en el mercado antes del 2 de agosto de 2025",
-      "note": "Queda fuera de la excepción de código abierto del artículo 53, apartado 2, que solo alcanza a las letras a) y b). Un proveedor que publique un modelo con licencia libre y de código abierto debe esta obligación por completo.",
-      "why_not": "Se juzga. La obligación es implantar una política para cumplir la normativa de derechos de autor de la Unión, incluido respetar las reservas de derechos. Que la política se aplique es un hecho operativo; que un documento de política aportado aborde lo que pide el artículo es un juicio sobre un texto."
-    },
-    "AIA-53-1d": {
-      "title": "Resumen público de los contenidos de entrenamiento",
-      "summary": "Los proveedores elaboran y ponen a disposición del público un resumen suficientemente detallado de los contenidos utilizados para entrenar el modelo de IA de uso general, conforme a la plantilla facilitada por la Oficina de IA.",
-      "evidence_expected": [
-        "el resumen público, siguiendo la plantilla de la Oficina de IA",
-        "registros de los conjuntos de datos y de las fuentes utilizadas"
-      ],
-      "actaira_does_not_provide": [
-        "ningún conocimiento de los datos de entrenamiento. Un fichero de pesos no lleva dentro su corpus de entrenamiento, y una herramienta que lo dedujera estaría adivinando"
-      ],
-      "grace_scope": "modelos de IA de uso general introducidos en el mercado antes del 2 de agosto de 2025",
-      "note": "Si los conjuntos de datos vienen declarados en un BOM adjunto, Actaira arrastra la declaración y la etiqueta como declarada, nunca como observada. Igual que la letra c), queda fuera de la excepción de código abierto del artículo 53, apartado 2.",
-      "why_not": "Generable, y de forma escasa. El resumen suficientemente detallado de los contenidos de entrenamiento trata de los datos con los que se entrenó un modelo, y Actaira lee pesos, no corpus de entrenamiento. Redacta la estructura y marca casi todos los puntos como pendientes del operador."
-    },
-    "AIA-54": {
-      "title": "Representante autorizado del proveedor de IA de uso general de un tercer país",
-      "summary": "El proveedor establecido en un tercer país designa, mediante mandato escrito, un representante autorizado establecido en la Unión antes de introducir un modelo de IA de uso general en el mercado de la Unión. El representante comprueba la documentación técnica, la conserva junto al mandato a disposición de la Oficina de IA durante diez años desde la introducción del modelo en el mercado, y coopera con las autoridades.",
-      "evidence_expected": [
-        "el mandato escrito y su aceptación por el representante",
-        "la documentación técnica del anexo XI conservada a disposición durante diez años desde que el modelo se introdujo en el mercado",
-        "constancia de la información facilitada a la Oficina de IA cuando la pida y de la cooperación prestada"
-      ],
-      "actaira_does_not_provide": [
-        "la designación, el mandato ni parte alguna de la relación entre proveedor y representante",
-        "ningún juicio sobre si la excepción de código abierto del artículo 54, apartado 6, alcanza a un modelo concreto"
-      ],
-      "grace_scope": "modelos de IA de uso general introducidos en el mercado antes del 2 de agosto de 2025",
-      "note": "La documentación que el representante debe conservar durante diez años es el mismo paquete que se produce bajo AIA-53-1a, de manera que una copia firmada y sellada en el tiempo resulta útil aquí. A propósito no se declara como cobertura: lo que esta obligación pide es una designación y una relación permanente, y ninguna de las dos cosas está en un fichero. El artículo 54, apartado 6, exime al proveedor que publique el modelo con licencia libre y de código abierto en las mismas condiciones que el artículo 53, apartado 2, y, como allí, nunca para un modelo con riesgo sistémico.",
-      "why_not": "Organizativa. La obligación es designar un representante autorizado establecido en la Unión mediante mandato escrito. Una designación es un acto jurídico entre dos partes; el mandato es un contrato, y su existencia no es una propiedad de ningún artefacto técnico."
-    },
-    "AIA-55": {
-      "title": "Obligaciones de los modelos con riesgo sistémico",
-      "summary": "Los proveedores de modelos de IA de uso general con riesgo sistémico realizan además una evaluación del modelo, incluidas pruebas adversarias documentadas, evalúan y mitigan los riesgos sistémicos a escala de la Unión, siguen documentan y notifican los incidentes graves a la Oficina de IA, y garantizan un nivel adecuado de ciberseguridad del modelo y de su infraestructura física.",
-      "evidence_expected": [
-        "registros de la evaluación del modelo y de las pruebas adversarias, conforme a protocolos normalizados que reflejen el estado de la técnica",
-        "la evaluación de riesgos sistémicos y las medidas de mitigación adoptadas",
-        "un procedimiento de notificación de incidentes graves dirigido a la Oficina de IA",
-        "medidas de ciberseguridad del modelo y de su infraestructura física"
-      ],
-      "actaira_provides": [
-        "evidencia solo para la vertiente de ciberseguridad: integridad del artefacto, cadena de custodia verificable sobre los ficheros del modelo y detección de cargas ejecutables en modelos serializados"
-      ],
-      "actaira_does_not_provide": [
-        "la evaluación del modelo, las pruebas adversarias sobre su comportamiento, la evaluación de riesgos sistémicos ni la notificación de incidentes",
-        "ninguna parte de la vertiente de infraestructura física, que trata de centros de datos y control de accesos, no de ficheros"
-      ],
-      "grace_scope": "modelos de IA de uso general introducidos en el mercado antes del 2 de agosto de 2025",
-      "note": "Vincula solo a los proveedores de modelos clasificados al amparo del artículo 51, que son un grupo más estrecho que los proveedores de modelos de IA de uso general. Por eso lleva rol propio y nunca se atribuye por defecto a un proveedor de IA de uso general: el usuario tiene que declararlo. La cifra de 10^25 FLOP del artículo 51, apartado 2, es una presunción iuris tantum sobre el modelo, no una propiedad del fichero, así que Actaira no puede evaluarla, y el artículo 51, apartado 1, letra b), permite a la Comisión clasificar un modelo que no se acerque siquiera a ese umbral. El artículo 55, apartado 1, letra c), es hoy el único deber de notificación de incidentes graves que vincula a alguien.",
-      "why_not": "Se juzga, y de forma estrecha. El artículo 55 exige evaluación del modelo, pruebas adversariales, evaluación de riesgo sistémico y seguimiento de incidentes. Actaira no ejecuta ninguna. Sí puede juzgar si un informe de evaluación aportado aborda lo que pide el artículo, que es una pregunta sobre un documento y no sobre el modelo."
-    },
-    "AIA-50-1": {
-      "title": "Informar de que se está interactuando con un sistema de IA",
-      "summary": "Los proveedores se aseguran de que los sistemas de IA destinados a interactuar directamente con personas físicas se diseñan y desarrollan de modo que esas personas sepan que están interactuando con un sistema de IA, salvo que resulte evidente desde el punto de vista de una persona razonablemente informada, atenta y perspicaz, teniendo en cuenta las circunstancias y el contexto de uso.",
-      "evidence_expected": [
-        "la información tal como está implementada en la interfaz",
-        "un registro de dónde y cómo se muestra, y en qué momento de la interacción",
-        "cuando se invoque la excepción policial, la base jurídica y las salvaguardias de los derechos de terceros"
-      ],
-      "actaira_does_not_provide": [
-        "nada sobre el comportamiento en ejecución: esta obligación la cumple el sistema en marcha, no el fichero del que se cargó"
-      ],
-      "note": "El artículo 50, apartado 1, vincula al proveedor de un sistema de IA, que no es la misma persona que el proveedor de un modelo de IA de uso general. Publicar pesos no coloca por sí solo a nadie bajo este artículo.",
-      "why_not": "Comprobable automáticamente sobre la superficie aportada. El control lee el saludo, el prompt de sistema o la transcripción que se le entrega y busca una declaración explícita de que la contraparte es un sistema de IA. No puede juzgar si la información es oportuna o suficientemente visible, que es algo que el artículo también exige."
-    },
-    "AIA-50-2": {
-      "title": "Marcado legible por máquina de los contenidos sintéticos",
-      "summary": "Los proveedores de sistemas de IA, incluidos los sistemas de IA de uso general, que generan audio, imagen, vídeo o texto sintéticos se aseguran de que las salidas se marcan en un formato legible por máquina y son detectables como generadas o manipuladas artificialmente, de manera eficaz, interoperable, sólida y fiable en la medida en que sea técnicamente viable. Quedan fuera los sistemas que cumplen una función de asistencia para la edición corriente o que no alteran sustancialmente los datos de entrada.",
-      "evidence_expected": [
-        "la implementación del marcado y la norma que sigue, por ejemplo C2PA",
-        "pruebas de que el marcado sobrevive a la cadena de producción de la salida",
-        "una evaluación de la viabilidad técnica allí donde el marcado sea limitado",
-        "cuando se invoque la exclusión por edición asistida, el razonamiento en que se apoya"
-      ],
-      "actaira_provides": [
-        "un registro firmado de qué versión del modelo está desplegada, con lo que una afirmación sobre el marcado queda atada a un artefacto concreto y no al nombre de un producto",
-        "solo en GGUF, la arquitectura y la cuantización que el fichero declara sobre sí mismo, cosa que puede sugerir un modelo generativo sin acreditar nada"
-      ],
-      "actaira_does_not_provide": [
-        "ninguna determinación del ámbito de aplicación: el artículo 50, apartado 2, atrapa a un sistema porque genera contenido sintético, no porque un fichero de pesos declare una arquitectura concreta",
-        "ninguna inspección de las salidas, que es donde vive el marcado",
-        "ninguna comprobación de que un manifiesto C2PA esté presente o sobreviva a una recodificación",
-        "ninguna señal de arquitectura en artefactos safetensors, ONNX, Keras o NumPy, que no llevan esa declaración"
-      ],
-      "grace_scope": "sistemas generativos ya introducidos en el mercado de la Unión antes del 2 de agosto de 2026",
-      "note": "El periodo transitorio hasta el 2 de diciembre de 2026 está en el artículo 111, apartado 4, insertado por el Reglamento (UE) 2026/1744, no en el propio artículo 50. Cubre solo la vertiente de marcado del proveedor y solo los sistemas que ya estaban en el mercado el 2 de agosto de 2026. Los deberes del responsable del despliegue de los apartados 3 y 4 no tuvieron periodo transitorio. El Código de buenas prácticas sobre transparencia de los contenidos generados por IA, que la Comisión consideró adecuado en 2026, es la vía práctica para acreditar el cumplimiento de este apartado. Esta entrada sostenía hasta hace poco que una arquitectura observada es lo que mete a un sistema en el ámbito de aplicación; no lo es, y la afirmación se ha retirado.",
-      "why_not": "Comprobable automáticamente sobre los ficheros aportados, y es la única obligación del reglamento que un fichero puede responder de verdad. El control lee en cada salida si hay un marcado legible por máquina. No dice nada sobre salidas que no se le dieron, ni sobre marcados incrustados en la señal en vez de en los metadatos, que no se pueden leer sin la clave del detector."
-    },
-    "AIA-50-3": {
-      "title": "Información en reconocimiento de emociones y categorización biométrica",
-      "summary": "Los responsables del despliegue de un sistema de reconocimiento de emociones o de categorización biométrica informan de su funcionamiento a las personas físicas expuestas a él, y tratan los datos personales conforme a la normativa de protección de datos.",
-      "evidence_expected": [
-        "la información facilitada a las personas afectadas",
-        "la base jurídica del RGPD y los registros de tratamiento"
-      ],
-      "actaira_does_not_provide": [
-        "nada: es un aviso que se da en el momento del despliegue"
-      ],
-      "why_not": "Se juzga. El deber es informar a las personas expuestas a un sistema de reconocimiento de emociones o de categorización biométrica. Informar ocurre en un lugar, un producto o un cartel, y Actaira nunca lo ve. Un aviso aportado sí se puede juzgar por si dice lo que exige el artículo."
-    },
-    "AIA-50-4": {
-      "title": "Etiquetado de ultrasuplantaciones y de texto generado por IA sobre asuntos de interés público",
-      "summary": "Los responsables del despliegue que generen o manipulen imágenes, audio o vídeo que constituyan una ultrasuplantación revelan que el contenido se ha generado o manipulado artificialmente. Quienes publiquen texto generado por IA para informar al público sobre asuntos de interés público también lo revelan, salvo que el contenido se haya sometido a revisión humana o a control editorial y alguien asuma la responsabilidad editorial.",
-      "evidence_expected": [
-        "la revelación tal como se publica",
-        "registros de la revisión humana o del control editorial cuando se invoque la excepción",
-        "cuando la obra sea artística, creativa, satírica o de ficción, el razonamiento para revelarlo de un modo que no dificulte su exhibición o disfrute"
-      ],
-      "actaira_does_not_provide": [
-        "nada: esta obligación recae sobre el contenido publicado"
-      ],
-      "note": "Las obligaciones del responsable del despliegue del artículo 50 no tienen periodo transitorio. El periodo de gracia del artículo 111, apartado 4, alcanza a la vertiente de marcado del proveedor del apartado 2 y a nada más.",
-      "why_not": "Comprobable automáticamente sobre los ficheros aportados, como evidencia hacia el deber y no como el deber. La información que debe dar el responsable del despliegue se dirige a quien ve el contenido; el marcado en el fichero es evidencia que la respalda. Las excepciones artística y satírica son un juicio sobre la obra."
-    },
-    "AIA-49": {
-      "title": "Registro en la base de datos de la UE",
-      "summary": "Antes de introducir en el mercado o poner en servicio un sistema de alto riesgo de los enumerados en el anexo III, su proveedor se registra a sí mismo y registra el sistema en la base de datos de la UE. El proveedor que concluya al amparo del artículo 6, apartado 3, que su sistema no es de alto riesgo inscribe esa conclusión. Los responsables del despliegue que sean autoridades públicas, o instituciones, órganos u organismos de la Unión, se registran también a sí mismos.",
-      "evidence_expected": [
-        "el asiento de inscripción y la fecha en que se practicó",
-        "en el caso de una conclusión del artículo 6, apartado 3, la evaluación documentada que la sustenta",
-        "en el caso de un responsable del despliegue que sea autoridad pública, su propia inscripción al amparo del artículo 49, apartado 3"
-      ],
-      "actaira_does_not_provide": [
-        "nada: la inscripción es un trámite administrativo en una base de datos con la que esta herramienta no habla, y nada en un fichero de modelo acredita que se haya practicado"
-      ],
-      "note": "La sección 5 del capítulo III no entra en el aplazamiento del artículo 113, letra c), así que el artículo 49 se aplica desde el 2 de agosto de 2026 aunque las reglas de clasificación de la sección 1 no se apliquen hasta el 2 de diciembre de 2027. En la práctica eso deja como única parte con sujeto antes de esa fecha la inscripción del artículo 6, apartado 3, cuyo contenido simplificó el Reglamento (UE) 2026/1744.",
-      "why_not": "Organizativa. La obligación es registrar el sistema en la base de datos de la UE antes de comercializarlo. El registro es un acto que se ejecuta contra un registro al que Actaira no tiene acceso, y su cumplimiento consta allí, no en ningún fichero del proveedor."
-    },
-    "AIA-73": {
-      "title": "Notificación de incidentes graves",
-      "summary": "El proveedor de un sistema de IA de alto riesgo introducido en el mercado de la Unión notifica cualquier incidente grave a las autoridades de vigilancia del mercado del Estado miembro donde se haya producido, inmediatamente después de establecer un vínculo causal entre el sistema y el incidente, e investiga y adopta medidas correctoras.",
-      "evidence_expected": [
-        "la notificación remitida y la fecha en que el proveedor tuvo conocimiento del incidente",
-        "el plazo cumplido: quince días como regla general, dos días en caso de infracción generalizada o de incidente que perturbe de forma grave e irreversible una infraestructura crítica, y diez días si ha fallecido una persona",
-        "la investigación realizada y las medidas correctoras adoptadas"
-      ],
-      "actaira_does_not_provide": [
-        "nada: un incidente grave es algo que le ocurre a las personas mientras un sistema funciona, y ninguna propiedad de un fichero de pesos registra que haya ocurrido"
-      ],
-      "note": "El capítulo IX no entra en el aplazamiento del artículo 113, letra c), así que esto se aplica desde el 2 de agosto de 2026. Ahora bien, su sujeto es el proveedor de un sistema de IA de alto riesgo, y no hay ninguno del anexo III hasta el 2 de diciembre de 2027, de modo que el deber se aplica antes de tener a quién vincular. La notificación de incidentes que sí vincula hoy es la del artículo 55, apartado 1, letra c), para modelos con riesgo sistémico, y se dirige a la Oficina de IA en lugar de a una autoridad nacional.",
-      "why_not": "Organizativa. La obligación es notificar un incidente grave a la autoridad de vigilancia del mercado dentro de un plazo. Actaira no guarda registro de incidentes ni puede observar que se presente una notificación. Una herramienta que dijera lo contrario estaría informando sobre su propia bandeja de entrada."
-    },
-    "AIA-11": {
-      "title": "Documentación técnica de los sistemas de alto riesgo",
-      "summary": "Los proveedores de sistemas de IA de alto riesgo elaboran la documentación técnica con al menos los elementos del anexo IV antes de introducir el sistema en el mercado o ponerlo en servicio, y la mantienen actualizada.",
-      "evidence_expected": [
-        "anexo IV, punto 1: descripción general del sistema, su finalidad prevista, sus versiones y el equipo en el que se ejecuta",
-        "anexo IV, punto 2, letra b): las especificaciones de diseño, incluidas la lógica general y los algoritmos",
-        "anexo IV, punto 2, letra d): los requisitos de datos, incluidas las fichas que describen las metodologías de entrenamiento y los conjuntos de datos empleados",
-        "anexo IV, punto 2, letra g): los procedimientos de validación y prueba utilizados, los datos empleados y las métricas de precisión, solidez y cumplimiento",
-        "anexo IV, punto 5: una descripción detallada del sistema de gestión de riesgos que exige el artículo 9"
-      ],
-      "actaira_provides": [
-        "la parte observable de la descripción general: formatos, recuento de parámetros allí donde el formato lo lleve, inventario de componentes y hashes, para cada modelo que el sistema incorpora"
-      ],
-      "actaira_does_not_provide": [
-        "las especificaciones de diseño, los requisitos de datos, los resultados de validación y prueba, el sistema de gestión de riesgos del punto 5 ni las medidas de vigilancia humana de la letra e) del punto 2",
-        "ninguna parte del plan de vigilancia poscomercialización del punto 9 ni de la declaración de conformidad del punto 8"
-      ],
-      "note": "Aplazada por el artículo 113, letra c), en la redacción que le dio el Reglamento (UE) 2026/1744: 2 de diciembre de 2027 para los sistemas del artículo 6, apartado 2, y del anexo III, y 2 de agosto de 2028 para los del artículo 6, apartado 1, y del anexo I. El catálogo recoge la fecha más temprana. Ese aplazamiento es derecho publicado, no un acuerdo político: esta entrada estuvo marcada como provisional mientras lo fue. El Reglamento (UE) 2026/1744 permite además a las pymes y a las pequeñas empresas de mediana capitalización presentar esta documentación de forma simplificada, con un formulario que establece la Comisión. Aquí se citaba el punto 5 del anexo IV como validación y prueba; eso es el punto 2, letra g), y el punto 5 es el sistema de gestión de riesgos.",
-      "why_not": "Generable, nunca satisfecha. Actaira redacta el expediente del Anexo IV punto por punto y marca cada uno como cubierto por evidencia, declarado por el operador o ausente. Un borrador que nadie ha firmado no es documentación: el Anexo IV obliga al proveedor, y la firma es lo que lo hace suyo."
-    },
-    "AIA-12": {
-      "title": "Conservación de registros (registro automático de acontecimientos)",
-      "summary": "Los sistemas de IA de alto riesgo permiten técnicamente el registro automático de acontecimientos a lo largo de su ciclo de vida, con capacidades de registro adecuadas a la finalidad prevista y suficientes para la trazabilidad que exige el Reglamento.",
-      "evidence_expected": [
-        "la capacidad de registro que tiene el sistema y qué queda registrado",
-        "que los registros sirven al artículo 12, apartado 2: detectar situaciones de riesgo o de modificación sustancial, alimentar la vigilancia poscomercialización del artículo 72 y sostener la supervisión del responsable del despliegue del artículo 26, apartado 5",
-        "en un sistema de identificación biométrica remota, los elementos del artículo 12, apartado 3: los periodos de uso, la base de datos de referencia, los datos de entrada que produjeron una coincidencia y quién verificó el resultado",
-        "la conservación y la integridad de los registros"
-      ],
-      "actaira_does_not_provide": [
-        "la propia capacidad de registro, que el artículo 12 exige al sistema de alto riesgo y que ninguna inspección de un fichero de modelo puede crear ni observar",
-        "ningún registro de acontecimientos a lo largo del ciclo de vida del sistema, porque Actaira nunca ve funcionar el sistema",
-        "ninguno de los elementos del artículo 12, apartado 3"
-      ],
-      "note": "Actaira mantiene un libro de solo anexión, encadenado por hash y firmado, de sus propias inspecciones, cuya integridad comprueba un tercero sin conexión y cuyo crecimiento por anexión se demuestra con una prueba de coherencia RFC 6962. Esta entrada declaraba eso como cobertura parcial del artículo 12. No lo es: la trazabilidad sobre un artefacto no es el registro automático de acontecimientos del sistema, y una cosa responde a una pregunta distinta de la otra. El libro y su prueba de coherencia se declaran en AIA-15, donde la afirmación sí se sostiene; los hashes y el inventario de componentes se declaran en AIA-11.",
-      "why_not": "Comprobable automáticamente solo en la forma. El control lee los registros aportados y comprueba que sus entradas llevan los campos que necesita la trazabilidad. No puede comprobar que el registro sea completo, que cubra toda la vida del sistema, ni que nada de lo que contiene sea cierto."
-    },
-    "AIA-15": {
-      "title": "Precisión, solidez y ciberseguridad",
-      "summary": "Los sistemas de IA de alto riesgo alcanzan un nivel adecuado de precisión, solidez y ciberseguridad, y resisten los intentos de terceros no autorizados de alterar su uso, sus resultados o su rendimiento aprovechando vulnerabilidades.",
-      "evidence_expected": [
-        "las métricas de precisión y la metodología con la que se obtuvieron, declaradas en las instrucciones de uso",
-        "los resultados de las pruebas de solidez",
-        "las medidas de ciberseguridad, incluidas las que protegen frente al envenenamiento de datos, el envenenamiento de modelos y los ejemplos adversarios"
-      ],
-      "actaira_provides": [
-        "controles de cadena de suministro para la vertiente de ciberseguridad: detección de cargas ejecutables en modelos serializados, integridad del artefacto y un registro verificable de qué artefacto se desplegó"
-      ],
-      "actaira_does_not_provide": [
-        "la medición de la precisión o de la solidez, que exigen ejecutar el modelo",
-        "ninguna defensa contra un envenenamiento anterior a la llegada del artefacto a esta herramienta: un modelo envenenado con su hash intacto sigue pasando"
-      ],
-      "note": "Aplazada por el artículo 113, letra c), en la redacción que le dio el Reglamento (UE) 2026/1744, al 2 de diciembre de 2027 para los sistemas del anexo III y al 2 de agosto de 2028 para los del anexo I.",
-      "why_not": "Comprobable automáticamente en dos puntos estrechos. Un control inspecciona el artefacto para la parte de ciberseguridad; otro mide si un marcado del artículo 50(2) sobrevive a una batería publicada de transformaciones ordinarias. La exactitud y la robustez del sistema en sí no se miden, porque medirlas significa ejecutar el modelo, cosa que esta herramienta nunca hace."
-    },
-    "AIA-26": {
-      "title": "Obligaciones del responsable del despliegue de sistemas de alto riesgo",
-      "summary": "Los responsables del despliegue utilizan el sistema de alto riesgo conforme a sus instrucciones de uso, encomiendan la vigilancia humana a personas físicas con la competencia, la formación y la autoridad necesarias, se aseguran de que los datos de entrada bajo su control son pertinentes y suficientemente representativos, supervisan el funcionamiento, suspenden el uso e informan al proveedor cuando aparece un riesgo, conservan los registros e informan a los trabajadores y a las personas afectadas.",
-      "evidence_expected": [
-        "la encomienda de la vigilancia humana y la competencia, la formación y la autoridad de las personas designadas",
-        "los registros de supervisión del artículo 26, apartado 5, y las comunicaciones dirigidas al proveedor o al distribuidor cuando apareció un riesgo",
-        "los registros generados automáticamente, conservados al menos seis meses conforme al artículo 26, apartado 6, salvo que otra norma de la Unión o nacional disponga otra cosa",
-        "la información dada a los trabajadores conforme al artículo 26, apartado 7, y a las personas afectadas conforme al apartado 11"
-      ],
-      "actaira_does_not_provide": [
-        "nada: todas las vertientes del artículo 26 tratan de cómo una organización explota un sistema, y ninguna está en el fichero que ese sistema cargó"
-      ],
-      "note": "Figura porque este catálogo llevaba tres obligaciones de alto riesgo, las tres del proveedor, cosa que se lee como si el responsable del despliegue no tuviera ninguna. El artículo 26, apartado 6, es la contrapartida del artículo 12 del proveedor: el sistema tiene que poder registrar, y el responsable del despliegue tiene que conservar lo registrado. Aplazado junto al resto de la sección 3 del capítulo III al 2 de diciembre de 2027 para los sistemas del anexo III y al 2 de agosto de 2028 para los del anexo I.",
-      "why_not": "Se juzga. Los deberes del responsable del despliegue son deberes de operación: usar conforme a las instrucciones, asignar supervisión humana competente, vigilar. Que eso ocurriera es un hecho sobre una operación. Lo que dice al respecto un procedimiento de despliegue aportado sí se puede leer, y eso es lo que juzga Actaira."
-    }
-  },
-  "controls": {
-    "ACT-C-50-2-MARK": {
-      "covers": "si cada fichero de salida aportado a esta ejecución lleva un marcado legible por máquina que lo identifica como generado total o parcialmente por un modelo, leído de los propios bytes del fichero",
-      "does_not_cover": "la salida que no se entregó a esta ejecución, que es la mayor parte de aquello por lo que el art. 50(2) obliga a un proveedor; los marcados incrustados en la señal en vez de en los metadatos, como una marca de agua estadística, que no se pueden leer sin la clave del detector; y si el marcado sobrevive aguas abajo, que lo mide aparte ACT-C-15-MARK-ROBUSTNESS"
-    },
-    "ACT-C-50-4-DEEPFAKE": {
-      "covers": "si cada fichero de salida aportado lleva un marcado legible por máquina. Para un responsable del despliegue bajo el art. 50(4) esto es evidencia hacia el deber de información, no la información en sí",
-      "does_not_cover": "la información que el responsable del despliegue da a quien ve el contenido, que es un acto en una interfaz o en una publicación y no una propiedad de un fichero; y las excepciones del art. 50(4) para obra evidentemente artística, satírica o análoga, que son un juicio sobre la obra"
-    },
-    "ACT-C-50-1-DISCLOSE": {
-      "covers": "si la superficie de interacción aportada contiene una declaración explícita, en inglés o español, de que la contraparte es un sistema de IA, comparada contra una lista de marcadores que se publica en la evidencia de cada resultado",
-      "does_not_cover": "si la información es oportuna, suficientemente visible o comprendida, que es lo que exige el art. 50(1) y que ningún fichero puede demostrar; la excepción del art. 50(1) cuando resulta evidente para una persona razonablemente informada; y cualquier formulación fuera de la lista de marcadores publicada"
-    },
-    "ACT-C-15-MARK-ROBUSTNESS": {
-      "covers": "si el marcado de cada imagen aportada sobrevive a una batería publicada de transformaciones, cada una de ellas algo que le pasa habitualmente al contenido en un pipeline de publicación real",
-      "does_not_cover": "todo lo demás que pide el art. 15: la exactitud del sistema, su robustez frente a entradas adversariales, y su ciberseguridad más allá del artefacto, que ACT-C-15-ARTIFACT cubre solo en parte"
-    },
-    "ACT-C-12-LOG": {
-      "covers": "si las entradas de registro aportadas llevan los campos que necesita la trazabilidad: una marca de tiempo, una identificación del sistema y una referencia a los datos de entrada. Esto es la forma de las entradas y nada más; las grafías aceptadas para cada campo se publican en la evidencia",
-      "does_not_cover": "si el registro es completo, si cubre toda la vida del sistema, si se conserva durante el periodo que exige el art. 12, y si algo de lo registrado es cierto. Una entrada bien formada puede ser igualmente falsa"
-    },
-    "ACT-C-15-ARTIFACT": {
-      "covers": "si algún artefacto aportado tiene un hallazgo de severidad alta o crítica al inspeccionarlo sin cargarlo, que es la ciberseguridad del artefacto y la única parte del art. 15 que un fichero puede responder",
-      "does_not_cover": "la exactitud y la robustez del sistema, que exigirían ejecutar el modelo; el envenenamiento de datos y de modelo, que viven en el pipeline de entrenamiento y no dejan rastro que un fichero de pesos exponga; y la ciberseguridad de lo que rodea al artefacto, la pila de servicio y la cadena de suministro más allá de estos ficheros"
-    },
-    "ACT-C-11-ANNEX-IV": {
-      "covers": "el esqueleto del documento que pide el art. 11 y el Anexo IV, punto por punto con su cita, y la procedencia de cada punto: cubierto por bytes parseados, declarado por el operador, o ausente",
-      "does_not_cover": "si el documento es adecuado, si algo de lo declarado en él es cierto, y si se cumple el art. 11 y el Anexo IV. Un borrador no es un expediente técnico: los puntos marcados como ausentes todavía no tienen autor, y los marcados como declarados por el operador son afirmaciones que este control no comprobó. El resultado es NO CONCLUYENTE con cualquier entrada, por construcción"
-    },
-    "ACT-C-53-ANNEX-XI": {
-      "covers": "el esqueleto del documento que pide el art. 53(1)(a) y el Anexo XI, punto por punto con su cita, y la procedencia de cada punto: cubierto por bytes parseados, declarado por el operador, o ausente",
-      "does_not_cover": "si el documento es adecuado, si algo de lo declarado en él es cierto, y si se cumple el art. 53(1)(a) y el Anexo XI. Un borrador no es un expediente técnico: los puntos marcados como ausentes todavía no tienen autor, y los marcados como declarados por el operador son afirmaciones que este control no comprobó. El resultado es NO CONCLUYENTE con cualquier entrada, por construcción"
-    },
-    "ACT-C-53-ANNEX-XII": {
-      "covers": "el esqueleto del documento que pide el art. 53(1)(b) y el Anexo XII, punto por punto con su cita, y la procedencia de cada punto: cubierto por bytes parseados, declarado por el operador, o ausente",
-      "does_not_cover": "si el documento es adecuado, si algo de lo declarado en él es cierto, y si se cumple el art. 53(1)(b) y el Anexo XII. Un borrador no es un expediente técnico: los puntos marcados como ausentes todavía no tienen autor, y los marcados como declarados por el operador son afirmaciones que este control no comprobó. El resultado es NO CONCLUYENTE con cualquier entrada, por construcción"
-    },
-    "ACT-C-53-TRAINING-SUMMARY": {
-      "covers": "el esqueleto del documento que pide el art. 53(1)(d), punto por punto con su cita, y la procedencia de cada punto: cubierto por bytes parseados, declarado por el operador, o ausente",
-      "does_not_cover": "si el documento es adecuado, si algo de lo declarado en él es cierto, y si se cumple el art. 53(1)(d). Un borrador no es un expediente técnico: los puntos marcados como ausentes todavía no tienen autor, y los marcados como declarados por el operador son afirmaciones que este control no comprobó. El resultado es NO CONCLUYENTE con cualquier entrada, por construcción"
-    },
-    "ACT-C-JUDGE-AIA-4": {
-      "covers": "si los documentos aportados para el art. 4 abordan lo que el artículo pide sobre las medidas de alfabetización en IA, juzgado por un modelo cuyas citas se comprueban todas contra el documento y que se abstiene cuando no puede fundamentar la respuesta",
-      "does_not_cover": "si las medidas de alfabetización en IA ocurrió de verdad, que es un hecho sobre una organización y no sobre un documento; y cualquier obligación para la que el operador no aportó documento, que se reporta como NO CONCLUYENTE y no como un negativo"
-    },
-    "ACT-C-JUDGE-AIA-26": {
-      "covers": "si los documentos aportados para el art. 26 abordan lo que el artículo pide sobre los deberes de operación del responsable del despliegue, juzgado por un modelo cuyas citas se comprueban todas contra el documento y que se abstiene cuando no puede fundamentar la respuesta",
-      "does_not_cover": "si los deberes de operación del responsable del despliegue ocurrió de verdad, que es un hecho sobre una organización y no sobre un documento; y cualquier obligación para la que el operador no aportó documento, que se reporta como NO CONCLUYENTE y no como un negativo"
-    },
-    "ACT-C-JUDGE-AIA-50-3": {
-      "covers": "si los documentos aportados para el art. 50(3) abordan lo que el artículo pide sobre el aviso dado a las personas expuestas, juzgado por un modelo cuyas citas se comprueban todas contra el documento y que se abstiene cuando no puede fundamentar la respuesta",
-      "does_not_cover": "si el aviso dado a las personas expuestas ocurrió de verdad, que es un hecho sobre una organización y no sobre un documento; y cualquier obligación para la que el operador no aportó documento, que se reporta como NO CONCLUYENTE y no como un negativo"
-    },
-    "ACT-C-JUDGE-AIA-53-1c": {
-      "covers": "si los documentos aportados para el art. 53(1)(c) abordan lo que el artículo pide sobre la política de derechos de autor, juzgado por un modelo cuyas citas se comprueban todas contra el documento y que se abstiene cuando no puede fundamentar la respuesta",
-      "does_not_cover": "si la política de derechos de autor ocurrió de verdad, que es un hecho sobre una organización y no sobre un documento; y cualquier obligación para la que el operador no aportó documento, que se reporta como NO CONCLUYENTE y no como un negativo"
-    },
-    "ACT-C-JUDGE-AIA-55": {
-      "covers": "si los documentos aportados para el art. 55 abordan lo que el artículo pide sobre la evaluación del modelo y el trabajo de riesgo sistémico, juzgado por un modelo cuyas citas se comprueban todas contra el documento y que se abstiene cuando no puede fundamentar la respuesta",
-      "does_not_cover": "si la evaluación del modelo y el trabajo de riesgo sistémico ocurrió de verdad, que es un hecho sobre una organización y no sobre un documento; y cualquier obligación para la que el operador no aportó documento, que se reporta como NO CONCLUYENTE y no como un negativo"
-    }
+    "ACT-PATH-009": "A delega en B y B vuelve a delegar en A. El recorrido corta el ciclo y lo dice, en lugar de recursar hasta agotar la pila. La consecuencia es real y conviene registrarla: el conjunto de capacidades alcanzables desde este agente no se puede enumerar a partir de estas declaraciones, así que cualquier afirmación sobre lo que puede hacer está incompleta."
   }
 }
