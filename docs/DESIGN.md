@@ -74,13 +74,13 @@ decision without the third part is not a decision, it is a preference.
 | D-230 | A figure that is derivable is never maintained by hand, in prose either | `scripts/figures_contract.py:3` |
 | D-232 | The index of published contracts is generated, because an index with a hole in it still looks complete | `scripts/contracts_doc.py:4` |
 | D-234 | The console blocks are output this tool produced, and the gate re-runs them under two hash seeds | `scripts/cli_transcripts.py:4` |
-| D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:276` |
+| D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:435` |
 | D-236 | The published line count is a sum over a partition of the tree, checked, not a sum over a list somebody maintained | `scripts/figures.py:60` |
 | D-237 | A line number in the note table is derived, because a reference wrong by four hundred lines is not stale, it is wrong | `scripts/design_notes.py:4` |
 | D-238 | One spelling of "the last path segment", because three spellings put the producer's absolute path inside signed documents | `src/actaira/model.py:135` |
 | D-239 | A build writes into `dist/` and is then opened and checked, because the one artifact nobody looks at is a package | `scripts/build_package.py:4` |
-| D-240 | The default key path is resolved when a parser is built, not at import, so a host with no home does not break every command | `src/actaira/cli.py:44` |
-| D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:243` |
+| D-240 | The default key path is resolved when a parser is built, not at import, so a host with no home does not break every command | `src/actaira/cli.py:48` |
+| D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:402` |
 | D-242 | Type checking is a ratchet: the exemption list is empty, a new error fails, and a stale exemption fails as loudly | `scripts/type_check.py:4` |
 | D-243 | Recorded is not current, and the third answer is that this store cannot tell | `src/actaira/state/graph.py:379` |
 | D-245 | A decision is history and whether it still applies is a separate, three-valued question | `src/actaira/state/decide.py:3` |
@@ -88,6 +88,13 @@ decision without the third part is not a decision, it is a preference.
 | D-247 | What a decision depended on is rows, not a sentence, and a decision with none is undetermined rather than fine | `src/actaira/state/store.py:187` |
 | D-248 | Impact from a change starts at the artifact that changed, and two causes stay two causes | `src/actaira/state/graph.py:303` |
 | D-249 | One observation's whole consequence is assembled once, in Python, and rendered twice | `src/actaira/state/change.py:3` |
+| D-250 | One trace document for every source and every level, and failure is its default | `src/actaira/trace/model.py:3` |
+| D-251 | The capture level is not a label on the record, it is what decides what the record may claim | `src/actaira/trace/__init__.py:3` |
+| D-252 | A digest has no false negatives and a secret filter does, so the arguments do not travel | `src/actaira/trace/redact.py:3` |
+| D-253 | The real shape of a Claude Code transcript, written down because it is somebody else's format and it moves | `src/actaira/trace/claude_code.py:3` |
+| D-254 | Completeness is the proxy's invariant, kept above both transports so neither can forget it | `src/actaira/proxy/__init__.py:3` |
+| D-255 | A server the rewriter cannot interpose on is declared, never silently passed through | `src/actaira/proxy/session.py:3` |
+| D-256 | A tool that is not built returns a state and a phase, never a value that looks computed | `src/actaira/mcp.py:3` |
 | D-160b | The read budget bounds the read; the file bounds the allocation | `src/actaira/io_budget.py:53` |
 
 D-25b is numbered as a continuation rather than as a note of its own because

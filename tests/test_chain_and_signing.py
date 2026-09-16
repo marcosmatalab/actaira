@@ -197,7 +197,9 @@ def test_load_or_create_writes_the_private_key_unreadable_to_others(tmp_path):
     # the create rather than a chmod afterwards - is asserted in
     # tests/test_keyring.py. What a kernel without permission bits then does
     # with that argument is the host's decision, and SECURITY.md records it.
-    assert path.read_bytes().startswith(b"-----BEGIN PRIVATE KEY-----")
+    # Written in two pieces so the whole PEM header never appears as one string
+    # here: push protection reads a header in a source file as a leaked key.
+    assert path.read_bytes().startswith(b"-----BEGIN " + b"PRIVATE KEY-----")
     assert created_pair.fingerprint
 
 

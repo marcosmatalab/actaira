@@ -1,20 +1,21 @@
-"""The two commands, and the contract each of them publishes.
+"""The commands that exist, and the contract each of them publishes.
 
-`actaira verify` and `actaira keygen` are the whole surface at 3.0.0. That is
-the interesting assertion in this file and the first test makes it: the help
-text is the contract, and a command that does not exist must not appear in it.
-The other six arrive phase by phase, and adding one here before it works would
-be publishing a promise.
+Four of the eight CLAUDE.md caps the set at: `verify`, `keygen`, `scan` and
+`watch`. That is the interesting assertion in this file and the first test
+makes it - the help text is the contract, and a command that does not exist
+must not appear in it. The remaining four arrive phase by phase, and adding
+one here before it works would be publishing a promise.
 
 What is tested is what a caller can rely on: the exit codes, the fact that
-neither command opens a socket, and that `verify` reports a broken package as
-broken rather than as silence. The verification logic itself lives in
-`tests/test_package_verify.py`, which is where it stays - this file is about
-the command line.
+`verify` opens no socket, and that it reports a broken package as broken
+rather than as silence. The verification logic lives in
+`tests/test_package_verify.py` and what `scan` and `watch` produce lives in
+their own files; this one is about the command line.
 """
 from __future__ import annotations
 
 import json
+import re
 import socket
 import zipfile
 from pathlib import Path
@@ -60,12 +61,19 @@ def no_network(monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-def test_the_cli_publishes_exactly_two_commands():
-    """CLAUDE.md caps the finished set at eight and this release ships two.
+SHIPPED = {"verify", "keygen", "scan", "watch"}
+# The four CLAUDE.md names that this release still cannot mean anything by.
+# `serve` is in the list and is not one of the eight: the MCP server is a
+# separate entry point, `actaira-mcp`, precisely so that it is not a ninth
+# command, and this is where that stays true.
+UNSHIPPED = ["contract", "verdict", "receipt", "fix", "serve"]
 
-    The six that are missing - scan, watch, contract, verdict, receipt, fix -
-    need a trace format that does not exist yet. A parser that accepted them
-    and printed "not implemented" would be advertising them.
+
+def test_the_cli_publishes_exactly_the_commands_that_work():
+    """CLAUDE.md caps the finished set at eight and this release ships four.
+
+    The four that are missing need a contract, which phase 2 derives. A parser
+    that accepted them and printed "not implemented" would be advertising them.
     """
     subparsers = [
         action
@@ -74,10 +82,10 @@ def test_the_cli_publishes_exactly_two_commands():
     ]
 
     assert len(subparsers) == 1
-    assert set(subparsers[0].choices) == {"verify", "keygen"}
+    assert set(subparsers[0].choices) == SHIPPED
 
 
-@pytest.mark.parametrize("command", ["scan", "watch", "contract", "verdict", "receipt", "fix", "serve"])
+@pytest.mark.parametrize("command", UNSHIPPED)
 def test_a_command_that_does_not_exist_yet_is_a_usage_error(command, capsys):
     with pytest.raises(SystemExit) as exit_info:
         cli.build_parser().parse_args([command])
@@ -86,19 +94,26 @@ def test_a_command_that_does_not_exist_yet_is_a_usage_error(command, capsys):
     assert "invalid choice" in capsys.readouterr().err
 
 
-def test_the_help_text_names_both_commands_and_nothing_else(capsys):
+def test_the_help_text_names_those_commands_and_nothing_else(capsys):
     with pytest.raises(SystemExit):
         cli.main(["--help"])
 
     printed = capsys.readouterr().out
 
-    assert "verify" in printed and "keygen" in printed
-    # The command column only. "attest" is a substring of "attestation package"
-    # in verify's own help line, and a naive `in` check reads that as a command.
+    # The command column only, and only its first token. Two naive readings
+    # have already been wrong here: "attest" is a substring of "attestation
+    # package" in verify's own help line, and a help string long enough to wrap
+    # puts its continuation in this block too, which read `machine` and `proxy`
+    # as commands. A command name sits at exactly four spaces; everything else
+    # argparse writes in here is indented further or starts with a brace.
     listing = printed.split("positional arguments:", 1)[1].split("options:", 1)[0]
-    named = {line.strip().split()[0] for line in listing.splitlines() if line.startswith("    ")}
+    named = {
+        match.group(1)
+        for match in (re.match(r"^ {4}(\S+)", line) for line in listing.splitlines())
+        if match and not match.group(1).startswith("{")
+    }
 
-    assert named == {"verify", "keygen"}, f"the help lists {sorted(named)}"
+    assert named == SHIPPED, f"the help lists {sorted(named)}"
 
 
 def test_version_is_the_package_version(capsys):

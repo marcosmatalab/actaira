@@ -1,0 +1,319 @@
+"""Completeness, as one property over a corpus of ways to lose an event.
+
+A proxy is the fail-open surface. Every one of these scenarios ends with the
+agent having done something the proxy did not see, and the only wrong answer
+is a trace that comes out looking whole. So the statement is made once, over
+six scenarios, rather than six times in six tests that can drift apart - which
+is what phase 0.1 cost us and what its two invariants were written to stop.
+
+The corpus carries a seventh scenario where nothing goes wrong. A property
+test in which every case fails is a property test that would pass against a
+proxy that always declares a gap, and that proxy is useless.
+"""
+from __future__ import annotations
+
+import json
+import socket
+import sys
+import threading
+from collections.abc import Callable
+from dataclasses import dataclass
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+import pytest
+
+from actaira.proxy import Recorder
+from actaira.proxy.http import HttpProxy
+from actaira.proxy.stdio import StdioProxy
+from actaira.trace import CaptureLevel
+from actaira.trace.model import GapReason, Trace
+
+CALL = {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {"name": "actaira_verify", "arguments": {"path": "receipt.zip"}},
+}
+SECOND_CALL = {**CALL, "id": 2}
+
+
+# ---------------------------------------------------------------------------
+# Upstreams that misbehave in one specific way each
+# ---------------------------------------------------------------------------
+
+
+def _upstream_script(tmp_path: Path, body: str) -> list[str]:
+    """A stdio MCP server written for one scenario, spawned as a real process."""
+    path = tmp_path / "upstream.py"
+    path.write_text(
+        "import json, os, sys\n"
+        "def reply(message, payload):\n"
+        "    sys.stdout.write(json.dumps({'jsonrpc': '2.0', 'id': message.get('id'),\n"
+        "                                 'result': payload}) + '\\n')\n"
+        "    sys.stdout.flush()\n" + body,
+        encoding="utf-8",
+    )
+    return [sys.executable, str(path)]
+
+
+HEALTHY_BODY = (
+    "for line in sys.stdin:\n"
+    "    if not line.strip():\n"
+    "        continue\n"
+    "    reply(json.loads(line), {'content': [{'type': 'text', 'text': 'ok'}]})\n"
+)
+DIES_AFTER_ONE_BODY = (
+    "first = True\n"
+    "for line in sys.stdin:\n"
+    "    if not line.strip():\n"
+    "        continue\n"
+    "    if not first:\n"
+    "        raise SystemExit(3)\n"
+    "    first = False\n"
+    "    reply(json.loads(line), {'content': [{'type': 'text', 'text': 'ok'}]})\n"
+)
+# `os.close(1)` rather than `sys.stdout.close()`: the second one closes the
+# Python object and leaves the descriptor open, so the parent's read blocks
+# instead of seeing EOF. The scenario is a transport that died under a server
+# that is still alive, and only the first spelling produces one.
+CLOSES_STDOUT_BODY = "os.close(1)\nsys.stdin.read()\n"
+# Alive, reading, and never answering. This is the scenario the six in the
+# phase brief did not cover, and the only failure mode worse than a silent gap:
+# it deadlocked the proxy, which would have taken the agent down with it.
+NEVER_ANSWERS_BODY = "sys.stdin.read()\n"
+TRUNCATES_BODY = (
+    "for line in sys.stdin:\n"
+    "    if not line.strip():\n"
+    "        continue\n"
+    "    sys.stdout.write('{\"jsonrpc\": \"2.0\", \"id\": 1, \"resu')\n"
+    "    sys.stdout.flush()\n"
+    "    break\n"
+    "sys.stdin.read()\n"
+)
+
+
+class _Handler(BaseHTTPRequestHandler):
+    behaviour = "ok"
+
+    def log_message(self, *args):  # noqa: ANN002 - silence the test server
+        return
+
+    def do_POST(self):  # noqa: N802 - BaseHTTPRequestHandler's spelling
+        length = int(self.headers.get("Content-Length", "0"))
+        self.rfile.read(length)
+        if self.behaviour == "5xx":
+            self.send_response(503)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        if self.behaviour == "cut":
+            self.close_connection = True
+            self.wfile.close()
+            return
+        payload = json.dumps(
+            {"jsonrpc": "2.0", "id": 1, "result": {"content": [{"type": "text", "text": "ok"}]}}
+        ).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
+
+@pytest.fixture
+def http_upstream():
+    """A real local HTTP server whose behaviour each scenario sets."""
+    handler = type("Scenario", (_Handler,), {})
+    server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    yield handler, f"http://127.0.0.1:{server.server_address[1]}/mcp"
+    server.shutdown()
+    server.server_close()
+
+
+# ---------------------------------------------------------------------------
+# The corpus
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Scenario:
+    name: str
+    run: Callable[..., Trace]
+    expected: GapReason | None
+
+
+def _stdio(tmp_path, body, calls=(CALL,), command=None, timeout=3.0):
+    recorder = Recorder(session_id="s-stdio", source="mcp-proxy")
+    proxy = StdioProxy(command or _upstream_script(tmp_path, body), recorder, timeout=timeout)
+    proxy.start()
+    for call in calls:
+        proxy.request(call)
+    proxy.close()
+    return recorder.trace()
+
+
+def _http(handler, url, behaviour):
+    handler.behaviour = behaviour
+    recorder = Recorder(session_id="s-http", source="mcp-proxy")
+    proxy = HttpProxy(url, recorder)
+    proxy.start()
+    proxy.request(CALL)
+    proxy.close()
+    return recorder.trace()
+
+
+SCENARIOS = [
+    Scenario(
+        # A binary that is not there, rather than an interpreter handed a
+        # missing script: the second one starts perfectly well and then exits,
+        # which is a different thing to have happened and gets a different word.
+        "the proxy never started",
+        lambda tmp_path, http: _stdio(
+            tmp_path, HEALTHY_BODY, command=[str(tmp_path / "no-such-server")]
+        ),
+        GapReason.PROXY_START_FAILED,
+    ),
+    Scenario(
+        "the upstream died halfway through",
+        lambda tmp_path, http: _stdio(tmp_path, DIES_AFTER_ONE_BODY, calls=(CALL, SECOND_CALL)),
+        GapReason.UPSTREAM_EXITED,
+    ),
+    Scenario(
+        "the stdio transport closed",
+        lambda tmp_path, http: _stdio(tmp_path, CLOSES_STDOUT_BODY),
+        GapReason.TRANSPORT_CLOSED,
+    ),
+    Scenario(
+        "the response was truncated",
+        lambda tmp_path, http: _stdio(tmp_path, TRUNCATES_BODY),
+        GapReason.RESPONSE_TRUNCATED,
+    ),
+    Scenario(
+        "the HTTP upstream answered 5xx",
+        lambda tmp_path, http: _http(*http, "5xx"),
+        GapReason.UPSTREAM_ERROR,
+    ),
+    Scenario(
+        "the HTTP upstream cut the connection",
+        lambda tmp_path, http: _http(*http, "cut"),
+        GapReason.TRANSPORT_CLOSED,
+    ),
+    Scenario(
+        "the server never answered at all",
+        lambda tmp_path, http: _stdio(tmp_path, NEVER_ANSWERS_BODY),
+        GapReason.UPSTREAM_TIMEOUT,
+    ),
+]
+
+HEALTHY = Scenario(
+    "nothing went wrong",
+    lambda tmp_path, http: _stdio(tmp_path, HEALTHY_BODY),
+    None,
+)
+
+
+def _ids(scenarios):
+    return [scenario.name for scenario in scenarios]
+
+
+# ---------------------------------------------------------------------------
+# The invariant
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("scenario", SCENARIOS, ids=_ids(SCENARIOS))
+def test_a_trace_never_looks_complete_when_it_is_not(scenario, tmp_path, http_upstream):
+    """The one statement this file exists to make."""
+    document = scenario.run(tmp_path, http_upstream).to_dict()
+
+    assert document["complete"] is False, f"{scenario.name}: the trace came out looking whole"
+    assert document["gaps"], f"{scenario.name}: incomplete and silent about it"
+
+
+@pytest.mark.parametrize("scenario", SCENARIOS, ids=_ids(SCENARIOS))
+def test_every_gap_names_its_reason_and_says_what_happened(scenario, tmp_path, http_upstream):
+    """A gap with no reason is the silence this invariant is against, wearing
+    a field name."""
+    document = scenario.run(tmp_path, http_upstream).to_dict()
+
+    reasons = {gap["reason"] for gap in document["gaps"]}
+    assert scenario.expected.value in reasons, f"{scenario.name}: {sorted(reasons)}"
+    for gap in document["gaps"]:
+        assert gap["reason"] in {reason.value for reason in GapReason}, gap
+        assert len(gap["detail"]) > 10, f"{scenario.name}: a gap that explains nothing"
+        assert isinstance(gap["after_index"], int)
+
+
+@pytest.mark.parametrize("scenario", SCENARIOS, ids=_ids(SCENARIOS))
+def test_an_incomplete_l1_trace_cannot_claim_authenticity(scenario, tmp_path, http_upstream):
+    """L1 is the level at which authenticity applies. A gap does not make it
+    inapplicable, it makes it unestablished, and those are different words."""
+    document = scenario.run(tmp_path, http_upstream).to_dict()
+
+    assert document["capture_level"] == CaptureLevel.L1.value
+    assert document["authenticity"]["applies"] is True
+    assert document["authenticity"]["state"] == "not_established"
+
+
+@pytest.mark.parametrize("scenario", SCENARIOS, ids=_ids(SCENARIOS))
+def test_the_agent_still_gets_an_answer_or_an_error_it_can_act_on(scenario, tmp_path, http_upstream):
+    """Transparency: the proxy failing must not take the agent down with it.
+    A recording tool that breaks the thing it records is a tool nobody runs
+    twice, and the trace is what carries the bad news instead."""
+    trace = scenario.run(tmp_path, http_upstream)
+
+    assert trace.to_dict()["events"] is not None  # the call was reached at all
+    assert trace.capture_level is CaptureLevel.L1
+
+
+def test_the_corpus_is_not_all_failures(tmp_path, http_upstream):
+    """The guard on the property. Without this, a proxy that declared a gap on
+    every session would pass every test above."""
+    document = HEALTHY.run(tmp_path, http_upstream).to_dict()
+
+    assert document["complete"] is True
+    assert document["gaps"] == []
+    assert document["authenticity"]["state"] == "established"
+    assert len(document["events"]) == 1
+
+
+def test_every_gap_reason_in_the_vocabulary_is_reachable():
+    """A closed vocabulary with an unreachable member is a member nobody can
+    test, and the next person deletes it or misuses it."""
+    covered = {scenario.expected for scenario in SCENARIOS}
+    declarative = {GapReason.END_NOT_RECORDED, GapReason.RESULT_NOT_RECORDED,
+                   GapReason.UNPARSABLE_RECORD}
+
+    assert covered | declarative == set(GapReason), (
+        f"unreachable gap reasons: {sorted(reason.value for reason in set(GapReason) - covered - declarative)}"
+    )
+
+
+def test_a_recorder_that_was_never_closed_yields_an_incomplete_trace():
+    """The inverted default at its starkest: no news is not good news."""
+    recorder = Recorder(session_id="s", source="mcp-proxy")
+
+    document = recorder.trace().to_dict()
+
+    assert document["complete"] is False
+    assert any(gap["reason"] == GapReason.END_NOT_RECORDED.value for gap in document["gaps"])
+
+
+def test_the_proxy_binds_only_to_the_loopback_interface(http_upstream):
+    """`watch` is the one command that opens a socket at all, and it opens it
+    where nobody else can reach it."""
+    _handler, url = http_upstream
+    recorder = Recorder(session_id="s", source="mcp-proxy")
+    proxy = HttpProxy(url, recorder, listen=True)
+    proxy.start()
+    try:
+        host, port = proxy.address
+        assert host == "127.0.0.1"
+        with socket.socket() as probe:
+            probe.settimeout(2)
+            assert probe.connect_ex(("127.0.0.1", port)) == 0
+    finally:
+        proxy.close()
