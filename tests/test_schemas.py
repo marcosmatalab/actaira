@@ -205,6 +205,10 @@ FROZEN_REQUIRED = {
         "decided_on", "decision", "policy", "proof", "schema_version", "subjects",
     ],
     "policy-v1": ["policy", "rules", "schema_version", "version"],
+    "trace-v1": [
+        "authenticity", "capture_level", "complete", "events", "gaps",
+        "schema_version", "session_id", "source",
+    ],
 }
 
 
@@ -278,11 +282,36 @@ def test_no_schema_declares_a_score_shaped_property():
     The word list is CLAUDE.md's first negative plus `level`, which is not in
     that sentence and is kept because `compliance_level` is the shape a
     consumer would reach for first.
+
+    `capture_level` is the one exception, named here rather than allowed by a
+    looser pattern. It is not a judgement of the run: it says how the run was
+    observed - a transcript, a tool proxy, a network proxy, a sandbox - and
+    CLAUDE.md requires every record to declare it. A field saying what method
+    produced the evidence is the opposite of a field summarising the evidence,
+    and renaming it to dodge four letters would cost the vocabulary the whole
+    governance document uses.
     """
     forbidden = ("score", "grade", "rating", "percent", "confidence", "ranking", "level")
+    allowed = {"capture_level"}
     for name in schemas.names():
         for path, declared in property_names(schemas.load(name)):
+            if declared in allowed:
+                continue
             assert not any(word in declared.lower() for word in forbidden), f"{name}{path}"
+
+
+def test_the_one_allowed_level_field_is_still_the_only_one():
+    """The exemption above is a list of one, and this is what keeps it that
+    size: a second field slipping in under the same excuse would not have been
+    argued for anywhere."""
+    levelled = {
+        declared
+        for name in schemas.names()
+        for _path, declared in property_names(schemas.load(name))
+        if "level" in declared.lower()
+    }
+
+    assert levelled == {"capture_level"}, f"an unargued level-shaped field appeared: {levelled}"
 
 
 # --------------------------------------------------------------------------

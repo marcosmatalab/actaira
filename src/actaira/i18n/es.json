@@ -170,7 +170,19 @@
     "state.recorded": "se registraron {n} registro(s) de {kind} en el espacio de trabajo",
     "state.not_recorded": "{subject}: no se registro nada. {detail}",
     "change.none": "todavia no hay observaciones registradas: `actaira source add` y luego `actaira watch` registra una",
-    "change.supersession_unknown": "Lo que cada una invalido en su momento no queda registrado. Un registro de evidencia guarda su estado actual y no su historia, asi que esta lista dice que cambio y no que dejo de contar por ello."
+    "change.supersession_unknown": "Lo que cada una invalido en su momento no queda registrado. Un registro de evidencia guarda su estado actual y no su historia, asi que esta lista dice que cambio y no que dejo de contar por ello.",
+    "scan.header": "Leyendo las sesiones que {source} ha grabado en esta máquina",
+    "scan.found": "  {sessions} sesión(es), {events} llamada(s) a herramienta, de {first} a {last}",
+    "scan.incomplete": "  {count} sesión(es) declaran un hueco: algo ocurrió y no se observó",
+    "scan.demo": "Leyendo la sesión de demostración sintética que trae el paquete.",
+    "scan.written": "  escritas {count} traza(s) y sus digests en {path}",
+    "scan.not_evidence": "NIVEL DE CAPTURA L0: este transcript lo escribió el propio agente auditado, sobre sí mismo. Aquí la autenticidad no se evalúa, y no puede evaluarse. Sirve para diagnóstico y análisis retrospectivo, no como prueba ante un tercero. Usa `actaira watch` para grabar una ejecución desde fuera del agente.",
+    "watch.header": "Sesión {session} grabada con nivel de captura L1",
+    "watch.observed": "  {events} llamada(s) a herramienta observadas desde fuera del agente",
+    "watch.complete": "  completa: cada llamada observada tiene resultado grabado y la sesión terminó",
+    "watch.incomplete": "  INCOMPLETA: los huecos de arriba son lo que esta ejecución no pudo observar",
+    "watch.written": "  escrita la traza y su digest en {path}",
+    "watch.no_command": "watch necesita un comando que ejecutar: actaira watch -- <comando>"
   },
   "rules": {
     "ACT-FMT-001": "Formato no reconocido; el artefacto no se ha inspeccionado",

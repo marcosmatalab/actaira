@@ -54,6 +54,10 @@ package = ["build>=1.2"]
 
 [project.scripts]
 actaira = "actaira.cli:main"
+# The MCP server is a second entry point rather than a ninth subcommand:
+# CLAUDE.md caps `actaira` at eight commands, and a server is not a command
+# anybody types. This is the string that goes in somebody's .mcp.json.
+actaira-mcp = "actaira.mcp:main"
 
 # Two entries, and only the two that exist. The block used to say there was
 # no repository and no issue tracker, which was true of a local snapshot and
@@ -72,7 +76,7 @@ Issues = "https://github.com/marcosmatalab/actaira/issues"
 where = ["src"]
 
 [tool.setuptools.package-data]
-actaira = ["i18n/*.json", "schemas/*.json"]
+actaira = ["i18n/*.json", "schemas/*.json", "trace/*.jsonl"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -128,3 +132,8 @@ ignore = ["E501", "S101"]
 # loop tries the next key and, if none verifies, the caller gets an explicit
 # "signature does not verify" problem rather than a stack trace.
 "src/actaira/attest/verify.py" = ["S112"]
+# UP042 again, and for the same reason as every other enum here: both of
+# these serialise with `.value` into `trace/v1`, which is a published
+# contract a third party reads back. How they spell is part of it.
+"src/actaira/trace/__init__.py" = ["UP042"]
+"src/actaira/trace/model.py" = ["UP042"]

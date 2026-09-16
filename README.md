@@ -25,7 +25,7 @@ Nothing is ever loaded, deserialised or executed. Nothing is ever scored.
 | | | |
 |---|---|---|
 | **41 documented rules** | **15 executable controls** | **21 obligations** modeled |
-| **1,751 tests**, none of them hand-written figures | **7 connectors** that never decide | one runtime dependency |
+| **1,908 tests**, none of them hand-written figures | **7 connectors** that never decide | one runtime dependency |
 
 **No network is required** for local scanning, governance or offline verification. Remote discovery and RFC 3161 time anchoring reach the network only when you ask them to, `bundle` and `discover` take `--offline` to forbid it outright, and nothing here ever phones home: there is no telemetry, no account and no hosted service.
 
@@ -267,7 +267,7 @@ actaira receipt issue models/ --out release.receipt.json \
 
 `actaira --lang es <command>` switches the output language. The flag is global, so it goes before the subcommand, and a test fails if one language gains a string the other does not have.
 
-There are 2 CLI commands in total, indexed in [`docs/CONCEPTS.md`](docs/CONCEPTS.md), and what each one prints is in [`docs/CLI-OUTPUT.md`](docs/CLI-OUTPUT.md).
+There are 4 CLI commands in total, indexed in [`docs/CONCEPTS.md`](docs/CONCEPTS.md), and what each one prints is in [`docs/CLI-OUTPUT.md`](docs/CLI-OUTPUT.md).
 
 To work on the tool rather than with it, `python -m pip install -e ".[dev]"` adds pytest, ruff, numpy, jsonschema and Pillow; the gates are listed in [`docs/ENGINEERING.md`](docs/ENGINEERING.md).
 
@@ -281,7 +281,7 @@ Every count in that picture is read from the registry, the enum or the catalogue
 
 And the loop closes. The next observation is compared against the last, so the output is not "what is true now" but **what changed, what that invalidated, and what it reaches**:
 
-**30,879 lines of Python**, one runtime dependency, and **71 design notes** recording why each decision went the way it did. [`docs/DESIGN.md`](docs/DESIGN.md) is the index; every note names the file and line that implements it, and a test fails if a note in the code is missing from the table.
+**34,942 lines of Python**, one runtime dependency, and **78 design notes** recording why each decision went the way it did. [`docs/DESIGN.md`](docs/DESIGN.md) is the index; every note names the file and line that implements it, and a test fails if a note in the code is missing from the table.
 
 ---
 

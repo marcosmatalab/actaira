@@ -48,6 +48,7 @@ VERSIONS = {
     "policy-decision": "policy-decision/v1",
     "assurance-receipt": "assurance-receipt/v2",
     "evidence-record": "evidence-record/v1",
+    "trace": "trace/v1",
 }
 
 # The versions this release still reads, per family, oldest first. Emitting is

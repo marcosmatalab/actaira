@@ -91,3 +91,27 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   propio fichero: es el problema del punto fijo, el mismo que resuelven los
   árboles de Merkle anclando la constancia fuera del objeto. Candidato a ejemplo
   del ensayo de la fase 4.5A.
+
+## Fase 1 — leer y grabar la traza
+
+- `actaira.mcp.serve` descarta en silencio una línea de stdin que no es JSON, en
+  vez de responder el error de análisis `-32700` que manda JSON-RPC. El cliente
+  que la envió se queda esperando una respuesta que no llega. No es un
+  fail-open de la evidencia (el servidor no afirma nada sobre esa línea), pero
+  sí un cliente colgado. **Sin fase asignada.**
+- `ClaudeCodeReader._lines` lee con `errors="replace"`, así que un transcript
+  con bytes que no son UTF-8 produce digests de un texto alterado sin que la
+  traza lo diga. Hoy no se ha visto ninguno: los 420 ficheros de la máquina
+  donde se escribió esto se leen limpios. Cuando aparezca uno, el reemplazo
+  tiene que ser un hueco declarado y no una sustitución muda. **Sin fase.**
+- `actaira scan --out` nombra cada fichero por el `session_id` que declara el
+  transcript. Dos sesiones de proyectos distintos que declaren el mismo id se
+  pisarían una a otra sin decir nada. No se ha observado; el arreglo es refusar
+  el segundo o nombrar por ruta, y las dos opciones cambian el nombre publicado
+  del fichero, que es lo que hace que esto no sea un arreglo de una línea.
+  **Sin fase.**
+- `scripts/build_package.py` sigue exigiendo `actaira/web/static/index.html`,
+  `actaira/agents/cassettes/judged-gold.json` y `actaira/schemas/report-v1.json`,
+  que se fueron a `archive/model-scanner` en la 3.0.0. `make package` no está en
+  `make all`, así que la puerta no lo ve. Encontrado leyendo el fichero para
+  saber si el fixture del `--demo` viajaba en la rueda. **Fase 4.**

@@ -209,6 +209,20 @@ sobre una mitigación que funciona es como un equipo aprende a ignorar la salida
 Sin estado, no necesitan más que los ficheros que les señales:
 
 | | |
+> **Estas dos filas son los comandos de la era de la traza.** El resto de esta
+> página sigue describiendo el escáner de modelos archivado en `v2.3.0`; la
+> fase 5 la reescribe entera.
+>
+> | | |
+> |---|---|
+> | `actaira scan` | leer las sesiones que un agente ya grabó en esta máquina, como trazas canónicas. Nivel de captura L0: el transcript lo escribió el propio agente auditado, así que la autenticidad no se evalúa y la traza sirve para diagnóstico, no como prueba. `--demo` corre sobre una sesión sintética que trae el paquete. |
+> | `actaira watch -- <comando>` | ejecutar un agente con un proxy de MCP delante de cada uno de sus servidores y grabar lo que llamó, desde fuera de él. Nivel de captura L1. Lo que el proxy no pudo observar se declara como hueco con su razón; una traza nunca sale pareciendo completa sin serlo. |
+>
+> El servidor MCP no es un comando. Es un segundo punto de entrada,
+> `actaira-mcp`, que publica `actaira_verify` más `actaira_verdict` y
+> `actaira_contract`, que devuelven un estado explícito de no implementado
+> hasta la fase 2.
+
 |---|---|
 | `actaira scan` | inspeccionar artefactos, con `--format sarif`, `junit` o `json` |
 | `actaira bom` | un ML-BOM CycloneDX 1.6 de lo inspeccionado |

@@ -27,6 +27,7 @@ actaira schema report-v1       # print one
 | `evidence-record/v1` | One observation, bound to the digest of what was observed, with its state and the collector that made it. | `actaira evidence show --json` |
 | `policy/v1` | A decision document: rules, their verdicts, exceptions with an owner and an expiry, and the digest the decision will cite. | `actaira policy show` |
 | `policy-decision/v1` | What a policy decided about one run, with the rule and the evidence behind every verdict, including the ones that could not be evaluated. | `actaira policy check --json` |
+| `trace/v1` | What an agent did, in one shape whatever observed it: an ordered list of tool calls with the digest of each call's arguments and result, the capture level that produced every one, and the holes that level did not cover. | `actaira scan, actaira watch` |
 
 ## Superseded
 
@@ -54,3 +55,4 @@ Each contract's required fields are frozen in the test suite, so dropping one fa
 | `evidence-record-v1` | `schema_version`, `evidence_id`, `subject`, `kind`, `collector`, `collector_version`, `observed_at`, `state`, `digest` |
 | `policy-decision-v1` | `schema_version`, `decision`, `policy`, `decided_on`, `subjects`, `proof` |
 | `policy-v1` | `schema_version`, `policy`, `version`, `rules` |
+| `trace-v1` | `schema_version`, `session_id`, `source`, `capture_level`, `authenticity`, `complete`, `events`, `gaps` |

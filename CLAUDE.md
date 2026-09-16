@@ -99,6 +99,12 @@ estaba en alcance y falló, sí.
    parece exigir un criterio nuevo, se escribe como línea de backlog y se sigue.
 3. PRESUPUESTO DE FICHEROS POR FASE, declarado antes de empezar. Superarlo
    requiere que yo lo autorice explícitamente en la conversación.
+   El presupuesto cuenta ficheros de DISEÑO. Los que fuerza el propio gate del
+   repositorio no cuentan: documentación que una comprobación de release exige,
+   generadores que abortan sin una entrada, y tests que afirman el estado
+   viejo. Cada fichero que se declare forzado TIENE QUE NOMBRAR en el informe
+   la comprobación concreta que lo fuerza. Un fichero forzado sin su
+   comprobación nombrada es alcance, y entonces sí cuenta.
 4. PROHIBIDO EMPEZAR LA FASE SIGUIENTE ANTES DE CERRAR LA ACTUAL. Aunque sea
    evidente, aunque queden tokens, aunque el cambio sea de una línea.
 5. CADA DECISIÓN DE DISEÑO SE ESCRIBE CON SU ALTERNATIVA RECHAZADA Y SU PORQUÉ,

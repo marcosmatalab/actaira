@@ -17,7 +17,7 @@
       "ACT-STF": 3,
       "ACT-ZIP": 6
     },
-    "ui_messages": 171
+    "ui_messages": 183
   },
   "code": {
     "attest": {
@@ -39,12 +39,12 @@
       "note": "agents, tools, MCP servers, capabilities, attack paths"
     },
     "core": {
-      "blank": 80,
-      "code": 266,
-      "comment": 21,
-      "docstring": 101,
+      "blank": 99,
+      "code": 383,
+      "comment": 31,
+      "docstring": 114,
       "files": 4,
-      "lines": 468,
+      "lines": 627,
       "note": "the model and the CLI"
     },
     "i18n": {
@@ -75,30 +75,30 @@
       "note": "SARIF and JUnit"
     },
     "rest": {
-      "blank": 249,
-      "code": 895,
-      "comment": 123,
-      "docstring": 440,
-      "files": 6,
-      "lines": 1707,
+      "blank": 511,
+      "code": 2184,
+      "comment": 197,
+      "docstring": 777,
+      "files": 15,
+      "lines": 3669,
       "note": "everything in src/ the areas above do not claim"
     },
     "schemas": {
       "blank": 20,
-      "code": 28,
+      "code": 29,
       "comment": 14,
       "docstring": 36,
       "files": 1,
-      "lines": 98,
+      "lines": 99,
       "note": "the published contracts"
     },
     "scripts": {
       "blank": 374,
-      "code": 1744,
+      "code": 1751,
       "comment": 187,
       "docstring": 412,
       "files": 9,
-      "lines": 2717,
+      "lines": 2724,
       "note": "this script"
     },
     "state": {
@@ -111,21 +111,21 @@
       "note": "the SQLite store, watch, evidence, graph"
     },
     "tests": {
-      "blank": 3284,
-      "code": 8417,
-      "comment": 687,
-      "docstring": 1922,
-      "files": 37,
-      "lines": 14310,
+      "blank": 3743,
+      "code": 9575,
+      "comment": 773,
+      "docstring": 2153,
+      "files": 43,
+      "lines": 16244,
       "note": "the test suite"
     },
     "total": {
-      "blank": 5616,
-      "code": 18258,
-      "comment": 1818,
-      "docstring": 5187,
-      "files": 90,
-      "lines": 30879,
+      "blank": 6356,
+      "code": 20830,
+      "comment": 1988,
+      "docstring": 5768,
+      "files": 105,
+      "lines": 34942,
       "note": "every Python file under scripts, src, tests, each counted once"
     }
   },
@@ -238,19 +238,19 @@
   },
   "docs": {
     "docs/DESIGN.md": {
-      "lines": 1588
+      "lines": 1595
     },
     "docs/THREAT-MODEL.md": {
       "lines": 537
     },
-    "total_lines": 2125
+    "total_lines": 2132
   },
-  "generated_at": "2026-09-15T19:36:59+00:00",
+  "generated_at": "2026-09-15T23:37:44+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 11,
-    "head": "572f86f",
+    "commits": 12,
+    "head": "40953a7",
     "head_date": "2026-09-15"
   },
   "package": {
@@ -270,39 +270,45 @@
   },
   "tests": {
     "available": true,
-    "collected": 1751,
-    "files": 33,
+    "collected": 1908,
+    "files": 39,
     "per_file": {
       "tests/test_action_entrypoint.py": 14,
       "tests/test_attest_anchor.py": 25,
       "tests/test_chain_and_signing.py": 17,
       "tests/test_chain_domain_separation.py": 14,
-      "tests/test_cli.py": 25,
+      "tests/test_cli.py": 23,
       "tests/test_conformance.py": 54,
       "tests/test_consistency.py": 285,
       "tests/test_coverage.py": 12,
       "tests/test_defect_ledger.py": 348,
-      "tests/test_design_notes.py": 74,
+      "tests/test_design_notes.py": 81,
       "tests/test_dsse.py": 32,
-      "tests/test_i18n.py": 140,
+      "tests/test_i18n.py": 155,
       "tests/test_io_budget.py": 9,
       "tests/test_junit.py": 19,
       "tests/test_keyring.py": 33,
+      "tests/test_mcp.py": 15,
       "tests/test_merkle.py": 146,
       "tests/test_miniyaml.py": 22,
       "tests/test_package_verify.py": 31,
       "tests/test_policy_engine.py": 22,
+      "tests/test_proxy_completeness.py": 32,
+      "tests/test_proxy_transports.py": 21,
       "tests/test_readme_parity.py": 22,
       "tests/test_receipt.py": 26,
       "tests/test_release_check.py": 12,
       "tests/test_sarif.py": 29,
-      "tests/test_schemas.py": 27,
+      "tests/test_scan_claude_code.py": 20,
+      "tests/test_schemas.py": 30,
       "tests/test_signing_domain_separation.py": 6,
       "tests/test_state.py": 88,
       "tests/test_state_change.py": 47,
       "tests/test_state_graph.py": 25,
       "tests/test_subjects.py": 40,
       "tests/test_timestamp.py": 47,
+      "tests/test_trace_model.py": 19,
+      "tests/test_trace_privacy.py": 27,
       "tests/test_trust.py": 13,
       "tests/test_trust_paths.py": 24,
       "tests/test_verify_strictness.py": 23

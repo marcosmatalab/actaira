@@ -31,6 +31,12 @@ OUT = ROOT / "docs" / "CONTRACTS.md"
 # no amount of reading a JSON Schema tells a reader when they would want the
 # document it describes.
 FAMILIES: dict[str, tuple[str, str]] = {
+    "trace": (
+        "What an agent did, in one shape whatever observed it: an ordered list of tool "
+        "calls with the digest of each call's arguments and result, the capture level "
+        "that produced every one, and the holes that level did not cover.",
+        "actaira scan, actaira watch",
+    ),
     "report": (
         "What one scan found in one artifact: the findings, the detected format, "
         "the digest, and the coverage matrix that bounds the claim.",
