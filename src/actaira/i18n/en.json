@@ -170,7 +170,19 @@
     "state.recorded": "recorded {n} {kind} record(s) in the workspace",
     "state.not_recorded": "{subject}: nothing was recorded. {detail}",
     "change.none": "no observations recorded yet: `actaira source add` then `actaira watch` records one",
-    "change.supersession_unknown": "What each of these invalidated at the time is not recorded. An evidence record keeps its current state and not its history, so this list says what changed and not what that stopped counting."
+    "change.supersession_unknown": "What each of these invalidated at the time is not recorded. An evidence record keeps its current state and not its history, so this list says what changed and not what that stopped counting.",
+    "scan.header": "Reading the sessions {source} recorded on this machine",
+    "scan.found": "  {sessions} session(s), {events} tool call(s), from {first} to {last}",
+    "scan.incomplete": "  {count} session(s) declare a gap: something happened that was not observed",
+    "scan.demo": "Reading the synthetic demo session shipped with the package.",
+    "scan.written": "  wrote {count} trace(s) and their digests to {path}",
+    "scan.not_evidence": "CAPTURE LEVEL L0: this transcript was written by the agent being audited, about itself. Authenticity is not evaluated here and cannot be. It is diagnosis and retrospective analysis, not evidence a third party can rely on. Use `actaira watch` to record a run from outside the agent.",
+    "watch.header": "Recorded session {session} at capture level L1",
+    "watch.observed": "  {events} tool call(s) observed from outside the agent",
+    "watch.complete": "  complete: every observed call has a recorded result and the session ended",
+    "watch.incomplete": "  INCOMPLETE: the gaps above are what this run could not observe",
+    "watch.written": "  wrote the trace and its digest to {path}",
+    "watch.no_command": "watch needs a command to run: actaira watch -- <command>"
   },
   "rules": {
     "ACT-FMT-001": "Format not recognised; the artifact was not inspected",

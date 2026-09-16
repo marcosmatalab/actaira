@@ -209,6 +209,18 @@ ignore the output.
 Stateless, needs nothing but the files you point it at:
 
 | | |
+> **These two rows are the trace-era commands.** The rest of this page still
+> describes the model scanner archived at `v2.3.0`; phase 5 rewrites it.
+>
+> | | |
+> |---|---|
+> | `actaira scan` | read the sessions an agent already recorded on this machine, as canonical traces. Capture level L0: the transcript was written by the audited agent, so authenticity is not evaluated and the trace is diagnosis rather than evidence. `--demo` runs on a synthetic session shipped with the package. |
+> | `actaira watch -- <command>` | run an agent with an MCP proxy in front of each of its servers and record what it called, from outside it. Capture level L1. What the proxy could not observe is declared as a gap with its reason; a trace never comes out looking complete when it is not. |
+>
+> The MCP server is not a command. It is a second entry point, `actaira-mcp`,
+> publishing `actaira_verify` plus `actaira_verdict` and `actaira_contract`,
+> which return an explicit not-implemented state until phase 2.
+
 |---|---|
 | `actaira scan` | inspect artifacts, with `--format sarif`, `junit` or `json` |
 | `actaira bom` | a CycloneDX 1.6 ML-BOM for what was inspected |

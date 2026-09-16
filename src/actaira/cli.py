@@ -1,19 +1,21 @@
-"""The command line, cut back to what works offline with no trace format yet.
+"""The command line: four of the eight commands CLAUDE.md caps the set at.
 
-Two commands. `verify` reads an attestation package and says whether it holds
-together; `keygen` creates, rotates and revokes the key that signs one. They
-are the only two that need nothing the pivot has yet to build, so they are the
-only two that exist. The rest - `scan`, `watch`, `contract`, `verdict`,
-`receipt`, `fix` - arrive with the phase that makes each of them mean
-something, and CLAUDE.md caps the finished set at eight.
+`verify` reads an attestation package and says whether it holds together;
+`keygen` creates, rotates and revokes the key that signs one. `scan` reads the
+transcripts an agent already wrote and turns them into canonical traces, and
+`watch` records a run from outside the agent. `contract`, `verdict`, `receipt`
+and `fix` arrive with the phases that make each of them mean something.
 
 Rejected: keeping the previous 2 458-line parser with the dead subcommands
 hidden or stubbed. A command that parses and then says "not implemented" is a
 promise in the help text, and the help text is the contract COMPATIBILITY.md
 publishes.
 
-Neither command reaches the network. `verify` is the offline claim the product
-rests on: the package, a keyring the caller supplied, and nothing else.
+Three of the four never reach the network. `scan` is the strictest: it reads
+files full of somebody's conversation, so it opens no socket at all and a test
+enforces that rather than trusting it. `watch` is the exception and says so -
+it binds a loopback port when a server speaks HTTP, which is the whole
+mechanism by which it interposes.
 """
 from __future__ import annotations
 
@@ -27,6 +29,8 @@ from . import __version__
 from .attest import keyring
 from .attest import verify as verify_mod
 from .i18n.catalog import Catalog
+from .trace import reader_for
+from .trace.model import trace_digest
 
 EXIT_OK = 0
 EXIT_FAIL = 1
@@ -88,6 +92,40 @@ def build_parser() -> argparse.ArgumentParser:
     ver.add_argument("--json", action="store_true")
     ver.add_argument("--extends", type=Path,
                      help="an older package this one must be an append-only extension of")
+
+    scan = sub.add_parser(
+        "scan", help="read the sessions an agent already recorded on this machine (L0)"
+    )
+    scan.add_argument("--source", default="claude-code",
+                      help="which agent's transcripts to read")
+    scan.add_argument("--home", type=Path,
+                      help="the agent's config directory; CLAUDE_CONFIG_DIR otherwise")
+    scan.add_argument("--demo", action="store_true",
+                      help="run over the synthetic session shipped with the package, for a "
+                           "machine with no agent installed")
+    scan.add_argument("--out", type=Path, help="write one canonical trace per session here")
+    scan.add_argument("--with-content", action="store_true",
+                      help="keep the literal arguments and results in the trace. Off by "
+                           "default: these files hold your conversations, and what travels "
+                           "without this flag is a sha256 of each call and nothing else.")
+    scan.add_argument("--json", action="store_true")
+
+    watch = sub.add_parser(
+        "watch", help="record a run from outside the agent, through an MCP proxy (L1)"
+    )
+    watch.add_argument("--mcp-config", type=Path,
+                       help="the agent's MCP configuration; ./.mcp.json otherwise")
+    watch.add_argument("--out", type=Path, default=Path("actaira-trace"),
+                       help="where the record files and the assembled trace are written")
+    watch.add_argument("--with-content", action="store_true",
+                       help="keep literal arguments and results, as in scan")
+    watch.add_argument("--json", action="store_true")
+    # `child` and not `command`: the subparsers themselves use dest="command",
+    # and a positional by that name silently overwrote it with the remainder,
+    # so `actaira watch -- claude ...` dispatched to `verify`. argparse gives no
+    # warning for the collision.
+    watch.add_argument("child", nargs=argparse.REMAINDER,
+                       help="-- followed by the command that runs the agent")
 
     keygen = sub.add_parser("keygen", help="create, rotate or revoke a signing key")
     keygen.add_argument("--key", type=Path, default=default_key_path(),
@@ -225,6 +263,123 @@ def run_verify(args: argparse.Namespace, catalog: Catalog) -> int:
 
 
 # ---------------------------------------------------------------------------
+# scan (L0) and watch (L1)
+# ---------------------------------------------------------------------------
+
+
+def _write_traces(traces, out: Path) -> list[Path]:
+    """One canonical document per session, plus its digest beside it.
+
+    Beside rather than inside: a digest cannot be a field of the thing it is
+    the digest of. Phase 3 is what signs the pair.
+    """
+    out.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+    for trace in traces:
+        document = trace.to_dict()
+        target = out / f"{trace.session_id}.json"
+        target.write_text(
+            json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False), encoding="utf-8"
+        )
+        (out / f"{trace.session_id}.sha256").write_text(
+            trace_digest(document) + "\n", encoding="utf-8"
+        )
+        written.append(target)
+    return written
+
+
+def run_scan(args: argparse.Namespace, catalog: Catalog) -> int:
+    """Read what the agent already wrote, and refuse to call it evidence.
+
+    The refusal is printed, not filed. A limit that lives only in a document
+    is a limit the person reading the output never meets, and this is the one
+    that decides whether the whole command is honest: an L0 trace was produced
+    by the audited party.
+    """
+    from .trace.claude_code import demo_trace
+
+    if args.demo:
+        traces = [demo_trace(with_content=args.with_content)]
+        print(catalog.line("scan.demo"))
+    else:
+        try:
+            reader_class = reader_for(args.source)
+        except (KeyError, NotImplementedError) as exc:
+            print(str(exc), file=sys.stderr)
+            return EXIT_USAGE
+        reader = reader_class(home=args.home, with_content=args.with_content)
+        traces = reader.read_all()
+
+    documents = [trace.to_dict() for trace in traces]
+    moments = [
+        moment
+        for document in documents
+        for moment in (document.get("started_at"), document.get("ended_at"))
+        if moment
+    ]
+    if args.json:
+        print(json.dumps(documents, indent=2, sort_keys=True, ensure_ascii=False))
+    else:
+        if not args.demo:
+            print(catalog.line("scan.header", source=args.source))
+        print(
+            catalog.line(
+                "scan.found",
+                sessions=len(documents),
+                events=sum(len(document["events"]) for document in documents),
+                first=min(moments) if moments else "-",
+                last=max(moments) if moments else "-",
+            )
+        )
+        incomplete = [document for document in documents if not document["complete"]]
+        if incomplete:
+            print(catalog.line("scan.incomplete", count=len(incomplete)))
+        print()
+        print(catalog.line("scan.not_evidence"))
+
+    if args.out is not None:
+        written = _write_traces(traces, args.out)
+        print(catalog.line("scan.written", count=len(written), path=str(args.out)))
+    return EXIT_OK
+
+
+def run_watch(args: argparse.Namespace, catalog: Catalog) -> int:
+    """Run the agent with a proxy in front of each of its MCP servers."""
+    import uuid
+
+    from .proxy.session import WatchSession
+
+    command = [item for item in args.child if item != "--"]
+    if not command:
+        print(catalog.line("watch.no_command"), file=sys.stderr)
+        return EXIT_USAGE
+
+    session = WatchSession(
+        record_dir=args.out / "records",
+        session_id=str(uuid.uuid4()),
+        with_content=args.with_content,
+    )
+    returncode = session.run(command, args.mcp_config)
+    trace = session.assemble(child_returncode=returncode)
+    document = trace.to_dict()
+
+    if args.json:
+        print(json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False))
+    else:
+        print(catalog.line("watch.header", session=trace.session_id))
+        print(catalog.line("watch.observed", events=len(document["events"])))
+        for gap in document["gaps"]:
+            print(f"  ! [{gap['reason']}] {gap['detail']}")
+        print(catalog.line("watch.complete" if document["complete"] else "watch.incomplete"))
+    _write_traces([trace], args.out)
+    print(catalog.line("watch.written", path=str(args.out)))
+    # The agent's own exit code is passed through: `watch` records, it does not
+    # judge, and a wrapper that swallowed a failed build would be lying about
+    # the run it was there to observe.
+    return returncode
+
+
+# ---------------------------------------------------------------------------
 # entry point
 # ---------------------------------------------------------------------------
 
@@ -234,6 +389,10 @@ def _main(argv: list[str] | None = None) -> int:
     catalog = Catalog(args.lang)
     if args.command == "keygen":
         return run_keygen(args, catalog)
+    if args.command == "scan":
+        return run_scan(args, catalog)
+    if args.command == "watch":
+        return run_watch(args, catalog)
     return run_verify(args, catalog)
 
 
