@@ -6,7 +6,13 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
 
 ## Fase 0 — la amputación
 
-- main local (f706527, 275ecf4) no publicado; vive en pivot/agent-conformance hasta que la fase 5 reescriba el README.
+- ~~main local (f706527, 275ecf4) no publicado; vive en pivot/agent-conformance
+  hasta que la fase 5 reescriba el README.~~ **Cerrado en la 1.1b.** `main` se
+  publico en avance rapido sobre `origin/main` (b61f634 era ancestro), y
+  `pivot/agent-conformance` se retiro: iba por detras (635532f) y nada de lo
+  que tenia falta en `main`, que lo contiene entero en su historia. `main` es
+  la linea del producto. Una rama que duplica la linea principal y se queda
+  atras es una rama de la que alguien parte sin darse cuenta.
 - `README.md` y `README.es.md` siguen describiendo el escáner de modelos entero.
   Cada una de esas frases es también una frase de posicionamiento, y la
   autorización de la fase 0 era mecánica, así que solo se borraron los bloques
