@@ -20,7 +20,12 @@ from conftest import REPO_ROOT, SRC_DIR
 # Sections whose values are plain strings. The `governance` and `controls`
 # sections went to archive/model-scanner with the modules whose ids keyed
 # own tests further down rather than a shape exception here.
-SECTIONS = ("ui", "rules", "rule_help")
+# `ui` is the only section with entries in this tree. `rules` and `rule_help`
+# are empty and a test below asserts they stay empty for as long as no module
+# emits a rule id, so listing them here - where every test demands a non-empty
+# section - would assert the opposite of what is true.
+SECTIONS = ("ui",)
+RULE_SECTIONS = ("rules", "rule_help")
 CATALOGUES = {lang: json.loads((SRC_DIR / "actaira" / "i18n" / f"{lang}.json").read_text("utf-8")) for lang in SUPPORTED}
 
 # `grep -rn 'ACT-...' src/`, done in-process so the failure message can name the
@@ -99,10 +104,41 @@ def test_no_catalogue_entry_is_empty(section):
 # Every rule the code can emit has text in both languages
 # ---------------------------------------------------------------------------
 
-def test_the_source_actually_yielded_rules_to_check():
-    assert len(SOURCE_RULES) >= 30, "the source scan found almost nothing; it is not scanning"
-    assert "ACT-PKL-002" in SOURCE_RULES, "the conditional rule assignment was missed"
-    assert "ACT-PATH-002" in SOURCE_RULES, "the conformance package was missed"
+def test_the_scan_would_find_a_rule_id_if_one_existed():
+    """The non-vacuity guard, and the reason it is written this way.
+
+    This used to assert `len(SOURCE_RULES) >= 30` over a tree whose scanner and
+    conformance packages emitted forty-one rule ids. Phase A removed both, so
+    `SOURCE_RULES` is empty and every test below it that iterates over it would
+    now pass by iterating over nothing - which is the failure this whole file
+    exists to prevent one level down.
+
+    So the guard moved from "the scan found rules" to "the scan still works".
+    The pattern is exercised against lines it must match and lines it must not,
+    including the control-identifier prefix that made the trailing guard
+    necessary. When phase B lands a rule package, the two tests below start
+    biting again on their own, with no edit here.
+    """
+    assert RULE_LITERAL.findall("        rule_id=\"ACT-PKL-002\",") == ["ACT-PKL-002"]
+    assert RULE_LITERAL.findall("chosen = ACT-PATH-002 if x else ACT-PATH-003") == [
+        "ACT-PATH-002", "ACT-PATH-003"
+    ]
+    assert RULE_LITERAL.findall("ACT-C-53-ANNEX-XI") == [], "a control id is not a rule id"
+
+
+def test_this_tree_emits_no_rule_ids_and_the_catalogues_say_so():
+    """Phase A's state, asserted in both directions so it cannot drift quietly.
+
+    Nothing in `src/` raises a `Finding`, so neither catalogue may carry rule
+    text: forty-one entries describing rules no module can emit were dead text
+    that would be translated and reviewed forever. If phase B adds a rule id
+    and forgets its text, `test_every_rule_id_in_the_source_has_a_catalogue_
+    entry` fails. If it adds text with no rule, this one does.
+    """
+    assert SOURCE_RULES == {}, f"a rule id is back in src/: {sorted(SOURCE_RULES)}"
+    for lang, catalogue in CATALOGUES.items():
+        for section in RULE_SECTIONS:
+            assert catalogue[section] == {}, f"{lang}.{section} describes a rule nothing emits"
 
 
 @pytest.mark.parametrize("lang", SUPPORTED)

@@ -18,8 +18,8 @@ import pytest
 
 from actaira.attest import chain, package, signing
 from actaira.attest import verify as verify_mod
-from actaira.model import Verdict, canonical_json
-from support.reports import write_flagged_report, write_report
+from actaira.model import canonical_json
+from support.reports import write_record
 
 INTEGRITY_CHECKS = (
     "files_match_manifest",
@@ -35,8 +35,10 @@ def artifacts(tmp_path: Path) -> list[Path]:
     """One clean artifact and one that fails, so the attested payload has
     something worth lying about."""
     return [
-        write_report(tmp_path / "clean.safetensors"),
-        write_flagged_report(tmp_path / "gadget.pkl", "ACT-PKL-001"),
+        write_record(tmp_path / "clean.safetensors", payload=b"clean bytes",
+                     verdict="pass", findings=[]),
+        write_record(tmp_path / "gadget.pkl", payload=b"other bytes",
+                     verdict="fail", findings=["ACT-PKL-001"]),
     ]
 
 
@@ -44,7 +46,11 @@ def artifacts(tmp_path: Path) -> list[Path]:
 def attested(tmp_path: Path, artifacts: list[Path], keypair):
     """Inspect, attest, and hand back everything a verifier would be given."""
     reports = list(artifacts)
-    assert [report.verdict for report in reports] == [Verdict.PASS, Verdict.FAIL]
+    # Two distinct subjects is the whole requirement: the manifest, the chain
+    # and the Merkle root are what is under test, and none of them reads inside
+    # a payload. Asserting a verdict here would be asserting on the suite's own
+    # fixture, which phase A removed the means to compute anyway.
+    assert len({report.sha256 for report in reports}) == 2
 
     entries: list[chain.Entry] = []
     boms: dict[str, dict] = {}
@@ -54,7 +60,7 @@ def attested(tmp_path: Path, artifacts: list[Path], keypair):
         # never reads inside it; the CycloneDX writer that used to fill this in
         # is on archive/model-scanner. What is under test is the manifest's
         # coverage of the member, not the member's schema.
-        boms[report.sha256] = {"subject": report.sha256, "verdict": report.verdict.value}
+        boms[report.sha256] = {"subject": report.sha256, "verdict": report.to_dict()["verdict"]}
 
     result = package.write_package(tmp_path / "attestation.zip", entries, keypair, boms)
     return result, reports, keypair

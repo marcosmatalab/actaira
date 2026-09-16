@@ -1,20 +1,33 @@
-"""Core data model shared by every inspector.
+"""The shapes that survive the scanner, and the one every hash is taken over.
 
-Design note (see docs/DESIGN.md, D-01): every inspector returns the same
-`Finding` shape so that the report, the ML-BOM and the attestation can be
-built without knowing which format produced the data. The alternative
-(format-specific report objects) was rejected because it pushes format
-knowledge into the signing layer, which must stay format-agnostic to keep
-the attestation reproducible.
+`canonical_json` is why this module is still reached: `attest/chain.py`,
+`attest/package.py`, `attest/verify.py` and `trace/redact.py` all hash through
+it, and two runs over the same facts have to produce the same bytes or every
+signature in the tree is decoration (D-03).
+
+`Severity`, `Verdict` and `Finding` are the reporting vocabulary (D-01, D-04).
+Phase A left them with no caller in `src/`: the rule packages that will raise a
+`Finding` are phase B's, and nothing between here and there produces one. They
+are kept rather than deleted because they are the shape phase B is written
+against, and `docs/BACKLOG.md` records that they are currently unreached so the
+next reader does not mistake "present" for "used".
+
+What left with the scanner, and why, since a reader looking for it should not
+have to use `git log`: `ArtifactReport` and `TensorInfo` described a file that
+had been statically inspected - format, tensors, imported callables, coverage
+per surface. Nothing in this tree inspects a file. They anchored `coverage.py`
+(329 lines) and the writing half of `attest/dsse.py`, and all of it went in
+phase A. `artifact_name` went with them: it existed because six
+scanner-era documents spelled "the last path segment" three ways, and none of
+those six documents exists now. Recover any of it from
+`archive/model-scanner:src/actaira/model.py`.
 """
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
-
-from .coverage import Coverage
 
 
 class Severity(str, Enum):
@@ -75,80 +88,6 @@ class Finding:
             "location": self.location,
             "evidence": self.evidence,
         }
-
-
-@dataclass
-class TensorInfo:
-    name: str
-    dtype: str
-    shape: list[int]
-    n_elements: int
-
-
-@dataclass
-class ArtifactReport:
-    """Everything known about one artifact after static inspection."""
-
-    path: str
-    size_bytes: int
-    sha256: str
-    detected_format: str
-    format_confidence: str  # "magic" | "structure" | "extension" | "unknown"
-    verdict: Verdict
-    findings: list[Finding] = field(default_factory=list)
-    tensors: list[TensorInfo] = field(default_factory=list)
-    metadata: dict[str, Any] = field(default_factory=dict)
-    imported_callables: list[str] = field(default_factory=list)
-    inspector_errors: list[str] = field(default_factory=list)
-    # What was actually looked at, surface by surface. Design note D-100.
-    # Defaulted rather than required so a report constructed by a test or a
-    # third party stays constructible; `inspect_artifact` always sets it.
-    coverage: Coverage = field(default_factory=Coverage)
-
-    @property
-    def max_severity(self) -> Severity | None:
-        if not self.findings:
-            return None
-        return max((f.severity for f in self.findings), key=lambda s: s.rank)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "path": self.path,
-            "size_bytes": self.size_bytes,
-            "sha256": self.sha256,
-            "detected_format": self.detected_format,
-            "format_confidence": self.format_confidence,
-            "verdict": self.verdict.value,
-            "max_severity": self.max_severity.value if self.max_severity else None,
-            "findings": [f.to_dict() for f in self.findings],
-            "tensors": [asdict(t) for t in self.tensors],
-            "metadata": self.metadata,
-            "imported_callables": sorted(self.imported_callables),
-            "inspector_errors": self.inspector_errors,
-            "coverage": self.coverage.to_dict(),
-        }
-
-
-def artifact_name(path: str) -> str:
-    """The last path segment of a report path, whichever separator wrote it.
-
-    Design note D-238. This operation was spelled three ways in this
-    repository. `Path(p).name` is correct only when the path was written by
-    the platform reading it. `p.rsplit("/", 1)[-1]` is correct only on POSIX,
-    and six documents were built with it: the ML-BOM component name, the
-    receipt's artifact rows, the governance dossier's `artifacts_not_fully_read`,
-    the assessed-artifact list, the bundle location and the CLI's summary
-    line. On Windows every one of those carried the producer's absolute path
-    instead of a filename - a `C:\\Users\\someone\\models\\clean.pkl` inside
-    a signed receipt - which is a document that leaks where it was made and
-    that cannot be compared with the same document produced anywhere else.
-
-    Both separators are cut, deliberately, and not by `os.path.basename`: a
-    report can be read on a different platform from the one that wrote it, and
-    a document that means something different depending on who opens it is not
-    a contract.
-    """
-    return path.replace("\\", "/").rsplit("/", 1)[-1]
 
 
 def canonical_json(payload: Any) -> bytes:

@@ -74,13 +74,11 @@ sys.path.insert(0, str(ROOT / "src"))
 # over whatever somebody remembered.
 AREAS: list[tuple[str, list[str], str]] = [
     ("attest", ["src/actaira/attest"], "Merkle tree, chain, signing, keyring, RFC 3161, verification"),
+    ("trace", ["src/actaira/trace"], "the trace document, the transcript reader, redaction"),
+    ("proxy", ["src/actaira/proxy"], "the MCP proxy, its two transports and the watch session"),
     ("core", ["src/actaira/model.py", "src/actaira/cli.py",
               "src/actaira/__init__.py", "src/actaira/__main__.py"], "the model and the CLI"),
-    ("conformance", ["src/actaira/conformance"], "agents, tools, MCP servers, capabilities, attack paths"),
-    ("policy", ["src/actaira/policy"], "the policy document and the decision engine"),
-    ("state", ["src/actaira/state"], "the SQLite store, watch, evidence, graph"),
     ("schemas", ["src/actaira/schemas"], "the published contracts"),
-    ("report", ["src/actaira/report"], "SARIF and JUnit"),
     ("i18n", ["src/actaira/i18n"], "the bilingual catalogue"),
     ("rest", ["src/actaira"], "everything in src/ the areas above do not claim"),
     ("tests", ["tests"], "the test suite"),

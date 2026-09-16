@@ -24,7 +24,7 @@ from actaira.attest import chain, package, signing
 from actaira.attest import timestamp as ts
 from actaira.attest import verify as verify_mod
 from actaira.model import canonical_json
-from support.reports import write_report
+from support.reports import write_record
 
 
 @pytest.fixture(scope="module")
@@ -53,7 +53,7 @@ def stamper(authority):
 @pytest.fixture
 def entries(tmp_path: Path) -> list[chain.Entry]:
     artifact = tmp_path / "clean.safetensors"
-    report = write_report(artifact)
+    report = write_record(artifact)
     built: list[chain.Entry] = []
     chain.append(built, report.sha256, report.to_dict())
     return built

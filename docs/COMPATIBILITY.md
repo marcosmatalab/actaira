@@ -5,6 +5,17 @@ change. Written because until 2.1.0 the only stable thing Actaira emitted was
 `rule_id`, its own threat model said so, and that was both honest and a
 ceiling. Nothing can be built on output that may move in any release.
 
+This page was rewritten in phase A because it had become the thing a
+compatibility document must never be. It published fourteen schemas when nine
+were on disk, and it documented seven commands — `actaira receipt issue`,
+`actaira policy check --json`, `actaira schema`, `actaira agent bom`, `actaira
+bundle --json`, `actaira graph export`, `actaira trust check` — **none of which
+parsed**. A promise about a surface that is not there is worse than no promise:
+a consumer builds against it and discovers the gap at runtime.
+
+Everything below is checked. `scripts/release_check.py` refuses a release where
+the contracts on disk, the registry, and this page disagree.
+
 ## The three surfaces
 
 | Surface | Versioned by | Promise |
@@ -13,17 +24,17 @@ ceiling. Nothing can be built on output that may move in any release.
 | CLI commands, flags and exit codes | The package's SemVer | Below |
 | Rule identifiers (`ACT-*`) | Never renumbered | A rule id means one thing forever |
 
-Everything else, the wording of a message, the order of findings within a
-severity, the internal module layout, the text of a design note, is not a
-contract. Two things follow from that and both are deliberate: prose is
-translated and rewritten freely, and no consumer should ever match on it.
+Everything else — the wording of a message, the internal module layout, the
+text of a design note — is not a contract. Two things follow, both deliberate:
+prose is translated and rewritten freely, and no consumer should ever match on
+it.
 
 ## Schemas
 
 A document declares its own version in `schema_version`. Read it first and
-refuse what you do not understand; `receipt.verify` does exactly that, because
-a future document may mean something different by a field you think you know,
-and a partial check reported as a pass is worse than no check.
+refuse what you do not understand: a future document may mean something
+different by a field you think you know, and a partial check reported as a pass
+is worse than no check.
 
 Within a major version `vN`:
 
@@ -32,113 +43,104 @@ Within a major version `vN`:
 - new optional fields may be added: every schema sets
   `additionalProperties: true` for this reason, so a consumer must tolerate
   fields it has never seen;
-- an enum may gain a member. That narrows nothing for a producer and
-  everything for a consumer that switches exhaustively, so it is recorded in
+- an enum may gain a member. That narrows nothing for a producer and everything
+  for a consumer that switches exhaustively, so it is recorded in
   `CHANGELOG.md` under the release that adds it. Handle unknown members.
 
 Removing a field, promoting an optional field to required, or changing what a
-field means is `vN+1`. The old schema stays in the package and both are
-emitted for at least one minor release.
+field means is `vN+1`. The old schema stays in the package.
 
-`tests/test_schemas.py` holds the required fields of every `v1` as a frozen
+`tests/test_schemas.py` holds the required fields of every version as a frozen
 list. Dropping one fails the build rather than a consumer's parser.
+
+The version is written in exactly one place, `schemas.VERSIONS`. There used to
+be a second copy in each emitting module and a test asserting the two agreed;
+that test passes for as long as somebody keeps two copies in step, and what it
+was really protecting is that there should be one copy. It is inverted now:
+`release_check.py` fails on a version literal written anywhere under `src/`
+outside the registry.
 
 ## Current versions
 
 | Schema | Version | Emitted by |
 |---|---|---|
-| `coverage` | `coverage/v1` | every report, every receipt |
-| `report` | `report/v1` | `actaira scan --json` |
-| `policy` | `policy/v1` | `actaira policy show --json` |
-| `policy-decision` | `policy-decision/v1` | `actaira policy check --json` |
-| `assurance-receipt` | `assurance-receipt/v2` | `actaira receipt issue` |
-| `agent-bom` | `agent-bom/v2` | `actaira agent bom` |
-| `model-bundle` | `model-bundle/v2` | `actaira bundle --json` |
-| `source-snapshot` | `source-snapshot/v1` | `actaira snapshot`, `actaira watch --json` |
-| `evidence-record` | `evidence-record/v1` | `actaira evidence list --json` |
-| `asset-graph` | `asset-graph/v1` | `actaira graph export` |
-| `trust-policy` | `trust-policy/v1` | read by `actaira trust check` |
-| `subject-manifest` | `subject-manifest/v1` | read by `--subjects` |
-| `attack-paths` | `attack-paths/v1` | `actaira agent paths --json` |
-| `state-export` | `state-export/v1` | the local store's portable export |
+| `trace` | `trace/v3` | `actaira scan`, `actaira watch` |
 
-`actaira schema` lists them; `actaira schema report-v1` prints one. They ship
-with the package, so a `pip install` carries the contract.
+One family, one live revision, and it is the only document this tree writes.
 
-One note about the local interface, because it is the newest consumer and the
-easiest place for this promise to erode. `POST /api/graph` returns
-`asset-graph/v1` exactly as `actaira graph export` writes it, and everything
-the panel needs beyond it - display names, the currentness projection, the
-neighbourhood that was walked - rides in a separate `view` object beside it. A
-presentation need is not a reason to version a published schema, and a field
-added to `nodes` because a drawing wanted it would be a change every other
-reader of that contract would have to absorb.
+**`trace/v3` is the last revision before publication.** Three revisions in three
+days was the versioning rule working correctly while nothing consumed the
+format — each is explained below. From the moment somebody installs this, the
+"nobody was using it" exemption is not available, because somebody is. A change
+that needs `trace/v4` after that needs a migration note, a deprecation window,
+and a reader that accepts both.
 
-The same rule decided the shape of 2.3.0's additions. `state-export/v1` gained
-`decision_inputs` as a new optional array beside `decisions`, which is exactly
-what the rule above permits, and specifically not as a nested array inside each
-decision: a v1 consumer iterates `decisions`, and a row that grew a list is a
-shape it was never written against. `evidence-record/v1` did not change at all,
-because what a scan or an assessment establishes goes in the `payload` object the
-contract already has. And the assembled consequence of one observation - what
-changed, what it invalidated, what it reaches and which decisions it leaves open -
-is deliberately **not** a published schema yet. [`CONTRACTS.md`](CONTRACTS.md)
-says why, and the short version is that one of its semantics is still
-`undetermined` and a version number would be a promise that it is not.
+Field names follow the OpenTelemetry GenAI semantic conventions from
+`open-telemetry/semantic-conventions-genai`. Where the document leaves those
+conventions, `trace/model.py` writes down which field and why.
 
 ## Still readable, no longer written
 
-A published contract stays published. A consumer written against
-`assurance-receipt/v1` is not wrong, it is old, and an upgrade of this tool
-that broke every receipt the previous one signed would make the whole promise
-worthless. So these stay in the package, `actaira schema` keeps listing them,
-and this release reads them:
+A published contract stays published. A consumer written against `trace/v1` is
+not wrong, it is old, and an upgrade that broke every document the previous
+build wrote would make the whole promise worthless. So these stay in the
+package and this release reads them.
 
-| Superseded | Still verified by | Why it became a major |
+They are **frozen history, not live contracts.** The difference matters and
+nothing used to state it: a consumer who sees a schema file ship assumes new
+documents may arrive against it. None will.
+`tests/test_schemas.py::test_no_document_this_tree_emits_declares_a_superseded_revision`
+runs the emitters and reads the version back out of what they produced, so this
+is checked against real output rather than against a constant.
+
+| Superseded | Superseded by | Why it became a major |
 |---|---|---|
-| `assurance-receipt/v1` | `actaira receipt verify` | v2 describes typed subjects, evidence, snapshots and a graph, not a list of artifact reports |
-| `agent-bom/v1` | any reader | `sub_agents` holds objects rather than names, and two fields moved from free text to a checked vocabulary |
-| `model-bundle/v1` | any reader | `bundle_digest` is gone. It was a digest over the layout under a name that reads as the identity of the weights |
+| `trace/v1` | `trace/v2` | MCP revision 2026-07-28 removed the session that every correlation in v1 rested on. Facts established once per session became per-event, and seven new gap reasons came with them. Widening a closed enum narrows nothing for a producer and everything for a consumer that switches exhaustively, which the rule above calls `vN+1`. |
+| `trace/v2` | `trace/v3` | Six fields stopped carrying a third-party value and started carrying a salted reference to it (D-268). That is a change to what a field **means**, and the rule says there is no other way to do that, "including *nobody was using that one*". `trace/v2` had been published for twenty minutes and had no consumer. The exemption was still not taken, because the first time a rule is bent is the last time it is a rule. |
 
-The asymmetry runs one way only and it is enforced by a test and by
-`make release-check`: this release **reads** every version in that table and
-**writes** none of them. A producer that can still emit an old shape will, on
-some branch nobody exercised, and the reader on the other end will take the old
-meaning out of a new document.
+The asymmetry runs one way only and `make release-check` enforces it: this
+release **reads** every version in that table and **writes** none of them.
 
-## Local state
+### What left, and where it went
 
-`.actaira/state.db` has its own integer schema version, separate from the
-package's and from the documents'. Migrations run forward only and are numbered
-functions rather than files discovered by globbing, because a set found by a glob is
-one where a rename or an unsorted filesystem changes what "version 4" means,
-silently, because every individual statement still succeeds. A store written by
-a newer Actaira is refused rather than guessed at: downgrading would mean
-inventing what its extra columns meant.
+`coverage/v1`, `policy/v1`, `policy-decision/v1`, `assurance-receipt/v2` and
+`evidence-record/v1` were on disk with **no emitter in this tree**. Phase A
+removed them with the modules that used to write them. That is a break rather
+than a tidy-up, and it is recorded as one.
 
-Every migration is exercised against a fixture built by all the ones before it,
-in `tests/test_state.py` and again in `make release-check`. A migration that has
-never run is a migration that does not work.
+`report/v1`, `model-bundle/v2`, `agent-bom/v2`, `asset-graph/v1`,
+`attack-paths/v1`, `source-snapshot/v1`, `subject-manifest/v1`,
+`trust-policy/v1`, `state-export/v1` and `assurance-receipt/v1` went the same
+way at 3.0.0.
 
-2.3.0 takes the store to version 3, adding a `decision_inputs` table: what a
-decision rested on, as typed rows rather than ids in a string. It is additive and
-it rewrites nothing, which matters here for a reason a migration usually does not
-have. A decision recorded under version 2 has no dependency rows, and the correct
-reading of that is "this store cannot tell whether its inputs still hold" rather
-than "its inputs are fine". A migration that invented rows to fill the gap would
-have turned the decisions this release knows least about into the ones it
-reassures you about.
+All of them stay readable at tag `v2.3.0` and on the `archive/model-scanner`
+branch. Shipping a schema file with no emitter publishes a contract the tool
+cannot honour, and reads to a consumer as still supported.
 
-The store is optional in both directions. Every command that existed in 2.1
-still runs in a directory that has never been initialised, and a workspace with
-no `.actaira/` issues receipts with no state references, which is exactly what
-2.1 did and remains correct.
+## Commands
+
+Four, and `actaira --help` prints the same four.
+
+| Command | What it does |
+|---|---|
+| `actaira scan` | Read the sessions an agent already recorded on this machine (L0) |
+| `actaira watch -- <command>` | Record a run from outside the agent, through an MCP proxy (L1) |
+| `actaira verify <package>` | Verify an attestation package offline |
+| `actaira keygen` | Create, rotate or revoke a signing key |
+
+`tests/test_no_aggregate.py::test_the_enumeration_names_every_emitter_this_tree_has`
+and `release_check.py` both fail when this list and the parser disagree.
+
+CLAUDE.md allows eight commands and this tree implements four. `contract`,
+`verdict`, `receipt` and `fix` are named there and are not built; they are not
+documented here, because a command that does not parse is not a compatibility
+surface.
 
 ## Exit codes
 
-These are part of the CLI contract. A pipeline branches on them, so a release
-that changed one would change what deployments do without changing a line of
-anyone's configuration.
+A pipeline branches on these, so they are a contract in the strictest sense: a
+release that changed one would change what deployments do without changing a
+line of anyone's configuration.
 
 | Code | Meaning |
 |---|---|
@@ -146,40 +148,48 @@ anyone's configuration.
 | 1 | A verification that failed |
 | 2 | Usage: bad arguments, or a key operation this tool refuses to perform |
 
-This table says what the two commands of 3.0.0 can actually return, which is
-less than 2.3.0 published. `--fail-on` and code `3` went to
-`archive/model-scanner` with `scan` and `policy check`: a threshold flag and an
-INCONCLUSIVE verdict are things a scanner produces, and nothing here inspects
-an artifact any more. Leaving them in this table would have been the one thing
-a compatibility document must never do, which is describe a surface that is not
-there - a pipeline branching on `3` would have waited for an exit this tool
-cannot reach.
+This is less than 2.3.0 published. `--fail-on` and code `3` went to
+`archive/model-scanner` with the scanner: a threshold flag and an INCONCLUSIVE
+verdict are things a scanner produces, and nothing here inspects an artifact.
+Leaving them here would have been the one thing a compatibility document must
+never do — a pipeline branching on `3` would wait for an exit this tool cannot
+reach.
 
 Code `3` is expected back. "I could not tell" has to stay distinguishable from
 "I decided no", and the trace-era equivalent is a contract whose conformance is
-INDETERMINADO. It returns with the command that can be indeterminate, and it
+INDETERMINATE. It returns with the command that can be indeterminate, and it
 will be published here on the release that adds it and not before.
 
-One code is deliberately absent from the table above, because it is not part of
-this contract: a `verify` whose stdout is closed early - `actaira verify --json
-| head -3` - exits `141`, which is the shell's own convention for a process
-killed by SIGPIPE. It reports a pipe that went away, never a verdict.
+One code is deliberately absent from the table, because it is not part of this
+contract: a `verify` whose stdout is closed early — `actaira verify --json |
+head -3` — exits `141`, the shell's own convention for a process killed by
+SIGPIPE. It reports a pipe that went away, never a verdict.
 
 ## Rule identifiers
 
-`ACT-PKL-002` means what it meant in 0.1.0 and will mean it in 3.0.0. Rules
-are added, and a rule may be widened, the same identifier over a superset of
-what it used to catch, but an identifier is never reused for a different
-finding and never renumbered. The prose next to it is translated and rewritten;
-the identifier is what a SARIF consumer, a suppression file and a defect ledger
-entry all key on.
+A rule identifier means one thing forever. Rules are added, and a rule may be
+widened — the same identifier over a superset of what it used to catch — but an
+identifier is never reused for a different finding and never renumbered. The
+prose next to it is translated and rewritten; the identifier is what a
+suppression file and a defect ledger entry key on.
+
+**This tree currently emits no rule identifiers.** The forty-one the message
+catalogue carried belonged to the model scanner and to the conformance package,
+both of which left, and dead text that would be translated and reviewed forever
+is not a contract either. `tests/test_i18n.py` asserts both directions: a rule
+id in `src/` with no catalogue entry fails, and a catalogue entry with no rule
+fails. The rule packages arrive in phase B with their own identifiers, authors
+and versions.
 
 ## What is not promised
 
 - Message text, in either language.
-- The order of findings within one severity.
 - Module paths and function signatures inside `actaira.*`. The CLI and the
-  schemas are the interface; importing `actaira.formats.archive` and calling
-  its internals is using a private API.
-- `metadata` keys on a report that are not in the schema. They are diagnostic
+  schemas are the interface; importing an internal module and calling it is
+  using a private API. Phase A moved a great deal of code out of this package
+  precisely because nothing reachable used it.
+- `metadata` keys on a document that are not in the schema. They are diagnostic
   output and they move.
+- The local record files `watch` writes under its output directory before the
+  trace is assembled. The assembled trace is the contract; the per-server
+  `.jsonl` records beside it are an implementation detail.

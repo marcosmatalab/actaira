@@ -129,20 +129,37 @@ def test_a_rule_with_no_spanish_text_fails(working_tree, tmp_path):
     assert "no Spanish text" in result.stdout
 
 
-def test_a_schema_that_disagrees_with_its_module_fails(working_tree, tmp_path):
-    """Two places recording one version number is how a document ends up
-    declaring a version whose shape it does not have."""
-    broken = tmp_path / "schema-drift"
+def test_a_second_copy_of_a_schema_version_fails(working_tree, tmp_path):
+    """A version written anywhere but the registry is a second copy.
+
+    This used to plant a disagreement between `coverage-v1.json` and
+    `actaira.coverage.SCHEMA_VERSION` and assert the gate refereed between them.
+    Phase A removed the referee along with the second copies: the version lives
+    in `schemas.VERSIONS`, `trace/model.py` reads it, and the check now fails on
+    a version literal under `src/` rather than on two that disagree.
+
+    So the planted defect moved with it. A literal is written back into a module
+    that had stopped writing one - which is exactly how the second copy would
+    return - and the gate has to name the file and the line.
+    """
+    broken = tmp_path / "second-copy"
     shutil.copytree(working_tree, broken)
-    path = broken / "src" / "actaira" / "schemas" / "coverage-v1.json"
-    schema = json.loads(path.read_text(encoding="utf-8"))
-    schema["properties"]["schema_version"]["const"] = "coverage/v99"
-    path.write_text(json.dumps(schema), encoding="utf-8")
+    path = broken / "src" / "actaira" / "trace" / "model.py"
+    source = path.read_text(encoding="utf-8")
+    planted = source.replace(
+        'SCHEMA_VERSION = schemas.VERSIONS["trace"]',
+        'SCHEMA_VERSION = "trace/v3"',
+    )
+    assert planted != source, "the reader no longer takes its version from the registry"
+    path.write_text(planted, encoding="utf-8")
 
     result = run(broken)
 
     assert result.returncode == 1
-    assert "coverage/v99" in result.stdout
+    assert "trace/v3" in result.stdout
+    # Separator-agnostic: the gate prints a path relative to the tree it ran in,
+    # and that is a backslash on Windows.
+    assert "model.py" in result.stdout
 
 
 def test_a_command_the_documentation_never_mentions_fails(working_tree, tmp_path):
