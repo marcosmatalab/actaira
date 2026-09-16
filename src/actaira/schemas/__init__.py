@@ -48,20 +48,28 @@ VERSIONS = {
     "policy-decision": "policy-decision/v1",
     "assurance-receipt": "assurance-receipt/v2",
     "evidence-record": "evidence-record/v1",
-    "trace": "trace/v1",
+    "trace": "trace/v2",
 }
 
 # The versions this release still reads, per family, oldest first. Emitting is
 # the asymmetric half: this tool writes `VERSIONS` and reads everything here.
 #
-# Empty at 3.0.0, and that is a break rather than a tidy-up. The scanner's
-# contracts - report, model-bundle, agent-bom, asset-graph, attack-paths,
+# The scanner's contracts are not here, and that is a break rather than a
+# tidy-up: report, model-bundle, agent-bom, asset-graph, attack-paths,
 # source-snapshot, subject-manifest, trust-policy, state-export and
-# assurance-receipt/v1 - describe documents nothing in this tree can produce
-# any more. They stay readable at tag v2.3.0 and on archive/model-scanner.
+# assurance-receipt/v1 describe documents nothing in this tree can produce any
+# more. They stay readable at tag v2.3.0 and on archive/model-scanner.
 # Rejected: shipping the files with no emitter, which publishes a contract the
 # tool cannot honour and reads to a consumer as still supported.
-SUPERSEDED: dict[str, tuple[str, ...]] = {}
+#
+# `trace/v1` is the one entry, and the first this pivot has had. MCP revision 2026-07-28
+# removed the session every correlation in v1 rested on, so the facts that used
+# to be established once per session are per event now and seven gap reasons
+# came with them - and widening a closed enum narrows nothing for a producer
+# and everything for a consumer that switches exhaustively. That is the rule in
+# the module docstring above, and it says vN+1. `trace/v1` stays on disk, stays
+# frozen in `tests/test_schemas.py`, and `trace.model.READS` still parses it.
+SUPERSEDED: dict[str, tuple[str, ...]] = {"trace": ("trace/v1",)}
 
 
 def stem(version: str) -> str:

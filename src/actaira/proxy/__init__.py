@@ -28,12 +28,14 @@ instead of in the agent's face.
 from __future__ import annotations
 
 import json
+import threading
 from pathlib import Path
 from typing import Any
 
 from ..trace import CaptureLevel
 from ..trace.model import Gap, GapReason, Trace, TraceEvent
 from ..trace.redact import content_or_none, digest, file_ref
+from . import protocol
 
 SOURCE = "mcp-proxy"
 # The one JSON-RPC method that is an act. `initialize`, `tools/list` and the
@@ -59,12 +61,21 @@ class Recorder:
         capture_level: CaptureLevel = CaptureLevel.L1,
         record_path: Path | None = None,
         with_content: bool = False,
+        salt: str | None = None,
+        run_id: str = "",
     ) -> None:
         self.session_id = session_id
         self.source = source
         self.capture_level = capture_level
         self.record_path = Path(record_path) if record_path is not None else None
         self.with_content = with_content
+        # The operator's own per-session salt, for `redact.file_ref`. Passed in
+        # rather than made here: `watch` generates one for the whole session and
+        # every proxy in it has to reference the same file the same way.
+        self.salt = salt
+        # Which run wrote this row. Read back by `assemble`, which refuses the
+        # rows a previous run left in the same directory - see D-266.
+        self.run_id = run_id
         self.events: list[TraceEvent] = []
         self.gaps: list[Gap] = []
         self.moments: list[str] = []
@@ -72,6 +83,22 @@ class Recorder:
         # A recorder whose sidecar has failed once cannot vouch for what came
         # after, so it never writes an `end` again - see `_append`.
         self.writes_failed = False
+        # Design note D-266. The HTTP transport answers on a ThreadingHTTPServer,
+        # so several handler threads reach ONE recorder at once. Without this,
+        # two appends interleave inside a line - the assembled trace then
+        # declares an unparsable record, which is a correct fail-closed outcome
+        # for an entirely avoidable cause - and `self.events` was being mutated
+        # from two threads besides.
+        #
+        # Rejected: one file per writer, assembled afterwards. It multiplies the
+        # stale-file problem D-266's other half exists to close, and it needs an
+        # ordering key across files that MCP 2026-07-28 no longer provides.
+        # Rejected: a temporary file per record renamed into place - atomic, and
+        # one inode per tool call plus that same ordering problem. A lock costs
+        # one uncontended acquire per record, and every writer is in this
+        # process, which is the case the other two were solving for writers that
+        # are not.
+        self._writing = threading.RLock()
         if self.record_path is not None:
             self.record_path.parent.mkdir(parents=True, exist_ok=True)
             self.record_path.write_text("", encoding="utf-8")
@@ -79,7 +106,12 @@ class Recorder:
     # -- what happened ----------------------------------------------------
 
     def call(
-        self, name: str, arguments: Any, at: str | None = None, call_id: str | None = None
+        self,
+        name: str,
+        arguments: Any,
+        at: str | None = None,
+        call_id: str | None = None,
+        message: dict[str, Any] | None = None,
     ) -> TraceEvent:
         """A tool call was seen going out. Its result is unrecorded until it
         is recorded, which is what makes a lost answer visible.
@@ -88,22 +120,70 @@ class Recorder:
         `gen_ai.tool.call.id` was null on every L1 event and a gap had nothing
         to anchor to but its position - which is the defect `Gap` now refuses.
         """
-        event = TraceEvent(
-            index=len(self.events),
-            capture_level=self.capture_level,
-            tool_name=name,
-            call_id=call_id,
-            timestamp=at,
-            arguments_sha256=digest(arguments),
-            result_sha256=None,
-            conversation_id=self.session_id,
-            arguments=content_or_none(arguments, self.with_content),
-        )
-        self.events.append(event)
-        self._append({"kind": "call", "event": event.to_dict()})
-        if at:
-            self.moments.append(at)
+        with self._writing:
+            event = TraceEvent(
+                index=len(self.events),
+                capture_level=self.capture_level,
+                tool_name=name,
+                call_id=call_id,
+                timestamp=at,
+                arguments_sha256=digest(arguments),
+                result_sha256=None,
+                conversation_id=self.session_id,
+                # Read off THIS request rather than off a handshake, because MCP
+                # 2026-07-28 has no handshake left to read it off - see D-264.
+                traceparent=protocol.correlation_of(message),
+                protocol_version=protocol.revision_of(message),
+                client=protocol.client_of(message),
+                arguments=content_or_none(arguments, self.with_content),
+            )
+            self.events.append(event)
+            self._append({"kind": "call", "event": event.to_dict()})
+            if at:
+                self.moments.append(at)
+            if message is not None:
+                self._what_the_request_did_not_say(event)
         return event
+
+    def _what_the_request_did_not_say(self, event: TraceEvent) -> None:
+        """Declared, never filled in. Both of these used to be carried by the
+        session the protocol no longer has, so their absence is new and is a
+        hole rather than a default."""
+        if event.protocol_version is None:
+            self.gap(
+                GapReason.PROTOCOL_VERSION_UNKNOWN,
+                f"the call to {event.tool_name} declared no protocol revision in its "
+                "_meta, so this tool cannot say which revision of MCP it was "
+                "interposing on when it observed it",
+            )
+        if event.traceparent is None:
+            self.gap(
+                GapReason.NO_CORRELATION_KEY,
+                f"the call to {event.tool_name} carried no traceparent. MCP 2026-07-28 "
+                "removed protocol-level sessions (SEP-2567), so there is no key by which "
+                "this call can be correlated with anything else observed in this run",
+            )
+
+    def discover(self, response: dict[str, Any]) -> None:
+        """The tool inventory a `server/discover` result advertised.
+
+        Recorded when it goes past, never requested. Rejected: issuing
+        `server/discover` ourselves when the agent does not - it would get the
+        inventory at the cost of putting a message into the session that the
+        agent did not send, and a witness that acts is a witness to its own
+        acts. That is the fourth negative, and `discover_unavailable` is the
+        honest answer instead.
+        """
+        tools = protocol.tools_in_discover(response)
+        if tools is None:
+            return
+        with self._writing:
+            self._append({
+                "kind": "discover",
+                "tools": tools,
+                "protocol_version": protocol.revision_of(response),
+                "server": protocol.server_of(response),
+            })
 
     def settle(self, event: TraceEvent, response: dict[str, Any]) -> None:
         """Record the answer to one call, and whether the tool said it failed.
@@ -114,26 +194,48 @@ class Recorder:
         a verification that had failed was recorded as a call that succeeded -
         a wrong fact in the evidence, which is worse than a declared gap.
         """
-        if "error" in response:
-            self.result(event, response.get("error"), is_error=True)
-            return
-        payload = response.get("result")
-        failed = isinstance(payload, dict) and bool(payload.get("isError"))
-        self.result(event, payload, is_error=failed)
+        with self._writing:
+            event.server = protocol.server_of(response) or event.server
+            if event.protocol_version is None:
+                event.protocol_version = protocol.revision_of(response)
+            event.result_type, event.result_type_assumed = protocol.result_type_of(response)
+            event.request_state = protocol.request_state_of(response)
+            if "error" in response:
+                self.result(event, response.get("error"), is_error=True)
+            else:
+                payload = response.get("result")
+                failed = isinstance(payload, dict) and bool(payload.get("isError"))
+                self.result(event, payload, is_error=failed)
+            if (
+                event.result_type == protocol.RESULT_INPUT_REQUIRED
+                and event.request_state is None
+            ):
+                # SEP-2322: this is the interim result of a multi round-trip
+                # request. Its retry is the same logical call arriving a second
+                # time, and the handle is the only thing that says so. Never the
+                # arrival order - that is the bug phase 1 paid for twice.
+                self.gap(
+                    GapReason.INPUT_STATE_ABSENT,
+                    f"the call to {event.tool_name} was answered `input_required` with no "
+                    "requestState, so the retry that follows it cannot be paired with it "
+                    "and this tool records the two as two calls",
+                )
 
     def result(self, event: TraceEvent, payload: Any, is_error: bool = False) -> None:
-        event.result_sha256 = digest(payload)
-        event.result = content_or_none(payload, self.with_content)
-        if is_error:
-            event.error_type = "tool_error"
-        self._append({"kind": "result", "event": event.to_dict()})
+        with self._writing:
+            event.result_sha256 = digest(payload)
+            event.result = content_or_none(payload, self.with_content)
+            if is_error:
+                event.error_type = "tool_error"
+            self._append({"kind": "result", "event": event.to_dict()})
 
     def gap(self, reason: GapReason, detail: str) -> None:
-        after, unanchored = self._anchor()
-        gap = Gap(reason=reason, detail=detail, after=after, unanchored=unanchored)
-        if gap.key() not in {existing.key() for existing in self.gaps}:
-            self.gaps.append(gap)
-        self._append({"kind": "gap", "gap": gap.to_dict(self._index_of())})
+        with self._writing:
+            after, unanchored = self._anchor()
+            gap = Gap(reason=reason, detail=detail, after=after, unanchored=unanchored)
+            if gap.key() not in {existing.key() for existing in self.gaps}:
+                self.gaps.append(gap)
+            self._append({"kind": "gap", "gap": gap.to_dict(self._index_of())})
 
     def _anchor(self) -> tuple[str | None, str | None]:
         if not self.events:
@@ -160,10 +262,11 @@ class Recorder:
         trace reads a part with no `end` as one that did not finish. That is
         the route by which a sidecar failure survives the process that had it.
         """
-        if self.writes_failed:
-            return
-        self.closed = True
-        self._append({"kind": "end"})
+        with self._writing:
+            if self.writes_failed:
+                return
+            self.closed = True
+            self._append({"kind": "end"})
 
     # -- the trace --------------------------------------------------------
 
@@ -187,8 +290,11 @@ class Recorder:
     def _append(self, row: dict[str, Any]) -> None:
         if self.record_path is None:
             return
+        # Every row says which run wrote it, so `assemble` can refuse the rows a
+        # previous run left behind in the same directory - see D-266.
+        row = {**row, "run": self.run_id}
         try:
-            with self.record_path.open("a", encoding="utf-8") as handle:
+            with self._writing, self.record_path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n")
                 handle.flush()
         except OSError:
@@ -205,8 +311,9 @@ class Recorder:
             gap = Gap(
                 reason=GapReason.UNPARSABLE_RECORD,
                 detail=(
-                    f"the record file {file_ref(self.record_path)} could not be written, so "
-                    "what this proxy observed after this point did not survive to be assembled"
+                    f"the record file {file_ref(self.record_path, self.salt)} could not be "
+                    "written, so what this proxy observed after this point did not survive "
+                    "to be assembled"
                 ),
                 after=after,
                 unanchored=unanchored,

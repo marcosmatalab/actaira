@@ -36,12 +36,21 @@ ECHO_SERVER = (
     "    if message.get('id') is None:\n"
     "        continue\n"
     "    name = (message.get('params') or {}).get('name')\n"
-    "    if name == 'boom':\n"
+    # SEP-2575: a server MUST implement server/discover, and what it advertises
+    # there is the tool inventory at the moment of the run.
+    "    meta = {'io.modelcontextprotocol/protocolVersion': '2026-07-28',\n"
+    "            'io.modelcontextprotocol/serverInfo': {'name': 'echo', 'version': '1'}}\n"
+    "    if message.get('method') == 'server/discover':\n"
+    "        out = {'jsonrpc': '2.0', 'id': message.get('id'),\n"
+    "               'result': {'tools': [{'name': 'actaira_verify'}, {'name': 'boom'}],\n"
+    "                          'resultType': 'complete', '_meta': meta}}\n"
+    "    elif name == 'boom':\n"
     "        out = {'jsonrpc': '2.0', 'id': message.get('id'),\n"
     "               'error': {'code': -32000, 'message': 'no such thing'}}\n"
     "    else:\n"
     "        out = {'jsonrpc': '2.0', 'id': message.get('id'),\n"
-    "               'result': {'content': [{'type': 'text', 'text': 'echo ' + str(name)}]}}\n"
+    "               'result': {'content': [{'type': 'text', 'text': 'echo ' + str(name)}],\n"
+    "                          'resultType': 'complete', '_meta': meta}}\n"
     "    sys.stdout.write(json.dumps(out) + '\\n')\n"
     "    sys.stdout.flush()\n"
 )
@@ -52,12 +61,36 @@ ECHO_SERVER = (
 MANIFEST = "interposition.json"
 
 
+META = {
+    "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+    "io.modelcontextprotocol/clientInfo": {"name": "actaira-test", "version": "1"},
+    "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+}
+
+
 def _call(identifier: int, name: str, arguments: dict | None = None) -> dict:
     return {
         "jsonrpc": "2.0",
         "id": identifier,
         "method": "tools/call",
-        "params": {"name": name, "arguments": arguments or {}},
+        "params": {"name": name, "arguments": arguments or {}, "_meta": META},
+    }
+
+
+def _discover(identifier: int = 0) -> dict:
+    """What the agent asks a server it has just reached (SEP-2575).
+
+    Sent by the tests rather than by the proxy, and that is the design, not a
+    convenience: a proxy that issued its own `server/discover` would be putting
+    a message into the session that the agent did not send. The inventory is
+    worth having and it is not worth becoming a participant for - see
+    `Recorder.discover`.
+    """
+    return {
+        "jsonrpc": "2.0",
+        "id": identifier,
+        "method": "server/discover",
+        "params": {"_meta": META},
     }
 
 
@@ -272,7 +305,16 @@ class _Echo(BaseHTTPRequestHandler):
             {
                 "jsonrpc": "2.0",
                 "id": body.get("id"),
-                "result": {"content": [{"type": "text", "text": "http ok"}]},
+                "result": {
+                    "content": [{"type": "text", "text": "http ok"}],
+                    "resultType": "complete",
+                    "_meta": {
+                        "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                        "io.modelcontextprotocol/serverInfo": {
+                            "name": "http-echo", "version": "1"
+                        },
+                    },
+                },
             }
         ).encode("utf-8")
         self.send_response(200)
@@ -472,6 +514,7 @@ def test_every_server_interposed_and_every_one_recorded_is_the_only_way_through(
     recorder = Recorder(session_id="s", source="mcp-proxy", record_path=tmp_path / "seen.jsonl")
     proxy = StdioProxy(echo, recorder)
     proxy.start()
+    proxy.request(_discover())
     proxy.request(_call(1, "a_tool"))
     proxy.close()
 
@@ -510,6 +553,7 @@ def test_watch_assembles_the_parts_every_proxy_wrote_in_index_order(tmp_path, ec
         recorder = Recorder(session_id="s", source="mcp-proxy", record_path=tmp_path / f"{name}.jsonl")
         proxy = StdioProxy(echo, recorder)
         proxy.start()
+        proxy.request(_discover())
         proxy.request(_call(1, f"{name}_tool"))
         proxy.close()
 
@@ -535,6 +579,7 @@ def test_a_child_that_exited_badly_does_not_make_the_trace_incomplete(tmp_path, 
     recorder = Recorder(session_id="s", source="mcp-proxy", record_path=tmp_path / "a.jsonl")
     proxy = StdioProxy(echo, recorder)
     proxy.start()
+    proxy.request(_discover())
     proxy.request(_call(1, "t"))
     proxy.close()
 
