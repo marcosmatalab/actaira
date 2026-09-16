@@ -50,6 +50,14 @@ SERVER_INFO_KEY = NAMESPACE + "serverInfo"
 # SEP-414: OpenTelemetry trace context propagation conventions for `_meta`.
 TRACEPARENT_KEY = "traceparent"
 
+# Keys this reader deliberately does not read, with the reason in
+# `trace/provenance.REFUSED` and a test that seeds each of them and asserts it
+# reaches no emitted document. They are named here rather than merely absent so
+# that "we do not read these" is something a machine checks.
+TRACESTATE_KEY = "tracestate"
+BAGGAGE_KEY = "baggage"
+CLIENT_CAPABILITIES_KEY = NAMESPACE + "clientCapabilities"
+
 # SEP-2575: servers MUST implement this to advertise their supported protocol
 # versions, capabilities and identity. It is where the tool inventory at the
 # moment of the run comes from, which is what a contract is later derived
@@ -80,13 +88,14 @@ _TRACEPARENT = re.compile(r"^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$"
 # those, and is dropped rather than published: that character class is what
 # every leak shape in `tests/test_trace_privacy.py` is made of.
 _SOFTWARE_NAME = re.compile(r"^[A-Za-z0-9._@-]{1,64}$")
-# `requestState` is opaque to us by design - it is the server's own handle on a
-# paused request - so it is admitted by shape and length alone. The shape
-# excludes `/` and `:` along with whitespace and backslashes, which is what
-# stops an absolute path or a URL being published through the one field here
-# whose value space nobody else constrains. A handle that needs a path
-# separator is a handle carrying something other than a handle.
-_REQUEST_STATE = re.compile(r"^[A-Za-z0-9._~@+=-]{1,128}$")
+# `requestState` is admitted whole and REFERENCED rather than published - see
+# D-268 and `trace/provenance.py`. It was matched against a character class
+# instead, which was the 1.1b adversarial pass's fix and was the wrong one: the
+# specification says servers encode their own identifier in this field, so a
+# server that puts something meaningful there publishes it, and a gate looking
+# at punctuation was never going to see that. The length bound stays, because
+# an unbounded field is a memory decision rather than a privacy one.
+_REQUEST_STATE = re.compile(r"^\S{1,512}$")
 
 
 def _meta_of(message: Any) -> dict[str, Any]:

@@ -41,7 +41,14 @@ from typing import Any
 
 from . import CaptureLevel, Summary
 from .model import Gap, GapReason, Trace, TraceEvent
-from .redact import content_or_none, digest, failure_kind, file_ref
+from .redact import (
+    References,
+    content_or_none,
+    digest,
+    failure_kind,
+    file_ref,
+    new_salt,
+)
 
 UNPARSABLE_IS_UNANCHORED = (
     "a record that will not parse names no call, and the events of a session are ordered "
@@ -93,7 +100,11 @@ class ClaudeCodeReader:
         # which is a dictionary lookup for anybody who can guess the path.
         # `cli.run_scan` keeps one beside the traces it writes, so re-scanning
         # into the same output produces the same bytes.
-        self.salt = salt
+        self.salt = salt or new_salt()
+        # D-268. A transcript's `sessionId` and its `tool_use.id` are strings
+        # the audited agent wrote, which is the whole of the class this table
+        # is about. The map goes into the `index.json` `scan` already writes.
+        self.refs = References(self.salt)
 
     # -- finding the files ------------------------------------------------
 
@@ -184,7 +195,7 @@ class ClaudeCodeReader:
             event.index = index
             ordered.append(event)
         trace = Trace(
-            session_id=session_id,
+            session_id=self.refs.of(session_id) or "",
             source=SOURCE,
             capture_level=CaptureLevel.L0,
             agent_name=AGENT,
@@ -337,7 +348,7 @@ class ClaudeCodeReader:
             for block in _blocks(line):
                 if block.get("type") != "tool_result":
                     continue
-                target = by_call.get(str(block.get("tool_use_id")))
+                target = by_call.get(self.refs.of(str(block.get("tool_use_id"))))
                 if target is None:
                     continue
                 payload = block.get("content")
@@ -379,14 +390,28 @@ class ClaudeCodeReader:
             index=index,
             capture_level=CaptureLevel.L0,
             tool_name=str(block.get("name", "")),
-            call_id=str(block["id"]) if block.get("id") else None,
+            # D-268: the call id and the session id are strings the audited
+            # agent wrote, so they are referenced and not published. The
+            # correlation `_events` is built on survives, because the same
+            # value gives the same reference under this session's salt - see
+            # the `tool_use_id` lookup below, which is referenced the same way.
+            call_id=self.refs.of(block["id"]) if block.get("id") else None,
             timestamp=line.get("timestamp"),
             arguments_sha256=digest(arguments),
             result_sha256=None,
             sidechain=bool(line.get("isSidechain", False)),
-            conversation_id=line.get("sessionId"),
+            conversation_id=self.refs.of(line.get("sessionId")),
             arguments=content_or_none(arguments, self.with_content),
         )
+
+
+# The shipped fixture's salt, fixed and written down. It is the one place a
+# constant salt is right: the file is synthetic, it is in the wheel everybody
+# downloads, and there is no value in it that a salt would protect. What a
+# fresh one would cost is the whole point of the command - `actaira scan
+# --demo` has to print the same bytes on every machine, or it is not a
+# demonstration of a tool whose claim is that it prints the same bytes twice.
+DEMO_SALT = "00" * 16
 
 
 def demo_trace(with_content: bool = False) -> Trace:
@@ -395,4 +420,6 @@ def demo_trace(with_content: bool = False) -> Trace:
     Synthetic and written by hand. A cleaned copy of a real session is still a
     real session, and this file lives in a public repository for good.
     """
-    return ClaudeCodeReader(home=DEMO_SESSION.parent, with_content=with_content).read(DEMO_SESSION)
+    return ClaudeCodeReader(
+        home=DEMO_SESSION.parent, with_content=with_content, salt=DEMO_SALT
+    ).read(DEMO_SESSION)

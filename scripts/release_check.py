@@ -409,7 +409,7 @@ def schemas_match_modules() -> str:
         ("actaira.policy.model", "POLICY_SCHEMA_VERSION", "policy-v1"),
         ("actaira.policy.model", "SCHEMA_VERSION", "policy-decision-v1"),
         ("actaira.receipt", "SCHEMA_VERSION", "assurance-receipt-v2"),
-        ("actaira.trace.model", "SCHEMA_VERSION", "trace-v2"),
+        ("actaira.trace.model", "SCHEMA_VERSION", "trace-v3"),
     ]
     for module_path, constant, name in pairs:
         module = importlib.import_module(module_path)

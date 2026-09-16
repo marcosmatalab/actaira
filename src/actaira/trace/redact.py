@@ -176,6 +176,69 @@ NO_SALT = (
 )
 
 
+def value_ref(value: Any, salt: str | None) -> str | None:
+    """A reference to a value somebody else chose, which is not the value.
+
+    Design note D-268, and it is D-263 stated as an invariant instead of as a
+    third patch. The server alias, the absolute path and `requestState` were
+    the same defect three times: a field of the PUBLISHED document whose value
+    is chosen by an agent, a server or somebody else's configuration. The first
+    two were fixed with a salt. The third was fixed by restricting the
+    CHARACTERS it may contain, which is not the same thing at all - the
+    specification says servers encode their own identifier in `requestState`,
+    so a server that puts something meaningful there publishes it through a
+    shape gate that was only ever looking at punctuation.
+
+    So the shape gate is not the defence. This is: every third-party value that
+    has no product reason to travel literally is referenced by
+    `H(salt || domain || value)`, the operator's map lives beside the records,
+    and `trace/provenance.py` is the one place that says which fields those are
+    and why each of the rest is exempt. `tests/test_trace_provenance.py` fails
+    when a field appears in the published contract without an entry there, so
+    the fourth instance of this cannot arrive quietly.
+
+    `None` in, `None` out: a field the source did not supply is absent, and
+    turning that into a reference would publish a reference to nothing.
+
+    No salt, also `None`, and NOT the `NO_SALT` sentence that `label_ref` and
+    `file_ref` return. Those two land in a gap's prose, where a sentence saying
+    why there is no reference is the right answer. These land in an IDENTITY -
+    the call id a gap anchors to, the session two events share - and a constant
+    there makes every distinct value equal to every other, which collapsed a
+    session of separate calls into one event the first time it ran. An absent
+    identity is already a case `Gap` handles and says the reason for; a shared
+    one is a wrong fact. Every caller mints a salt rather than reaching this.
+    """
+    if value is None or salt is None:
+        return None
+    return _reference(salt, "third-party-value", str(value))
+
+
+class References:
+    """Every salted reference one session published, and what it resolves to.
+
+    The map is the other half of `value_ref`: without it the operator cannot
+    read their own trace either, and a redaction nobody can undo from the
+    inside is a deletion. It is held here, written beside the records, and
+    NEVER inside a document - the same bargain `interposition.json` already
+    strikes for the server alias.
+
+    Rejected: rebuilding the map on demand by re-digesting the sources. The
+    sources are the transcript and the live traffic; one is a file the operator
+    may have rotated away and the other is gone the moment it went past.
+    """
+
+    def __init__(self, salt: str | None) -> None:
+        self.salt = salt
+        self.map: dict[str, str] = {}
+
+    def of(self, value: Any) -> str | None:
+        reference = value_ref(value, self.salt)
+        if reference is not None and reference != NO_SALT:
+            self.map[reference] = str(value)
+        return reference
+
+
 def label_ref(label: str, salt: str | None) -> str:
     """A stable reference to a name the operator chose, which is not the name.
 

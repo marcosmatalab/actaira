@@ -48,7 +48,7 @@ VERSIONS = {
     "policy-decision": "policy-decision/v1",
     "assurance-receipt": "assurance-receipt/v2",
     "evidence-record": "evidence-record/v1",
-    "trace": "trace/v2",
+    "trace": "trace/v3",
 }
 
 # The versions this release still reads, per family, oldest first. Emitting is
@@ -69,7 +69,14 @@ VERSIONS = {
 # and everything for a consumer that switches exhaustively. That is the rule in
 # the module docstring above, and it says vN+1. `trace/v1` stays on disk, stays
 # frozen in `tests/test_schemas.py`, and `trace.model.READS` still parses it.
-SUPERSEDED: dict[str, tuple[str, ...]] = {"trace": ("trace/v1",)}
+# `trace/v2` joined it one commit later, and that is the rule working rather
+# than the rule failing. Six fields stopped carrying a third-party value and
+# started carrying a salted reference to it (D-268), which is a change to what
+# a field MEANS, and the paragraph above says there is no other way to do that
+# "including 'nobody was using that one'". v2 had been published for twenty
+# minutes and had no consumer. The exemption was still not taken, because the
+# first time a rule is bent is the last time it is a rule.
+SUPERSEDED: dict[str, tuple[str, ...]] = {"trace": ("trace/v1", "trace/v2")}
 
 
 def stem(version: str) -> str:
