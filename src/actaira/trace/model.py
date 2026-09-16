@@ -33,7 +33,13 @@ from typing import Any
 from ..model import canonical_json
 from . import CaptureLevel
 
-SCHEMA_VERSION = "trace/v1"
+SCHEMA_VERSION = "trace/v2"
+# What this reader accepts, oldest first. Writing is v2 and reading is both:
+# a consumer written against v1 is old rather than wrong, and a v1 document on
+# somebody's disk still parses. `schemas.SUPERSEDED` records the same pair for
+# the release gate, and `tests/test_schemas.py` holds v1's required fields
+# frozen so it cannot shrink out from under a reader that still trusts it.
+READS = ("trace/v1", SCHEMA_VERSION)
 
 # The OpenTelemetry GenAI attribute names this document uses verbatim, from
 # open-telemetry/semantic-conventions-genai. CLAUDE.md: no invented vocabulary
@@ -49,7 +55,11 @@ OTEL_FIELDS = (
 # Where this document leaves the conventions, and why. Every entry is checked
 # by `tests/test_trace_model.py`: a deviation nobody wrote down is one the next
 # reader has to reverse-engineer from the writer.
-OUR_OWN_FIELDS = ("index", "capture_level", "arguments_sha256", "result_sha256", "timestamp", "sidechain")
+OUR_OWN_FIELDS = (
+    "index", "capture_level", "arguments_sha256", "result_sha256", "timestamp", "sidechain",
+    "traceparent", "mcp.protocol.version", "mcp.client", "mcp.server",
+    "mcp.result.type", "mcp.result.type_assumed", "mcp.request.state",
+)
 WHY_OUR_OWN = {
     "index": (
         "OTel identifies a span by id; a non-conformance has to cite a position "
@@ -75,6 +85,43 @@ WHY_OUR_OWN = {
         "whether a call came from a sub-agent of the same session. OTel models "
         "agents but not this relation, and flattening it would understate the run."
     ),
+    # The six below come from MCP revision 2026-07-28 (see proxy/protocol.py,
+    # D-264). They are spelt in the protocol's own namespace rather than
+    # OTel's because OTel has no attribute for any of them, its GenAI
+    # conventions are entirely in Development status, and the stabilisation
+    # effort excludes MCP by name - so inventing an `gen_ai.*` spelling here
+    # would be claiming a convention that does not exist.
+    "traceparent": (
+        "the key the protocol itself uses (SEP-414) for the W3C trace context "
+        "that replaced the session id SEP-2567 removed. It is the correlation "
+        "key, and it is spelt the way the wire spells it."
+    ),
+    "mcp.protocol.version": (
+        "which revision this event's server declared. Per event and not per "
+        "session, because the handshake is gone and two requests of one run "
+        "can legitimately declare different revisions."
+    ),
+    "mcp.client": (
+        "which client software sent the call, from `io.modelcontextprotocol/"
+        "clientInfo`. A software name written by its author, like a host."
+    ),
+    "mcp.server": (
+        "the same for the server, from `io.modelcontextprotocol/serverInfo`, "
+        "which SEP-2575 asks servers to put in every result."
+    ),
+    "mcp.result.type": (
+        "SEP-2322's required `resultType`: `complete`, or `input_required` "
+        "when the call is one leg of a multi round-trip request."
+    ),
+    "mcp.result.type_assumed": (
+        "whether this reader supplied that value because the server omitted "
+        "it. The spec says to read an absent one as complete; publishing the "
+        "assumption as the server's statement is what this field refuses."
+    ),
+    "mcp.request.state": (
+        "the server's handle on a paused request, which is the only thing "
+        "that pairs an `input_required` result with the retry that follows."
+    ),
 }
 
 
@@ -96,6 +143,16 @@ class GapReason(str, Enum):
     UNPARSABLE_RECORD = "unparsable_record"
     NOT_INTERPOSED = "not_interposed"
     SOURCE_CONTRADICTION = "source_contradiction"
+    # Added with MCP revision 2026-07-28 and with the concurrent recorder.
+    # Each names something this tool could not observe and previously would
+    # have had to either invent or stay quiet about; see D-264 and D-266.
+    NO_CORRELATION_KEY = "no_correlation_key"
+    PROTOCOL_VERSION_UNKNOWN = "protocol_version_unknown"
+    DISCOVER_UNAVAILABLE = "discover_unavailable"
+    INPUT_STATE_ABSENT = "input_state_absent"
+    STREAM_BROKEN = "stream_broken"
+    FOREIGN_RECORDS = "foreign_records"
+    ORDER_NOT_OBSERVED = "order_not_observed"
 
 
 @dataclass
@@ -180,6 +237,16 @@ class TraceEvent:
     error_type: str | None = None
     sidechain: bool = False
     conversation_id: str | None = None
+    # What MCP revision 2026-07-28 makes every message carry for itself, read
+    # per event because the handshake that used to carry it once per session
+    # was removed (SEP-2575). See `proxy/protocol.py`.
+    traceparent: str | None = None
+    protocol_version: str | None = None
+    client: str | None = None
+    server: str | None = None
+    result_type: str | None = None
+    result_type_assumed: bool = False
+    request_state: str | None = None
     # Present only when the caller asked for it with `--with-content`.
     arguments: Any = None
     result: Any = None
@@ -197,6 +264,13 @@ class TraceEvent:
             "result_sha256": self.result_sha256,
             "error.type": self.error_type,
             "sidechain": self.sidechain,
+            "traceparent": self.traceparent,
+            "mcp.protocol.version": self.protocol_version,
+            "mcp.client": self.client,
+            "mcp.server": self.server,
+            "mcp.result.type": self.result_type,
+            "mcp.result.type_assumed": self.result_type_assumed,
+            "mcp.request.state": self.request_state,
         }
         # Absent rather than null when no content was asked for: a null here
         # would read as "the arguments were empty".
@@ -231,6 +305,13 @@ class TraceEvent:
             error_type=document.get("error.type"),
             sidechain=bool(document.get("sidechain", False)),
             conversation_id=document.get("gen_ai.conversation.id"),
+            traceparent=document.get("traceparent"),
+            protocol_version=document.get("mcp.protocol.version"),
+            client=document.get("mcp.client"),
+            server=document.get("mcp.server"),
+            result_type=document.get("mcp.result.type"),
+            result_type_assumed=bool(document.get("mcp.result.type_assumed", False)),
+            request_state=document.get("mcp.request.state"),
             arguments=document.get("gen_ai.tool.call.arguments"),
             result=document.get("gen_ai.tool.call.result"),
         )
@@ -310,6 +391,13 @@ class Trace:
     # How many records the source wrote twice for one call, collapsed by
     # `claude_code._events`. `None` means nobody counted, which is not zero.
     duplicate_records_collapsed: int | None = None
+    # What the protocol said about itself during this run, as far as the
+    # READER can say it: per server, the tool inventory `server/discover`
+    # advertised at the time. The revisions observed are not here because they
+    # are derivable from the events and `to_dict` derives them - a field a
+    # reader has to remember to fill in is a field that is eventually empty for
+    # the wrong reason, which is the argument of `note_missing_results`.
+    mcp: dict[str, Any] | None = None
 
     # -- gaps -------------------------------------------------------------
 
@@ -411,6 +499,22 @@ class Trace:
             ),
         }
 
+    def mcp_block(self) -> dict[str, Any] | None:
+        """What the protocol declared about itself, or nothing at all.
+
+        Absent rather than empty when no event declared a revision and no
+        reader supplied an inventory: an `mcp` block with two empty lists reads
+        as "the protocol said nothing", and "nobody was in a position to hear"
+        is a different statement. The L0 reader is the case that would have hit
+        first - a transcript carries no MCP metadata whatsoever.
+        """
+        revisions = sorted(
+            {event.protocol_version for event in self.events if event.protocol_version}
+        )
+        if not revisions and self.mcp is None:
+            return None
+        return {"protocol_revisions_observed": revisions, **(self.mcp or {})}
+
     def index_of_identity(self) -> dict[str, int]:
         """Every event identity to its position, and -1 where two share one.
 
@@ -455,6 +559,9 @@ class Trace:
             # separates it from the gap count taken out of `authenticity`
             # above, which summarised a list the document already carries.
             document["duplicate_records_collapsed"] = self.duplicate_records_collapsed
+        observed = self.mcp_block()
+        if observed is not None:
+            document["mcp"] = observed
         return document
 
 
@@ -468,8 +575,11 @@ def parse_trace(document: dict[str, Any]) -> Trace:
     if not isinstance(document, dict):
         raise ValueError(f"a trace is an object, not a {type(document).__name__}")
     declared = document.get("schema_version")
-    if declared != SCHEMA_VERSION:
-        raise ValueError(f"{declared!r} is not a trace this reader understands; it reads {SCHEMA_VERSION}")
+    if declared not in READS:
+        raise ValueError(
+            f"{declared!r} is not a trace this reader understands; it reads "
+            f"{', '.join(READS)}"
+        )
 
     events = [TraceEvent.from_dict(row) for row in document.get("events", [])]
     for position, event in enumerate(events):
@@ -502,6 +612,7 @@ def parse_trace(document: dict[str, Any]) -> Trace:
         end_recorded=not any(gap.reason is GapReason.END_NOT_RECORDED for gap in gaps),
         child_returncode=document.get("child_returncode"),
         duplicate_records_collapsed=document.get("duplicate_records_collapsed"),
+        mcp=document.get("mcp"),
     )
 
 

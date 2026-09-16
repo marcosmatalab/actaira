@@ -27,6 +27,16 @@ for _entry in (str(SRC_DIR), str(TESTS_DIR)):
     if _entry not in sys.path:
         sys.path.insert(0, _entry)
 
+# Design note D-267. The permanent gate, armed before a single test imports:
+# nothing in this suite may reach anything but loopback. It is here rather than
+# in a fixture because a fixture is opt-in and this is not, and here rather than
+# in `pytest_plugins` because pytest refuses that outside a top-level conftest.
+# `tests/test_netguard.py` proves it is still biting, and `scripts/
+# release_check.py` runs that file and fails if it is not armed.
+import netguard  # noqa: E402 - must come after sys.path is set up
+
+netguard.install()
+
 
 def _load_module_by_path(name: str, path: Path):
     spec = importlib.util.spec_from_file_location(name, path)

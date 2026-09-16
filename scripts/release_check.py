@@ -409,7 +409,7 @@ def schemas_match_modules() -> str:
         ("actaira.policy.model", "POLICY_SCHEMA_VERSION", "policy-v1"),
         ("actaira.policy.model", "SCHEMA_VERSION", "policy-decision-v1"),
         ("actaira.receipt", "SCHEMA_VERSION", "assurance-receipt-v2"),
-        ("actaira.trace.model", "SCHEMA_VERSION", "trace-v1"),
+        ("actaira.trace.model", "SCHEMA_VERSION", "trace-v2"),
     ]
     for module_path, constant, name in pairs:
         module = importlib.import_module(module_path)
@@ -763,6 +763,7 @@ def superseded_contracts_are_kept_and_not_written() -> str:
 
     emitters = {
         "assurance-receipt": ("actaira.receipt", "SCHEMA_VERSION"),
+        "trace": ("actaira.trace.model", "SCHEMA_VERSION"),
     }
     for family, (module_path, constant) in emitters.items():
         stated = getattr(importlib.import_module(module_path), constant)
@@ -985,6 +986,46 @@ def run_output_stays_out_of_the_index() -> str:
             "log, and a diff of it says nothing about this repository."
         )
     return f"{len(foreign)} foreign run artifact(s), ignored and untracked"
+
+
+@check("the test suite runs behind an armed network guard")
+def the_network_guard_is_armed() -> str:
+    """Design note D-267, and the half of it that is not a test.
+
+    `tests/netguard.py` refuses every outbound connection that is not loopback,
+    and `tests/conftest.py` installs it for the whole suite. Both of those are
+    files somebody can edit. A suite that passes under a guard which has quietly
+    stopped biting reads exactly like a suite that is clean, which is the shape
+    phase 0.1 took out of `verify` - so this runs the guard's own meta-test in a
+    subprocess and fails if it does not pass.
+
+    It CANNOT pass in the empty: `test_the_guard_is_armed_for_this_whole_suite`
+    asserts `netguard.armed()`, so a conftest that no longer installs it makes
+    this check red rather than vacuously green. Rejected: reading conftest.py
+    for the word `netguard`, which is a check on a spelling rather than on a
+    behaviour and passes over an install that raises.
+    """
+    import subprocess as sp
+
+    meta = ROOT / "tests" / "test_netguard.py"
+    if not meta.is_file():
+        raise DriftError(
+            "tests/test_netguard.py is gone, so nothing proves the network guard still "
+            "refuses anything and the whole suite's offline claim rests on nobody having "
+            "edited tests/netguard.py"
+        )
+    run = sp.run(  # noqa: S603 - a fixed argv, no shell
+        [sys.executable, "-m", "pytest", str(meta), "-q", "-p", "no:cacheprovider",
+         "-o", "addopts="],
+        cwd=ROOT, capture_output=True, text=True, timeout=300,
+    )
+    if run.returncode != 0:
+        tail = "\n".join((run.stdout + run.stderr).strip().splitlines()[-8:])
+        raise DriftError(f"the network guard's own test does not pass:\n{tail}")
+    passed = [line for line in run.stdout.splitlines() if "passed" in line]
+    return (passed[-1].strip() if passed else "the guard's meta-test passes") + (
+        ", so the suite ran with the guard armed"
+    )
 
 
 @check("the shipped subject manifest still loads")

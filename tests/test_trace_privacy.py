@@ -25,6 +25,7 @@ sentence carrying it.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -381,6 +382,9 @@ def test_a_secret_in_a_directory_name_does_not_reach_an_emitted_trace(tmp_path, 
 
     for fragment in fragments(secret):
         assert fragment not in blob, f"{label}: a directory name reached the trace"
+    assert reproducible_digest(str(project.resolve())) not in blob, (
+        f"{label}: the directory is referenced by an unsalted digest of its path"
+    )
     assert_no_leak_shape(blob, f"a directory named after {label}")
 
 
@@ -533,6 +537,10 @@ def test_a_secret_in_a_server_alias_does_not_reach_the_published_reason(tmp_path
     )
     for fragment in fragments(secret):
         assert fragment not in blob, f"{label}: a server alias reached the trace"
+    assert reproducible_digest(alias) not in blob, (
+        f"{label}: the alias is referenced by a digest anybody can recompute from a "
+        "guess, which is an encoding of it rather than a redaction of it"
+    )
     assert_no_leak_shape(blob, f"a server alias carrying {label}")
 
 
@@ -554,3 +562,134 @@ def test_the_alias_map_stays_beside_the_records_and_out_of_the_trace(tmp_path):
     assert "payroll-prod" not in json.dumps(document, ensure_ascii=False)
     assert reference in document["authenticity"]["reason"]
     assert "interposition.json" in json.dumps(document["gaps"], ensure_ascii=False)
+
+
+# ---------------------------------------------------------------------------
+# The other half of the boundary: a reference has to be one
+# ---------------------------------------------------------------------------
+#
+# Every property above seeds a HIGH-entropy secret and asserts the literal
+# string does not come out. A reference computed as an unsalted digest passes
+# every one of them and protects nothing, because the thing being referenced
+# comes from a small public set: the MCP server aliases people actually type.
+# A reader with a list of eight words and one line of Python recovers the
+# alias from `server:<digest>`, and the properties above cannot see it,
+# because the leak is not the literal - it is a value anybody can recompute.
+#
+# So the corpus below is deliberately the opposite of `SECRETS`: eight words
+# with no entropy at all, and the assertion is stated twice, against the
+# literal AND against the digest a third party can reproduce from the word.
+
+PUBLIC_ALIASES = (
+    "github", "slack", "postgres", "filesystem",
+    "sentry", "notion", "linear", "stripe",
+)
+
+
+def reproducible_digest(value: str) -> str:
+    """What a third party computes from a guess, in one line, offline.
+
+    This function is the attack. It takes no salt, because the attacker has
+    none: it is the operator's, it never leaves their machine, and if this
+    function can produce anything that appears in an emitted document then
+    the reference in that document is a dictionary lookup away from its value.
+    """
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:16]
+
+
+@pytest.mark.parametrize("alias", PUBLIC_ALIASES)
+def test_a_guessable_server_alias_is_not_recoverable_from_the_published_reason(tmp_path, alias):
+    records = tmp_path / "records"
+    rewrite_config(
+        {"mcpServers": {alias: {"url": "http://127.0.0.1:1/mcp"}}},
+        record_dir=records,
+        session_id="s",
+    )
+
+    document = WatchSession(records, "s").assemble(child_returncode=0).to_dict()
+    blob = json.dumps(document, ensure_ascii=False)
+
+    assert document["authenticity"]["state"] == "not_established", (
+        "the uninterposed server still has to make the trace refuse, "
+        "or this test is passing on a document that says nothing"
+    )
+    assert alias not in blob, f"the alias {alias!r} reached the trace literally"
+    assert reproducible_digest(alias) not in blob, (
+        f"the reference to {alias!r} is an unsalted digest of it, so anybody holding a "
+        "list of the server names people use recovers the alias in one line"
+    )
+
+
+def test_a_guessable_path_is_not_recoverable_from_a_record_that_will_not_read(tmp_path):
+    """The same argument for `file_ref`. A path has more entropy than a word
+    and not enough of it: `/home/<user>/projects/<client>` is three guesses."""
+    records = tmp_path / "records"
+    rewrite_config(
+        {"mcpServers": {"srv": {"command": "true"}}}, record_dir=records, session_id="s"
+    )
+    record = records / "srv.jsonl"
+    record.unlink(missing_ok=True)
+    record.mkdir()  # a directory where a file should be: every read raises
+
+    document = WatchSession(records, "s").assemble(child_returncode=0).to_dict()
+    blob = json.dumps(document, ensure_ascii=False)
+
+    assert reproducible_digest(str(record.resolve())) not in blob, (
+        "the reference to the record is an unsalted digest of its absolute path, so "
+        "anybody who can guess the path confirms it from the document"
+    )
+
+
+def test_two_sessions_over_the_same_alias_publish_different_references(tmp_path):
+    """The property a fixed salt would not have. Two actas from one machine
+    must not be correlatable by a third party, so the salt is per session and
+    the reference to one alias differs between them."""
+    references = []
+    for run in ("one", "two"):
+        records = tmp_path / run
+        rewrite_config(
+            {"mcpServers": {"github": {"url": "http://127.0.0.1:1/mcp"}}},
+            record_dir=records,
+            session_id=run,
+        )
+        document = WatchSession(records, run).assemble(child_returncode=0).to_dict()
+        references.append(document["authenticity"]["reason"])
+
+    assert references[0] != references[1], (
+        "the same alias produced the same reference in two sessions, so the salt is "
+        "either absent or constant, and a constant salt is a constant"
+    )
+
+
+def test_the_operator_can_still_resolve_their_own_reference(tmp_path):
+    """The cost of the salt, paid where it belongs. The operator holds the
+    manifest, so the reference in their acta still names a server to them."""
+    records = tmp_path / "records"
+    rewrite_config(
+        {"mcpServers": {"payroll-prod": {"url": "http://127.0.0.1:1/mcp"}}},
+        record_dir=records,
+        session_id="s",
+    )
+
+    document = WatchSession(records, "s").assemble(child_returncode=0).to_dict()
+    manifest = json.loads((records / "interposition.json").read_text(encoding="utf-8"))
+
+    reference = manifest["servers"]["payroll-prod"]["ref"]
+    assert reference in document["authenticity"]["reason"]
+
+
+def test_the_salt_never_travels_in_the_trace(tmp_path):
+    """The one value that would undo all of the above."""
+    records = tmp_path / "records"
+    rewrite_config(
+        {"mcpServers": {"github": {"url": "http://127.0.0.1:1/mcp"}}},
+        record_dir=records,
+        session_id="s",
+    )
+    manifest = json.loads((records / "interposition.json").read_text(encoding="utf-8"))
+    salt = manifest["redaction_salt"]
+
+    document = WatchSession(records, "s").assemble(child_returncode=0).to_dict()
+
+    assert len(bytes.fromhex(salt)) >= 16, "a salt shorter than 128 bits is a speed bump"
+    assert salt not in json.dumps(document, ensure_ascii=False)

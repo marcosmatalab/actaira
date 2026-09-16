@@ -128,6 +128,12 @@ ignore = ["E501", "S101"]
 # `UnevaluableError` would read as a failure of the engine rather than what it
 # is, a statement about the run.
 "src/actaira/policy/engine.py" = ["N818"]
+# N818 again: `NetworkRefused` is raised by the suite's network guard and
+# caught by name in exactly one place, `tests/test_netguard.py`. The rule
+# exists so an unfamiliar exception reads as one at the call site, and this
+# one does; `NetworkRefusedError` would read as a failure of the guard rather
+# than what it is, a statement about the test that tripped it.
+"tests/netguard.py" = ["N818"]
 # S112: a malformed key in a package keyring must not abort verification. The
 # loop tries the next key and, if none verifies, the caller gets an explicit
 # "signature does not verify" problem rather than a stack trace.

@@ -115,3 +115,35 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   que se fueron a `archive/model-scanner` en la 3.0.0. `make package` no está en
   `make all`, así que la puerta no lo ve. Encontrado leyendo el fichero para
   saber si el fixture del `--demo` viajaba en la rueda. **Fase 4.**
+
+## Fase 1.1b — la sesión que el protocolo ya no tiene
+
+- Las cuatro puertas de forma de `proxy/protocol.py` (`_SOFTWARE_NAME`,
+  `_TRACEPARENT`, `_REVISION`, `_REQUEST_STATE`) DESCARTAN un valor que no casa,
+  y el campo queda `null`. Un lector no puede distinguir «el servidor no declaró
+  nada» de «declaró algo que este lector no publica». Es la tercera negativa en
+  pequeño: lo no publicado se declara, no se calla. El arreglo es una razón de
+  hueco nueva por campo descartado, y eso es vocabulario nuevo, que la regla 2
+  prohíbe sacar en la pasada adversarial. **Sin fase.**
+- `discover_unavailable` hace incompleta toda sesión con un servidor que el
+  agente no llegó a usar, porque nadie le preguntó su inventario. Es correcto y
+  es ruidoso: la mayoría de las configuraciones traen servidores que una sesión
+  concreta no toca. Puede que el hueco deba ser por servidor observado y no por
+  servidor configurado. Se decide cuando el derivador de contrato diga qué
+  necesita del inventario. **Fase del derivador de contrato.**
+- `actaira scan` sin `--out` no tiene dónde guardar la sal, así que un hueco
+  sobre un fichero ilegible no nombra referencia ninguna. El operador que
+  diagnostica desde la terminal pierde saber cuál de sus ficheros falló. El
+  arreglo obvio —imprimir la sal— la convierte en pública y deshace la D-263.
+  **Sin fase.**
+- `trace/v2` sale sin entrada propia en `CHANGELOG.md`: la versión del paquete
+  sigue siendo 3.0.0 y su entrada ya está escrita, así que la nota pertenece a
+  la subida de versión siguiente, no a una edición de una entrada publicada.
+  El `schemas/__init__.py` dice que ensanchar un enum cerrado es nota de
+  CHANGELOG, y esto lo es. **Fase 5.**
+- El guardián de red tapa seis puertas de `socket`. No tapa `ssl.SSLSocket`
+  creado sobre un descriptor ya conectado, ni `os.system`, ni un subproceso: el
+  agente de prueba de `test_proxy_http_interposition.py` es un subproceso y sale
+  del guardián por definición. Va a loopback y se puede leer, pero la propiedad
+  «la suite no sale de la máquina» es más débil de lo que su nombre sugiere.
+  **Sin fase.**

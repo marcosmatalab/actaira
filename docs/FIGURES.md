@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-16T15:28:37+00:00 for actaira 3.0.0, at commit 635532f.
+Generated 2026-09-16T16:37:51+00:00 for actaira 3.0.0, at commit 66b7b9b.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, ruff>=0.6, jsonschema>=4.18
-- 13 commits, most recent 2026-09-16
+- 14 commits, most recent 2026-09-16
 
 ## Tests
 
-**1974** tests collected by pytest across 39 files.
+**2055** tests collected by pytest across 42 files.
 
 | file | tests |
 |---|---:|
@@ -33,25 +33,28 @@ Generated 2026-09-16T15:28:37+00:00 for actaira 3.0.0, at commit 635532f.
 | `tests/test_consistency.py` | 285 |
 | `tests/test_coverage.py` | 12 |
 | `tests/test_defect_ledger.py` | 348 |
-| `tests/test_design_notes.py` | 87 |
+| `tests/test_design_notes.py` | 92 |
 | `tests/test_dsse.py` | 32 |
-| `tests/test_i18n.py` | 155 |
+| `tests/test_i18n.py` | 160 |
 | `tests/test_io_budget.py` | 9 |
 | `tests/test_junit.py` | 19 |
 | `tests/test_keyring.py` | 33 |
 | `tests/test_mcp.py` | 17 |
 | `tests/test_merkle.py` | 146 |
 | `tests/test_miniyaml.py` | 22 |
+| `tests/test_netguard.py` | 9 |
 | `tests/test_package_verify.py` | 31 |
 | `tests/test_policy_engine.py` | 22 |
-| `tests/test_proxy_completeness.py` | 32 |
+| `tests/test_proxy_completeness.py` | 48 |
+| `tests/test_proxy_http_interposition.py` | 15 |
+| `tests/test_proxy_protocol.py` | 17 |
 | `tests/test_proxy_transports.py` | 28 |
 | `tests/test_readme_parity.py` | 22 |
 | `tests/test_receipt.py` | 26 |
 | `tests/test_release_check.py` | 12 |
 | `tests/test_sarif.py` | 29 |
 | `tests/test_scan_claude_code.py` | 33 |
-| `tests/test_schemas.py` | 30 |
+| `tests/test_schemas.py` | 32 |
 | `tests/test_signing_domain_separation.py` | 6 |
 | `tests/test_state.py` | 88 |
 | `tests/test_state_change.py` | 47 |
@@ -59,11 +62,11 @@ Generated 2026-09-16T15:28:37+00:00 for actaira 3.0.0, at commit 635532f.
 | `tests/test_subjects.py` | 40 |
 | `tests/test_timestamp.py` | 47 |
 | `tests/test_trace_model.py` | 19 |
-| `tests/test_trace_privacy.py` | 65 |
+| `tests/test_trace_privacy.py` | 77 |
 | `tests/test_trust.py` | 13 |
 | `tests/test_trust_paths.py` | 24 |
 | `tests/test_verify_strictness.py` | 23 |
-| **total** | **1974** |
+| **total** | **2055** |
 
 ## Defects found in this repository
 
@@ -101,23 +104,23 @@ and the modules are the source of truth.
 | area | files | lines | code | docstrings | comments | blank |
 |---|---:|---:|---:|---:|---:|---:|
 | attest | 10 | 4271 | 2644 | 756 | 309 | 562 |
-| core | 4 | 661 | 396 | 128 | 31 | 106 |
+| core | 4 | 709 | 416 | 144 | 35 | 114 |
 | conformance | 6 | 2152 | 1300 | 444 | 101 | 307 |
 | policy | 3 | 1139 | 714 | 165 | 96 | 164 |
 | state | 9 | 3527 | 1970 | 821 | 238 | 498 |
-| schemas | 1 | 99 | 29 | 36 | 14 | 20 |
+| schemas | 1 | 107 | 29 | 36 | 22 | 20 |
 | report | 3 | 435 | 250 | 83 | 35 | 67 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
-| rest | 15 | 4207 | 2493 | 889 | 271 | 554 |
-| tests | 43 | 17041 | 10016 | 2283 | 838 | 3904 |
-| scripts | 9 | 2854 | 1824 | 436 | 203 | 391 |
-| **total** | 105 | 36441 | 21666 | 6048 | 2143 | 6584 |
+| rest | 16 | 5124 | 3009 | 1076 | 401 | 638 |
+| tests | 47 | 18485 | 10932 | 2470 | 921 | 4162 |
+| scripts | 9 | 2895 | 1847 | 449 | 203 | 396 |
+| **total** | 110 | 38899 | 23141 | 6451 | 2368 | 6939 |
 
 Documentation, in lines of Markdown:
 
-- `docs/DESIGN.md`: 1601
+- `docs/DESIGN.md`: 1606
 - `docs/THREAT-MODEL.md`: 537
-- total: 2138
+- total: 2143
 
 ## Rules
 
