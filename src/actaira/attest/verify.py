@@ -62,8 +62,8 @@ REQUIRED_CHECKS = (
     "signature_valid",
 )
 
-# Checks only some packages reach - a DSSE envelope, a governance dossier, a
-# keyring record, a TSA trust store the caller asked for, a time anchor.
+# Checks only some packages reach - a DSSE envelope, a keyring record, a TSA
+# trust store the caller asked for, a time anchor.
 # Recorded whenever they apply, and a False one fails exactly like a required
 # one. The distinction that matters is between a check that does not apply and
 # one that applies and did not run: the first is a package with nothing to
@@ -73,7 +73,6 @@ REQUIRED_CHECKS = (
 # `test_the_timestamp_check_is_recorded_whenever_it_applies`.
 CONDITIONAL_CHECKS = (
     "dsse_envelope_valid",
-    "dossier_covers_its_inspections",
     "signing_key_in_validity",
     "timestamp_matches_manifest",
     "tsa_trust_store_loaded",
@@ -138,33 +137,6 @@ INTEGRITY_CHECKS = REQUIRED_CHECKS[:5]
 # that a directory full of hostile packages cannot exhaust a laptop.
 MAX_MEMBER_BYTES = 64 * 1024 * 1024
 HASH_CHUNK = 1024 * 1024
-
-# The `kind` a governance dossier entry carries, and the rule for recomputing
-# the digest it is filed under. Both are written out here rather than imported
-# from `governance.pack`, for the reason D-15 gives at the top of this file:
-# the verifier must not share a code path with the writer, or a bug in one
-# cancels the same bug in the other. `test_package_verify.py` pins that the
-# two spellings agree, which is the cheap half of the bargain.
-DOSSIER_KIND = "governance.evidence.v1"
-
-
-def _recompute_subject_digest(subjects: list[str]) -> str | None:
-    """sha256 over the raw digests of the artifacts a dossier claims to cover.
-
-    Returns None when the list is not a list of hex sha256 strings, because
-    "this cannot be recomputed" and "this recomputes to something else" are
-    different answers and only the caller knows what to do with each.
-    """
-    digest = hashlib.sha256()
-    for entry in sorted(subjects):
-        if not isinstance(entry, str) or len(entry) != 64:
-            return None
-        try:
-            digest.update(bytes.fromhex(entry))
-        except ValueError:
-            return None
-    return digest.hexdigest()
-
 
 @dataclass
 class VerifyResult:
@@ -566,9 +538,6 @@ def verify_package(
             )
         result.checks["key_trusted"] = result.trust_state == "trusted"
 
-        # 8. a governance dossier describes the artifacts filed beside it
-        _check_dossier_subjects(entries, result)
-
     settle(result)
     # Supplying trust anchors is an assertion about who you accept. Returning
     # ok=True alongside "this key is not one of yours" is a contradiction a
@@ -847,81 +816,6 @@ def _check_timestamp(
 
     result.checks["timestamp_matches_manifest"] = stamp.ok and consistent
     return stamp if stamp.ok and consistent else None
-
-
-def _check_dossier_subjects(entries: list[dict[str, Any]], result: VerifyResult) -> None:
-    """A governance dossier has to describe the inspections filed beside it. D-32.
-
-    `governance/pack.py` writes one inspection entry per artifact and then one
-    dossier entry over all of them, filed under the digest of the set it
-    covers, and the dossier's payload repeats that set as `subjects`. Nothing
-    read either of them. So the naive attack - edit an entry - was caught by
-    `prev_hash`, and the interesting one was not: lift a favourable dossier
-    out of one package, drop it at the end of another package's chain, and
-    re-sign. Every link recomputes, the Merkle root recomputes, the signature
-    is the attacker's own and verifies, and the assessment now reads as though
-    it had been computed over a different set of artifacts entirely.
-
-    Two things are checked, and the second is the one that bites:
-
-      * the digest the entry is filed under is the digest of the `subjects` it
-        carries, so the two halves of the entry agree;
-      * `subjects` is exactly the set of artifacts inspected in this package
-        since the previous dossier, which is the segment `write_evidence_
-        package` produces in one run. A dossier about artifacts that are not
-        here, or an inspection this dossier does not cover, both fail.
-    """
-    pending: list[str] = []
-    seen_dossier = False
-    ok = True
-    for entry in entries:
-        payload = entry.get("payload")
-        if not isinstance(payload, dict):
-            continue
-        if payload.get("kind") != DOSSIER_KIND:
-            subject = entry.get("subject_sha256")
-            if isinstance(subject, str):
-                pending.append(subject)
-            continue
-
-        seen_dossier = True
-        subjects = payload.get("subjects")
-        if not isinstance(subjects, list):
-            result.problems.append(
-                f"entry {entry.get('index')} is a governance dossier with no `subjects` list"
-            )
-            ok = False
-            pending = []
-            continue
-
-        recomputed = _recompute_subject_digest(subjects)
-        if recomputed is None:
-            result.problems.append(
-                f"entry {entry.get('index')}: the dossier's `subjects` are not artifact digests"
-            )
-            ok = False
-        elif recomputed != entry.get("subject_sha256"):
-            result.problems.append(
-                f"entry {entry.get('index')}: the dossier is filed under "
-                f"{str(entry.get('subject_sha256'))[:16]}... but its `subjects` hash to "
-                f"{recomputed[:16]}..."
-            )
-            ok = False
-
-        covered, inspected = sorted(set(map(str, subjects))), sorted(set(pending))
-        if covered != inspected:
-            missing = [sha for sha in covered if sha not in inspected]
-            extra = [sha for sha in inspected if sha not in covered]
-            result.problems.append(
-                f"entry {entry.get('index')}: the dossier does not describe the artifacts "
-                f"inspected in this package ({len(missing)} claimed and not inspected here, "
-                f"{len(extra)} inspected here and not claimed)"
-            )
-            ok = False
-        pending = []
-
-    if seen_dossier:
-        result.checks["dossier_covers_its_inspections"] = ok
 
 
 def _signing_moment(

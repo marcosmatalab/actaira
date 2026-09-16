@@ -126,6 +126,52 @@ def version_is_consistent() -> str:
 # --------------------------------------------------------------------------
 
 
+@check("the licence is the same one everywhere it is stated")
+def licence_is_consistent() -> str:
+    """One licence, five files, and nothing compared them until phase A.
+
+    The repository was MIT and became Apache-2.0, which is four files plus both
+    READMEs, and a relicensing that reaches some of them is worse than one that
+    reaches none: a reader who opens `LICENSE` and a reader who reads the
+    README's footer come away with different rights.
+
+    `docs/GOVERNANCE.md` states the boundary rule as "if it is in this
+    repository, it is <licence>, and it is free forever". That sentence is the
+    business boundary of an open core, so it is checked rather than trusted.
+    """
+    declared = re.search(r'^license\s*=\s*"([^"]+)"', (ROOT / "pyproject.toml").read_text(encoding="utf-8"), re.M)
+    if not declared:
+        raise DriftError("pyproject.toml declares no licence")
+    licence = declared.group(1)
+
+    body = (ROOT / "LICENSE").read_text(encoding="utf-8")
+    heads = {"Apache-2.0": "Apache License", "MIT": "MIT License"}
+    if licence not in heads:
+        raise DriftError(f"pyproject.toml declares {licence!r}, which this check does not know how to read")
+    if heads[licence] not in body:
+        raise DriftError(f"pyproject.toml says {licence} and LICENSE does not carry the {heads[licence]} text")
+
+    stated = {"pyproject.toml": licence, "LICENSE": licence}
+    citation = re.search(r"^license:\s*(\S+)", (ROOT / "CITATION.cff").read_text(encoding="utf-8"), re.M)
+    if not citation:
+        raise DriftError("CITATION.cff declares no licence")
+    stated["CITATION.cff"] = citation.group(1)
+
+    for page in ("README.md", "README.es.md", "docs/GOVERNANCE.md"):
+        text_of = (ROOT / page).read_text(encoding="utf-8")
+        found = {name for name in heads if name in text_of}
+        if found != {licence}:
+            raise DriftError(
+                f"{page} names {sorted(found) or 'no licence'} and pyproject.toml says {licence}"
+            )
+        stated[page] = licence
+
+    wrong = sorted(name for name, value in stated.items() if value != licence)
+    if wrong:
+        raise DriftError(f"{', '.join(wrong)} disagree with pyproject.toml's {licence}")
+    return f"{licence}, in {len(stated)} files that all agree"
+
+
 @check("every figure the READMEs state is the one the code and the harnesses report")
 def readme_figures_are_current() -> str:
     """Design note D-230, and the check the 2.2.0 audit showed was missing.
@@ -195,6 +241,15 @@ def readme_figures_are_current() -> str:
 
     if problems:
         raise DriftError("\n".join([*problems, "Run `make figures`."]))
+    if not checked:
+        # A valid state, deliberately. Phase A rewrote both READMEs around what
+        # the four commands do rather than around counts of things, and a page
+        # that states no figure has no figure to drift. This is said out loud
+        # rather than reported as "0 figures", because a gate that passes having
+        # compared nothing should announce that it compared nothing. What keeps
+        # it honest is `figures_match` below, which re-measures the tree against
+        # figures.json whatever the prose says.
+        return f"no figure is stated on any of the {len(PAGES)} guarded pages"
     return f"{checked} figures across {len(PAGES)} pages, each matching its source"
 
 
@@ -398,26 +453,43 @@ def rules_are_documented() -> str:
     return f"{len(en['rules'])} rules, each in both languages and in the table"
 
 
-@check("every schema's version matches the module that emits it")
-def schemas_match_modules() -> str:
-    import importlib
+@check("no module writes a schema version of its own")
+def the_version_is_recorded_once() -> str:
+    """Five pairs of copies until phase A, with this check as their referee.
 
+    It asserted that a module constant and a schema `const` agreed. A check that
+    arbitrates between two copies of one fact passes for exactly as long as
+    somebody keeps them in step, and the thing it is really protecting is that
+    there should be one copy. So it is inverted: the registry is the only place a
+    version may be written, `trace/model.py` reads `schemas.VERSIONS`, and this
+    fails on a version literal anywhere else under `src/`.
+    """
     from actaira import schemas
+    from actaira.trace import model as trace_model
 
-    pairs = [
-        ("actaira.coverage", "SCHEMA_VERSION", "coverage-v1"),
-        ("actaira.policy.model", "POLICY_SCHEMA_VERSION", "policy-v1"),
-        ("actaira.policy.model", "SCHEMA_VERSION", "policy-decision-v1"),
-        ("actaira.receipt", "SCHEMA_VERSION", "assurance-receipt-v2"),
-        ("actaira.trace.model", "SCHEMA_VERSION", "trace-v3"),
-    ]
-    for module_path, constant, name in pairs:
-        module = importlib.import_module(module_path)
-        stated = getattr(module, constant)
-        published = schemas.load(name)["properties"]["schema_version"]["const"]
-        if stated != published:
-            raise DriftError(f"{module_path}.{constant} is {stated}, {name}.json says {published}")
-    return f"{len(pairs)} schemas, each agreeing with its module"
+    literal = re.compile(r"""['"][a-z-]+/v\d+['"]""")
+    offenders = []
+    for path in sorted((ROOT / "src" / "actaira").rglob("*.py")):
+        if "__pycache__" in path.parts or path.parent.name == "schemas":
+            continue
+        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            if line.lstrip().startswith("#"):
+                continue
+            for hit in literal.findall(line):
+                offenders.append(f"{path.relative_to(ROOT)}:{number}: {hit}")
+    if offenders:
+        raise DriftError(
+            "a schema version is written outside src/actaira/schemas/, so two places "
+            "record one fact:\n" + "\n".join(offenders)
+            + "\nRead it from `schemas.VERSIONS` instead."
+        )
+
+    if trace_model.SCHEMA_VERSION != schemas.VERSIONS["trace"]:
+        raise DriftError("the reader does not take its version from the registry")
+    published = schemas.load(schemas.stem(trace_model.SCHEMA_VERSION))
+    if published["properties"]["schema_version"]["const"] != trace_model.SCHEMA_VERSION:
+        raise DriftError("the schema file disagrees with the registry entry that names it")
+    return f"{len(schemas.VERSIONS)} live contract, its version written in one place"
 
 
 # --------------------------------------------------------------------------
@@ -725,18 +797,6 @@ def defects_point_at_real_tests() -> str:
     return f"{len(ledger['defects'])} defects, every pinning test present"
 
 
-@check("the shipped policy and the shipped agent example still load")
-def examples_still_load() -> str:
-    from actaira.conformance import load as load_agent
-    from actaira.policy import load_policy
-
-    policy = load_policy(ROOT / "policies" / "production-model.yaml")
-    agent = load_agent(ROOT / "examples" / "agent-ticket-triage.yaml")
-    return f"policy {policy.id} v{policy.version}, agent {agent.name} v{agent.version}"
-
-
-
-
 # --------------------------------------------------------------------------
 # 2.2: state, contracts and the vocabulary the UI shows
 # --------------------------------------------------------------------------
@@ -761,10 +821,7 @@ def superseded_contracts_are_kept_and_not_written() -> str:
             if schemas.stem(version) not in schemas.names():
                 raise DriftError(f"{version} was published and its schema file is gone")
 
-    emitters = {
-        "assurance-receipt": ("actaira.receipt", "SCHEMA_VERSION"),
-        "trace": ("actaira.trace.model", "SCHEMA_VERSION"),
-    }
+    emitters = {"trace": ("actaira.trace.model", "SCHEMA_VERSION")}
     for family, (module_path, constant) in emitters.items():
         stated = getattr(importlib.import_module(module_path), constant)
         if stated in schemas.SUPERSEDED.get(family, ()):
@@ -790,111 +847,6 @@ def superseded_contracts_are_kept_and_not_written() -> str:
 
     superseded = sum(len(versions) for versions in schemas.SUPERSEDED.values())
     return f"{len(schemas.names())} contracts on disk, {superseded} superseded and still readable"
-
-
-@check("every state migration has a fixture and the chain runs end to end")
-def migrations_are_exercised() -> str:
-    """A migration that has never run is a migration that does not work.
-
-    Each step is applied to a database built by all the ones before it, here
-    rather than only in the suite, because this is the gate that runs before a
-    tag and the suite is the gate that runs on every commit.
-    """
-    import sqlite3
-    import tempfile
-
-    from actaira.state.store import MIGRATIONS, Store
-    from actaira.state.store import SCHEMA_VERSION as STORE_VERSION
-
-    if len(MIGRATIONS) != STORE_VERSION:
-        raise DriftError(
-            f"the store declares version {STORE_VERSION} and there are {len(MIGRATIONS)} migrations"
-        )
-    with tempfile.TemporaryDirectory() as directory:
-        for target in range(1, len(MIGRATIONS) + 1):
-            path = Path(directory) / f"v{target}.db"
-            connection = sqlite3.connect(path)
-            for step in range(target):
-                MIGRATIONS[step](connection)
-            connection.execute(
-                "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
-            )
-            connection.execute(
-                "INSERT OR REPLACE INTO meta (key, value) VALUES ('schema_version', ?)", (str(target),)
-            )
-            connection.commit()
-            connection.close()
-            with Store(path) as migrated:
-                if migrated.schema_version != STORE_VERSION:
-                    raise DriftError(f"a version-{target} database did not migrate to {STORE_VERSION}")
-    return f"{len(MIGRATIONS)} migrations, each reachable one step at a time"
-
-
-@check("every edge relation is documented and translated")
-def relations_are_documented() -> str:
-    """An edge kind that appears in a graph view under a word nobody defined
-    is how one diagram starts meaning two things to two readers."""
-    from actaira.conformance.model import RELATIONS as AGENT_RELATIONS
-    from actaira.state.graph import RELATIONS as GRAPH_RELATIONS
-
-    orphans = sorted(set(AGENT_RELATIONS) - set(GRAPH_RELATIONS))
-    if orphans:
-        raise DriftError(
-            f"relations an agent declares and the graph cannot store: {', '.join(orphans)}"
-        )
-    design = (ROOT / "docs" / "DESIGN.md").read_text(encoding="utf-8")
-    formats = (ROOT / "docs" / "FORMATS.md").read_text(encoding="utf-8")
-    undocumented = sorted(
-        name for name in GRAPH_RELATIONS if f"`{name}`" not in design + formats
-    )
-    if undocumented:
-        raise DriftError(f"relations in neither document: {', '.join(undocumented)}")
-    return f"{len(GRAPH_RELATIONS)} relations, each documented and storable"
-
-
-@check("the state export is deterministic over the same observation")
-def watch_is_deterministic() -> str:
-    """The gate the roadmap names: `watch` over fixtures produces exactly the
-    same state export twice. Without it nothing downstream can be compared."""
-    import json as json_mod
-    import tempfile
-
-    from actaira.state.snapshot import snapshot_of
-    from actaira.state.store import Store
-    from actaira.state.watch import observe
-
-    rows = [
-        {"uri": "hf://acme/m/config.json", "size": 10, "sha256": "aa" * 32},
-        {"uri": "hf://acme/m/model.safetensors", "size": 99, "sha256": "bb" * 32},
-    ]
-    exports = []
-    with tempfile.TemporaryDirectory() as directory:
-        for name in ("one", "two"):
-            with Store(Path(directory) / name / "state.db") as store:
-                store.add_source("m", "huggingface", "hf://acme/m")
-                observe(
-                    store,
-                    snapshot_of("m", "hf://acme/m", "huggingface", rows,
-                                revision="r1", observed_at="2026-09-11T00:00:00+00:00"),
-                )
-                document = store.export()
-                exports.append(
-                    json_mod.dumps(
-                        {
-                            "snapshots": [row["digest"] for row in document["snapshots"]],
-                            "assets": sorted(row["asset_id"] for row in document["assets"]),
-                            "edges": [
-                                (row["from_asset"], row["relation"], row["to_asset"])
-                                for row in document["edges"]
-                            ],
-                            "evidence": sorted(row["evidence_id"] for row in document["evidence"]),
-                        },
-                        sort_keys=True,
-                    )
-                )
-    if exports[0] != exports[1]:
-        raise DriftError("two identical observations produced two different state exports")
-    return "two runs over one fixture, byte-identical exports"
 
 
 @check("no document introduces a score, a grade or a percentage")
@@ -1026,16 +978,6 @@ def the_network_guard_is_armed() -> str:
     return (passed[-1].strip() if passed else "the guard's meta-test passes") + (
         ", so the suite ran with the guard armed"
     )
-
-
-@check("the shipped subject manifest still loads")
-def new_examples_still_load() -> str:
-    """`examples/trust-policy.yaml` went with `trustpolicy.py`. A shipped
-    example nothing can load is worse than no example."""
-    from actaira.manifest import load as load_manifest
-
-    manifest = load_manifest(ROOT / "examples" / "subjects.yaml")
-    return f"manifest with {len(manifest.entries)} subject(s)"
 
 
 def main() -> int:

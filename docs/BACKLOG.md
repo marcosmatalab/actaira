@@ -192,3 +192,65 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   de `test_proxy_http_interposition.py`. Va a loopback y se puede leer, pero la
   propiedad «la suite no sale de la maquina» es mas debil de lo que su nombre
   sugiere. **Sin fase.**
+
+## Fase A — la verdad y la amputación
+
+Cerrado en esta fase y anotado porque el backlog lo pedía: los dos READMEs se
+reescribieron enteros y ya no enuncian ninguna cifra sin fuente. Las catorce
+líneas de la tabla de arriba y la entrada de «README describe el escáner» dejan
+de estar abiertas.
+
+### Funciones muertas dentro de módulos vivos
+
+La regla de alcanzabilidad se aplica a nivel de módulo, así que estas no
+bloquearon la fase. Cada una está en un fichero que un comando sí alcanza.
+
+- `model.Severity`, `model.Verdict` y `model.Finding` no los usa nada en `src/`.
+  Son la forma contra la que se escribe la fase B (los paquetes de reglas
+  levantan un `Finding`), y por eso se conservan en vez de borrarse, pero a día
+  de hoy están presentes y sin usar. Reproducción:
+  `grep -rn 'Severity\|Verdict\|Finding' src/ | grep -v src/actaira/model.py`
+  no devuelve nada. **Fase B**, que es cuando pasan a tener llamante o a irse.
+- `attest/timestamp.py` (1.129 líneas) es el módulo vivo más grande del árbol y
+  solo se entra en él desde `verify`, para comprobar un token RFC 3161 que casi
+  ningún paquete lleva. No está medido cuánto de él alcanza `verify` de verdad.
+  Merece la misma medición a nivel de función que se le hizo a `dsse.py`.
+  **Sin fase asignada.**
+
+### Documentación que sigue describiendo el escáner
+
+La fase A reescribió `README.md`, `README.es.md`, `docs/COMPATIBILITY.md` y
+`docs/GOVERNANCE.md`, que eran los cuatro que el alcance nombraba. Estos otros
+siguen describiendo un producto que este árbol no puede entregar. Ninguna
+puerta los lee, así que nada falla: esa es exactamente la razón por la que
+llevan seis meses mintiendo.
+
+- `docs/FORMATS.md` describe la lectura de pickle, ONNX, HDF5, GGUF y
+  safetensors, y la tabla completa de reglas `ACT-*`. Nada de eso existe aquí.
+  Reproducción: `grep -c 'pickle' docs/FORMATS.md`. Candidato a borrarse entero,
+  como se borró `docs/CLI-OUTPUT.md` en esta fase.
+- `docs/EVALUATION.md` describe un corpus y un harness que viven en
+  `archive/model-scanner`.
+- `docs/ARCHITECTURE.md` dibuja un árbol de directorios con `formats/`,
+  `conformance/`, `policy/` y `state/`.
+- `docs/THREAT-MODEL.md` y `docs/CONCEPTS.md` / `CONCEPTS.es.md` están a medias:
+  las dos páginas de conceptos sí nombran los cuatro comandos (la puerta lo
+  comprueba), y alrededor describen el escáner.
+- `docs/DESIGN.md` conserva las secciones 2 a 9, que argumentan el escáner. Se
+  dejaron a propósito: son el historial de diseño de código que existió y la
+  sección 10 dice dónde recuperarlo. Lo que no debe pasar es que un lector las
+  tome por una descripción del árbol de hoy.
+
+**Sin fase asignada.** No entran en la A porque el alcance nombraba cuatro
+documentos y ampliarlo a diez habría sido decidir yo el tamaño de la fase.
+
+### Otros
+
+- `docs/defects.json` perdió 27 pines de test en esta fase: los tests que los
+  sujetaban se fueron con los módulos que cubrían. Cada uno pasó a `pinned_note`
+  siguiendo la regla que el propio fichero ya usaba para el escáner. Un defecto
+  sujetado por una nota está peor sujetado que uno sujetado por un test, y la
+  cifra de `docs/ENGINEERING.md` lo refleja ahora.
+- `examples/` quedó vacío: sus dos ficheros los leían `conformance/` y
+  `policy/`. Si la fase B necesita un ejemplo de declaración, se escribe uno
+  nuevo contra el formato nuevo en vez de resucitar el viejo.

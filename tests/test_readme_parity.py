@@ -20,8 +20,9 @@ easier to keep with a test than with discipline.
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import json
-import os
 import re
 import sys
 from pathlib import Path
@@ -146,13 +147,20 @@ def test_the_test_count_matches_what_pytest_collects():
 
 
 @pytest.mark.skipif(not FIGURES, reason="figures.json is absent; run make figures")
-def test_the_line_count_and_rule_count_match_the_measurement():
+def test_the_line_count_matches_the_measurement():
+    """The rule count came out of this assertion in phase A, and not quietly.
+
+    It used to read `assert str(rules) in text` over both READMEs. This tree
+    documents no rules, so `rules` is 0, and `"0" in text` is true of almost any
+    prose: the assertion would have passed forever without checking anything,
+    which is the failure this file exists to prevent. The rule count is asserted
+    where it can bite, in `tests/test_i18n.py`, in both directions - a rule id in
+    `src/` with no catalogue entry, and a catalogue entry with no rule.
+    """
     lines = FIGURES["code"]["total"]["lines"]
-    rules = FIGURES["catalog"]["rules"]
+
     assert thousands(lines, ",") in ENGLISH
     assert thousands(lines, ".") in SPANISH
-    for text in (ENGLISH, SPANISH):
-        assert str(rules) in text
 
 
 # ---------------------------------------------------------------------------
@@ -173,62 +181,43 @@ DIAGRAMS = (
 # ---------------------------------------------------------------------------
 # The console blocks, against the tool
 # ---------------------------------------------------------------------------
-def test_the_example_fixtures_build_to_the_digests_the_readmes_print():
-    """The blocks labelled "real output" have to be output anybody can get.
+def test_the_console_block_is_what_the_tool_actually_prints():
+    """The blocks labelled real output have to be output anybody can get.
 
-    Before 2.2.0 they were produced from an ad-hoc `models/` directory that is
-    not in this repository, so the digests in them were unreproducible: a
-    reader could run the command and get different bytes, with nothing saying
-    why. `docs/CONCEPTS.md` now carries the recipe, this runs it, and the two
-    digests it produces are asserted against the two the READMEs show.
+    This used to run a `models/` recipe out of `docs/CONCEPTS.md` and assert the
+    two artifact digests the READMEs printed. Those were the model scanner's
+    fixtures; no command in this tree inspects a file, and neither README shows
+    a digest any more.
+
+    The property is unchanged and its subject moved. Both READMEs now open with
+    a `scan --demo` block, which is the first thing a stranger following the
+    Quickstart will run, and it is the single worst place in the repository for
+    a line of invented output to sit. So the command is run and its output is
+    compared against the block, line by line.
     """
-    import hashlib
-    import shutil
-    import subprocess
-    import tempfile
+    from actaira import cli
 
-    # The recipe is a bash block that calls `python3`. `/bin/bash` was
-    # hardcoded, which made this test - the one that proves the READMEs'
-    # digests are reproducible - unrunnable anywhere that keeps bash somewhere
-    # else. Both are looked up now, and the interpreter running the suite is
-    # put in front of whatever `python3` would otherwise resolve to, so the
-    # digests are produced by the Python this repository is being tested with
-    # rather than by whichever one happens to be first on PATH.
-    bash = shutil.which("bash")
-    if bash is None:
-        pytest.skip("the fixture recipe is a bash block and this machine has no bash")
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        code = cli.main(["scan", "--demo"])
+    assert code == 0, "scan --demo did not succeed"
+    printed = [line.rstrip() for line in buffer.getvalue().splitlines() if line.strip()]
+    assert printed, "scan --demo printed nothing, so this test would compare nothing"
 
-    recipe = re.search(
-        r"## The two files every example uses.*?```bash\n(.*?)```",
-        (Path(REPO_ROOT) / "docs" / "CONCEPTS.md").read_text(encoding="utf-8"),
-        re.S,
-    )
-    assert recipe, "docs/CONCEPTS.md no longer carries the fixture recipe"
+    for name, page in BOTH.items():
+        block = re.search(r"```console\n\$ actaira scan --demo\n(.*?)```", page, re.S)
+        assert block, f"{name} no longer carries the `scan --demo` console block"
+        shown = [line.rstrip() for line in block.group(1).splitlines() if line.strip()]
+        assert shown, f"{name} shows an empty console block"
 
-    with tempfile.TemporaryDirectory() as scratch:
-        shim = Path(scratch) / "bin"
-        shim.mkdir()
-        (shim / "python3").write_text(
-            f'#!/bin/sh\nexec "{Path(sys.executable).as_posix()}" "$@"\n', encoding="utf-8"
+        # The README wraps long lines for width; the tool does not. Comparing
+        # the joined text rather than the lines keeps the wrap a formatting
+        # choice instead of making it a reason to stop checking.
+        assert " ".join(" ".join(shown).split()) == " ".join(" ".join(printed).split()), (
+            f"{name}'s `scan --demo` block is not what the command prints.\n"
+            f"printed: {' '.join(printed)}\n"
+            f"shown:   {' '.join(shown)}"
         )
-        (shim / "python3").chmod(0o755)
-        environment = dict(os.environ, PATH=os.pathsep.join([str(shim), os.environ.get("PATH", "")]))
-        subprocess.run(  # noqa: S603 - a block from a file in this repository
-            [bash, "-c", recipe.group(1)], cwd=scratch, check=True,
-            capture_output=True, timeout=120, env=environment,
-        )
-        built = {
-            path.name: hashlib.sha256(path.read_bytes()).hexdigest()[:16]
-            for path in sorted((Path(scratch) / "models").iterdir())
-        }
-
-    assert set(built) == {"clean.safetensors", "trojan.pkl"}, built
-    for name, digest in built.items():
-        for readme, text in BOTH.items():
-            assert f"sha256:{digest}" in text, (
-                f"{readme} prints a digest for {name} that the recipe does not produce; "
-                f"the recipe gives sha256:{digest}"
-            )
 
 
 # ---------------------------------------------------------------------------
@@ -252,7 +241,6 @@ def test_the_example_fixtures_build_to_the_digests_the_readmes_print():
 
 
 def _markup_split(readme: str, text: str):
-    import sys
 
     sys.path.insert(0, str(Path(REPO_ROOT) / "scripts"))
     from figures_contract import markup_split_problems  # noqa: PLC0415

@@ -22,11 +22,6 @@ actaira schema report-v1       # print one
 
 | Contract | What it is | Produced by |
 |---|---|---|
-| `assurance-receipt/v2` | The one document meant to leave the organisation that produced it: subjects by digest, coverage, findings, the policy decision and the supply-chain state, signed over the canonical JSON of itself minus the signature. | `actaira receipt issue` |
-| `coverage/v1` | The per-surface matrix on its own, so a consumer can read the scope of a claim without parsing the claim. | `embedded in every report` |
-| `evidence-record/v1` | One observation, bound to the digest of what was observed, with its state and the collector that made it. | `actaira evidence show --json` |
-| `policy/v1` | A decision document: rules, their verdicts, exceptions with an owner and an expiry, and the digest the decision will cite. | `actaira policy show` |
-| `policy-decision/v1` | What a policy decided about one run, with the rule and the evidence behind every verdict, including the ones that could not be evaluated. | `actaira policy check --json` |
 | `trace/v3` | What an agent did, in one shape whatever observed it: an ordered list of tool calls with the digest of each call's arguments and result, the capture level that produced every one, and the holes that level did not cover. | `actaira scan, actaira watch` |
 
 ## Superseded
@@ -38,25 +33,12 @@ Still on disk, still readable, never emitted again. A consumer written against o
 | `trace/v1` | `trace/v3` |
 | `trace/v2` | `trace/v3` |
 
-## Not a contract yet, deliberately
-
-The engine builds one more document than this page lists: the whole consequence of one observation, assembled in `state/change.py` - what moved, which evidence stopped counting, what depends on the changed artifact with a route per cause, and which stored decisions that leaves needing a second look. `actaira watch --json` prints it and the interface renders it, and it carries no `schema_version`.
-
-That is on purpose. The obvious name for it is `assurance-state/v1`, and a version number is a promise that the semantics are settled. One of them is not: a relation a declaration stated has no notion of which run of that declaration is live, so its currentness is `undetermined` (design note D-243), and a published state document would have to either omit provenance currentness or assert something this store cannot support. Publishing the name first and working out what it means afterwards is how a contract ends up meaning whatever the last release needed it to.
-
-So the shape stays internal, the output stays deterministic, and nothing outside this repository should pin to it until that seam is closed.
-
 ## Required fields
 
 Each contract's required fields are frozen in the test suite, so dropping one fails the build here rather than a consumer's parser somewhere else.
 
 | Contract | Required |
 |---|---|
-| `assurance-receipt-v2` | `schema_version`, `tool`, `observed_at`, `subjects`, `coverage`, `findings_by_severity`, `supply_chain`, `states_what_it_does_not_cover` |
-| `coverage-v1` | `schema_version`, `surfaces` |
-| `evidence-record-v1` | `schema_version`, `evidence_id`, `subject`, `kind`, `collector`, `collector_version`, `observed_at`, `state`, `digest` |
-| `policy-decision-v1` | `schema_version`, `decision`, `policy`, `decided_on`, `subjects`, `proof` |
-| `policy-v1` | `schema_version`, `policy`, `version`, `rules` |
 | `trace-v1` | `schema_version`, `session_id`, `source`, `capture_level`, `authenticity`, `complete`, `events`, `gaps` |
 | `trace-v2` | `schema_version`, `session_id`, `source`, `capture_level`, `authenticity`, `complete`, `events`, `gaps` |
 | `trace-v3` | `schema_version`, `session_id`, `source`, `capture_level`, `authenticity`, `complete`, `events`, `gaps` |

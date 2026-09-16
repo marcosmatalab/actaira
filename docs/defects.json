@@ -500,11 +500,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_junit.py::test_a_control_character_in_a_member_name_does_not_destroy_the_report",
-        "tests/test_junit.py::test_a_lone_surrogate_from_an_undecodable_path_does_not_destroy_the_report",
-        "tests/test_junit.py::test_the_three_whitespace_controls_xml_does_allow_are_left_alone"
-      ]
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_junit.py`"
     },
     {
       "id": "DEF-51",
@@ -619,10 +615,7 @@
       "found_by": "product review against a roadmap",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_io_budget.py::test_a_read_is_bounded_at_the_read_not_after_it"
-      ],
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_io_budget.py` also pinned it"
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_io_budget.py`"
     },
     {
       "id": "DEF-63",
@@ -666,10 +659,7 @@
       "counts_as": 1,
       "shipped_defect": true,
       "shipped_in": "1.0.0 through 2.1.0",
-      "pinned_by": [
-        "tests/test_miniyaml.py::test_a_colon_with_no_space_after_it_is_part_of_the_scalar",
-        "tests/test_miniyaml.py::test_the_shipped_declaration_keeps_its_scopes_verbatim"
-      ]
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_miniyaml.py`"
     },
     {
       "id": "DEF-67",
@@ -698,11 +688,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_state.py::test_a_file_that_is_not_a_database_is_a_message_and_not_a_traceback",
-        "tests/test_state.py::test_a_failed_open_does_not_leak_its_connection"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_state.py`"
     },
     {
       "id": "DEF-70",
@@ -711,10 +698,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_state.py::test_a_source_that_returns_to_an_earlier_state_is_recorded"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_state.py`"
     },
     {
       "id": "DEF-71",
@@ -723,10 +708,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_state.py::test_a_failure_partway_through_leaves_nothing_at_all"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_state.py`"
     },
     {
       "id": "DEF-72",
@@ -735,10 +718,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_state.py::test_a_revoked_record_is_not_resurrected_by_an_unrelated_observation"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_state.py`"
     },
     {
       "id": "DEF-73",
@@ -747,12 +728,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_state.py::test_an_unchanged_source_keeps_its_evidence_current",
-        "tests/test_state.py::test_re_observing_a_stale_record_makes_it_current_again",
-        "tests/test_state.py::test_an_unchanged_source_still_records_that_it_was_looked_at"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_state.py`"
     },
     {
       "id": "DEF-74",
@@ -761,11 +738,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_state.py::test_a_local_source_is_compared_by_its_bytes",
-        "tests/test_state.py::test_an_artifact_compared_by_size_alone_is_named"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_state.py`"
     },
     {
       "id": "DEF-75",
@@ -774,10 +748,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_state.py::test_a_snapshot_never_carries_the_string_none"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_state.py`"
     },
     {
       "id": "DEF-76",
@@ -816,12 +788,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_state.py::test_the_counterexample_that_the_colouring_version_missed",
-        "tests/test_state.py::test_cycle_enumeration_agrees_with_brute_force",
-        "tests/test_state.py::test_a_dense_graph_stops_at_the_cap_and_says_so"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_state.py`"
     },
     {
       "id": "DEF-80",
@@ -840,11 +808,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_subjects.py::test_an_agent_whose_routes_were_never_searched_is_unevaluable",
-        "tests/test_subjects.py::test_searched_and_found_nothing_is_not_unevaluable"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_subjects.py`"
     },
     {
       "id": "DEF-82",
@@ -853,10 +818,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_subjects.py::test_a_declaration_that_states_no_relations_can_fail_a_requirement"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_subjects.py`"
     },
     {
       "id": "DEF-83",
@@ -865,11 +828,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_subjects.py::test_an_unknown_kind_is_refused_when_the_document_loads",
-        "tests/test_subjects.py::test_every_closed_vocabulary_is_checked_at_load_time"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_subjects.py`"
     },
     {
       "id": "DEF-84",
@@ -878,11 +838,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_trust_paths.py::test_a_manifest_handle_is_the_handle_a_reference_would_give",
-        "tests/test_trust_paths.py::test_a_uses_edge_may_name_the_declared_agent"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_trust_paths.py`"
     },
     {
       "id": "DEF-85",
@@ -921,10 +878,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_trust_paths.py::test_a_delegated_route_names_every_declaration_it_passes_through"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_trust_paths.py`"
     },
     {
       "id": "DEF-89",
@@ -933,10 +888,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_trust_paths.py::test_a_delegation_chain_past_the_depth_limit_says_so"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_trust_paths.py`"
     },
     {
       "id": "DEF-90",
@@ -945,10 +898,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_trust_paths.py::test_one_tool_that_reads_outside_text_and_acts_is_a_route"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_trust_paths.py`"
     },
     {
       "id": "DEF-91",
@@ -957,10 +908,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_state.py::test_a_records_own_valid_until_beats_a_global_limit"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_state.py`"
     },
     {
       "id": "DEF-92",
@@ -969,10 +918,8 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": false,
-      "pinned_by": [
-        "tests/test_policy_engine.py::test_a_decision_needs_at_least_one_subject"
-      ],
-      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag"
+      "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_policy_engine.py`"
     },
     {
       "id": "DEF-93",
@@ -992,11 +939,7 @@
       "counts_as": 1,
       "shipped_defect": true,
       "shipped_in": "1.0.0 through 2.1.0",
-      "pinned_by": [
-        "tests/test_miniyaml.py::test_an_inline_list_is_a_list",
-        "tests/test_miniyaml.py::test_a_declaration_written_with_inline_lists_loads",
-        "tests/test_trust_paths.py::test_a_manifest_uses_line_that_is_not_a_list_is_refused"
-      ]
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_miniyaml.py`, `tests/test_trust_paths.py`"
     },
     {
       "id": "DEF-95",
@@ -1006,9 +949,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "found by running the new commands end to end against a hand-written workspace, before the tag",
-      "pinned_by": [
-        "tests/test_trust_paths.py::test_one_tool_that_supplies_both_the_instruction_and_the_material_is_a_route"
-      ]
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_trust_paths.py`"
     },
     {
       "id": "DEF-96",
@@ -1097,10 +1038,7 @@
       "found_by": "running the gate",
       "counts_as": 2,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_receipt.py::test_a_receipt_names_the_artifact_and_not_the_directory_it_was_built_in"
-      ],
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_connectors.py` also pinned it"
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_receipt.py`"
     },
     {
       "id": "DEF-105",
@@ -1161,11 +1099,7 @@
       "found_by": "benchmark self-tests",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_io_budget.py::test_a_small_file_is_not_read_with_a_large_allocation",
-        "tests/test_io_budget.py::test_the_budget_is_still_a_budget_for_a_file_that_exceeds_it",
-        "tests/test_io_budget.py::test_a_file_at_exactly_the_limit_is_read_in_full_and_not_called_over"
-      ]
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_io_budget.py`"
     },
     {
       "id": "DEF-111",
@@ -1183,11 +1117,7 @@
       "found_by": "product review against a roadmap",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_state_graph.py::test_the_shipped_agents_digest_has_not_moved",
-        "tests/test_state_graph.py::test_membership_is_not_in_the_bom_and_does_not_reach_the_digest"
-      ],
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_state_graph.py` also pinned it"
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_state_graph.py`"
     },
     {
       "id": "DEF-113",
@@ -1196,11 +1126,7 @@
       "found_by": "using the tool as a person would",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_state_change.py::test_a_local_artifacts_measured_digest_reaches_the_asset_row",
-        "tests/test_state_change.py::test_a_local_artifact_gets_its_own_evidence_record",
-        "tests/test_state_change.py::test_one_changed_artifact_supersedes_only_its_own_evidence"
-      ]
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_state_change.py`"
     },
     {
       "id": "DEF-114",
@@ -1209,11 +1135,7 @@
       "found_by": "using the tool as a person would",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_by": [
-        "tests/test_state_change.py::test_a_file_uri_is_measured_on_the_platform_this_is_running_on",
-        "tests/test_state_change.py::test_a_file_uri_with_a_space_in_it_is_still_measured",
-        "tests/test_state.py::test_a_local_source_is_compared_by_its_bytes"
-      ]
+      "pinned_note": "the test that pinned this went with the module it covered in phase A, which removed everything no command could reach; it is at commit e13b1bc, `tests/test_state.py`, `tests/test_state_change.py`"
     },
     {
       "id": "DEF-115",

@@ -42,6 +42,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from ..trace import provenance
+
 META = "_meta"
 NAMESPACE = "io.modelcontextprotocol/"
 PROTOCOL_VERSION_KEY = NAMESPACE + "protocolVersion"
@@ -50,13 +52,13 @@ SERVER_INFO_KEY = NAMESPACE + "serverInfo"
 # SEP-414: OpenTelemetry trace context propagation conventions for `_meta`.
 TRACEPARENT_KEY = "traceparent"
 
-# Keys this reader deliberately does not read, with the reason in
-# `trace/provenance.REFUSED` and a test that seeds each of them and asserts it
-# reaches no emitted document. They are named here rather than merely absent so
-# that "we do not read these" is something a machine checks.
-TRACESTATE_KEY = "tracestate"
-BAGGAGE_KEY = "baggage"
-CLIENT_CAPABILITIES_KEY = NAMESPACE + "clientCapabilities"
+# Keys this reader deliberately does not read. Named rather than merely absent,
+# so that "we do not read these" is something a machine checks - and taken from
+# `trace/provenance.REFUSED` rather than spelled again here, because that table
+# is where each key's REASON for being refused is written. Three literals lived
+# here until phase A and a test asserted they matched the table's three, which
+# is a test that arbitrates between two copies instead of forbidding the second.
+REFUSED_KEYS: tuple[str, ...] = provenance.refused()
 
 # SEP-2575: servers MUST implement this to advertise their supported protocol
 # versions, capabilities and identity. It is where the tool inventory at the

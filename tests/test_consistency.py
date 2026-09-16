@@ -35,7 +35,7 @@ from actaira.attest import chain, merkle, package, signing
 from actaira.attest import verify as verify_mod
 from actaira.attest.package import ENTRIES_NAME
 from actaira.model import canonical_json
-from support.reports import write_report
+from support.reports import write_record
 
 MAX_TREE = 64
 
@@ -331,9 +331,15 @@ class ContinuedChain:
 
 
 def clean_artifact(directory: Path, index: int):
-    """A report about a file that passes, distinct from its siblings by content."""
-    return write_report(directory / f"model-{index}.safetensors",
-                        payload=b"weights-" + str(index).encode("ascii"))
+    """A record about a file that passes, distinct from its siblings by content.
+
+    `verdict` is suite-authored payload, not something computed: the packaging
+    layer never reads inside a payload, and the forgery test below flips this
+    field to prove the chain notices.
+    """
+    return write_record(directory / f"model-{index}.safetensors",
+                        payload=b"weights-" + str(index).encode("ascii"),
+                        verdict="pass")
 
 
 _RUN = 0

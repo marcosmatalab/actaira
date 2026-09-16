@@ -42,40 +42,47 @@ HERE = Path(__file__).parent
 # module and the `const` in the schema must agree, and a test asserts it: two
 # places recording one version number is how a document ends up declaring a
 # version whose shape it does not have.
-VERSIONS = {
-    "coverage": "coverage/v1",
-    "policy": "policy/v1",
-    "policy-decision": "policy-decision/v1",
-    "assurance-receipt": "assurance-receipt/v2",
-    "evidence-record": "evidence-record/v1",
-    "trace": "trace/v3",
-}
+VERSIONS = {"trace": "trace/v3"}
 
-# The versions this release still reads, per family, oldest first. Emitting is
+# The versions this release still READS, per family, oldest first. Emitting is
 # the asymmetric half: this tool writes `VERSIONS` and reads everything here.
 #
-# The scanner's contracts are not here, and that is a break rather than a
-# tidy-up: report, model-bundle, agent-bom, asset-graph, attack-paths,
-# source-snapshot, subject-manifest, trust-policy, state-export and
-# assurance-receipt/v1 describe documents nothing in this tree can produce any
-# more. They stay readable at tag v2.3.0 and on archive/model-scanner.
-# Rejected: shipping the files with no emitter, which publishes a contract the
-# tool cannot honour and reads to a consumer as still supported.
+# `trace/v1` and `trace/v2` are frozen HISTORY, not live contracts. No command
+# emits either, `tests/test_schemas.py` asserts that nobody does, and the files
+# stay on disk because a document written by an earlier build is still on
+# somebody's machine and `trace.model.READS` still parses it. `trace/v3` is the
+# only revision this tree writes.
 #
-# `trace/v1` is the one entry, and the first this pivot has had. MCP revision 2026-07-28
-# removed the session every correlation in v1 rested on, so the facts that used
-# to be established once per session are per event now and seven gap reasons
-# came with them - and widening a closed enum narrows nothing for a producer
-# and everything for a consumer that switches exhaustively. That is the rule in
-# the module docstring above, and it says vN+1. `trace/v1` stays on disk, stays
-# frozen in `tests/test_schemas.py`, and `trace.model.READS` still parses it.
-# `trace/v2` joined it one commit later, and that is the rule working rather
-# than the rule failing. Six fields stopped carrying a third-party value and
-# started carrying a salted reference to it (D-268), which is a change to what
-# a field MEANS, and the paragraph above says there is no other way to do that
+# Why there were three revisions in three days, and why there will not be a
+# fourth before the tool is published. MCP revision 2026-07-28 removed the
+# session that every correlation in v1 rested on, so facts established once per
+# session became per-event and seven gap reasons arrived with them - and
+# widening a closed enum narrows nothing for a producer and everything for a
+# consumer that switches exhaustively, which is vN+1 by the rule above. v2
+# joined v1 one commit later: six fields stopped carrying a third-party value
+# and started carrying a salted reference to it (D-268), which is a change to
+# what a field MEANS, and the rule says there is no other way to do that
 # "including 'nobody was using that one'". v2 had been published for twenty
 # minutes and had no consumer. The exemption was still not taken, because the
 # first time a rule is bent is the last time it is a rule.
+#
+# That rate is the rule WORKING while nothing consumes the format. It stops
+# being free the moment somebody installs this: from publication, the "nobody
+# was using it" exemption is not available, because somebody is. **v3 is the
+# last revision before publication.** A change that needs v4 after that is a
+# change that needs a migration note, a deprecation window and a reader that
+# accepts both - which is the cost this comment exists to make visible in
+# advance rather than to discover.
+#
+# What is NOT here, and that is a break rather than a tidy-up: coverage/v1,
+# policy/v1, policy-decision/v1, assurance-receipt/v2 and evidence-record/v1
+# were published with no emitter in this tree. Phase A removed them with the
+# modules that used to write them. Report, model-bundle, agent-bom, asset-graph,
+# attack-paths, source-snapshot, subject-manifest, trust-policy, state-export
+# and assurance-receipt/v1 went the same way at 3.0.0. All of them stay readable
+# at tag v2.3.0 and on `archive/model-scanner`.
+# Rejected: shipping the files with no emitter, which publishes a contract the
+# tool cannot honour and reads to a consumer as still supported.
 SUPERSEDED: dict[str, tuple[str, ...]] = {"trace": ("trace/v1", "trace/v2")}
 
 

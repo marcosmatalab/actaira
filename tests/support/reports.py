@@ -1,35 +1,37 @@
-"""Build an `ArtifactReport` directly, without an inspector.
+"""Attestation inputs built by the suite, not by the tool under test.
 
-Half the suite used `inspect_artifact` as a fixture factory: write a file,
-inspect it, then test the receipt, the subject, the schema or the package
-built from the result. The subject of those tests was never inspection, and
-`actaira.inspect` went to archive/model-scanner with the scanner.
+Phase A removed the model scanner's report shape. `ArtifactReport` described a
+statically inspected file - format, tensors, imported callables, coverage per
+surface - and nothing in this tree inspects a file, so it went, and this module
+went with its old contents.
 
-`ArtifactReport` was already designed for this - its docstring says its fields
-are defaulted "so a report constructed by a test or a third party stays
-constructible". Rejected: a fake inspector that re-derives verdicts from
-findings, which would make the suite assert on a reimplementation of deleted
-code rather than on the module under test.
+What the tests that used it were ever about is unchanged. `chain.append` takes a
+digest and a payload mapping; `write_package` takes entries. Neither has ever
+cared that the mapping came from an inspection, so the suite supplies one.
 
-`verdict` is passed, never computed here, for the same reason: a helper that
-decided PASS or FAIL would be the decision logic these tests exist to check.
+The DSSE half is the part worth arguing. `to_envelope` used to build the
+envelope these tests verify, and testing `verify_envelope` against the tree's
+own writer is the shape D-15 warns about at the top of `attest/verify.py`: a
+bug in the writer cancels the same bug in the reader and both tests pass. The
+writer here is the specification's shape typed out again, so the two halves
+have no code in common. Rejected: importing the archived `to_envelope` from
+`archive/model-scanner`, which would restore exactly the shared path.
+
+Nothing here computes a verdict, a severity or a fold over either. A helper
+that decided PASS or FAIL would be the decision logic these tests exist to
+check, and a helper that folded two severities into a worst one would be the
+first negative, reintroduced in the suite that is supposed to forbid it.
 """
 from __future__ import annotations
 
+import base64
 import hashlib
+import json
 from pathlib import Path
 from typing import Any
 
-from actaira.coverage import (
-    REASON_FORMAT_UNKNOWN,
-    REASON_READ_IN_FULL,
-    Coverage,
-    CoverageState,
-    Surface,
-    SurfaceCoverage,
-    baseline,
-)
-from actaira.model import ArtifactReport, Finding, Severity, Verdict
+from actaira.attest.dsse import PAYLOAD_TYPE, PREDICATE_TYPE, STATEMENT_TYPE, Envelope
+from actaira.attest.signing import KeyPair
 
 # Deterministic filler. The attestation layer hashes and packages bytes without
 # reading them, so what these bytes mean is exactly nothing, and saying so here
@@ -37,133 +39,163 @@ from actaira.model import ArtifactReport, Finding, Severity, Verdict
 FILLER = b"\x00" * 64
 
 
-def finding(rule_id: str, severity: Severity = Severity.HIGH, location: str = "", **evidence: Any) -> Finding:
-    return Finding(rule_id=rule_id, severity=severity, location=location, evidence=dict(evidence))
+class Record:
+    """One thing filed in a chain: a digest, and a mapping describing it.
 
-
-# The three surfaces a static pass ever claimed. `baseline()` already pins the
-# other three to NOT_ASSESSED with the reason each one is out of scope.
-STATIC_SURFACES = (Surface.LOAD_TIME_EXECUTION, Surface.ARCHIVE_STRUCTURE, Surface.ARTIFACT_METADATA)
-
-
-def full_coverage(*, state: CoverageState = CoverageState.COMPLETE, reason: str = REASON_READ_IN_FULL) -> Coverage:
-    """Every in-scope surface at one state, for tests that only need "not a gap".
-
-    `reason` is a key the catalogue translates and `coverage/v1` requires it to
-    be non-empty, so it is defaulted rather than left blank.
+    A class rather than a tuple because the call sites read `record.sha256` and
+    `record.to_dict()`, which is what they read when this was an
+    `ArtifactReport`, and the subject of those tests was never the report.
     """
-    coverage = baseline()
-    for surface in STATIC_SURFACES:
-        coverage.set(SurfaceCoverage(surface=surface, state=state, reason=reason))
-    return coverage
+
+    def __init__(self, path: str | Path, payload: dict[str, Any], sha256: str) -> None:
+        self.path = str(path)
+        self.sha256 = sha256
+        self._payload = payload
+
+    def to_dict(self) -> dict[str, Any]:
+        return dict(self._payload)
 
 
-def make_report(
+def record(
     path: str | Path,
     *,
     payload: bytes | None = None,
     sha256: str | None = None,
-    size_bytes: int | None = None,
-    detected_format: str = "safetensors",
-    format_confidence: str = "magic",
-    verdict: Verdict = Verdict.PASS,
-    findings: list[Finding] | None = None,
-    metadata: dict[str, Any] | None = None,
-    imported_callables: list[str] | None = None,
-    inspector_errors: list[str] | None = None,
-    coverage: Coverage | None = None,
-) -> ArtifactReport:
-    """A report about `path`. Nothing is read from disk unless `payload` is None."""
+    note: str = "filed by the test suite",
+    **extra: Any,
+) -> Record:
+    """Describe `path`. Nothing is read from disk unless `payload` is None."""
     target = Path(path)
     if payload is None and sha256 is None and target.exists():
         payload = target.read_bytes()
     body = FILLER if payload is None else payload
-    return ArtifactReport(
-        path=str(path),
-        size_bytes=len(body) if size_bytes is None else size_bytes,
-        sha256=hashlib.sha256(body).hexdigest() if sha256 is None else sha256,
-        detected_format=detected_format,
-        format_confidence=format_confidence,
-        verdict=verdict,
-        findings=list(findings or []),
-        metadata=dict(metadata or {"fully_read": True}),
-        imported_callables=list(imported_callables or []),
-        inspector_errors=list(inspector_errors or []),
-        coverage=coverage if coverage is not None else full_coverage(),
-    )
+    digest = hashlib.sha256(body).hexdigest() if sha256 is None else sha256
+    return Record(path, {"name": target.name, "sha256": digest, "note": note, **extra}, digest)
 
 
-def write_report(path: str | Path, *, payload: bytes | None = None, **kwargs: Any) -> ArtifactReport:
+def write_record(path: str | Path, *, payload: bytes | None = None, **kwargs: Any) -> Record:
     """Write the bytes to disk and describe them. What most call sites want."""
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     body = FILLER if payload is None else payload
     target.write_bytes(body)
-    return make_report(target, payload=body, **kwargs)
+    return record(target, payload=body, **kwargs)
 
 
-# The shape the archived corpus produced for its one gadget pickle, written out
-# because the report writers under test translate rule ids and rank severities
-# and a test that supplies only one finding cannot exercise either. Two rules,
-# two severities, one with evidence: that is the whole reason this pair exists.
-GADGET_FINDINGS = (
-    ("ACT-PKL-002", Severity.CRITICAL, {"callable": "posix.system"}),
-    ("ACT-PKL-008", Severity.INFO, {"opcode": "REDUCE"}),
-)
+def statement(
+    records: list[Record],
+    *,
+    predicate: dict[str, Any] | None = None,
+    predicate_type: str = PREDICATE_TYPE,
+    statement_type: str = STATEMENT_TYPE,
+) -> dict[str, Any]:
+    """An in-toto v1 statement over these records, typed out from the spec."""
+    return {
+        "_type": statement_type,
+        "subject": [{"name": Path(item.path).name, "digest": {"sha256": item.sha256}}
+                    for item in records],
+        "predicateType": predicate_type,
+        "predicate": {"note": "written by the test suite"} if predicate is None else predicate,
+    }
 
 
-def write_flagged_report(
-    path: str | Path,
-    *rule_ids: str,
-    severity: Severity = Severity.CRITICAL,
-    location: str | None = None,
+def envelope(
+    records: list[Record],
+    keypair: KeyPair | None = None,
+    *,
+    payload_type: str = PAYLOAD_TYPE,
     **kwargs: Any,
-) -> ArtifactReport:
-    """The other half of every pair: one clean artifact and one that is not.
+) -> Envelope:
+    """A DSSE envelope over an in-toto statement. Unsigned when no keypair.
 
-    With no rule ids this is the gadget pickle. With them it is exactly the
-    findings named, all at `severity`, for a test about one specific rule.
-    `location` is where inside the artifact the finding sits - a zip member
-    name, or the file's own name when the artifact is not an archive.
+    An unsigned envelope is a legitimate DSSE object and `verify_envelope`
+    refuses it loudly, which is the behaviour these tests pin.
     """
-    where = str(path) if location is None else location
-    if rule_ids:
-        findings = [finding(rule_id, severity=severity, location=where) for rule_id in rule_ids]
-    else:
-        findings = [
-            finding(rule_id, severity=rule_severity, location=where, **evidence)
-            for rule_id, rule_severity, evidence in GADGET_FINDINGS
-        ]
-    kwargs.setdefault("verdict", Verdict.FAIL)
-    kwargs.setdefault("detected_format", "pickle")
-    kwargs.setdefault("imported_callables", ["posix.system"])
-    return write_report(path, findings=findings, **kwargs)
+    blob = json.dumps(
+        statement(records, **kwargs),
+        sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False,
+    ).encode("utf-8")
+    built = Envelope(payload=blob, payload_type=payload_type)
+    return built.signed(keypair) if keypair is not None else built
 
 
-def write_unread_report(path: str | Path, **kwargs: Any) -> ArtifactReport:
-    """The third verdict: nothing identified the bytes, so nothing is claimed."""
-    kwargs.setdefault("payload", b"\x11\x22\x33\x44 not a known format")
-    kwargs.setdefault("detected_format", "unknown")
-    kwargs.setdefault("format_confidence", "unknown")
-    kwargs.setdefault("verdict", Verdict.INCONCLUSIVE)
-    kwargs.setdefault("metadata", {"fully_read": False})
-    kwargs.setdefault(
-        "coverage",
-        full_coverage(state=CoverageState.FAILED, reason=REASON_FORMAT_UNKNOWN),
-    )
-    kwargs.setdefault("findings", [finding("ACT-FMT-001", severity=Severity.MEDIUM, location=str(path))])
-    return write_report(path, **kwargs)
+def envelope_bytes(records: list[Record], keypair: KeyPair | None = None, **kwargs: Any) -> bytes:
+    return envelope(records, keypair, **kwargs).to_json().encode("utf-8")
+
+
+def payload_of(built: Envelope) -> dict[str, Any]:
+    """The statement inside an envelope, for a test asserting on its shape."""
+    return json.loads(base64.b64decode(built.to_dict()["payload"]))
 
 
 __all__ = [
     "FILLER",
-    "STATIC_SURFACES",
-    "Surface",
-    "finding",
-    "full_coverage",
-    "make_report",
-    "GADGET_FINDINGS",
-    "write_flagged_report",
-    "write_unread_report",
-    "write_report",
+    "Record",
+    "envelope",
+    "envelope_bytes",
+    "payload_of",
+    "record",
+    "statement",
+    "write_record",
 ]
+
+
+# ---------------------------------------------------------------------------
+# Every document this tree emits
+# ---------------------------------------------------------------------------
+#
+# Phase A turned three `xfail(strict=True)` markers about the first negative
+# into properties over emitted documents. A property like "no emitted document
+# carries a fold over severities" is only worth as much as this enumeration: if
+# it returns nothing, every test built on it passes without looking at anything,
+# which is the failure mode the enumeration itself has to be guarded against.
+# So callers assert it is non-empty, and `test_no_aggregate.py` additionally
+# asserts that it names every emitter the tree has.
+
+
+def emitted_documents(tmp_path: Path) -> list[tuple[str, dict[str, Any]]]:
+    """(name, document) for every document an Actaira command can write today.
+
+    Two, because there are two: the demo trace `actaira scan --demo` prints, and
+    a `watch` trace assembled from a recorded session. When a command that emits
+    a third arrives, it is added here and every property over this list starts
+    covering it with no edit at the call sites.
+    """
+    from actaira.proxy import Recorder
+    from actaira.proxy.session import WatchSession
+    from actaira.trace.claude_code import demo_trace
+
+    session = WatchSession(tmp_path / "records", "s")
+    recorder = Recorder(
+        session_id=session.session_id,
+        record_path=session.record_dir / "srv.jsonl",
+        salt=session.salt,
+        run_id=session.run_id,
+    )
+    recorder.call("read_file", {"path": "x"}, at="2026-01-01T00:00:00.000Z", call_id="1")
+    recorder.close()
+
+    return [
+        ("scan --demo", demo_trace().to_dict()),
+        ("watch", session.assemble(child_returncode=0).to_dict()),
+    ]
+
+
+def every_string(node: Any, trail: str = "") -> list[tuple[str, str]]:
+    """(path, text) for every key and every string value anywhere in a document.
+
+    Keys as well as values: a fold published as the KEY `max_severity` is the
+    defect these properties are about, and a walk over values alone would miss
+    it entirely.
+    """
+    out: list[tuple[str, str]] = []
+    if isinstance(node, dict):
+        for key, value in node.items():
+            out.append((f"{trail}.{key}", str(key)))
+            out.extend(every_string(value, f"{trail}.{key}"))
+    elif isinstance(node, list):
+        for index, item in enumerate(node):
+            out.extend(every_string(item, f"{trail}[{index}]"))
+    elif isinstance(node, str):
+        out.append((trail, node))
+    return out

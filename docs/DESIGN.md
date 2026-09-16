@@ -18,9 +18,9 @@ decision without the third part is not a decision, it is a preference.
 
 | Note | Subject | Location |
 |---|---|---|
-| D-01 | One `Finding` shape for every inspector | `src/actaira/model.py:3` |
-| D-03 | Canonical JSON under every hash | `src/actaira/model.py:157` |
-| D-04 | `INCONCLUSIVE` is a result, not an error | `src/actaira/model.py:46` |
+| D-01 | One `Finding` shape for every inspector | `src/actaira/model.py:8` |
+| D-03 | Canonical JSON under every hash | `src/actaira/model.py:6` |
+| D-04 | `INCONCLUSIVE` is a result, not an error | `src/actaira/model.py:8` |
 | D-07 | Rule identifiers are the stable interface | `src/actaira/i18n/catalog.py:3` |
 | D-11 | RFC 6962 Merkle tree | `src/actaira/attest/merkle.py:3` |
 | D-12 | Ed25519 | `src/actaira/attest/signing.py:3` |
@@ -28,66 +28,27 @@ decision without the third part is not a decision, it is a preference.
 | D-14 | Package is a plain zip, one signature | `src/actaira/attest/package.py:3` |
 | D-15 | Integrity and identity kept separate | `src/actaira/attest/verify.py:3` |
 | D-25 | Consistency proofs, so append-only is evidence | `src/actaira/attest/merkle.py:127` |
-| D-25b | The same question at the package boundary | `src/actaira/attest/verify.py:210` |
+| D-25b | The same question at the package boundary | `src/actaira/attest/verify.py:182` |
 | D-26 | Resuming a chain, because a log you restart is not a log | `src/actaira/attest/chain.py:178` |
 | D-27 | RFC 3161 time anchoring, optional and narrow | `src/actaira/attest/timestamp.py:3` |
 | D-27b | Stamping the manifest before the manifest is finished | `src/actaira/attest/package.py:11` |
 | D-28 | Several keys, with validity windows and a status | `src/actaira/attest/keyring.py:3` |
 | D-50 | DSSE and in-toto, so the report is speakable by other tools | `src/actaira/attest/dsse.py:4` |
 | D-51 | PAE, and the dangling-file class the envelope removes | `src/actaira/attest/dsse.py:33` |
-| D-100 | Coverage is per surface, not one boolean over the whole file | `src/actaira/coverage.py:3` |
-| D-101 | Every rule says which surface it limits, so a scope note cannot fail a verdict | `src/actaira/coverage.py:255` |
-| D-104 | `fully_read` is derived from coverage, so the old contract still holds | `src/actaira/coverage.py:37` |
-| D-110 | One hand-written YAML subset, shared by control declarations and policies | `src/actaira/miniyaml.py:3` |
-| D-111 | A policy is a document with a digest, not an `if` in a CI config | `src/actaira/policy/__init__.py:3` |
-| D-112 | A decision carries the proof that lets someone else re-derive it | `src/actaira/policy/model.py:3` |
-| D-113 | A condition that cannot be evaluated is REVIEW, never False | `src/actaira/policy/engine.py:3` |
-| D-114 | The shipped policy is a starting point to argue with, not a standard | `policies/production-model.yaml:3` |
-| D-120 | A signed statement of observed state that is not a certification and not a score | `src/actaira/receipt.py:3` |
-| D-140 | Agents, tools and MCP servers as versioned components with digests | `src/actaira/conformance/__init__.py:3` |
-| D-141 | Effects are consequences, not implementations, so a new transport needs no new entry | `src/actaira/conformance/model.py:3` |
-| D-142 | The capability rules take the agent as their subject, because the risk is the combination | `src/actaira/conformance/capability.py:3` |
-| D-143 | A declaration that says less than it means does not load | `src/actaira/conformance/declare.py:3` |
 | D-150 | Versioned schemas, and what a version number promises | `src/actaira/schemas/__init__.py:3` |
-| D-160 | A bound applied after the read is not a bound | `src/actaira/io_budget.py:3` |
 | D-170 | Chain validation against anchors the caller supplied, and what it still does not check | `src/actaira/attest/trust.py:3` |
 | D-180 | One gate that refuses a release whose parts disagree with each other | `scripts/release_check.py:3` |
 | D-181 | A gate whose only remedy is a manual edit gets routed around | `scripts/sync_readme_figures.py:3` |
-| D-201 | A vocabulary that is not enumerated is one nobody can check | `src/actaira/conformance/vocabulary.py:3` |
-| D-202 | Relations are declared and validated, not inferred from matching strings | `src/actaira/conformance/model.py:18` |
-| D-203 | A digest that moved with nothing else reported is the worst output a change review can give | `src/actaira/conformance/model.py:497` |
-| D-204 | Which gaps refuse a declaration and which are reported as findings | `src/actaira/conformance/declare.py:18` |
-| D-205 | A mitigation with nowhere to be written down is one that gets waived | `src/actaira/conformance/capability.py:95` |
-| D-210 | Not "these are dangerous together" but "here is the route, and what breaks it" | `src/actaira/conformance/paths.py:3` |
-| D-211 | One shape for every subject a policy can decide about | `src/actaira/subject.py:3` |
-| D-212 | A predicate reads what was observed, and absence is never falsehood | `src/actaira/policy/engine.py:477` |
-| D-212a | A kind guard short-circuits, or a rule that does not apply makes the run inconclusive | `src/actaira/policy/engine.py:743` |
-| D-213 | A manifest points at subjects; it does not restate what they say | `src/actaira/manifest.py:3` |
-| D-214 | Separate identities do not close a route that carries text through one model's context | `src/actaira/conformance/paths.py:303` |
-| D-220 | Memory, because "what changed" cannot be answered from the bytes in front of you | `src/actaira/state/__init__.py:3` |
-| D-221 | Forward-only numbered migrations, and a snapshot that is complete or absent | `src/actaira/state/store.py:3` |
-| D-222 | A canonical snapshot, and an incomplete listing that never looks like an empty one | `src/actaira/state/snapshot.py:3` |
-| D-223 | Five evidence states, and supersession bound to a digest rather than a name | `src/actaira/state/evidence.py:3` |
-| D-224 | An edge exists because something said so, and an answer comes with its route | `src/actaira/state/graph.py:3` |
-| D-225 | First observation, source drift, content drift and a failed listing are four things | `src/actaira/state/watch.py:3` |
-| D-228 | A receipt about a system, not about a list of files, with v1 still verifying | `src/actaira/receipt.py:113` |
 | D-230 | A figure that is derivable is never maintained by hand, in prose either | `scripts/figures_contract.py:3` |
 | D-232 | The index of published contracts is generated, because an index with a hole in it still looks complete | `scripts/contracts_doc.py:4` |
 | D-234 | The console blocks are output this tool produced, and the gate re-runs them under two hash seeds | `scripts/cli_transcripts.py:4` |
 | D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:540` |
 | D-236 | The published line count is a sum over a partition of the tree, checked, not a sum over a list somebody maintained | `scripts/figures.py:60` |
 | D-237 | A line number in the note table is derived, because a reference wrong by four hundred lines is not stale, it is wrong | `scripts/design_notes.py:4` |
-| D-238 | One spelling of "the last path segment", because three spellings put the producer's absolute path inside signed documents | `src/actaira/model.py:135` |
 | D-239 | A build writes into `dist/` and is then opened and checked, because the one artifact nobody looks at is a package | `scripts/build_package.py:4` |
 | D-240 | The default key path is resolved when a parser is built, not at import, so a host with no home does not break every command | `src/actaira/cli.py:50` |
 | D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:507` |
 | D-242 | Type checking is a ratchet: the exemption list is empty, a new error fails, and a stale exemption fails as loudly | `scripts/type_check.py:4` |
-| D-243 | Recorded is not current, and the third answer is that this store cannot tell | `src/actaira/state/graph.py:379` |
-| D-245 | A decision is history and whether it still applies is a separate, three-valued question | `src/actaira/state/decide.py:3` |
-| D-246 | Evidence is filed only against an asset the workspace already records, because a basename is not an identity | `src/actaira/state/record.py:3` |
-| D-247 | What a decision depended on is rows, not a sentence, and a decision with none is undetermined rather than fine | `src/actaira/state/store.py:187` |
-| D-248 | Impact from a change starts at the artifact that changed, and two causes stay two causes | `src/actaira/state/graph.py:303` |
-| D-249 | One observation's whole consequence is assembled once, in Python, and rendered twice | `src/actaira/state/change.py:3` |
 | D-250 | One trace document for every source and every level, and failure is its default | `src/actaira/trace/model.py:3` |
 | D-251 | The capture level is not a label on the record, it is what decides what the record may claim | `src/actaira/trace/__init__.py:3` |
 | D-252 | A digest has no false negatives and a secret filter does, so the arguments do not travel | `src/actaira/trace/redact.py:3` |
@@ -96,7 +57,7 @@ decision without the third part is not a decision, it is a preference.
 | D-255 | A server the rewriter cannot interpose on is declared, never silently passed through | `src/actaira/proxy/session.py:3` |
 | D-256 | A tool that is not built returns a state and a phase, never a value that looks computed | `src/actaira/mcp.py:3` |
 | D-257 | A digest covers the arguments; the sentence about a failure is the other half of the boundary | `src/actaira/trace/redact.py:75` |
-| D-258 | A hole cites the identity of the event it follows, and says so when there is none, rather than a line number | `src/actaira/trace/model.py:162` |
+| D-258 | A hole cites the identity of the event it follows, and says so when there is none, rather than a line number | `src/actaira/trace/model.py:171` |
 | D-259 | The transcript format records no end of session, so an L0 trace is never complete and says why | `src/actaira/trace/claude_code.py:207` |
 | D-260 | One call is one event however many times the source records it, and a disagreement is a hole rather than a choice | `src/actaira/trace/claude_code.py:289` |
 | D-261 | What the agent was configured with, against what was observed, and the answer fails closed | `src/actaira/proxy/session.py:321` |
@@ -107,7 +68,19 @@ decision without the third part is not a decision, it is a preference.
 | D-266 | One writer at a time, records that name their own run, and an order taken from the records rather than from the filenames | `src/actaira/proxy/__init__.py:83` |
 | D-267 | A network guard that only runs when somebody remembers it is not a guard, and it needs a test that it still bites | `tests/netguard.py:3` |
 | D-268 | Every field of the published document is classified by who writes its value, and a third-party value is referenced unless the table says why not | `src/actaira/trace/provenance.py:3` |
-| D-160b | The read budget bounds the read; the file bounds the allocation | `src/actaira/io_budget.py:53` |
+
+Thirty-nine rows left this table in phase A, with the modules they argued
+about: every note numbered for `coverage.py`, `miniyaml.py`, `io_budget.py`,
+`manifest.py`, `subject.py`, `receipt.py`, `policy/`, `conformance/`, `report/`
+and `state/`. A note whose file is not in the tree is a reference a reader
+follows into nothing, and this table's whole promise - every note names the file
+and line that implements it - is kept by removing the row rather than by
+softening the promise.
+
+The two worth rereading are re-argued in section 10 in full: D-223 on the five
+evidence states, and D-245 on a decision as a historical fact. The rest are
+recoverable with their code from `archive/model-scanner`, where the docstring
+that argues each one sits on the line it argues about.
 
 D-25b is numbered as a continuation rather than as a note of its own because
 it decides nothing on its own: it applies D-25's argument one layer up, where
@@ -1605,3 +1578,135 @@ on a console error, a page error, a failed request or a CSP violation.
 What remains genuinely unasserted is visual: the stylesheet's layout at a
 given viewport is checked by a person looking at the captures in
 `.screenshots/`, not by a test.
+
+## 10. Removed in phase A, and the reasoning kept
+
+Phase A applied one rule to the tree: every module of the package has to be
+reachable from the CLI or from the MCP server, and what is not, goes. Around
+8 700 lines went. The history keeps the code and `archive/model-scanner` is
+intact, so a `git show` brings any of it back.
+
+What a `git show` does not bring back is why a thing was shaped the way it
+was, once the person who argued it has moved on. `state/` is the case that
+matters: its argument cannot be reconstructed by reading its SQL, and later
+phases will want it. So the argument is here, in its own words where they were
+well put, and the code is one command away.
+
+Recover the code from `archive/model-scanner:src/actaira/state/`.
+
+### 10.1 Five evidence states, and supersession bound to a digest (D-223)
+
+`evidence_max_age_days` was a predicate over a date the caller passed in. That
+is enough to ask "was this observed recently" and cannot answer any of the
+questions that follow it: which observation was this, what replaced it, what
+stopped being true when the model changed, and which decisions rested on
+something that has since been revoked. Those need evidence to be an object
+rather than a timestamp.
+
+The five states are the ones that actually occur, and they are kept apart
+because they call for different actions:
+
+| State | What it means |
+|---|---|
+| `VALID` | still stands for exactly the subject it was taken about |
+| `STALE` | older than the freshness the policy requires — re-observe |
+| `SUPERSEDED` | a later observation of the same claim about the same subject |
+| `REVOKED` | the key, source or attestation behind it was withdrawn |
+| `UNTRUSTED` | intact, and this environment's trust policy does not accept it |
+
+**`STALE` and `SUPERSEDED` are the pair most tools merge**, and merging them
+loses the distinction between *nobody has looked lately* and *somebody looked
+and this is not the current answer*. The first is a gap in attention and the
+remedy is to re-observe. The second is a fact about the world and re-observing
+changes nothing — the answer already moved.
+
+**`REVOKED` and `UNTRUSTED` are the other pair.** The first is a fact about the
+world: the key was withdrawn, and it is withdrawn for everyone. The second is a
+decision made *here*: this environment's trust policy does not accept it, and
+another environment may accept the same evidence. D-170's separation of
+signature from trust runs all the way through to this distinction.
+
+Only `VALID` counts. The other four are not degrees of confidence — they are
+four different reasons the evidence has stopped answering the question, and a
+policy that accepted "stale" as nearly-valid would be a policy with no
+freshness requirement at all.
+
+**The rule that shapes every transition: evidence is superseded by the digest
+it was taken about, never by its subject's name.** A new scan of a model that
+did not change supersedes nothing. A scan of a model that did change supersedes
+only the evidence bound to the old digest, so evidence about a sibling artifact
+nobody touched stays valid. That is the difference between an invalidation an
+operator can act on and a wall of red. Keyed on the name instead, one touched
+file invalidates every record that shares a basename, and an operator who
+cannot tell which of four hundred red rows matters treats all four hundred as
+noise — which is the same as having no invalidation.
+
+### 10.2 A decision is history; whether it still applies is another question (D-245)
+
+A policy decision is a historical fact: on a date, under a policy with a
+digest, from named inputs, this tool answered ALLOW, DENY or REVIEW. **That
+fact never changes**, and nothing in `state/decide.py` writes to the
+`decisions` table. An ALLOW recorded in March is still an ALLOW in September
+even when every artifact it was about has been replaced, because what was
+decided and what is true now are two different questions, and a tool that
+overwrites the first with the second destroys the only record of what was
+approved.
+
+The second question gets its own three-valued vocabulary, kept deliberately
+distinct from the decision's:
+
+| Validity | What it means |
+|---|---|
+| `CURRENT` | every input this decision recorded still describes the subject it described then |
+| `REQUIRES_REASSESSMENT` | at least one input demonstrably no longer does, and the store can say which and why |
+| `UNDETERMINED` | the store cannot tell — the decision recorded no dependencies, or an input names something this workspace does not hold |
+
+The strings are distinct from `ALLOW`/`DENY`/`REVIEW` on purpose. A reader who
+confuses "allow" with "current" has confused what was decided with whether it
+still applies, and identical vocabularies are how that confusion gets made.
+
+Three properties are load-bearing.
+
+**`REQUIRES_REASSESSMENT` is never reached by inference.** It needs a row: an
+evidence record whose state is not `VALID`, or a subject whose recorded digest
+differs from the one the decision named. "The model changed recently" is not a
+reason. `{"reason": "evidence_superseded", "evidence_id": "ev_...", "was":
+"sha256:OLD", "now": "sha256:NEW"}` is. Every reason the module produces is a
+mapping a caller can act on without reading prose — which is what a score would
+destroy, and is the third negative applied to memory rather than to capture.
+
+**An old decision is `UNDETERMINED`, never `CURRENT`.** Decisions written
+before schema version 3 carry no dependency rows. Reading "no inputs" as
+"nothing it depended on has changed" would mark exactly the decisions this
+release knows *least* about as the ones needing no attention. The quiet answer
+has to be earned by rows that were checked, not inherited from rows that were
+never written.
+
+**Absence is not falsehood one level down either.** An input naming an evidence
+record this store does not hold contributes an *undetermined* reason, never a
+reassessment: a record that was never here is not a record that was withdrawn.
+
+This is not a second policy engine. It produces no verdict about the subject,
+no severity and no number. It answers one question about one stored row.
+
+### 10.3 The rest, in a line each
+
+The code below is worth rereading when the phase that needs it arrives. None of
+it is worth carrying in a tree where no command can reach it.
+
+- **`policy/`** — the rule chassis: a policy is a file with a digest that
+  consumes claims and returns a decision with the proof that lets someone else
+  re-derive it, plus the inversion that matters, `Unevaluable → REVIEW`, so a
+  condition that cannot be evaluated is never silently False (D-111, D-112,
+  D-113). Recover from `archive/model-scanner:src/actaira/policy/`.
+- **`receipt.py`, the signing half only** — `signing_subject`, `signed_bytes`,
+  `sign` and `verify`: what exactly gets covered by a signature, and the
+  separation of the document from the bytes that are signed over it (D-120).
+  Recover from `archive/model-scanner:src/actaira/receipt.py`. The building
+  half is scanner-shaped and is not worth recovering.
+- **The archived front end's presentation layer** — a stylesheet with no
+  framework, no build step and no external font or icon, and an inline icon
+  sprite instead of an icon dependency (D-17). Recover from
+  `v2.3.0:src/actaira/web/static/styles.css` and the `<svg>` sprite at the top
+  of `v2.3.0:src/actaira/web/static/index.html`. Phase C's HTML report is where
+  this gets read again.

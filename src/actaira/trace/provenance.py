@@ -234,6 +234,20 @@ REFUSED: tuple[Field, ...] = (
 )
 
 
+def refused() -> tuple[str, ...]:
+    """Every key this reader declines to read, for the reader that declines it.
+
+    `proxy/protocol.py` names these so that "we do not read these" is something
+    a machine checks rather than an absence nobody can test. It used to name
+    them as its own literals, with a test asserting its three matched this
+    table's three; that test passed for as long as somebody kept two lists in
+    step. The list is here because the REASON each key is refused is here, and
+    a key refused somewhere its reason is not written is a key that gets read
+    back in by whoever needs it next.
+    """
+    return tuple(field.path for field in REFUSED)
+
+
 def digested() -> tuple[str, ...]:
     """Every published path whose value is referenced rather than written."""
     return tuple(field.path for field in PUBLISHED if field.travel is Travel.DIGESTED)
