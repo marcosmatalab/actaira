@@ -26,6 +26,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -197,23 +198,152 @@ def readme_figures_are_current() -> str:
     return f"{checked} figures across {len(PAGES)} pages, each matching its source"
 
 
-@check("the measurement file itself matches the working tree")
+# Everything `figures.json` records, and how each block is measured again.
+# `generated_at` is a stamp rather than a figure and is excluded by name; `git`
+# is checked separately, against the commit it names rather than against HEAD.
+REMEASURED = ("package", "tests", "defects", "code", "docs", "catalog")
+
+
+@check("every figure in the measurement file matches the working tree")
 def figures_match() -> str:
+    """All of them, because it used to be one of them.
+
+    This check was titled "the measurement file itself matches the working
+    tree" and re-measured `tests.collected` and nothing else. Everything the
+    prose publishes off the other blocks - lines of Python, design notes, the
+    per-area table, the documentation totals - drifted freely, and did: the
+    commit that closed phase 1 published `code.total.lines = 34942` over a
+    tree with 34951 in it, with every check in this file green.
+
+    `readme_figures_are_current` does not cover it either. That one compares
+    the READMEs against `figures.json`, so a stale measurement file makes both
+    sides agree on the same wrong number. This is the side that has to be
+    pinned to the code.
+
+    Rule 6 of CLAUDE.md is that no published figure lacks a command that
+    measures it. A gate that measured one of them was that rule's own
+    machinery breaking it.
+    """
     figures_path = ROOT / "figures.json"
     if not figures_path.is_file():
         raise DriftError("figures.json is missing. Run `make figures`.")
-    figures = json.loads(figures_path.read_text(encoding="utf-8"))
-    tests = figures.get("tests", {}).get("collected")
-    if not tests:
-        raise DriftError("figures.json records no test count. Run `make figures`.")
+    recorded = json.loads(figures_path.read_text(encoding="utf-8"))
 
-    # The exact count the suite collects right now, against what was measured.
-    collected = _collect_count()
-    if collected != tests:
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import figures as figures_module
+
+    tests = figures_module.measure_tests()
+    if not tests.get("available") or not tests.get("collected"):
+        # `_collect_count` exists for this: a checker that cannot find what it
+        # audits has not passed, it has stopped looking. Both sides agreeing
+        # that the suite could not be collected is not agreement.
         raise DriftError(
-            f"figures.json says {tests} tests, the suite collects {collected}. Run `make figures`."
+            f"the suite would not collect, so nothing here was measured "
+            f"(pytest reports {_collect_count()} tests). Fix the suite first."
         )
-    return f"{tests} tests, matching the working tree"
+    node_ids = set(tests.pop("_node_ids", [])) if tests.get("available") else None
+    measured = {
+        "package": figures_module.measure_package(),
+        "tests": tests,
+        "defects": figures_module.measure_defects(node_ids),
+        "code": figures_module.measure_areas(),
+        "docs": figures_module.measure_docs(),
+        "catalog": figures_module.measure_catalog(),
+    }
+
+    drifted = [
+        line
+        for block in REMEASURED
+        for line in _differences(block, recorded.get(block), measured[block])
+    ]
+    git_drift, git_note = _git_figures_drift(recorded.get("git") or {})
+    drifted += git_drift
+    if drifted:
+        raise DriftError("\n".join([*sorted(drifted)[:20], "Run `make figures`."]))
+    counted = sum(1 for block in REMEASURED for _ in _leaves(block, measured[block]))
+    return (
+        f"{counted} measured figures across {len(REMEASURED)} blocks, each matching the tree"
+        f"{git_note}"
+    )
+
+
+def _leaves(trail: str, value: Any):
+    """Every scalar in a measured block, with the path that reaches it."""
+    if isinstance(value, dict):
+        for key in sorted(value):
+            yield from _leaves(f"{trail}.{key}", value[key])
+    elif isinstance(value, list):
+        yield trail, tuple(value)
+    else:
+        yield trail, value
+
+
+def _differences(block: str, recorded: Any, measured: Any) -> list[str]:
+    was = dict(_leaves(block, recorded if recorded is not None else {}))
+    now = dict(_leaves(block, measured))
+    lines = []
+    for trail in sorted(set(was) | set(now)):
+        if was.get(trail, "<absent>") != now.get(trail, "<absent>"):
+            lines.append(f"figures.json {trail} is {was.get(trail, '<absent>')}, the tree measures {now.get(trail, '<absent>')}")
+    return lines
+
+
+def _git_figures_drift(recorded: dict) -> tuple[list[str], str]:
+    """The git block, against the commit it names rather than against HEAD.
+
+    `make figures` runs before the commit it is committed in, so a check that
+    compared these to HEAD would fail on every tree by construction. What is
+    checkable is that the commit named exists, is an ancestor of HEAD, and
+    really has the count and the date recorded beside it - which is what makes
+    "12 commits, most recent 2026-09-15" a measured figure rather than a
+    sentence nobody can regenerate.
+    """
+    if not recorded.get("available"):
+        return [], ""
+    head = recorded.get("head")
+    if not head:
+        return ["figures.json records git as available with no commit named"], ""
+
+    executable = shutil.which("git")
+
+    def git(*arguments: str) -> str | None:
+        if executable is None:  # pragma: no cover - no git on the machine
+            return None
+        try:
+            completed = subprocess.run(  # noqa: S603 - resolved path, fixed argv, no shell
+                [executable, *arguments], cwd=ROOT, capture_output=True, text=True, timeout=30
+            )
+        except (OSError, subprocess.SubprocessError):  # pragma: no cover - no git
+            return None
+        return completed.stdout.strip() if completed.returncode == 0 else None
+
+    # `test_the_gate_passes_on_this_repository` copies the tree somewhere with
+    # no `.git`, and so does an unpacked sdist. A figure that cannot be
+    # re-measured THERE is not a figure that is wrong; it is one this copy
+    # cannot check, and the summary line says which of the two happened rather
+    # than letting a silent skip read as a pass.
+    # "Is this a checkout" is not "is this inside one". The first version asked
+    # `--is-inside-work-tree`, and on a machine whose HOME is itself a
+    # repository every temp directory answers yes - so the copy that
+    # `test_the_gate_passes_on_this_repository` makes was asked about a commit
+    # belonging to a repository it is not in. The question is whether this tree
+    # is the ROOT of its own, which is what `make source-archive` already asks.
+    top = git("rev-parse", "--show-toplevel")
+    if top is None or Path(top).resolve() != ROOT.resolve():
+        return [], ", and the git figures were not re-measured: this tree is not a checkout"
+    if git("rev-parse", "--verify", f"{head}^{{commit}}") is None:
+        return [f"figures.json names commit {head}, which is not in this repository"], ""
+    if git("merge-base", "--is-ancestor", head, "HEAD") is None:
+        return [f"figures.json names commit {head}, which is not an ancestor of HEAD"], ""
+    lines = []
+    for field, arguments in (
+        ("commits", ("rev-list", "--count", head)),
+        ("head_date", ("log", "-1", "--format=%ad", "--date=short", head)),
+    ):
+        actual = git(*arguments)
+        if actual is not None and str(recorded.get(field)) != actual:
+            lines.append(f"figures.json git.{field} is {recorded.get(field)}, {head} has {actual}")
+    return lines, ""
 
 
 def _collect_count() -> int:

@@ -25,7 +25,7 @@ Nada se carga, se deserializa ni se ejecuta nunca. Nada se puntúa nunca.
 | | | |
 |---|---|---|
 | **41 reglas documentadas** | **15 controles ejecutables** | **21 obligaciones** modeladas |
-| **1.908 tests**, ninguna cifra escrita a mano | **7 conectores** que nunca deciden | una dependencia en tiempo de ejecución |
+| **1.974 tests**, ninguna cifra escrita a mano | **7 conectores** que nunca deciden | una dependencia en tiempo de ejecución |
 
 **No hace falta red** para escanear en local, para la gobernanza ni para verificar sin conexión. El descubrimiento remoto y el anclaje temporal RFC 3161 llegan a la red solo cuando se lo pides, `bundle` y `discover` aceptan `--offline` para prohibirlo del todo, y aquí nada llama a casa: no hay telemetría, ni cuenta, ni servicio alojado.
 
@@ -281,7 +281,7 @@ Cada recuento de esa imagen se lee del registro, el enum o el catálogo que lo d
 
 Y el bucle se cierra. La siguiente observación se compara con la anterior, así que la salida no es "qué es cierto ahora" sino **qué cambió, qué invalidó eso, y hasta dónde llega**:
 
-**34.942 líneas de Python**, una dependencia en tiempo de ejecución, y **78 notas de diseño** que registran por qué cada decisión salió como salió. [`docs/DESIGN.md`](docs/DESIGN.md) es el índice; cada nota nombra el fichero y la línea que la implementa, y un test falla si una nota escrita en el código no está en la tabla.
+**36.441 líneas de Python**, una dependencia en tiempo de ejecución, y **84 notas de diseño** que registran por qué cada decisión salió como salió. [`docs/DESIGN.md`](docs/DESIGN.md) es el índice; cada nota nombra el fichero y la línea que la implementa, y un test falla si una nota escrita en el código no está en la tabla.
 
 ---
 

@@ -21,6 +21,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 from ..trace.model import GapReason
+from ..trace.redact import endpoint, failure_kind
 from . import TOOL_CALL, Recorder
 from .stdio import _now
 
@@ -77,7 +78,8 @@ class HttpProxy:
         except OSError as exc:
             self.recorder.gap(
                 GapReason.PROXY_START_FAILED,
-                f"the local endpoint the agent was to be pointed at would not bind: {exc}",
+                f"the local endpoint the agent was to be pointed at would not bind "
+                f"({failure_kind(exc)})",
             )
             return False
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
@@ -109,7 +111,12 @@ class HttpProxy:
         event = None
         if message.get("method") == TOOL_CALL:
             params = message.get("params") or {}
-            event = self.recorder.call(str(params.get("name", "")), params.get("arguments"), at=_now())
+            event = self.recorder.call(
+                str(params.get("name", "")),
+                params.get("arguments"),
+                at=_now(),
+                call_id=str(message.get("id")),
+            )
 
         request = urllib.request.Request(  # noqa: S310 - the operator's own server URL
             self.upstream,
@@ -130,7 +137,11 @@ class HttpProxy:
         except (urllib.error.URLError, OSError, ValueError) as exc:
             self.recorder.gap(
                 GapReason.TRANSPORT_CLOSED,
-                f"the connection to {self.upstream} did not deliver an answer: {exc}",
+                # The URL entire, query and all, until the phase-1 review:
+                # MCP directories hand out endpoints with the token in the
+                # query string, and this sentence goes in the acta.
+                f"the connection to {endpoint(self.upstream)} did not deliver an answer "
+                f"({failure_kind(exc)})",
             )
             return None
 
@@ -147,7 +158,8 @@ class HttpProxy:
         except ValueError as exc:
             self.recorder.gap(
                 GapReason.RESPONSE_TRUNCATED,
-                f"the server sent {len(body)} byte(s) that are not a whole JSON-RPC message: {exc}",
+                f"the server sent {len(body)} byte(s) that are not a whole JSON-RPC message "
+                f"({failure_kind(exc)})",
             )
             return None
 

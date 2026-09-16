@@ -47,6 +47,11 @@ ECHO_SERVER = (
 )
 
 
+# Spelled out rather than imported from the module under test: it is a file
+# name an operator and a later reader both see, so the test pins it.
+MANIFEST = "interposition.json"
+
+
 def _call(identifier: int, name: str, arguments: dict | None = None) -> dict:
     return {
         "jsonrpc": "2.0",
@@ -351,13 +356,130 @@ def test_an_http_server_is_rewritten_to_a_loopback_url(tmp_path):
 def test_a_server_shape_the_rewriter_does_not_understand_is_declared_not_dropped(tmp_path):
     """Silently passing an unrecognised server through would leave the agent
     talking to it directly and the trace saying nothing about the calls. The
-    rewriter refuses to be quiet about what it could not interpose on."""
+    rewriter refuses to be quiet about what it could not interpose on.
+
+    This asserted that a file had been written and stopped there, which is how
+    it stayed green over the whole defect below: the file was written and
+    nothing ever read it. The assertion is now about the manifest a reader
+    gets, and `test_a_trace_can_never_claim_authenticity_over_an_uninterposed_server`
+    is the one that holds the trace to it.
+    """
     config = {"mcpServers": {"odd": {"transport": "carrier-pigeon"}}}
 
     rewritten = rewrite_config(config, record_dir=tmp_path)
 
     assert rewritten["mcpServers"]["odd"] == config["mcpServers"]["odd"]
-    assert tmp_path.joinpath("uninterposed.json").is_file()
+    manifest = json.loads(tmp_path.joinpath(MANIFEST).read_text(encoding="utf-8"))
+    assert manifest["servers"]["odd"]["interposed"] is False
+    assert manifest["servers"]["odd"]["why"]
+
+
+# ---------------------------------------------------------------------------
+# The property: a server that was not interposed on cannot be claimed observed
+# ---------------------------------------------------------------------------
+
+UNINTERPOSABLE = [
+    pytest.param({"url": "https://mcp.example.com/mcp", "type": "http"}, id="http"),
+    pytest.param({"url": "https://mcp.example.com/sse", "type": "sse"}, id="sse"),
+    pytest.param({"transport": "carrier-pigeon"}, id="a shape nobody has written"),
+    pytest.param("not-even-an-object", id="not an object"),
+]
+
+
+@pytest.mark.parametrize("entry", UNINTERPOSABLE)
+def test_a_trace_can_never_claim_authenticity_over_an_uninterposed_server(tmp_path, echo, entry):
+    """The property, over every shape this release cannot get in front of.
+
+    Before the fix every one of these produced `complete: true`,
+    `authenticity: established`, `gaps: []` - over a session in which the
+    agent talked to that server directly and this tool saw none of it. In a
+    real `watch` that is EVERY HTTP and SSE server, because production never
+    passes `http_port_for`.
+
+    The interposed server is in the configuration too, and it works, so this
+    cannot pass by the trace being empty: there is a real observed call in it
+    and the answer is still a refusal.
+    """
+    config = {"mcpServers": {"seen": {"command": echo[0], "args": echo[1:]}, "unseen": entry}}
+    rewrite_config(config, record_dir=tmp_path, session_id="s")
+    recorder = Recorder(session_id="s", source="mcp-proxy", record_path=tmp_path / "seen.jsonl")
+    proxy = StdioProxy(echo, recorder)
+    proxy.start()
+    proxy.request(_call(1, "a_tool_that_was_observed"))
+    proxy.close()
+
+    document = WatchSession(record_dir=tmp_path, session_id="s").assemble(0).to_dict()
+
+    assert [event["gen_ai.tool.name"] for event in document["events"]] == [
+        "a_tool_that_was_observed"
+    ], "the observed half of the session is still in the trace"
+    assert document["complete"] is False
+    assert document["authenticity"]["state"] == "not_established"
+    unseen = [
+        gap for gap in document["gaps"] if gap["reason"] == GapReason.NOT_INTERPOSED.value
+    ]
+    manifest = json.loads(tmp_path.joinpath(MANIFEST).read_text(encoding="utf-8"))
+    reference = manifest["servers"]["unseen"]["ref"]
+    # The reference, not the alias: an alias is a private string in somebody's
+    # `.mcp.json`. `tests/test_trace_privacy.py` is where that is a property.
+    assert len(unseen) == 1 and reference in unseen[0]["detail"]
+    assert reference in document["authenticity"]["reason"], (
+        "the reason has to say which server, or a reader has to go hunting for it"
+    )
+    assert "unseen" not in json.dumps(document, ensure_ascii=False)
+
+
+def test_a_session_with_no_record_of_what_it_was_configured_with_claims_nothing(tmp_path, echo):
+    """The manifest is the evidence that everything configured was observed.
+    Without it this tool knows what it saw and not what there was to see, and
+    an unknown denominator is not a full one."""
+    recorder = Recorder(session_id="s", source="mcp-proxy", record_path=tmp_path / "seen.jsonl")
+    proxy = StdioProxy(echo, recorder)
+    proxy.start()
+    proxy.request(_call(1, "a_tool"))
+    proxy.close()
+
+    document = WatchSession(record_dir=tmp_path, session_id="s").assemble(0).to_dict()
+
+    assert document["complete"] is False
+    assert document["authenticity"]["state"] == "not_established"
+    assert any(gap["reason"] == GapReason.NOT_INTERPOSED.value for gap in document["gaps"])
+
+
+def test_a_server_that_was_interposed_on_and_left_no_record_is_a_hole(tmp_path, echo):
+    """Interposed and silent is not the same as interposed and idle, and this
+    tool cannot tell them apart - so it declares rather than assumes."""
+    config = {"mcpServers": {"quiet": {"command": echo[0], "args": echo[1:]}}}
+    rewrite_config(config, record_dir=tmp_path, session_id="s")
+
+    document = WatchSession(record_dir=tmp_path, session_id="s").assemble(0).to_dict()
+    manifest = json.loads(tmp_path.joinpath(MANIFEST).read_text(encoding="utf-8"))
+
+    assert document["complete"] is False
+    assert any(
+        gap["reason"] == GapReason.PROXY_START_FAILED.value
+        and manifest["servers"]["quiet"]["ref"] in gap["detail"]
+        for gap in document["gaps"]
+    )
+
+
+def test_every_server_interposed_and_every_one_recorded_is_the_only_way_through(tmp_path, echo):
+    """The other side of the property, so it is not passing by refusing
+    everything: a session whose every configured server was interposed on and
+    recorded still comes out complete."""
+    config = {"mcpServers": {"seen": {"command": echo[0], "args": echo[1:]}}}
+    rewrite_config(config, record_dir=tmp_path, session_id="s")
+    recorder = Recorder(session_id="s", source="mcp-proxy", record_path=tmp_path / "seen.jsonl")
+    proxy = StdioProxy(echo, recorder)
+    proxy.start()
+    proxy.request(_call(1, "a_tool"))
+    proxy.close()
+
+    document = WatchSession(record_dir=tmp_path, session_id="s").assemble(0).to_dict()
+
+    assert document["gaps"] == []
+    assert document["complete"] is True
+    assert document["authenticity"]["state"] == "established"
 
 
 def test_watch_records_a_gap_when_no_proxy_was_ever_reached(tmp_path):
@@ -376,6 +498,14 @@ def test_watch_records_a_gap_when_no_proxy_was_ever_reached(tmp_path):
 
 def test_watch_assembles_the_parts_every_proxy_wrote_in_index_order(tmp_path, echo):
     """One proxy process per server, one record file each, one trace out."""
+    # The manifest is what says every configured server was interposed on.
+    # Without it `assemble` refuses to call the session observed, which is
+    # `test_a_session_with_no_record_of_what_it_was_configured_with_claims_nothing`.
+    rewrite_config(
+        {"mcpServers": {name: {"command": echo[0], "args": echo[1:]} for name in ("alpha", "beta")}},
+        record_dir=tmp_path,
+        session_id="s",
+    )
     for name in ("alpha", "beta"):
         recorder = Recorder(session_id="s", source="mcp-proxy", record_path=tmp_path / f"{name}.jsonl")
         proxy = StdioProxy(echo, recorder)
@@ -387,6 +517,9 @@ def test_watch_assembles_the_parts_every_proxy_wrote_in_index_order(tmp_path, ec
 
     assert [event["index"] for event in document["events"]] == [0, 1]
     assert {event["gen_ai.tool.name"] for event in document["events"]} == {"alpha_tool", "beta_tool"}
+    # The JSON-RPC id the agent used, kept so a gap can cite the call rather
+    # than its position. It was dropped before and every L1 event had a null.
+    assert {event["gen_ai.tool.call.id"] for event in document["events"]} == {"1"}
     assert document["complete"] is True
 
 
@@ -394,6 +527,11 @@ def test_a_child_that_exited_badly_does_not_make_the_trace_incomplete(tmp_path, 
     """The agent's own exit code is the agent's business. A trace that records
     everything the agent did is complete whether or not the agent succeeded,
     and conflating the two would let a failed build look like a lost event."""
+    rewrite_config(
+        {"mcpServers": {"a": {"command": echo[0], "args": echo[1:]}}},
+        record_dir=tmp_path,
+        session_id="s",
+    )
     recorder = Recorder(session_id="s", source="mcp-proxy", record_path=tmp_path / "a.jsonl")
     proxy = StdioProxy(echo, recorder)
     proxy.start()

@@ -124,7 +124,7 @@ def test_an_l1_trace_with_a_gap_says_authenticity_was_not_established():
     """The third state, and the one the whole distinction exists for. A gap at
     L1 is not "does not apply" - it is a question that applied and could not
     be answered, which is a failure and reads as one."""
-    gap = Gap(after_index=0, reason=GapReason.TRANSPORT_CLOSED, detail="the server closed stdout")
+    gap = Gap(reason=GapReason.TRANSPORT_CLOSED, detail="the server closed stdout")
     document = _trace(CaptureLevel.L1, gaps=[gap]).to_dict()
 
     authenticity = document["authenticity"]
@@ -141,7 +141,7 @@ def test_the_three_authenticity_states_are_three_and_not_two():
         _trace(CaptureLevel.L1).to_dict()["authenticity"]["state"],
         _trace(
             CaptureLevel.L1,
-            gaps=[Gap(after_index=0, reason=GapReason.TRANSPORT_CLOSED, detail="x")],
+            gaps=[Gap(reason=GapReason.TRANSPORT_CLOSED, detail="x")],
         ).to_dict()["authenticity"]["state"],
     }
 

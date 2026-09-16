@@ -244,7 +244,15 @@ def test_every_gap_names_its_reason_and_says_what_happened(scenario, tmp_path, h
     for gap in document["gaps"]:
         assert gap["reason"] in {reason.value for reason in GapReason}, gap
         assert len(gap["detail"]) > 10, f"{scenario.name}: a gap that explains nothing"
-        assert isinstance(gap["after_index"], int)
+        # Exactly one of the two, never neither and never both: a hole either
+        # cites a position in this document or says why it cannot. `-1` used
+        # to stand for both answers at once.
+        anchored = "after_index" in gap
+        assert anchored != ("after_index_absent" in gap), gap
+        if anchored:
+            assert 0 <= gap["after_index"] < len(document["events"]), gap
+        else:
+            assert len(gap["after_index_absent"]) > 10, gap
 
 
 @pytest.mark.parametrize("scenario", SCENARIOS, ids=_ids(SCENARIOS))
@@ -284,8 +292,13 @@ def test_every_gap_reason_in_the_vocabulary_is_reachable():
     """A closed vocabulary with an unreachable member is a member nobody can
     test, and the next person deletes it or misuses it."""
     covered = {scenario.expected for scenario in SCENARIOS}
+    # Reached from the two readers rather than from a proxy failure, and each
+    # has its own test where it is reached: `not_interposed` in
+    # test_proxy_transports.py, `source_contradiction` in
+    # test_scan_claude_code.py.
     declarative = {GapReason.END_NOT_RECORDED, GapReason.RESULT_NOT_RECORDED,
-                   GapReason.UNPARSABLE_RECORD}
+                   GapReason.UNPARSABLE_RECORD, GapReason.NOT_INTERPOSED,
+                   GapReason.SOURCE_CONTRADICTION}
 
     assert covered | declarative == set(GapReason), (
         f"unreachable gap reasons: {sorted(reason.value for reason in set(GapReason) - covered - declarative)}"

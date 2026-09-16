@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any
 
 from ..trace.model import GapReason
+from ..trace.redact import failure_kind
 from . import TOOL_CALL, Recorder
 
 
@@ -79,7 +80,8 @@ class StdioProxy:
         except OSError as exc:
             self.recorder.gap(
                 GapReason.PROXY_START_FAILED,
-                f"the server command {self.command[0]!r} would not start: {exc}. "
+                f"the server command {Path(self.command[0]).name!r} would not start "
+                f"({failure_kind(exc)}). "
                 "Nothing after this point was observed.",
             )
             self.process = None
@@ -159,7 +161,8 @@ class StdioProxy:
         except (OSError, ValueError) as exc:
             self.recorder.gap(
                 GapReason.TRANSPORT_CLOSED,
-                f"the server stopped reading before this notification could be delivered: {exc}",
+                f"the server stopped reading before this notification could be delivered "
+                f"({failure_kind(exc)})",
             )
 
     def request(self, message: dict[str, Any]) -> dict[str, Any] | None:
@@ -180,7 +183,12 @@ class StdioProxy:
         event = None
         if message.get("method") == TOOL_CALL:
             params = message.get("params") or {}
-            event = self.recorder.call(str(params.get("name", "")), params.get("arguments"), at=_now())
+            event = self.recorder.call(
+                str(params.get("name", "")),
+                params.get("arguments"),
+                at=_now(),
+                call_id=str(message.get("id")),
+            )
 
         try:
             process.stdin.write(json.dumps(message) + "\n")
@@ -188,7 +196,8 @@ class StdioProxy:
         except (OSError, ValueError) as exc:
             self.recorder.gap(
                 GapReason.TRANSPORT_CLOSED,
-                f"the server stopped reading before this call could be delivered: {exc}",
+                f"the server stopped reading before this call could be delivered "
+                f"({failure_kind(exc)})",
             )
             return None
 
@@ -221,7 +230,7 @@ class StdioProxy:
                 self.recorder.gap(
                     GapReason.RESPONSE_TRUNCATED,
                     f"the server sent {len(line)} byte(s) that are not a whole JSON-RPC "
-                    f"message: {exc}",
+                    f"message ({failure_kind(exc)})",
                 )
                 return None
             if isinstance(answer, dict) and answer.get("id") == wanted:
@@ -300,10 +309,29 @@ class StdioProxy:
                 try:
                     message = json.loads(raw)
                 except ValueError:
-                    # The agent's own bytes, passed through untouched: this
-                    # proxy is not the place that decides the agent is wrong.
-                    writer.write(raw)
-                    writer.flush()
+                    # The agent's own bytes, passed through untouched to the
+                    # SERVER: this proxy is not the place that decides the
+                    # agent is wrong. It went to `writer` before, which is the
+                    # agent's own input - so the server never saw the message,
+                    # the agent got its own line back, and nothing said so.
+                    process = self.process
+                    if process is not None and process.stdin is not None:
+                        try:
+                            process.stdin.write(raw)
+                            process.stdin.flush()
+                        except (OSError, ValueError) as exc:
+                            self.recorder.gap(
+                                GapReason.TRANSPORT_CLOSED,
+                                "the server stopped reading before a message this proxy could "
+                                f"not read could be delivered ({failure_kind(exc)})",
+                            )
+                            continue
+                    self.recorder.gap(
+                        GapReason.UNPARSABLE_RECORD,
+                        "the agent sent a message this proxy could not read as JSON-RPC. It was "
+                        "forwarded to the server unchanged and whatever it asked for was not "
+                        "observed",
+                    )
                     continue
                 if message.get("id") is None:
                     self.notify(message)
