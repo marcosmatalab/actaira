@@ -102,7 +102,13 @@ def _verify(arguments: dict[str, Any]) -> dict[str, Any]:
         )
     result = verify_mod.verify_package(Path(path))
     payload = result.to_dict()
-    payload["state"] = "verified"
+    # `state` said "verified" unconditionally, which is the one word a caller
+    # reads off a field with that name. A tampered package came back
+    # `{"state": "verified", "ok": false}` - the same shape of defect as a
+    # stub returning a plausible verdict, arriving through the surface other
+    # people's agents call directly. The field now says which of the two
+    # happened, and nothing else in the payload moved.
+    payload["state"] = "verified" if result.ok else "not_verified"
     # isError carries whether the CALL failed, and a package that does not
     # verify is a call that succeeded with bad news. A path that is not a
     # package is the other thing, and both end up false-with-reasons here, so

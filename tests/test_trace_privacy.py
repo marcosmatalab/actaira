@@ -8,9 +8,20 @@ transcripts with secrets planted on purpose, and the assertion that none of
 them survives into any emitted document by any route - not in an argument, not
 in a result, not in an error message, not in a path, not in a gap's detail.
 
-Gate 6 is the shape of it and gate 9 is the corpus. They are one file because
-they are one property about one module; splitting them would let half of it go
-green and read as the whole.
+That last clause was in this docstring for a whole phase and was not tested.
+The corpus fed the reader well-formed, readable files, so no failure path ever
+ran, and every leak the phase-1 review found came out of one: the text of an
+`OSError`, which carries the absolute path; the name of a directory under
+`~/.claude/projects`, WHICH IS the user's working directory; and the upstream
+URL of an MCP server, which is where the directories that hand them out put
+the token. None of those is an argument or a result, which is why hashing
+arguments and results did not cover any of them.
+
+So the corpus now also contains files that cannot be read, directories whose
+names are the secret, and servers whose URLs are, and the property below is
+stated twice: once against the planted strings, and once against the SHAPES a
+leak takes, so a secret nobody thought to plant is caught by the shape of the
+sentence carrying it.
 """
 from __future__ import annotations
 
@@ -20,6 +31,7 @@ from pathlib import Path
 
 import pytest
 
+from actaira.proxy.session import WatchSession, rewrite_config
 from actaira.trace import CaptureLevel
 from actaira.trace.claude_code import ClaudeCodeReader
 
@@ -273,3 +285,272 @@ def test_the_demo_fixture_still_parses_into_a_trace():
 
     assert trace.capture_level is CaptureLevel.L0
     assert len(trace.events) >= 3, "a demo with one call demonstrates nothing"
+
+
+# ---------------------------------------------------------------------------
+# The routes that are not an argument and not a result
+# ---------------------------------------------------------------------------
+
+# Absolute paths, URL query strings, and the text the operating system puts in
+# an exception. A detail is built from `redact.file_ref`, `redact.endpoint` and
+# `redact.failure_kind`, none of which can produce any of these - so this is a
+# property about every emitted document rather than a list of call sites
+# somebody has to keep finding.
+LEAK_SHAPES = {
+    "a POSIX absolute path": re.compile(r"(?<![\w/])/(?:home|Users|root|var|etc|tmp)/"),
+    "a Windows absolute path": re.compile(r"[A-Za-z]:[\\/]{1,2}(?:Users|Windows|ProgramData)"),
+    "a URL query string": re.compile(r"https?://[^\s\"]*\?"),
+    "a URL with userinfo": re.compile(r"https?://[^\s/\"]*@"),
+    "the text of an OS error": re.compile(r"\[Errno \d+\]|\[WinError \d+\]|Permission denied|"
+                                         r"No such file or directory"),
+}
+
+
+def assert_no_leak_shape(blob: str, where: str) -> None:
+    for name, pattern in LEAK_SHAPES.items():
+        found = pattern.search(blob)
+        assert not found, f"{where}: {name} reached an emitted document: {found.group(0)!r}"
+
+
+@pytest.fixture
+def unreadable_home(tmp_path: Path) -> Path:
+    """A `~/.claude` whose directory name is a secret and one of whose session
+    files cannot be read - a lock, a permission bit, a half-synced mount, or,
+    as here, a directory where a file should be."""
+    home = tmp_path / ".claude"
+    # The sanitised cwd, which is how Claude Code names these directories, and
+    # which is the "private home path" secret this file already plants.
+    project = home / "projects" / "-home-aurelia-quintero-projects-payroll-dot-env"
+    project.mkdir(parents=True)
+    (project / "00000000-0000-4000-8000-000000000001.jsonl").write_text(
+        json.dumps(_line(0, "harmless")) + "\n", encoding="utf-8"
+    )
+    (project / "00000000-0000-4000-8000-000000000002.jsonl").mkdir()
+    (project / "00000000-0000-4000-8000-000000000003.jsonl").write_text(
+        "{ this record is cut off\n", encoding="utf-8"
+    )
+    return home
+
+
+def test_a_session_file_that_cannot_be_read_does_not_publish_where_it_lives(unreadable_home):
+    """`str(OSError)` is `[Errno 13] Permission denied: '<absolute path>'`, and
+    that sentence went into a gap's `detail` whole."""
+    blob = _emitted(unreadable_home)
+
+    assert_no_leak_shape(blob, "an unreadable session file")
+    assert "aurelia-quintero" not in blob
+    assert "aurelia.quintero" not in blob
+
+
+def test_the_hole_is_still_declared_when_the_file_cannot_be_read(unreadable_home):
+    """The guard on the guard above: saying nothing about the failure would
+    also pass it, and that is the other way to be wrong here."""
+    documents = [
+        trace.to_dict() for trace in ClaudeCodeReader(home=unreadable_home).read_all()
+    ]
+
+    reasons = {gap["reason"] for document in documents for gap in document["gaps"]}
+    assert "unparsable_record" in reasons
+    assert all(document["complete"] is False for document in documents)
+
+
+def test_a_record_that_will_not_parse_does_not_publish_the_file_it_was_in(unreadable_home):
+    """A `json` ValueError carries a line and a column of somebody's
+    conversation, and the sentence around it carried the file name."""
+    documents = [
+        trace.to_dict() for trace in ClaudeCodeReader(home=unreadable_home).read_all()
+    ]
+    details = " ".join(gap["detail"] for document in documents for gap in document["gaps"])
+
+    assert_no_leak_shape(details, "an unparsable record")
+    assert "Expecting" not in details, "the parser's own message names a column of the file"
+
+
+@pytest.mark.parametrize("label", sorted(SECRETS))
+def test_a_secret_in_a_directory_name_does_not_reach_an_emitted_trace(tmp_path, label):
+    """The directory name under `projects/` is the user's working directory,
+    so a secret in a path is a secret in a directory name."""
+    secret = SECRETS[label]
+    home = tmp_path / ".claude"
+    safe = re.sub(r"[^A-Za-z0-9_.-]", "-", secret)[:80]
+    project = home / "projects" / f"-w-{safe}"
+    project.mkdir(parents=True)
+    (project / "00000000-0000-4000-8000-000000000001.jsonl").mkdir()
+
+    blob = _emitted_allowing_empty(home)
+
+    for fragment in fragments(secret):
+        assert fragment not in blob, f"{label}: a directory name reached the trace"
+    assert_no_leak_shape(blob, f"a directory named after {label}")
+
+
+def _emitted_allowing_empty(home: Path) -> str:
+    return json.dumps(
+        [trace.to_dict() for trace in ClaudeCodeReader(home=home).read_all()],
+        ensure_ascii=False,
+    )
+
+
+# ---------------------------------------------------------------------------
+# The same boundary on the proxy side, which had no corpus at all
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def closed_port() -> int:
+    """A loopback port nothing is listening on.
+
+    The first version of this pointed at a hostname, so ten parametrised cases
+    each did a DNS lookup: a test that reaches a third party and fails
+    differently depending on whose resolver is answering. Loopback with no
+    listener reaches the same code path in `http.request` - a refused
+    connection - and leaves the machine alone.
+    """
+    import socket
+
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        return int(probe.getsockname()[1])
+
+
+@pytest.mark.parametrize("label", sorted(SECRETS))
+def test_a_secret_in_a_server_url_does_not_reach_an_emitted_trace(label, closed_port):
+    """MCP directories hand out endpoints with the credential in the query
+    string. The transport published the URL entire when a connection failed."""
+    from actaira.proxy import Recorder
+    from actaira.proxy.http import HttpProxy
+
+    secret = re.sub(r"[^A-Za-z0-9_.~-]", "-", SECRETS[label])
+    recorder = Recorder(session_id="s")
+    proxy = HttpProxy(f"http://127.0.0.1:{closed_port}/sse?api_key={secret}", recorder)
+
+    proxy.request({"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "t", "arguments": {}}})
+    blob = json.dumps(recorder.trace().to_dict(), ensure_ascii=False)
+
+    assert recorder.gaps, "the connection has to have failed, or nothing was exercised"
+    for fragment in fragments(SECRETS[label]):
+        assert fragment not in blob, f"{label}: a server URL reached the trace"
+    assert_no_leak_shape(blob, f"a server URL carrying {label}")
+    assert f"127.0.0.1:{closed_port}" in blob, (
+        "the host still travels, or a reader cannot tell which of their servers it was"
+    )
+
+
+def test_a_record_file_that_cannot_be_written_does_not_publish_its_path(tmp_path):
+    """The recorder's own sidecar. Its failure gap interpolated the absolute
+    path of the file it had just failed to write."""
+    from actaira.proxy import Recorder
+
+    recorder = Recorder(session_id="s", record_path=tmp_path / "deep" / "srv.jsonl")
+    recorder.record_path.unlink()
+    recorder.record_path.mkdir()  # every write from here on raises
+
+    recorder.call("Bash", {"command": "ls"}, at="2026-01-01T00:00:00Z")
+    blob = json.dumps(recorder.trace().to_dict(), ensure_ascii=False)
+
+    assert_no_leak_shape(blob, "a record file that cannot be written")
+    assert str(tmp_path) not in blob
+
+
+def test_a_server_command_that_will_not_start_does_not_publish_its_path(tmp_path):
+    """The operator's own server command is a path on their machine, and
+    `str(OSError)` from `Popen` carries it a second time."""
+    from actaira.proxy import Recorder
+    from actaira.proxy.stdio import StdioProxy
+
+    recorder = Recorder(session_id="s")
+    missing = tmp_path / "Users" / "aurelia.quintero" / "bin" / "server-that-is-not-there"
+    proxy = StdioProxy([str(missing)], recorder)
+
+    assert proxy.start() is False
+    blob = json.dumps(recorder.trace().to_dict(), ensure_ascii=False)
+
+    assert_no_leak_shape(blob, "a server command that will not start")
+    assert "aurelia.quintero" not in blob
+
+
+def test_the_whole_watch_document_carries_no_leak_shape(tmp_path):
+    """The property over an assembled `watch` trace rather than over one
+    recorder, because `assemble` builds details of its own."""
+    records = tmp_path / "records"
+    rewrite_config(
+        {"mcpServers": {"remote": {"url": "https://mcp.example/sse?token=FAKE-NOT-REAL-TOKEN"}}},
+        record_dir=records,
+        session_id="s",
+    )
+    (records / "remote.jsonl").write_text("{ cut off\n", encoding="utf-8")
+
+    document = WatchSession(records, "s").assemble(child_returncode=0).to_dict()
+    blob = json.dumps(document, ensure_ascii=False)
+
+    assert_no_leak_shape(blob, "an assembled watch trace")
+    assert "FAKE-NOT-REAL-TOKEN" not in blob
+    assert document["complete"] is False
+
+
+def test_the_shape_test_would_notice_a_leak(tmp_path):
+    """The guard on the shapes. If `LEAK_SHAPES` matched nothing, every
+    assertion above would pass over a document full of paths."""
+    import pytest as _pytest
+
+    for sample in (
+        json.dumps({"detail": "could not read /home/aurelia.quintero/.ssh/id_ed25519"}),
+        json.dumps({"detail": "could not read C:\\Users\\aurelia\\.env"}),
+        json.dumps({"detail": "https://mcp.example/sse?api_key=abc"}),
+        json.dumps({"detail": "https://user:pw@mcp.example/sse"}),
+        json.dumps({"detail": "[Errno 13] Permission denied"}),
+    ):
+        with _pytest.raises(AssertionError):
+            assert_no_leak_shape(sample, "the guard")
+
+
+@pytest.mark.parametrize("label", sorted(SECRETS))
+def test_a_secret_in_a_server_alias_does_not_reach_the_published_reason(tmp_path, label):
+    """The third field, after the directory name and the URL query.
+
+    `_interposition` names an uninterposed server in `authenticity.reason`,
+    which is the most widely read sentence this tool emits - so the alias out
+    of somebody's `.mcp.json` became publishable the moment that gap existed.
+    It is a private string in a private file: a client name, a project code
+    name, or a credential somebody pasted into a server name.
+    """
+    secret = SECRETS[label]
+    alias = re.sub(r"[^A-Za-z0-9_.@:+-]", "-", secret)[:100]
+    records = tmp_path / "records"
+    rewrite_config(
+        {"mcpServers": {alias: {"url": "http://127.0.0.1:1/mcp"}}},
+        record_dir=records,
+        session_id="s",
+    )
+
+    document = WatchSession(records, "s").assemble(child_returncode=0).to_dict()
+    blob = json.dumps(document, ensure_ascii=False)
+
+    assert document["authenticity"]["state"] == "not_established", (
+        "the uninterposed server still has to make the trace refuse, "
+        "or this test is passing on a document that says nothing"
+    )
+    for fragment in fragments(secret):
+        assert fragment not in blob, f"{label}: a server alias reached the trace"
+    assert_no_leak_shape(blob, f"a server alias carrying {label}")
+
+
+def test_the_alias_map_stays_beside_the_records_and_out_of_the_trace(tmp_path):
+    """The other half: the operator can still read their own trace. The
+    reference is in the acta, the alias it belongs to is in the manifest on
+    their machine, and the gap says where to look."""
+    records = tmp_path / "records"
+    rewrite_config(
+        {"mcpServers": {"payroll-prod": {"url": "http://127.0.0.1:1/mcp"}}},
+        record_dir=records,
+        session_id="s",
+    )
+
+    document = WatchSession(records, "s").assemble(child_returncode=0).to_dict()
+    manifest = json.loads((records / "interposition.json").read_text(encoding="utf-8"))
+
+    reference = manifest["servers"]["payroll-prod"]["ref"]
+    assert "payroll-prod" not in json.dumps(document, ensure_ascii=False)
+    assert reference in document["authenticity"]["reason"]
+    assert "interposition.json" in json.dumps(document["gaps"], ensure_ascii=False)

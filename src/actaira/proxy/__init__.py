@@ -33,7 +33,7 @@ from typing import Any
 
 from ..trace import CaptureLevel
 from ..trace.model import Gap, GapReason, Trace, TraceEvent
-from ..trace.redact import content_or_none, digest
+from ..trace.redact import content_or_none, digest, file_ref
 
 SOURCE = "mcp-proxy"
 # The one JSON-RPC method that is an act. `initialize`, `tools/list` and the
@@ -69,19 +69,30 @@ class Recorder:
         self.gaps: list[Gap] = []
         self.moments: list[str] = []
         self.closed = False
+        # A recorder whose sidecar has failed once cannot vouch for what came
+        # after, so it never writes an `end` again - see `_append`.
+        self.writes_failed = False
         if self.record_path is not None:
             self.record_path.parent.mkdir(parents=True, exist_ok=True)
             self.record_path.write_text("", encoding="utf-8")
 
     # -- what happened ----------------------------------------------------
 
-    def call(self, name: str, arguments: Any, at: str | None = None) -> TraceEvent:
+    def call(
+        self, name: str, arguments: Any, at: str | None = None, call_id: str | None = None
+    ) -> TraceEvent:
         """A tool call was seen going out. Its result is unrecorded until it
-        is recorded, which is what makes a lost answer visible."""
+        is recorded, which is what makes a lost answer visible.
+
+        `call_id` is the JSON-RPC id the agent used. It was dropped before, so
+        `gen_ai.tool.call.id` was null on every L1 event and a gap had nothing
+        to anchor to but its position - which is the defect `Gap` now refuses.
+        """
         event = TraceEvent(
             index=len(self.events),
             capture_level=self.capture_level,
             tool_name=name,
+            call_id=call_id,
             timestamp=at,
             arguments_sha256=digest(arguments),
             result_sha256=None,
@@ -118,13 +129,39 @@ class Recorder:
         self._append({"kind": "result", "event": event.to_dict()})
 
     def gap(self, reason: GapReason, detail: str) -> None:
-        gap = Gap(after_index=len(self.events) - 1, reason=reason, detail=detail)
+        after, unanchored = self._anchor()
+        gap = Gap(reason=reason, detail=detail, after=after, unanchored=unanchored)
         if gap.key() not in {existing.key() for existing in self.gaps}:
             self.gaps.append(gap)
-        self._append({"kind": "gap", "gap": gap.to_dict()})
+        self._append({"kind": "gap", "gap": gap.to_dict(self._index_of())})
+
+    def _anchor(self) -> tuple[str | None, str | None]:
+        if not self.events:
+            return None, "nothing had been observed when this hole was recorded"
+        identity = self.events[-1].identity()
+        if identity is None:
+            return None, "the last call observed before this hole carries no id of its own"
+        return identity, None
+
+    def _index_of(self) -> dict[str, int]:
+        positions: dict[str, int] = {}
+        for event in self.events:
+            identity = event.identity()
+            if identity is None:
+                continue
+            positions[identity] = -1 if identity in positions else event.index
+        return positions
 
     def close(self) -> None:
-        """The session ended and this recorder saw it end."""
+        """The session ended and this recorder saw it end.
+
+        A recorder that has already lost a write does not get to say this: it
+        cannot know what it failed to record after the loss, and the assembled
+        trace reads a part with no `end` as one that did not finish. That is
+        the route by which a sidecar failure survives the process that had it.
+        """
+        if self.writes_failed:
+            return
         self.closed = True
         self._append({"kind": "end"})
 
@@ -156,15 +193,23 @@ class Recorder:
                 handle.flush()
         except OSError:
             # A recorder that cannot write must not kill the agent's session.
-            # The hole this leaves is found at assembly time, where the parts
-            # are counted against what each proxy said it had seen.
-            self.gaps.append(
-                Gap(
-                    after_index=len(self.events) - 1,
-                    reason=GapReason.UNPARSABLE_RECORD,
-                    detail=(
-                        f"the record file {self.record_path} could not be written, so what this "
-                        "proxy observed after this point did not survive to be assembled"
-                    ),
-                )
+            # It also must not go on pretending it recorded the session: this
+            # gap lives in a process that is about to exit, and `assemble`
+            # reads only the file that just refused the write. So the flag is
+            # the thing that survives - `close` will not write an `end`, the
+            # part has no end, and the assembled trace is incomplete with
+            # `end_not_recorded` against it. The comment here used to claim
+            # assembly would find the hole; assembly could not see it at all.
+            self.writes_failed = True
+            after, unanchored = self._anchor()
+            gap = Gap(
+                reason=GapReason.UNPARSABLE_RECORD,
+                detail=(
+                    f"the record file {file_ref(self.record_path)} could not be written, so "
+                    "what this proxy observed after this point did not survive to be assembled"
+                ),
+                after=after,
+                unanchored=unanchored,
             )
+            if gap.key() not in {existing.key() for existing in self.gaps}:
+                self.gaps.append(gap)

@@ -41,7 +41,12 @@ from typing import Any
 
 from . import CaptureLevel, Summary
 from .model import Gap, GapReason, Trace, TraceEvent
-from .redact import content_or_none, digest
+from .redact import content_or_none, digest, failure_kind, file_ref
+
+UNPARSABLE_IS_UNANCHORED = (
+    "a record that will not parse names no call, and the events of a session are ordered "
+    "by their own timestamps afterwards, so there is no observed event this sits between"
+)
 
 SOURCE = "claude-code"
 AGENT = "claude-code"
@@ -145,14 +150,17 @@ class ClaudeCodeReader:
         moments: list[str] = []
         session_id = path.stem
 
+        collapsed = 0
         for rank, source in enumerate(sources):
             lines, source_gaps = self._lines(source)
             gaps.extend(source_gaps)
             moments.extend(
                 line["timestamp"] for line in lines if isinstance(line.get("timestamp"), str)
             )
-            events, seen, declared = self._events(lines)
+            events, seen, declared, repeats, contradictions = self._events(lines)
             versions |= seen
+            collapsed += repeats
+            gaps.extend(contradictions)
             if rank == 0 and declared:
                 session_id = declared
             for position, event in enumerate(events):
@@ -173,10 +181,26 @@ class ClaudeCodeReader:
             ended_at=max(moments) if moments else None,
             events=ordered,
             gaps=gaps,
-            # The files are finished artifacts and they were read to their end.
-            # That is what completeness means at this level, and it is a
-            # different question from authenticity, which L0 cannot answer.
-            end_recorded=True,
+            # Design note D-259. This passed `True` and called the files
+            # "finished artifacts". They are not: `scan` is built to run over
+            # `~/.claude` while the agent is using it, and the format has no
+            # end-of-session record to read - surveyed across this machine's
+            # transcripts, the last line of a session is `last-prompt`,
+            # `mode`, `assistant` or `bridge-session` depending on where the
+            # session stopped, and none of those means "ended".
+            #
+            # Rejected: reading the file's mtime, or treating "no line for an
+            # hour" as ended. Both are inferences about something nobody
+            # recorded, which is the third negative. An L0 trace is therefore
+            # always incomplete, and says why. That costs nothing it had:
+            # L0 could never assert authenticity either.
+            end_recorded=False,
+            end_detail=(
+                "this transcript format records no end of session, so nothing in the file "
+                "distinguishes a session that finished from one the agent is still writing "
+                "to. What came after the last event was not observed."
+            ),
+            duplicate_records_collapsed=collapsed,
         )
         trace.note_missing_results()
         return trace
@@ -188,7 +212,20 @@ class ClaudeCodeReader:
         try:
             raw = path.read_text(encoding="utf-8", errors="replace")
         except OSError as exc:
-            return [], [Gap(-1, GapReason.UNPARSABLE_RECORD, f"{path.name} could not be read: {exc}")]
+            # The name and the message both carry the path, and under
+            # `~/.claude/projects` the directory name IS the user's working
+            # directory. `redact` is the one place that decides what a failure
+            # may say: which file, as a digest, and which kind of failure.
+            return [], [
+                Gap(
+                    reason=GapReason.UNPARSABLE_RECORD,
+                    detail=(
+                        f"the session record {file_ref(path)} could not be read "
+                        f"({failure_kind(exc)}), so nothing it held was observed"
+                    ),
+                    unanchored="the file could not be opened, so no event in it was observed",
+                )
+            ]
         for number, text in enumerate(raw.splitlines(), start=1):
             if not text.strip():
                 continue
@@ -197,9 +234,12 @@ class ClaudeCodeReader:
             except ValueError as exc:
                 gaps.append(
                     Gap(
-                        after_index=len(lines) - 1,
                         reason=GapReason.UNPARSABLE_RECORD,
-                        detail=f"line {number} of {path.name} is not readable JSON: {exc}",
+                        detail=(
+                            f"record {number} of the session record {file_ref(path)} is not "
+                            f"readable JSON ({failure_kind(exc)})"
+                        ),
+                        unanchored=UNPARSABLE_IS_UNANCHORED,
                     )
                 )
                 continue
@@ -208,24 +248,49 @@ class ClaudeCodeReader:
             else:
                 gaps.append(
                     Gap(
-                        after_index=len(lines) - 1,
                         reason=GapReason.UNPARSABLE_RECORD,
-                        detail=f"line {number} of {path.name} is a {type(line).__name__}, not a record",
+                        detail=(
+                            f"record {number} of the session record {file_ref(path)} is a "
+                            f"{type(line).__name__}, not a record"
+                        ),
+                        unanchored=UNPARSABLE_IS_UNANCHORED,
                     )
                 )
         return lines, gaps
 
-    def _events(self, lines: list[dict[str, Any]]) -> tuple[list[TraceEvent], set[str], str]:
-        """One file's calls, with the results matched back onto them.
+    def _events(
+        self, lines: list[dict[str, Any]]
+    ) -> tuple[list[TraceEvent], set[str], str, int, list[Gap]]:
+        """One file's calls, ONE EVENT PER CALL ID, with the results on them.
 
-        Matched inside one file rather than across the session: a tool_use_id
-        is answered in the stream that issued it, and reaching across files to
-        pair one would invent a link the transcripts do not record.
+        Design note D-260. This made an event per `tool_use` BLOCK, and Claude
+        Code rewrites messages: compaction and resume put the same block back
+        into the file with the same `tool_use.id`. So a call that happened
+        once was in the document twice, each copy fully resulted and
+        indistinguishable from a real repeat, and a phase-2 rule asking how
+        many times a tool was used would have counted two for one.
+
+        No proportion here, for the reason `subagent_files` gives: it was
+        measured over one person's private transcripts, `make figures` cannot
+        re-measure somebody else's `~/.claude`, and rule 6 of CLAUDE.md is
+        that a published figure has a command behind it. The measurement is
+        in the commit that made this change.
+
+        A `tool_use.id` names a call in the model's own protocol, so it is the
+        identity, and the second record of one is a second RECORD, not a
+        second call. Rejected: keeping both and marking them; a consumer who
+        has to know to filter is a consumer who will not.
+
+        What is NOT collapsed is two records of one id that disagree. That is
+        the source contradicting itself, and choosing either one would be this
+        tool deciding what happened. It is a hole with both digests named.
         """
         events: list[TraceEvent] = []
         by_call: dict[str, TraceEvent] = {}
         versions: set[str] = set()
         declared_session = ""
+        collapsed = 0
+        contradictions: list[Gap] = []
 
         for line in lines:
             if isinstance(line.get("version"), str):
@@ -235,6 +300,24 @@ class ClaudeCodeReader:
 
             for block in self._calls(line):
                 event = self._event(len(events), block, line)
+                known = by_call.get(event.call_id) if event.call_id else None
+                if known is not None:
+                    collapsed += 1
+                    if known.arguments_sha256 != event.arguments_sha256:
+                        contradictions.append(
+                            Gap(
+                                reason=GapReason.SOURCE_CONTRADICTION,
+                                detail=(
+                                    f"the transcript records call {known.call_id} to "
+                                    f"{known.tool_name} more than once with different "
+                                    f"arguments ({known.arguments_sha256[:12]} and "
+                                    f"{event.arguments_sha256[:12]}). This document keeps the "
+                                    "first record and does not decide which of them happened."
+                                ),
+                                after=known.identity(),
+                            )
+                        )
+                    continue
                 events.append(event)
                 if event.call_id:
                     by_call[event.call_id] = event
@@ -246,12 +329,27 @@ class ClaudeCodeReader:
                 if target is None:
                     continue
                 payload = block.get("content")
-                target.result_sha256 = digest(payload)
+                recorded = digest(payload)
+                if target.result_sha256 is not None and target.result_sha256 != recorded:
+                    contradictions.append(
+                        Gap(
+                            reason=GapReason.SOURCE_CONTRADICTION,
+                            detail=(
+                                f"the transcript records more than one result for call "
+                                f"{target.call_id} to {target.tool_name}, and they differ "
+                                f"({target.result_sha256[:12]} and {recorded[:12]}). This "
+                                "document keeps the first and does not decide between them."
+                            ),
+                            after=target.identity(),
+                        )
+                    )
+                    continue
+                target.result_sha256 = recorded
                 target.result = content_or_none(payload, self.with_content)
                 if block.get("is_error"):
                     target.error_type = "tool_error"
 
-        return events, versions, declared_session
+        return events, versions, declared_session, collapsed, contradictions
 
     def _calls(self, line: dict[str, Any]) -> list[dict[str, Any]]:
         """Tool calls in either shape: nested in `message.content`, or the
@@ -269,7 +367,7 @@ class ClaudeCodeReader:
             index=index,
             capture_level=CaptureLevel.L0,
             tool_name=str(block.get("name", "")),
-            call_id=block.get("id"),
+            call_id=str(block["id"]) if block.get("id") else None,
             timestamp=line.get("timestamp"),
             arguments_sha256=digest(arguments),
             result_sha256=None,
