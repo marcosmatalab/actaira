@@ -47,18 +47,32 @@
       }
     },
     "started_at": {
-      "type": ["string", "null"]
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "ended_at": {
-      "type": ["string", "null"]
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "authenticity": {
       "type": "object",
       "additionalProperties": true,
-      "required": ["state", "applies", "reason"],
+      "required": [
+        "state",
+        "applies",
+        "reason"
+      ],
       "properties": {
         "state": {
-          "enum": ["not_evaluated", "established", "not_established"],
+          "enum": [
+            "not_evaluated",
+            "established",
+            "not_established"
+          ],
           "description": "not_evaluated means the question does not apply at this capture level, which is the L0 case: the audited agent wrote the transcript itself. not_established means it applied and could not be answered, which is a failure. The two are kept apart because conflating them is how a tool ends up claiming what it never observed."
         },
         "applies": {
@@ -72,10 +86,13 @@
     },
     "complete": {
       "type": "boolean",
-      "description": "True only when something recorded that the session ended AND nothing recorded a hole. Failure is the default: an absence of bad news is not good news."
+      "description": "True only when something recorded that the session ended AND nothing recorded a hole. Failure is the default: an absence of bad news is not good news. A capture level whose format has no end-of-session record therefore never produces a complete trace, and says so in an `end_not_recorded` hole rather than assuming the file was finished."
     },
     "child_returncode": {
-      "type": ["integer", "null"],
+      "type": [
+        "integer",
+        "null"
+      ],
       "description": "The exit code of the watched command, when there was one. Deliberately not part of completeness: a trace of a failed run is a complete trace of a failed run."
     },
     "events": {
@@ -106,11 +123,21 @@
         }
       },
       "description": "What this capture level cannot see at all, declared by the level rather than inferred per session. A question outside the level is unanswerable, never answered False."
+    },
+    "duplicate_records_collapsed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How many records the source wrote for a call it had already recorded, collapsed onto the one event that call is. A fact about the source that this document does not otherwise carry, because the collapsed records are not in it. Absent means nobody counted, which is not zero."
     }
   },
   "$defs": {
     "capture_level": {
-      "enum": ["L0", "L1", "L2", "L3"],
+      "enum": [
+        "L0",
+        "L1",
+        "L2",
+        "L3"
+      ],
       "description": "L0 the agent's own transcript; L1 an MCP proxy; L2 a network proxy; L3 a seccomp sandbox. L2 and L3 are named so a rule can refuse by name before they exist."
     },
     "event": {
@@ -139,25 +166,40 @@
           "type": "string"
         },
         "gen_ai.tool.call.id": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "gen_ai.conversation.id": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "timestamp": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "arguments_sha256": {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$"
         },
         "result_sha256": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "pattern": "^[0-9a-f]{64}$",
           "description": "Null means the result was never recorded, which is a gap, and not that the result was empty."
         },
         "error.type": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "description": "Set when the tool itself reported a failure. An observed failure is not a missing observation."
         },
         "sidechain": {
@@ -175,11 +217,15 @@
     "gap": {
       "type": "object",
       "additionalProperties": true,
-      "required": ["after_index", "reason", "detail"],
+      "required": [
+        "reason",
+        "detail"
+      ],
       "properties": {
         "after_index": {
           "type": "integer",
-          "description": "The event this hole sits after; -1 when it precedes every event."
+          "minimum": 0,
+          "description": "Where `after_event` sits in this document's events. Present only when the identity resolves to exactly one event here; otherwise `after_index_absent` is present instead. Never -1: a hole before every event has no index, it has a reason."
         },
         "reason": {
           "enum": [
@@ -191,14 +237,25 @@
             "upstream_timeout",
             "end_not_recorded",
             "result_not_recorded",
-            "unparsable_record"
+            "unparsable_record",
+            "not_interposed",
+            "source_contradiction"
           ],
           "description": "A closed vocabulary. An open one is how `unknown` becomes the commonest value."
         },
         "detail": {
           "type": "string"
+        },
+        "after_event": {
+          "type": "string",
+          "description": "The `gen_ai.tool.call.id` of the event this hole sits after. Absent when the hole is not attributable to a position between two observed events."
+        },
+        "after_index_absent": {
+          "type": "string",
+          "description": "Why this hole cites no position. Present exactly when `after_index` is not, so a consumer can never read a missing anchor as position zero."
         }
-      }
+      },
+      "description": "A hole, anchored to the IDENTITY of the event it follows rather than to a position. The position is resolved against this document's events when the document is written, so it cannot go stale when the events are ordered; when there is no event to anchor to, `after_index` is ABSENT and `after_index_absent` says why. An invented position is indistinguishable from a measured one."
     }
   }
 }

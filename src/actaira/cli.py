@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -267,24 +268,57 @@ def run_verify(args: argparse.Namespace, catalog: Catalog) -> int:
 # ---------------------------------------------------------------------------
 
 
+SAFE_NAME = re.compile(r"[^A-Za-z0-9._-]")
+
+
+def _file_stem(session_id: str, taken: dict[str, int]) -> str:
+    """A filename from a session id, which is a string out of a transcript.
+
+    Design note D-262. This was `f"{trace.session_id}.json"` and the id is
+    whatever the file being read put in its `sessionId`. Two of those were
+    true at once: a session declaring `../escaped` wrote OUTSIDE `--out`, and
+    two sessions declaring the same id wrote the same file, so one of them
+    silently was not there while the command said it had written both.
+
+    Rejected: refusing to write a session whose id will not do as a filename.
+    The id is not the session's fault and dropping it is the same silence in
+    a different coat. It is sanitised, and a collision is NUMBERED rather than
+    overwritten - what is lost is a name, never a trace.
+    """
+    cleaned = SAFE_NAME.sub("_", session_id).strip(".") or "unnamed-session"
+    cleaned = cleaned[:120]
+    taken[cleaned] = taken.get(cleaned, 0) + 1
+    return cleaned if taken[cleaned] == 1 else f"{cleaned}-{taken[cleaned]}"
+
+
 def _write_traces(traces, out: Path) -> list[Path]:
     """One canonical document per session, plus its digest beside it.
 
     Beside rather than inside: a digest cannot be a field of the thing it is
     the digest of. Phase 3 is what signs the pair.
+
+    `index.json` says which file holds which session, because after sanitising
+    the filename is no longer the id and a reader needs the mapping stated
+    rather than guessed at.
     """
     out.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
+    index: dict[str, str] = {}
+    taken: dict[str, int] = {}
     for trace in traces:
         document = trace.to_dict()
-        target = out / f"{trace.session_id}.json"
+        stem = _file_stem(trace.session_id, taken)
+        target = out / f"{stem}.json"
         target.write_text(
             json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False), encoding="utf-8"
         )
-        (out / f"{trace.session_id}.sha256").write_text(
-            trace_digest(document) + "\n", encoding="utf-8"
-        )
+        (out / f"{stem}.sha256").write_text(trace_digest(document) + "\n", encoding="utf-8")
+        index[target.name] = trace.session_id
         written.append(target)
+    (out / "index.json").write_text(
+        json.dumps({"sessions": index}, indent=2, sort_keys=True, ensure_ascii=False),
+        encoding="utf-8",
+    )
     return written
 
 

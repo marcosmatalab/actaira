@@ -94,21 +94,78 @@ class GapReason(str, Enum):
     END_NOT_RECORDED = "end_not_recorded"
     RESULT_NOT_RECORDED = "result_not_recorded"
     UNPARSABLE_RECORD = "unparsable_record"
+    NOT_INTERPOSED = "not_interposed"
+    SOURCE_CONTRADICTION = "source_contradiction"
 
 
 @dataclass
 class Gap:
-    """Something that happened and was not observed, with where and why."""
+    """Something that happened and was not observed, with where and why.
 
-    after_index: int
+    Design note D-258. `after_index` used to be a field somebody filled in,
+    and all three writers filled it with a count of LINES read so far - which
+    the schema publishes as "the event this hole sits after". In the L0 reader
+    it was worse than wrong: the events are re-sorted and re-indexed after the
+    gaps are built, so even a correct index would have gone stale. This is the
+    same defect as the one phase 0.1 took out of `merkle.verify_proof`:
+    something identified by where it sits instead of by what it is.
+
+    So a gap stores the IDENTITY of the event it follows, and the index is
+    resolved at serialisation time against the ordered events. Rejected:
+    keeping the integer and fixing the three call sites. `parse_trace` already
+    refuses a hole in `event.index` because it would be "a citation nobody can
+    follow"; a field that can only be right if three writers each remember the
+    same convention is that same citation with nobody checking it.
+
+    When there is no event to anchor to, the field is ABSENT with its reason
+    beside it. Never -1, never 0: an invented position is indistinguishable
+    from a measured one, which is the whole argument of this repository.
+    """
+
     reason: GapReason
     detail: str
+    after: str | None = None
+    unanchored: str | None = None
 
-    def to_dict(self) -> dict[str, Any]:
-        return {"after_index": self.after_index, "reason": self.reason.value, "detail": self.detail}
+    UNANCHORED_BY_DEFAULT = (
+        "this hole is not attributable to a position between two observed events"
+    )
 
-    def key(self) -> tuple[int, str]:
-        return (self.after_index, self.reason.value)
+    def to_dict(self, index_of: dict[str, int] | None = None) -> dict[str, Any]:
+        document: dict[str, Any] = {"reason": self.reason.value, "detail": self.detail}
+        if self.after is not None:
+            document["after_event"] = self.after
+        resolved, absent = self._resolve(index_of or {})
+        if resolved is None:
+            document["after_index_absent"] = absent
+        else:
+            document["after_index"] = resolved
+        return document
+
+    def _resolve(self, index_of: dict[str, int]) -> tuple[int | None, str]:
+        if self.after is None:
+            return None, self.unanchored or self.UNANCHORED_BY_DEFAULT
+        if self.after not in index_of:
+            return None, (
+                "the event this hole follows carries an identity that no event in this "
+                "document carries, so there is no position to cite"
+            )
+        position = index_of[self.after]
+        if position < 0:
+            return None, (
+                "more than one event in this document carries that identity, so a position "
+                "cited from it would name an arbitrary one of them"
+            )
+        return position, ""
+
+    def key(self) -> tuple[str, str, str | None, str | None]:
+        """What makes two gaps the same gap: all of it.
+
+        Keyed on `(after_index, reason)` before, so two different failures
+        after the same event collapsed into one and the second one's sentence
+        - the one that said what actually happened - was dropped.
+        """
+        return (self.reason.value, self.detail, self.after, self.unanchored)
 
 
 @dataclass
@@ -148,6 +205,15 @@ class TraceEvent:
         if self.result is not None:
             document["gen_ai.tool.call.result"] = self.result
         return document
+
+    def identity(self) -> str | None:
+        """What names this event independently of where it sits.
+
+        The tool call id the source issued. `None` when the source recorded
+        none, and a gap that would have anchored to such an event says so
+        rather than falling back to its position - see `Gap`.
+        """
+        return self.call_id or None
 
     @classmethod
     def from_dict(cls, document: dict[str, Any]) -> TraceEvent:
@@ -237,18 +303,38 @@ class Trace:
     events: list[TraceEvent] = field(default_factory=list)
     gaps: list[Gap] = field(default_factory=list)
     end_recorded: bool = False
+    # Why nothing recorded the end, when the source is one that structurally
+    # cannot. Set by the reader; the generic sentence is used when it is not.
+    end_detail: str | None = None
     child_returncode: int | None = None
+    # How many records the source wrote twice for one call, collapsed by
+    # `claude_code._events`. `None` means nobody counted, which is not zero.
+    duplicate_records_collapsed: int | None = None
 
     # -- gaps -------------------------------------------------------------
 
-    def add_gap(self, reason: GapReason, detail: str, after_index: int | None = None) -> None:
-        gap = Gap(
-            after_index=len(self.events) - 1 if after_index is None else after_index,
-            reason=reason,
-            detail=detail,
-        )
+    def add_gap(
+        self,
+        reason: GapReason,
+        detail: str,
+        after: str | None = None,
+        unanchored: str | None = None,
+    ) -> None:
+        gap = Gap(reason=reason, detail=detail, after=after, unanchored=unanchored)
         if gap.key() not in {existing.key() for existing in self.gaps}:
             self.gaps.append(gap)
+
+    def last_identity(self) -> tuple[str | None, str | None]:
+        """The identity of the last observed event, or why there is not one."""
+        if not self.events:
+            return None, "nothing had been observed when this hole was recorded"
+        identity = self.events[-1].identity()
+        if identity is None:
+            return None, (
+                "the last event observed before this hole carries no call id, so there is "
+                "nothing to anchor it to that survives the document being ordered"
+            )
+        return identity, None
 
     def note_missing_results(self) -> None:
         """Every call whose result never arrived becomes a declared hole.
@@ -261,7 +347,12 @@ class Trace:
                 self.add_gap(
                     GapReason.RESULT_NOT_RECORDED,
                     f"the call to {event.tool_name} has no recorded result",
-                    after_index=event.index,
+                    after=event.identity(),
+                    unanchored=(
+                        None
+                        if event.identity()
+                        else "the call with no result carries no call id of its own"
+                    ),
                 )
 
     def _all_gaps(self) -> list[Gap]:
@@ -277,11 +368,14 @@ class Trace:
         )
         derived.note_missing_results()
         if not self.end_recorded:
+            after, unanchored = derived.last_identity()
             derived.add_gap(
                 GapReason.END_NOT_RECORDED,
-                "nothing recorded the end of this session, so what came after the last "
+                self.end_detail
+                or "nothing recorded the end of this session, so what came after the last "
                 "event was not observed",
-                after_index=len(self.events) - 1,
+                after=after,
+                unanchored=unanchored,
             )
         return sorted(derived.gaps, key=Gap.key)
 
@@ -291,13 +385,21 @@ class Trace:
         if self.capture_level is CaptureLevel.L0:
             return {"state": "not_evaluated", "applies": False, "reason": NOT_EVALUATED_REASON}
         if gaps:
+            # The reasons, named, rather than a count of them. A count is a
+            # summary of a list the document already carries in full, and the
+            # schema's own sentence is "nothing here is a summary".
+            named = ", ".join(sorted({gap.reason.value for gap in gaps}))
+            unobserved = sorted(
+                {gap.detail for gap in gaps if gap.reason is GapReason.NOT_INTERPOSED}
+            )
+            about = f" What the agent reached without this tool seeing it: {'; '.join(unobserved)}." if unobserved else ""
             return {
                 "state": "not_established",
                 "applies": True,
                 "reason": (
                     f"capture level {self.capture_level.value} observes the process from outside, "
-                    f"so authenticity applies here - and {len(gaps)} gap(s) mean it was not "
-                    "established for this session."
+                    f"so authenticity applies here - and this session recorded holes of these "
+                    f"kinds, so it was not established: {named}.{about}"
                 ),
             }
         return {
@@ -309,8 +411,24 @@ class Trace:
             ),
         }
 
+    def index_of_identity(self) -> dict[str, int]:
+        """Every event identity to its position, and -1 where two share one.
+
+        -1 rather than a silent first-match: an identity two events carry is
+        an identity that cites neither of them, and `Gap._resolve` turns that
+        into an absent field with its reason.
+        """
+        positions: dict[str, int] = {}
+        for event in self.events:
+            identity = event.identity()
+            if identity is None:
+                continue
+            positions[identity] = -1 if identity in positions else event.index
+        return positions
+
     def to_dict(self) -> dict[str, Any]:
         gaps = self._all_gaps()
+        index_of = self.index_of_identity()
         document: dict[str, Any] = {
             "schema_version": SCHEMA_VERSION,
             "session_id": self.session_id,
@@ -322,11 +440,21 @@ class Trace:
             "authenticity": self.authenticity(gaps),
             "complete": not gaps,
             "events": [event.to_dict() for event in self.events],
-            "gaps": [gap.to_dict() for gap in gaps],
+            "gaps": [gap.to_dict(index_of) for gap in gaps],
             "blind_spots": blind_spots_of(self.capture_level),
         }
         if self.child_returncode is not None:
             document["child_returncode"] = self.child_returncode
+        if self.duplicate_records_collapsed is not None:
+            # A MEASUREMENT OF THE SOURCE, NOT A SCORE OF THE RUN: it counts
+            # records this reader collapsed, it is not derived from anything
+            # about the agent's behaviour, and nothing aggregates it with
+            # anything else - so the first negative does not reach it.
+            # It travels because the records it counts are not otherwise
+            # recoverable from this document: they are not in it. That is what
+            # separates it from the gap count taken out of `authenticity`
+            # above, which summarised a list the document already carries.
+            document["duplicate_records_collapsed"] = self.duplicate_records_collapsed
         return document
 
 
@@ -353,9 +481,10 @@ def parse_trace(document: dict[str, Any]) -> Trace:
 
     gaps = [
         Gap(
-            after_index=int(row.get("after_index", -1)),
             reason=GapReason(row.get("reason")),
             detail=str(row.get("detail", "")),
+            after=row.get("after_event"),
+            unanchored=row.get("after_index_absent"),
         )
         for row in document.get("gaps", [])
     ]
@@ -372,6 +501,7 @@ def parse_trace(document: dict[str, Any]) -> Trace:
         gaps=gaps,
         end_recorded=not any(gap.reason is GapReason.END_NOT_RECORDED for gap in gaps),
         child_returncode=document.get("child_returncode"),
+        duplicate_records_collapsed=document.get("duplicate_records_collapsed"),
     )
 
 

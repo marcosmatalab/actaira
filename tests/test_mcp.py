@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import zipfile
 
 import pytest
 
@@ -172,3 +173,77 @@ def test_the_server_prints_nothing_on_stdout_that_is_not_a_response():
     for line in run.stdout.splitlines():
         if line.strip():
             json.loads(line)
+
+
+# ---------------------------------------------------------------------------
+# `state` and `ok` are the same fact, and the property says so
+# ---------------------------------------------------------------------------
+
+
+def _verify_payloads(tmp_path) -> list[tuple[str, dict]]:
+    """One payload per way `actaira_verify` can come back, named.
+
+    Built as a corpus rather than asserted one case at a time, for the reason
+    `test_the_corpus_is_not_all_failures` gives next door: a property stated
+    over three examples is three examples.
+    """
+    from actaira.attest import chain
+    from support.reports import make_report
+
+    report = make_report(tmp_path / "clean.safetensors")
+    entries: list[chain.Entry] = []
+    chain.append(entries, report.sha256, report.to_dict(), timestamp="2026-01-01T00:00:00")
+    healthy = package.write_package(tmp_path / "healthy.zip", entries, signing.generate())
+
+    tampered = tmp_path / "tampered.zip"
+    with zipfile.ZipFile(tampered, "w") as archive:
+        archive.writestr("manifest.json", '{"not": "a package"}')
+
+    cases = {
+        "a package that verifies": str(healthy.path),
+        "a package that does not": str(tampered),
+        "a path that is not a package at all": str(tmp_path / "absent.zip"),
+    }
+    return [
+        (name, json.loads(_call("actaira_verify", {"path": path})["result"]["content"][0]["text"]))
+        for name, path in cases.items()
+    ]
+
+
+def test_state_says_verified_if_and_only_if_the_package_verified(tmp_path):
+    """The bicondition, which is the whole of the defect.
+
+    `payload["state"] = "verified"` sat outside every condition, so a tampered
+    package came back `{"state": "verified", "ok": false}`. `ok` was right and
+    `isError` was right; the field whose NAME invites a caller to read it was
+    the one that lied, on the one surface other people's agents call directly.
+
+    Stated as `state == "verified"` exactly when `ok`, in both directions, for
+    the same reason phase 0.1 wrote `recorded is applies` rather than two
+    assertions: an implication in one direction is satisfied by a field that
+    is always the same word.
+    """
+    payloads = _verify_payloads(tmp_path)
+
+    for name, payload in payloads:
+        assert (payload["state"] == "verified") == (payload["ok"] is True), (
+            f"{name}: state is {payload['state']!r} and ok is {payload['ok']!r}"
+        )
+        assert payload["state"] in {"verified", "not_verified"}, name
+    # The guard on the property: a corpus that verified nothing, or one that
+    # verified everything, would satisfy the bicondition and prove neither
+    # direction of it.
+    outcomes = {payload["ok"] for _name, payload in payloads}
+    assert outcomes == {True, False}, "the corpus has to reach both answers"
+
+
+def test_a_package_that_does_not_verify_is_never_reported_as_verified(tmp_path):
+    """The direction that was broken, on its own, so a later change that makes
+    `state` always say `not_verified` cannot pass the bicondition above and
+    this one at the same time."""
+    payloads = _verify_payloads(tmp_path)
+
+    for name, payload in payloads:
+        if payload["ok"] is not True:
+            assert payload["state"] == "not_verified", name
+            assert payload["problems"], f"{name}: a refusal with no reason is not a refusal"
