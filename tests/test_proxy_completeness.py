@@ -29,13 +29,53 @@ from actaira.proxy.stdio import StdioProxy
 from actaira.trace import CaptureLevel
 from actaira.trace.model import GapReason, Trace
 
+# What a client speaking MCP 2026-07-28 sends. The `_meta` block is not
+# decoration: SEP-2575 removed the handshake, so the protocol revision and the
+# client travel on every request, and SEP-414 puts the trace context that
+# replaced the removed session id (SEP-2567) in the same place. A call without
+# it is `BARE_CALL` below, and it is a scenario of its own.
+META = {
+    "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+    "io.modelcontextprotocol/clientInfo": {"name": "actaira-test", "version": "1"},
+    "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+}
 CALL = {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+        "name": "actaira_verify",
+        "arguments": {"path": "receipt.zip"},
+        "_meta": META,
+    },
+}
+SECOND_CALL = {**CALL, "id": 2}
+# The same call from a client that declares nothing about itself, which is
+# every client that has not moved to 2026-07-28 yet.
+BARE_CALL = {
     "jsonrpc": "2.0",
     "id": 1,
     "method": "tools/call",
     "params": {"name": "actaira_verify", "arguments": {"path": "receipt.zip"}},
 }
-SECOND_CALL = {**CALL, "id": 2}
+# One with a revision but no correlation key: the half of the loss that
+# SEP-2567 causes on its own.
+UNCORRELATED_CALL = {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+        "name": "actaira_verify",
+        "arguments": {"path": "receipt.zip"},
+        "_meta": {"io.modelcontextprotocol/protocolVersion": "2026-07-28"},
+    },
+}
+# What a 2026-07-28 server puts in a result: its own identity and the required
+# `resultType` (SEP-2322, SEP-2575).
+SERVER_META = (
+    "{'io.modelcontextprotocol/protocolVersion': '2026-07-28',"
+    " 'io.modelcontextprotocol/serverInfo': {'name': 'fixture-server', 'version': '1'}}"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -61,7 +101,18 @@ HEALTHY_BODY = (
     "for line in sys.stdin:\n"
     "    if not line.strip():\n"
     "        continue\n"
-    "    reply(json.loads(line), {'content': [{'type': 'text', 'text': 'ok'}]})\n"
+    "    reply(json.loads(line), {'content': [{'type': 'text', 'text': 'ok'}],\n"
+    "                             'resultType': 'complete',\n"
+    "                             '_meta': " + SERVER_META + "})\n"
+)
+# Answers every call with the interim result of a multi round-trip request and
+# no handle to pair the retry by (SEP-2322).
+PAUSES_WITHOUT_A_HANDLE_BODY = (
+    "for line in sys.stdin:\n"
+    "    if not line.strip():\n"
+    "        continue\n"
+    "    reply(json.loads(line), {'resultType': 'input_required',\n"
+    "                             'content': [{'type': 'text', 'text': 'who?'}]})\n"
 )
 DIES_AFTER_ONE_BODY = (
     "first = True\n"
@@ -111,8 +162,28 @@ class _Handler(BaseHTTPRequestHandler):
             self.close_connection = True
             self.wfile.close()
             return
+        if self.behaviour == "half":
+            # A stream that began and did not finish, which is what SEP-2575
+            # leaves unrecoverable now that resumability and redelivery are
+            # gone. Distinct from "cut", where nothing arrived at all.
+            body = b'{"jsonrpc": "2.0", "id": 1, "resu'
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         payload = json.dumps(
-            {"jsonrpc": "2.0", "id": 1, "result": {"content": [{"type": "text", "text": "ok"}]}}
+            {"jsonrpc": "2.0", "id": 1, "result": {
+                "content": [{"type": "text", "text": "ok"}],
+                "resultType": "complete",
+                "_meta": {
+                    "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                    "io.modelcontextprotocol/serverInfo": {
+                        "name": "fixture-server", "version": "1"
+                    },
+                },
+            }}
         ).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
@@ -206,6 +277,30 @@ SCENARIOS = [
         lambda tmp_path, http: _stdio(tmp_path, NEVER_ANSWERS_BODY),
         GapReason.UPSTREAM_TIMEOUT,
     ),
+    # The four MCP 2026-07-28 brought with it. Each is something a message used
+    # to carry once per session and now has to carry for itself, or something
+    # the revision made unrecoverable - so each is a way of losing a fact that
+    # did not exist as a way of losing anything before.
+    Scenario(
+        "the call declared no protocol revision",
+        lambda tmp_path, http: _stdio(tmp_path, HEALTHY_BODY, calls=(BARE_CALL,)),
+        GapReason.PROTOCOL_VERSION_UNKNOWN,
+    ),
+    Scenario(
+        "the call carried no correlation key",
+        lambda tmp_path, http: _stdio(tmp_path, HEALTHY_BODY, calls=(UNCORRELATED_CALL,)),
+        GapReason.NO_CORRELATION_KEY,
+    ),
+    Scenario(
+        "the server paused the call without a handle to resume it by",
+        lambda tmp_path, http: _stdio(tmp_path, PAUSES_WITHOUT_A_HANDLE_BODY),
+        GapReason.INPUT_STATE_ABSENT,
+    ),
+    Scenario(
+        "the HTTP response stream broke part way through",
+        lambda tmp_path, http: _http(*http, "half"),
+        GapReason.STREAM_BROKEN,
+    ),
 ]
 
 HEALTHY = Scenario(
@@ -298,7 +393,13 @@ def test_every_gap_reason_in_the_vocabulary_is_reachable():
     # test_scan_claude_code.py.
     declarative = {GapReason.END_NOT_RECORDED, GapReason.RESULT_NOT_RECORDED,
                    GapReason.UNPARSABLE_RECORD, GapReason.NOT_INTERPOSED,
-                   GapReason.SOURCE_CONTRADICTION}
+                   GapReason.SOURCE_CONTRADICTION,
+                   # The three that are statements about the RECORDS rather
+                   # than about one message, so no single proxy failure reaches
+                   # them. Each has its own test in
+                   # tests/test_proxy_http_interposition.py.
+                   GapReason.DISCOVER_UNAVAILABLE, GapReason.FOREIGN_RECORDS,
+                   GapReason.ORDER_NOT_OBSERVED}
 
     assert covered | declarative == set(GapReason), (
         f"unreachable gap reasons: {sorted(reason.value for reason in set(GapReason) - covered - declarative)}"

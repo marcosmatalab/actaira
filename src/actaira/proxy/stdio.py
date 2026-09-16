@@ -27,7 +27,7 @@ from typing import Any
 
 from ..trace.model import GapReason
 from ..trace.redact import failure_kind
-from . import TOOL_CALL, Recorder
+from . import TOOL_CALL, Recorder, protocol
 
 
 def _now() -> str:
@@ -188,6 +188,10 @@ class StdioProxy:
                 params.get("arguments"),
                 at=_now(),
                 call_id=str(message.get("id")),
+                # The whole message, because MCP 2026-07-28 puts the revision,
+                # the client and the correlation key in its `_meta` rather than
+                # in a handshake there no longer is - see D-264.
+                message=message,
             )
 
         try:
@@ -207,6 +211,13 @@ class StdioProxy:
 
         if event is not None:
             self.recorder.settle(event, response if isinstance(response, dict) else {})
+        elif message.get("method") == protocol.DISCOVER and isinstance(response, dict):
+            # Not an event: `server/discover` is the agent finding out what
+            # exists, like `tools/list`, and recording it as an act would put a
+            # position in the index no rule can cite. It is recorded as the tool
+            # INVENTORY at the moment of the run, which is what the contract is
+            # later derived against.
+            self.recorder.discover(response)
         return response
 
     def _answer_to(self, message: dict[str, Any]) -> dict[str, Any] | None:
@@ -354,11 +365,17 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - driven as 
     parser.add_argument("--session", default="")
     parser.add_argument("--server", default="")
     parser.add_argument("--with-content", action="store_true")
+    parser.add_argument("--salt", default="")
+    parser.add_argument("--run", default="")
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
     command = [item for item in args.command if item != "--"]
     recorder = Recorder(
-        session_id=args.session, record_path=args.record, with_content=args.with_content
+        session_id=args.session,
+        record_path=args.record,
+        with_content=args.with_content,
+        salt=args.salt or None,
+        run_id=args.run,
     )
     return StdioProxy(command, recorder).serve()
 

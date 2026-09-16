@@ -25,6 +25,7 @@ import os
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 from . import __version__
 from .attest import keyring
@@ -291,7 +292,7 @@ def _file_stem(session_id: str, taken: dict[str, int]) -> str:
     return cleaned if taken[cleaned] == 1 else f"{cleaned}-{taken[cleaned]}"
 
 
-def _write_traces(traces, out: Path) -> list[Path]:
+def _write_traces(traces, out: Path, salt: str | None = None) -> list[Path]:
     """One canonical document per session, plus its digest beside it.
 
     Beside rather than inside: a digest cannot be a field of the thing it is
@@ -315,11 +316,56 @@ def _write_traces(traces, out: Path) -> list[Path]:
         (out / f"{stem}.sha256").write_text(trace_digest(document) + "\n", encoding="utf-8")
         index[target.name] = trace.session_id
         written.append(target)
-    (out / "index.json").write_text(
-        json.dumps({"sessions": index}, indent=2, sort_keys=True, ensure_ascii=False),
+    # The salt goes in beside the map for the same reason the alias map goes in
+    # `interposition.json`: it is what lets the operator resolve a reference in
+    # their own trace, it is what makes that reference unguessable to everybody
+    # else (D-263), and it must therefore never be inside a trace document.
+    document: dict[str, Any] = {"sessions": index}
+    if salt is not None:
+        document["redaction_salt"] = salt
+    (out / INDEX_FILE).write_text(
+        json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False),
         encoding="utf-8",
     )
     return written
+
+
+INDEX_FILE = "index.json"
+
+
+def _scan_salt(out: Path | None) -> str | None:
+    """The per-scan salt for `redact.file_ref`, kept beside what it references.
+
+    Design note D-263 in one place on the L0 side. The salt makes a reference
+    unguessable, and that costs reproducibility unless it is KEPT: so it is
+    written into the output directory the first time and read back after, and
+    re-scanning the same sessions into the same directory therefore produces
+    the same bytes. It is the same bargain `interposition.json` strikes on the
+    `watch` side, in the only other place this tool has to make one.
+
+    It lives in `index.json`, which is already the operator-side key to this
+    output - the map from filename back to session id - rather than in a file
+    of its own, because a second sidecar is a second thing to copy, to ignore
+    and to lose.
+
+    A scan with no `--out` has nowhere to keep it. It gets none, and a gap
+    about a file then names no reference at all - rejected: minting one
+    anyway, which would publish a reference that nobody, including the
+    operator, could ever resolve.
+    """
+    from .trace.redact import new_salt
+
+    if out is None:
+        return None
+    path = out / INDEX_FILE
+    if path.is_file():
+        try:
+            kept = json.loads(path.read_text(encoding="utf-8")).get("redaction_salt")
+        except (OSError, ValueError):
+            kept = None
+        if isinstance(kept, str) and kept:
+            return kept
+    return new_salt()
 
 
 def run_scan(args: argparse.Namespace, catalog: Catalog) -> int:
@@ -332,6 +378,7 @@ def run_scan(args: argparse.Namespace, catalog: Catalog) -> int:
     """
     from .trace.claude_code import demo_trace
 
+    salt: str | None = None
     if args.demo:
         traces = [demo_trace(with_content=args.with_content)]
         print(catalog.line("scan.demo"))
@@ -341,7 +388,8 @@ def run_scan(args: argparse.Namespace, catalog: Catalog) -> int:
         except (KeyError, NotImplementedError) as exc:
             print(str(exc), file=sys.stderr)
             return EXIT_USAGE
-        reader = reader_class(home=args.home, with_content=args.with_content)
+        salt = _scan_salt(args.out)
+        reader = reader_class(home=args.home, with_content=args.with_content, salt=salt)
         traces = reader.read_all()
 
     documents = [trace.to_dict() for trace in traces]
@@ -372,7 +420,7 @@ def run_scan(args: argparse.Namespace, catalog: Catalog) -> int:
         print(catalog.line("scan.not_evidence"))
 
     if args.out is not None:
-        written = _write_traces(traces, args.out)
+        written = _write_traces(traces, args.out, salt=None if args.demo else salt)
         print(catalog.line("scan.written", count=len(written), path=str(args.out)))
     return EXIT_OK
 

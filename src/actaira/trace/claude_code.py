@@ -79,9 +79,21 @@ def _blocks(line: dict[str, Any]) -> list[dict[str, Any]]:
 class ClaudeCodeReader:
     """One L0 trace per session file, in the order the file records them."""
 
-    def __init__(self, home: Path | None = None, with_content: bool = False) -> None:
+    def __init__(
+        self,
+        home: Path | None = None,
+        with_content: bool = False,
+        salt: str | None = None,
+    ) -> None:
         self.home = Path(home) if home is not None else default_home()
         self.with_content = with_content
+        # The operator's own per-scan salt for `redact.file_ref` (D-263). None
+        # means this reader was given none, and then a gap about a file names
+        # no reference at all rather than an unsalted digest of its path -
+        # which is a dictionary lookup for anybody who can guess the path.
+        # `cli.run_scan` keeps one beside the traces it writes, so re-scanning
+        # into the same output produces the same bytes.
+        self.salt = salt
 
     # -- finding the files ------------------------------------------------
 
@@ -220,7 +232,7 @@ class ClaudeCodeReader:
                 Gap(
                     reason=GapReason.UNPARSABLE_RECORD,
                     detail=(
-                        f"the session record {file_ref(path)} could not be read "
+                        f"the session record {file_ref(path, self.salt)} could not be read "
                         f"({failure_kind(exc)}), so nothing it held was observed"
                     ),
                     unanchored="the file could not be opened, so no event in it was observed",
@@ -236,7 +248,7 @@ class ClaudeCodeReader:
                     Gap(
                         reason=GapReason.UNPARSABLE_RECORD,
                         detail=(
-                            f"record {number} of the session record {file_ref(path)} is not "
+                            f"record {number} of the session record {file_ref(path, self.salt)} is not "
                             f"readable JSON ({failure_kind(exc)})"
                         ),
                         unanchored=UNPARSABLE_IS_UNANCHORED,
@@ -250,7 +262,7 @@ class ClaudeCodeReader:
                     Gap(
                         reason=GapReason.UNPARSABLE_RECORD,
                         detail=(
-                            f"record {number} of the session record {file_ref(path)} is a "
+                            f"record {number} of the session record {file_ref(path, self.salt)} is a "
                             f"{type(line).__name__}, not a record"
                         ),
                         unanchored=UNPARSABLE_IS_UNANCHORED,
