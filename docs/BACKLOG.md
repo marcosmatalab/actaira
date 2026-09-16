@@ -153,3 +153,42 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   del guardián por definición. Va a loopback y se puede leer, pero la propiedad
   «la suite no sale de la máquina» es más débil de lo que su nombre sugiere.
   **Sin fase.**
+
+## Fase 1.1c — la procedencia como invariante
+
+- `traceparent` viaja en claro (ver `trace/provenance.py`). Su forma es hex de
+  longitud fija, asi que no puede llevar una frase, pero el trace-id son
+  dieciseis bytes que el cliente elige: un cliente que quiera codificar algo ahi
+  puede. Se acepta porque su unico uso es cruzar el acta con las trazas
+  OpenTelemetry que el propio operador ya emite, y una referencia de la que
+  nadie mas tiene el mapa no cruza con nada. **Sin fase.**
+- `actaira scan` sin `--out` no tiene donde guardar la sal, asi que el lector
+  mintea una por ejecucion y dos ejecuciones sobre las mismas sesiones producen
+  referencias distintas. Con `--out` la sal se conserva en `index.json` y los
+  bytes son estables. Quien capture `--json` sin `--out` no obtiene un documento
+  reproducible. **Sin fase.**
+- El mapa de referencias del lado del operador vive en tres sitios segun el
+  camino: `interposition.json` (alias y sesion), `<servidor>.refs.json` (lo que
+  grabo cada proxy) e `index.json` (lo que leyo `scan`). Son tres porque tres
+  procesos distintos los escriben y fundirlos exigiria que alguien escriba
+  despues de que todos hayan terminado. Un solo `actaira resolve` que los lea
+  los tres seria mejor que tres formatos que el operador tiene que conocer, y
+  seria un noveno comando, que CLAUDE.md prohibe sin quitar otro. **Fase 5.**
+- `trace/v2` queda publicado y sin ningun consumidor posible: vivio un commit.
+  La regla de `schemas/__init__.py` dice que un contrato publicado sigue
+  publicado y que «nadie lo estaba usando» no es un argumento, asi que se queda
+  en disco y legible. Si esto vuelve a pasar, la pregunta no es la regla sino
+  por que un esquema se publica antes de que la fase que lo usa haya terminado.
+  **Sin fase.**
+- Nada en el arbol DICE que `<--out>/records/` no se publica. Ahora contiene,
+  ademas de los argumentos en claro cuando se usa `--with-content`, los mapas
+  `<servidor>.refs.json` que deshacen todas las referencias de la D-268. Un
+  operador que empaquete `--out` entero publica lo que la sal protegia. El acta
+  de la fase 3 empaqueta la traza firmada y no `records/`, asi que el camino
+  correcto ya existe; lo que falta es que el directorio lo diga y que el
+  empaquetador se niegue si lo encuentra dentro. **Fase 3.**
+- El guardian de red tapa seis puertas de `socket` y su meta-test las ejercita
+  una a una. Sigue sin tapar un subproceso, que es como sale el agente de prueba
+  de `test_proxy_http_interposition.py`. Va a loopback y se puede leer, pero la
+  propiedad «la suite no sale de la maquina» es mas debil de lo que su nombre
+  sugiere. **Sin fase.**

@@ -74,13 +74,13 @@ decision without the third part is not a decision, it is a preference.
 | D-230 | A figure that is derivable is never maintained by hand, in prose either | `scripts/figures_contract.py:3` |
 | D-232 | The index of published contracts is generated, because an index with a hole in it still looks complete | `scripts/contracts_doc.py:4` |
 | D-234 | The console blocks are output this tool produced, and the gate re-runs them under two hash seeds | `scripts/cli_transcripts.py:4` |
-| D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:517` |
+| D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:540` |
 | D-236 | The published line count is a sum over a partition of the tree, checked, not a sum over a list somebody maintained | `scripts/figures.py:60` |
 | D-237 | A line number in the note table is derived, because a reference wrong by four hundred lines is not stale, it is wrong | `scripts/design_notes.py:4` |
 | D-238 | One spelling of "the last path segment", because three spellings put the producer's absolute path inside signed documents | `src/actaira/model.py:135` |
 | D-239 | A build writes into `dist/` and is then opened and checked, because the one artifact nobody looks at is a package | `scripts/build_package.py:4` |
 | D-240 | The default key path is resolved when a parser is built, not at import, so a host with no home does not break every command | `src/actaira/cli.py:50` |
-| D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:484` |
+| D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:507` |
 | D-242 | Type checking is a ratchet: the exemption list is empty, a new error fails, and a stale exemption fails as loudly | `scripts/type_check.py:4` |
 | D-243 | Recorded is not current, and the third answer is that this store cannot tell | `src/actaira/state/graph.py:379` |
 | D-245 | A decision is history and whether it still applies is a separate, three-valued question | `src/actaira/state/decide.py:3` |
@@ -97,15 +97,16 @@ decision without the third part is not a decision, it is a preference.
 | D-256 | A tool that is not built returns a state and a phase, never a value that looks computed | `src/actaira/mcp.py:3` |
 | D-257 | A digest covers the arguments; the sentence about a failure is the other half of the boundary | `src/actaira/trace/redact.py:75` |
 | D-258 | A hole cites the identity of the event it follows, and says so when there is none, rather than a line number | `src/actaira/trace/model.py:162` |
-| D-259 | The transcript format records no end of session, so an L0 trace is never complete and says why | `src/actaira/trace/claude_code.py:196` |
-| D-260 | One call is one event however many times the source records it, and a disagreement is a hole rather than a choice | `src/actaira/trace/claude_code.py:278` |
-| D-261 | What the agent was configured with, against what was observed, and the answer fails closed | `src/actaira/proxy/session.py:305` |
+| D-259 | The transcript format records no end of session, so an L0 trace is never complete and says why | `src/actaira/trace/claude_code.py:207` |
+| D-260 | One call is one event however many times the source records it, and a disagreement is a hole rather than a choice | `src/actaira/trace/claude_code.py:289` |
+| D-261 | What the agent was configured with, against what was observed, and the answer fails closed | `src/actaira/proxy/session.py:321` |
 | D-262 | A session id is a string out of somebody's file, so it is sanitised and a collision is numbered, never overwritten | `src/actaira/cli.py:278` |
 | D-263 | A reference computed as an unsalted digest of a guessable name is an encoding, not a redaction | `src/actaira/trace/redact.py:126` |
 | D-264 | MCP 2026-07-28 removed the session, so every message declares itself and a missing declaration is a hole | `src/actaira/proxy/protocol.py:3` |
 | D-265 | Interposing on HTTP for real, and refusing an answer whose JSON-RPC id is somebody else's | `src/actaira/proxy/http.py:14` |
-| D-266 | One writer at a time, records that name their own run, and an order taken from the records rather than from the filenames | `src/actaira/proxy/__init__.py:77` |
+| D-266 | One writer at a time, records that name their own run, and an order taken from the records rather than from the filenames | `src/actaira/proxy/__init__.py:83` |
 | D-267 | A network guard that only runs when somebody remembers it is not a guard, and it needs a test that it still bites | `tests/netguard.py:3` |
+| D-268 | Every field of the published document is classified by who writes its value, and a third-party value is referenced unless the table says why not | `src/actaira/trace/provenance.py:3` |
 | D-160b | The read budget bounds the read; the file bounds the allocation | `src/actaira/io_budget.py:53` |
 
 D-25b is numbered as a continuation rather than as a note of its own because

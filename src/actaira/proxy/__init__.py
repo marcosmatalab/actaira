@@ -34,7 +34,7 @@ from typing import Any
 
 from ..trace import CaptureLevel
 from ..trace.model import Gap, GapReason, Trace, TraceEvent
-from ..trace.redact import content_or_none, digest, file_ref
+from ..trace.redact import References, content_or_none, digest, file_ref, new_salt
 from . import protocol
 
 SOURCE = "mcp-proxy"
@@ -71,8 +71,14 @@ class Recorder:
         self.with_content = with_content
         # The operator's own per-session salt, for `redact.file_ref`. Passed in
         # rather than made here: `watch` generates one for the whole session and
-        # every proxy in it has to reference the same file the same way.
-        self.salt = salt
+        # every proxy in it has to reference the same file the same way. A
+        # recorder handed none mints its own, because a recorder that cannot
+        # mint a reference cannot give two calls two identities (D-268).
+        self.salt = salt or new_salt()
+        # D-268. Every third-party value this recorder publishes goes through
+        # here and the literal stays on this side of it. `trace/provenance.py`
+        # is the table that says which fields those are; this is the door.
+        self.refs = References(self.salt)
         # Which run wrote this row. Read back by `assemble`, which refuses the
         # rows a previous run left in the same directory - see D-266.
         self.run_id = run_id
@@ -125,16 +131,16 @@ class Recorder:
                 index=len(self.events),
                 capture_level=self.capture_level,
                 tool_name=name,
-                call_id=call_id,
+                call_id=self.refs.of(call_id),
                 timestamp=at,
                 arguments_sha256=digest(arguments),
                 result_sha256=None,
-                conversation_id=self.session_id,
+                conversation_id=self.refs.of(self.session_id),
                 # Read off THIS request rather than off a handshake, because MCP
                 # 2026-07-28 has no handshake left to read it off - see D-264.
                 traceparent=protocol.correlation_of(message),
                 protocol_version=protocol.revision_of(message),
-                client=protocol.client_of(message),
+                client=self.refs.of(protocol.client_of(message)),
                 arguments=content_or_none(arguments, self.with_content),
             )
             self.events.append(event)
@@ -182,7 +188,7 @@ class Recorder:
                 "kind": "discover",
                 "tools": tools,
                 "protocol_version": protocol.revision_of(response),
-                "server": protocol.server_of(response),
+                "server": self.refs.of(protocol.server_of(response)),
             })
 
     def settle(self, event: TraceEvent, response: dict[str, Any]) -> None:
@@ -195,11 +201,11 @@ class Recorder:
         a wrong fact in the evidence, which is worse than a declared gap.
         """
         with self._writing:
-            event.server = protocol.server_of(response) or event.server
+            event.server = self.refs.of(protocol.server_of(response)) or event.server
             if event.protocol_version is None:
                 event.protocol_version = protocol.revision_of(response)
             event.result_type, event.result_type_assumed = protocol.result_type_of(response)
-            event.request_state = protocol.request_state_of(response)
+            event.request_state = self.refs.of(protocol.request_state_of(response))
             if "error" in response:
                 self.result(event, response.get("error"), is_error=True)
             else:
@@ -267,12 +273,40 @@ class Recorder:
                 return
             self.closed = True
             self._append({"kind": "end"})
+            self.write_reference_map()
+
+    def write_reference_map(self) -> None:
+        """The operator's half of D-268, beside their records and never in a document.
+
+        One file per recorder rather than one shared file: `watch` runs a proxy
+        per server in its own process, and two processes appending to one map
+        is the interleaving D-266 took out of the record files. `assemble` never
+        reads these - it has no need of the literals - and `interposition.json`
+        lists them so that the operator has one place to start from.
+        """
+        if self.record_path is None or not self.refs.map:
+            return
+        try:
+            self.record_path.with_suffix(".refs.json").write_text(
+                json.dumps(self.refs.map, indent=2, sort_keys=True, ensure_ascii=False),
+                encoding="utf-8",
+            )
+        except OSError:
+            # The same rule as `_append`: a recorder that cannot write must not
+            # kill the agent's session. What is lost is the operator's ability
+            # to resolve their own references, not any claim in the document.
+            self.gap(
+                GapReason.UNPARSABLE_RECORD,
+                "the map from this session's references back to the values they stand for "
+                "could not be written, so the trace is readable by a third party and not "
+                "by the operator who recorded it",
+            )
 
     # -- the trace --------------------------------------------------------
 
     def trace(self) -> Trace:
         trace = Trace(
-            session_id=self.session_id,
+            session_id=self.refs.of(self.session_id) or "",
             source=self.source,
             capture_level=self.capture_level,
             agent_name=self.source,

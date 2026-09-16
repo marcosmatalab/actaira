@@ -57,13 +57,24 @@ def server(tmp_path, body: str) -> list[str]:
 
 
 def run(tmp_path, body: str, messages) -> dict:
+    return recorded(tmp_path, body, messages)[0]
+
+
+def recorded(tmp_path, body: str, messages) -> tuple[dict, dict[str, str]]:
+    """The document, and the map that resolves the references in it.
+
+    Since D-268 a third-party value reaches the document as a salted reference,
+    so a test that wants to say "this is the client the request declared" asks
+    the recorder's own map, which is what the operator does with the file
+    beside their records.
+    """
     recorder = Recorder(session_id="s", source="mcp-proxy")
     proxy = StdioProxy(server(tmp_path, body), recorder, timeout=5.0)
     assert proxy.start()
     for message in messages:
         proxy.request(message)
     proxy.close()
-    return recorder.trace().to_dict()
+    return recorder.trace().to_dict(), dict(recorder.refs.map)
 
 
 # A server on the current revision: it declares itself in every result, carries
@@ -117,12 +128,17 @@ for line in sys.stdin:
 
 
 def test_the_revision_a_message_declares_is_published_on_the_event(tmp_path):
-    document = run(tmp_path, CURRENT_SERVER, [call(1, "read_file")])
+    document, resolves = recorded(tmp_path, CURRENT_SERVER, [call(1, "read_file")])
 
     event = document["events"][0]
     assert event["mcp.protocol.version"] == CURRENT
-    assert event["mcp.client"] == "actaira-test@1"
-    assert event["mcp.server"] == "fixture@2"
+    # The revision travels literally - its value space is a date and this
+    # reader matches the whole of it. The client and the server are names their
+    # own authors chose, so they travel as references (D-268), and the map on
+    # the operator's disk is what turns them back into names.
+    assert resolves[event["mcp.client"]] == "actaira-test@1"
+    assert resolves[event["mcp.server"]] == "fixture@2"
+    assert "actaira-test" not in json.dumps(document)
     assert event["traceparent"] == TRACEPARENT
     assert document["mcp"]["protocol_revisions_observed"] == [CURRENT]
 
@@ -289,14 +305,20 @@ def test_an_interim_result_and_its_retry_carry_the_handle_that_pairs_them(tmp_pa
     """One logical call seen twice. The two arrive under DIFFERENT JSON-RPC ids
     - the client re-issues - so nothing about the ids or the order says they
     belong together. `requestState` does, and it is on both events."""
-    document = run(
+    document, resolves = recorded(
         tmp_path, PAUSING_SERVER, [call(1, "commit"), call(2, "commit")]
     )
 
     first, second = document["events"]
     assert first["mcp.result.type"] == "input_required"
     assert second["mcp.result.type"] == "complete"
-    assert first["mcp.request.state"] == second["mcp.request.state"] == "rs-42"
+    # The handle is the server's own identifier by specification, so it is
+    # referenced and not published (D-268). What pairs the two legs is that the
+    # ONE handle gives ONE reference, which is the property the salt must not
+    # cost - and the value itself is nowhere in the document.
+    assert first["mcp.request.state"] == second["mcp.request.state"]
+    assert resolves[first["mcp.request.state"]] == "rs-42"
+    assert "rs-42" not in json.dumps(document)
     assert first["gen_ai.tool.call.id"] != second["gen_ai.tool.call.id"], (
         "the retry has to be a separate JSON-RPC request, or this pairs nothing"
     )

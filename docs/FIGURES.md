@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-16T17:29:13+00:00 for actaira 3.0.0, at commit 95e21ab.
+Generated 2026-09-16T18:00:24+00:00 for actaira 3.0.0, at commit 86689e6.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, ruff>=0.6, jsonschema>=4.18
-- 15 commits, most recent 2026-09-16
+- 16 commits, most recent 2026-09-16
 
 ## Tests
 
-**2055** tests collected by pytest across 42 files.
+**2090** tests collected by pytest across 43 files.
 
 | file | tests |
 |---|---:|
@@ -33,16 +33,16 @@ Generated 2026-09-16T17:29:13+00:00 for actaira 3.0.0, at commit 95e21ab.
 | `tests/test_consistency.py` | 285 |
 | `tests/test_coverage.py` | 12 |
 | `tests/test_defect_ledger.py` | 348 |
-| `tests/test_design_notes.py` | 92 |
+| `tests/test_design_notes.py` | 93 |
 | `tests/test_dsse.py` | 32 |
-| `tests/test_i18n.py` | 160 |
+| `tests/test_i18n.py` | 162 |
 | `tests/test_io_budget.py` | 9 |
 | `tests/test_junit.py` | 19 |
 | `tests/test_keyring.py` | 33 |
 | `tests/test_mcp.py` | 17 |
 | `tests/test_merkle.py` | 146 |
 | `tests/test_miniyaml.py` | 22 |
-| `tests/test_netguard.py` | 9 |
+| `tests/test_netguard.py` | 19 |
 | `tests/test_package_verify.py` | 31 |
 | `tests/test_policy_engine.py` | 22 |
 | `tests/test_proxy_completeness.py` | 48 |
@@ -54,7 +54,7 @@ Generated 2026-09-16T17:29:13+00:00 for actaira 3.0.0, at commit 95e21ab.
 | `tests/test_release_check.py` | 12 |
 | `tests/test_sarif.py` | 29 |
 | `tests/test_scan_claude_code.py` | 33 |
-| `tests/test_schemas.py` | 32 |
+| `tests/test_schemas.py` | 34 |
 | `tests/test_signing_domain_separation.py` | 6 |
 | `tests/test_state.py` | 88 |
 | `tests/test_state_change.py` | 47 |
@@ -63,10 +63,11 @@ Generated 2026-09-16T17:29:13+00:00 for actaira 3.0.0, at commit 95e21ab.
 | `tests/test_timestamp.py` | 47 |
 | `tests/test_trace_model.py` | 19 |
 | `tests/test_trace_privacy.py` | 77 |
+| `tests/test_trace_provenance.py` | 20 |
 | `tests/test_trust.py` | 13 |
 | `tests/test_trust_paths.py` | 24 |
 | `tests/test_verify_strictness.py` | 23 |
-| **total** | **2055** |
+| **total** | **2090** |
 
 ## Defects found in this repository
 
@@ -104,23 +105,23 @@ and the modules are the source of truth.
 | area | files | lines | code | docstrings | comments | blank |
 |---|---:|---:|---:|---:|---:|---:|
 | attest | 10 | 4271 | 2644 | 756 | 309 | 562 |
-| core | 4 | 709 | 416 | 144 | 35 | 114 |
+| core | 4 | 732 | 428 | 144 | 46 | 114 |
 | conformance | 6 | 2152 | 1300 | 444 | 101 | 307 |
 | policy | 3 | 1139 | 714 | 165 | 96 | 164 |
 | state | 9 | 3527 | 1970 | 821 | 238 | 498 |
-| schemas | 1 | 107 | 29 | 36 | 22 | 20 |
+| schemas | 1 | 114 | 29 | 36 | 29 | 20 |
 | report | 3 | 435 | 250 | 83 | 35 | 67 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
-| rest | 16 | 5124 | 3009 | 1076 | 401 | 638 |
-| tests | 47 | 18485 | 10932 | 2470 | 921 | 4162 |
+| rest | 17 | 5520 | 3208 | 1179 | 448 | 685 |
+| tests | 48 | 19080 | 11290 | 2563 | 968 | 4259 |
 | scripts | 9 | 2895 | 1847 | 449 | 203 | 396 |
-| **total** | 110 | 38899 | 23141 | 6451 | 2368 | 6939 |
+| **total** | 112 | 39920 | 23710 | 6647 | 2480 | 7083 |
 
 Documentation, in lines of Markdown:
 
-- `docs/DESIGN.md`: 1606
+- `docs/DESIGN.md`: 1607
 - `docs/THREAT-MODEL.md`: 537
-- total: 2143
+- total: 2144
 
 ## Rules
 

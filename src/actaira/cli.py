@@ -292,7 +292,9 @@ def _file_stem(session_id: str, taken: dict[str, int]) -> str:
     return cleaned if taken[cleaned] == 1 else f"{cleaned}-{taken[cleaned]}"
 
 
-def _write_traces(traces, out: Path, salt: str | None = None) -> list[Path]:
+def _write_traces(
+    traces, out: Path, salt: str | None = None, references: dict[str, str] | None = None
+) -> list[Path]:
     """One canonical document per session, plus its digest beside it.
 
     Beside rather than inside: a digest cannot be a field of the thing it is
@@ -306,15 +308,22 @@ def _write_traces(traces, out: Path, salt: str | None = None) -> list[Path]:
     written: list[Path] = []
     index: dict[str, str] = {}
     taken: dict[str, int] = {}
+    resolve = references or {}
     for trace in traces:
         document = trace.to_dict()
-        stem = _file_stem(trace.session_id, taken)
+        # D-268: `trace.session_id` is the REFERENCE now. The file is still
+        # named after the id the source declared, because the operator holds
+        # the map and a directory of sixteen-hex filenames is a directory
+        # nobody can find anything in. The reference is what travels; the name
+        # of a file on their own disk does not travel at all.
+        literal = resolve.get(trace.session_id, trace.session_id)
+        stem = _file_stem(literal, taken)
         target = out / f"{stem}.json"
         target.write_text(
             json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False), encoding="utf-8"
         )
         (out / f"{stem}.sha256").write_text(trace_digest(document) + "\n", encoding="utf-8")
-        index[target.name] = trace.session_id
+        index[target.name] = literal
         written.append(target)
     # The salt goes in beside the map for the same reason the alias map goes in
     # `interposition.json`: it is what lets the operator resolve a reference in
@@ -323,6 +332,12 @@ def _write_traces(traces, out: Path, salt: str | None = None) -> list[Path]:
     document: dict[str, Any] = {"sessions": index}
     if salt is not None:
         document["redaction_salt"] = salt
+    if references:
+        # The map from every reference this scan published back to the value it
+        # stands for. Beside the traces, on the operator's own disk, and never
+        # inside one of them - D-268, and the same bargain `interposition.json`
+        # strikes on the `watch` side.
+        document["references"] = dict(sorted(references.items()))
     (out / INDEX_FILE).write_text(
         json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False),
         encoding="utf-8",
@@ -420,7 +435,12 @@ def run_scan(args: argparse.Namespace, catalog: Catalog) -> int:
         print(catalog.line("scan.not_evidence"))
 
     if args.out is not None:
-        written = _write_traces(traces, args.out, salt=None if args.demo else salt)
+        written = _write_traces(
+            traces,
+            args.out,
+            salt=None if args.demo else salt,
+            references=None if args.demo else reader.refs.map,
+        )
         print(catalog.line("scan.written", count=len(written), path=str(args.out)))
     return EXIT_OK
 
@@ -444,16 +464,19 @@ def run_watch(args: argparse.Namespace, catalog: Catalog) -> int:
     returncode = session.run(command, args.mcp_config)
     trace = session.assemble(child_returncode=returncode)
     document = trace.to_dict()
+    # The id as the operator typed it into their own terminal, not the
+    # reference the document carries. The terminal is not a published document.
+    spoken = session.session_id
 
     if args.json:
         print(json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False))
     else:
-        print(catalog.line("watch.header", session=trace.session_id))
+        print(catalog.line("watch.header", session=spoken))
         print(catalog.line("watch.observed", events=len(document["events"])))
         for gap in document["gaps"]:
             print(f"  ! [{gap['reason']}] {gap['detail']}")
         print(catalog.line("watch.complete" if document["complete"] else "watch.incomplete"))
-    _write_traces([trace], args.out)
+    _write_traces([trace], args.out, references={trace.session_id: spoken})
     print(catalog.line("watch.written", path=str(args.out)))
     # The agent's own exit code is passed through: `watch` records, it does not
     # judge, and a wrapper that swallowed a failed build would be lying about

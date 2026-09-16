@@ -38,7 +38,7 @@ from typing import Any
 
 from ..trace import CaptureLevel
 from ..trace.model import Gap, GapReason, Trace, TraceEvent
-from ..trace.redact import failure_kind, file_ref, label_ref, new_salt
+from ..trace.redact import failure_kind, file_ref, label_ref, new_salt, value_ref
 from . import Recorder
 from .http import HttpProxy
 
@@ -71,7 +71,7 @@ def rewrite_config(
     salt = salt or new_salt()
     servers = config.get("mcpServers")
     if not isinstance(servers, dict):
-        _write_manifest(record_dir, {}, salt, run_id)
+        _write_manifest(record_dir, {}, salt, run_id, session_id)
         return dict(config)
 
     rewritten: dict[str, Any] = {}
@@ -110,11 +110,13 @@ def rewrite_config(
             }
             interposed[name] = {
                 "ref": label_ref(name, salt), "interposed": True, "record": record.name,
+                "references": record.with_suffix(".refs.json").name,
             }
         elif isinstance(entry.get("url"), str) and http_port_for is not None:
             rewritten[name] = {**entry, "url": f"http://127.0.0.1:{http_port_for(name)}/mcp"}
             interposed[name] = {
                 "ref": label_ref(name, salt), "interposed": True, "record": record.name,
+                "references": record.with_suffix(".refs.json").name,
             }
         else:
             rewritten[name] = entry
@@ -127,12 +129,16 @@ def rewrite_config(
                 ),
             }
 
-    _write_manifest(record_dir, interposed, salt, run_id)
+    _write_manifest(record_dir, interposed, salt, run_id, session_id)
     return {**config, "mcpServers": rewritten}
 
 
 def _write_manifest(
-    record_dir: Path, interposed: dict[str, Any], salt: str, run_id: str
+    record_dir: Path,
+    interposed: dict[str, Any],
+    salt: str,
+    run_id: str,
+    session_id: str = "",
 ) -> None:
     """Written every time, including when everything was interposed.
 
@@ -147,7 +153,17 @@ def _write_manifest(
     """
     (record_dir / MANIFEST).write_text(
         json.dumps(
-            {"servers": interposed, "redaction_salt": salt, "run_id": run_id},
+            {
+                "servers": interposed,
+                "redaction_salt": salt,
+                "run_id": run_id,
+                # The session id is referenced in the document like every other
+                # third-party value (D-268), so the pair that resolves it lives
+                # here with the alias map rather than nowhere.
+                "references": (
+                    {value_ref(session_id, salt): session_id} if session_id else {}
+                ),
+            },
             indent=2,
             sort_keys=True,
         ),
@@ -433,7 +449,10 @@ class WatchSession:
 
         moments = [event.timestamp for event in events if event.timestamp]
         trace = Trace(
-            session_id=self.session_id,
+            # Referenced, not written: the id may have come from whoever
+            # invoked this, and D-268 does not make an exception for a field
+            # because it is usually ours.
+            session_id=value_ref(self.session_id, salt) or "",
             source="mcp-proxy",
             capture_level=CaptureLevel.L1,
             agent_name="mcp-proxy",

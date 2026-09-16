@@ -298,10 +298,15 @@ def test_two_concurrent_calls_do_not_pair_by_the_order_they_came_back(tmp_path, 
         )
     ).hexdigest()
     document = recorder.trace().to_dict()
+    # Since D-268 the call id is a salted reference to the id, so the pairing
+    # is checked through the recorder's own map - which is exactly what the
+    # operator does. The property is unchanged: every event carries the digest
+    # of ITS answer, matched by id and not by what came back first.
+    resolves = recorder.refs.map
     assert len(document["events"]) == 8
     for event in document["events"]:
         assert event["result_sha256"] == expected
-        assert event["gen_ai.tool.name"] == f"tool_{event['gen_ai.tool.call.id']}"
+        assert event["gen_ai.tool.name"] == f"tool_{resolves[event['gen_ai.tool.call.id']]}"
 
 
 def test_a_tool_that_reports_its_own_failure_over_http_is_recorded_as_a_failure(tmp_path, remote):
@@ -384,6 +389,7 @@ def test_many_writers_lose_no_record_and_leave_every_line_readable(tmp_path, rem
     finally:
         proxy.close()
 
+    resolve = recorder.refs.map
     lines = [line for line in record.read_text(encoding="utf-8").splitlines() if line.strip()]
     rows = []
     for line in lines:
@@ -393,7 +399,7 @@ def test_many_writers_lose_no_record_and_leave_every_line_readable(tmp_path, rem
 
     assert len(calls) == 64, "a record was lost"
     assert len(results) == 64
-    assert {row["event"]["gen_ai.tool.call.id"] for row in calls} == {
+    assert {resolve[row["event"]["gen_ai.tool.call.id"]] for row in calls} == {
         str(n) for n in range(1, 65)
     }
     assert {row["event"]["index"] for row in calls} == set(range(64)), (

@@ -40,11 +40,11 @@
     },
     "core": {
       "blank": 114,
-      "code": 416,
-      "comment": 35,
+      "code": 428,
+      "comment": 46,
       "docstring": 144,
       "files": 4,
-      "lines": 709,
+      "lines": 732,
       "note": "the model and the CLI"
     },
     "i18n": {
@@ -75,21 +75,21 @@
       "note": "SARIF and JUnit"
     },
     "rest": {
-      "blank": 638,
-      "code": 3009,
-      "comment": 401,
-      "docstring": 1076,
-      "files": 16,
-      "lines": 5124,
+      "blank": 685,
+      "code": 3208,
+      "comment": 448,
+      "docstring": 1179,
+      "files": 17,
+      "lines": 5520,
       "note": "everything in src/ the areas above do not claim"
     },
     "schemas": {
       "blank": 20,
       "code": 29,
-      "comment": 22,
+      "comment": 29,
       "docstring": 36,
       "files": 1,
-      "lines": 107,
+      "lines": 114,
       "note": "the published contracts"
     },
     "scripts": {
@@ -111,21 +111,21 @@
       "note": "the SQLite store, watch, evidence, graph"
     },
     "tests": {
-      "blank": 4162,
-      "code": 10932,
-      "comment": 921,
-      "docstring": 2470,
-      "files": 47,
-      "lines": 18485,
+      "blank": 4259,
+      "code": 11290,
+      "comment": 968,
+      "docstring": 2563,
+      "files": 48,
+      "lines": 19080,
       "note": "the test suite"
     },
     "total": {
-      "blank": 6939,
-      "code": 23141,
-      "comment": 2368,
-      "docstring": 6451,
-      "files": 110,
-      "lines": 38899,
+      "blank": 7083,
+      "code": 23710,
+      "comment": 2480,
+      "docstring": 6647,
+      "files": 112,
+      "lines": 39920,
       "note": "every Python file under scripts, src, tests, each counted once"
     }
   },
@@ -238,19 +238,19 @@
   },
   "docs": {
     "docs/DESIGN.md": {
-      "lines": 1606
+      "lines": 1607
     },
     "docs/THREAT-MODEL.md": {
       "lines": 537
     },
-    "total_lines": 2143
+    "total_lines": 2144
   },
-  "generated_at": "2026-09-16T17:29:13+00:00",
+  "generated_at": "2026-09-16T18:00:24+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 15,
-    "head": "95e21ab",
+    "commits": 16,
+    "head": "86689e6",
     "head_date": "2026-09-16"
   },
   "package": {
@@ -270,8 +270,8 @@
   },
   "tests": {
     "available": true,
-    "collected": 2055,
-    "files": 42,
+    "collected": 2090,
+    "files": 43,
     "per_file": {
       "tests/test_action_entrypoint.py": 14,
       "tests/test_attest_anchor.py": 25,
@@ -282,16 +282,16 @@
       "tests/test_consistency.py": 285,
       "tests/test_coverage.py": 12,
       "tests/test_defect_ledger.py": 348,
-      "tests/test_design_notes.py": 92,
+      "tests/test_design_notes.py": 93,
       "tests/test_dsse.py": 32,
-      "tests/test_i18n.py": 160,
+      "tests/test_i18n.py": 162,
       "tests/test_io_budget.py": 9,
       "tests/test_junit.py": 19,
       "tests/test_keyring.py": 33,
       "tests/test_mcp.py": 17,
       "tests/test_merkle.py": 146,
       "tests/test_miniyaml.py": 22,
-      "tests/test_netguard.py": 9,
+      "tests/test_netguard.py": 19,
       "tests/test_package_verify.py": 31,
       "tests/test_policy_engine.py": 22,
       "tests/test_proxy_completeness.py": 48,
@@ -303,7 +303,7 @@
       "tests/test_release_check.py": 12,
       "tests/test_sarif.py": 29,
       "tests/test_scan_claude_code.py": 33,
-      "tests/test_schemas.py": 32,
+      "tests/test_schemas.py": 34,
       "tests/test_signing_domain_separation.py": 6,
       "tests/test_state.py": 88,
       "tests/test_state_change.py": 47,
@@ -312,6 +312,7 @@
       "tests/test_timestamp.py": 47,
       "tests/test_trace_model.py": 19,
       "tests/test_trace_privacy.py": 77,
+      "tests/test_trace_provenance.py": 20,
       "tests/test_trust.py": 13,
       "tests/test_trust_paths.py": 24,
       "tests/test_verify_strictness.py": 23

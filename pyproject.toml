@@ -143,3 +143,7 @@ ignore = ["E501", "S101"]
 # contract a third party reads back. How they spell is part of it.
 "src/actaira/trace/__init__.py" = ["UP042"]
 "src/actaira/trace/model.py" = ["UP042"]
+# UP042 once more. `Writer` and `Travel` are compared with `is` and read with
+# `.value` exactly like the rest, and the provenance table is meant to read
+# like the contracts it classifies rather than like an exception to them.
+"src/actaira/trace/provenance.py" = ["UP042"]
