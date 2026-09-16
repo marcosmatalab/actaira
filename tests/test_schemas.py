@@ -213,6 +213,10 @@ FROZEN_REQUIRED = {
         "authenticity", "capture_level", "complete", "events", "gaps",
         "schema_version", "session_id", "source",
     ],
+    "trace-v3": [
+        "authenticity", "capture_level", "complete", "events", "gaps",
+        "schema_version", "session_id", "source",
+    ],
 }
 
 

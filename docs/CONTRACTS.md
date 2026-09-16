@@ -27,7 +27,7 @@ actaira schema report-v1       # print one
 | `evidence-record/v1` | One observation, bound to the digest of what was observed, with its state and the collector that made it. | `actaira evidence show --json` |
 | `policy/v1` | A decision document: rules, their verdicts, exceptions with an owner and an expiry, and the digest the decision will cite. | `actaira policy show` |
 | `policy-decision/v1` | What a policy decided about one run, with the rule and the evidence behind every verdict, including the ones that could not be evaluated. | `actaira policy check --json` |
-| `trace/v2` | What an agent did, in one shape whatever observed it: an ordered list of tool calls with the digest of each call's arguments and result, the capture level that produced every one, and the holes that level did not cover. | `actaira scan, actaira watch` |
+| `trace/v3` | What an agent did, in one shape whatever observed it: an ordered list of tool calls with the digest of each call's arguments and result, the capture level that produced every one, and the holes that level did not cover. | `actaira scan, actaira watch` |
 
 ## Superseded
 
@@ -35,7 +35,8 @@ Still on disk, still readable, never emitted again. A consumer written against o
 
 | Contract | Replaced by |
 |---|---|
-| `trace/v1` | `trace/v2` |
+| `trace/v1` | `trace/v3` |
+| `trace/v2` | `trace/v3` |
 
 ## Not a contract yet, deliberately
 
@@ -58,3 +59,4 @@ Each contract's required fields are frozen in the test suite, so dropping one fa
 | `policy-v1` | `schema_version`, `policy`, `version`, `rules` |
 | `trace-v1` | `schema_version`, `session_id`, `source`, `capture_level`, `authenticity`, `complete`, `events`, `gaps` |
 | `trace-v2` | `schema_version`, `session_id`, `source`, `capture_level`, `authenticity`, `complete`, `events`, `gaps` |
+| `trace-v3` | `schema_version`, `session_id`, `source`, `capture_level`, `authenticity`, `complete`, `events`, `gaps` |

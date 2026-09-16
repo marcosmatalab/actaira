@@ -110,11 +110,17 @@ def home(tmp_path: Path) -> Path:
 
 
 def test_every_tool_call_becomes_one_event_in_file_order(home):
-    (trace,) = ClaudeCodeReader(home=home).read_all()
+    reader = ClaudeCodeReader(home=home)
+    (trace,) = reader.read_all()
 
     assert [event.tool_name for event in trace.events] == ["Bash", "Read", "Bash"]
     assert [event.index for event in trace.events] == [0, 1, 2]
-    assert trace.session_id == SESSION
+    # The id the transcript declared is a string the audited agent wrote, so
+    # the document carries a reference to it and the reader's own map resolves
+    # it - D-268. The operator reads it out of `index.json`; here, off the
+    # reader that minted it.
+    assert trace.session_id != SESSION
+    assert reader.refs.map[trace.session_id] == SESSION
     assert trace.capture_level is CaptureLevel.L0
 
 

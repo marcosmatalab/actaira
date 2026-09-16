@@ -544,26 +544,42 @@ def test_watch_assembles_the_parts_every_proxy_wrote_in_index_order(tmp_path, ec
     # The manifest is what says every configured server was interposed on.
     # Without it `assemble` refuses to call the session observed, which is
     # `test_a_session_with_no_record_of_what_it_was_configured_with_claims_nothing`.
+    # One salt for the whole session, handed to every proxy in it - which is
+    # what `rewrite_config` does in production, via `--salt`. It matters here:
+    # two proxies that minted their own would give one JSON-RPC id two
+    # references, and the correlation the assertion below rests on would be
+    # gone (D-268).
+    session = WatchSession(record_dir=tmp_path, session_id="s")
     rewrite_config(
         {"mcpServers": {name: {"command": echo[0], "args": echo[1:]} for name in ("alpha", "beta")}},
         record_dir=tmp_path,
         session_id="s",
+        salt=session.salt,
+        run_id=session.run_id,
     )
     for name in ("alpha", "beta"):
-        recorder = Recorder(session_id="s", source="mcp-proxy", record_path=tmp_path / f"{name}.jsonl")
+        recorder = Recorder(
+            session_id="s", source="mcp-proxy", record_path=tmp_path / f"{name}.jsonl",
+            salt=session.salt, run_id=session.run_id,
+        )
         proxy = StdioProxy(echo, recorder)
         proxy.start()
         proxy.request(_discover())
         proxy.request(_call(1, f"{name}_tool"))
         proxy.close()
 
-    document = WatchSession(record_dir=tmp_path, session_id="s").assemble(child_returncode=0).to_dict()
+    document = session.assemble(child_returncode=0).to_dict()
 
     assert [event["index"] for event in document["events"]] == [0, 1]
     assert {event["gen_ai.tool.name"] for event in document["events"]} == {"alpha_tool", "beta_tool"}
     # The JSON-RPC id the agent used, kept so a gap can cite the call rather
-    # than its position. It was dropped before and every L1 event had a null.
-    assert {event["gen_ai.tool.call.id"] for event in document["events"]} == {"1"}
+    # than its position. It was dropped before and every L1 event had a null;
+    # since D-268 it is a salted reference to that id rather than the id, and
+    # what matters here is unchanged - both proxies saw id 1, so both events
+    # carry one identity, and it is not the literal.
+    identities = {event["gen_ai.tool.call.id"] for event in document["events"]}
+    assert len(identities) == 1, "one salt, one id, so one reference across both proxies"
+    assert identities != {"1"}, "the id a third party chose is not what travels"
     assert document["complete"] is True
 
 

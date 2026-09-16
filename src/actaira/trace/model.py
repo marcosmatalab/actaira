@@ -33,13 +33,13 @@ from typing import Any
 from ..model import canonical_json
 from . import CaptureLevel
 
-SCHEMA_VERSION = "trace/v2"
+SCHEMA_VERSION = "trace/v3"
 # What this reader accepts, oldest first. Writing is v2 and reading is both:
 # a consumer written against v1 is old rather than wrong, and a v1 document on
 # somebody's disk still parses. `schemas.SUPERSEDED` records the same pair for
 # the release gate, and `tests/test_schemas.py` holds v1's required fields
 # frozen so it cannot shrink out from under a reader that still trusts it.
-READS = ("trace/v1", SCHEMA_VERSION)
+READS = ("trace/v1", "trace/v2", SCHEMA_VERSION)
 
 # The OpenTelemetry GenAI attribute names this document uses verbatim, from
 # open-telemetry/semantic-conventions-genai. CLAUDE.md: no invented vocabulary
