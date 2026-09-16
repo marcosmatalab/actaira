@@ -17,24 +17,28 @@ import pytest
 from actaira.attest import signing
 from actaira.attest.dsse import (
     PAYLOAD_TYPE,
-    PREDICATE_TYPE,
     STATEMENT_TYPE,
     Envelope,
-    inspection_predicate,
     pae,
-    to_envelope,
     verify_envelope,
 )
-from actaira.model import Severity, Verdict
-from support.reports import write_flagged_report, write_report, write_unread_report
+from support.reports import envelope as to_envelope
+from support.reports import write_record
 
 
 @pytest.fixture
 def reports(tmp_path):
-    """One clean artifact and one with a gadget, so the predicate has both."""
+    """Two distinct subjects, so a statement carries more than one.
+
+    Built by `support.reports`, not by this tree: phase A removed the writing
+    half of `dsse.py`, and testing `verify_envelope` against the tree's own
+    writer was the shared-code-path shape D-15 warns about. The writer is the
+    specification typed out again in the suite, so a bug in one cannot cancel
+    the same bug in the other.
+    """
     return [
-        write_report(tmp_path / "clean.safetensors"),
-        write_flagged_report(tmp_path / "checkpoint.pkl"),
+        write_record(tmp_path / "clean.safetensors", payload=b"clean bytes"),
+        write_record(tmp_path / "checkpoint.pkl", payload=b"other bytes"),
     ]
 
 
@@ -141,7 +145,9 @@ def test_a_different_key_does_not_verify(reports, keypair, tmp_path):
 def test_an_altered_payload_is_rejected(reports, keypair):
     envelope = to_envelope(reports, keypair)
     statement = envelope.statement()
-    statement["predicate"]["verdict"] = Verdict.PASS.value  # it was "fail"
+    # Any edit inside the payload will do: the signature is over the PAE of the
+    # whole thing, so what the edited field MEANS is not the point.
+    statement["predicate"]["note"] = "edited after signing"
     forged = Envelope(
         payload=json.dumps(statement, sort_keys=True, separators=(",", ":")).encode("utf-8"),
         payload_type=envelope.payload_type,
@@ -257,69 +263,14 @@ def test_the_envelope_json_uses_the_field_names_the_specification_names(reports,
     assert base64.b64decode(document["payload"]) == to_envelope(reports).payload
 
 
-def test_the_statement_is_in_toto_v1_with_a_subject_per_artifact(reports):
-    statement = to_envelope(reports).statement()
-
-    assert statement["_type"] == STATEMENT_TYPE
-    assert statement["predicateType"] == PREDICATE_TYPE
-    assert [subject["name"] for subject in statement["subject"]] == [
-        "clean.safetensors",
-        "checkpoint.pkl",
-    ]
-    assert [subject["digest"]["sha256"] for subject in statement["subject"]] == [
-        report.sha256 for report in reports
-    ]
-
-
-def test_the_subject_name_is_not_the_local_path(reports):
-    """An in-toto subject name is meant to be matchable against a consumer's
-    own copy, and the consumer's copy is not under this machine's tmp_path."""
-    statement = to_envelope(reports).statement()
-
-    for subject in statement["subject"]:
-        assert "/" not in subject["name"]
-
-
-def test_the_predicate_carries_the_verdict_the_policy_and_the_rules(reports):
-    predicate = to_envelope(reports).statement()["predicate"]
-
-    assert predicate["tool"]["name"] == "actaira"
-    assert predicate["policy"] == {"import_policy": "strict", "fail_on": "high"}
-    assert predicate["verdict"] == "fail"  # the gadget artifact decides it
-    assert "ACT-PKL-002" in {row["rule_id"] for row in predicate["rules_fired"]}
-    assert {row["name"] for row in predicate["artifacts"]} == {
-        "clean.safetensors",
-        "checkpoint.pkl",
-    }
-
-
-def test_the_predicate_says_which_artifacts_were_not_fully_read(tmp_path):
-    """"Clean" and "not looked at" have to be distinguishable without opening
-    the findings. D-04, carried into the envelope."""
-    predicate = to_envelope([write_unread_report(tmp_path / "broken.gguf")]).statement()["predicate"]
-
-    assert predicate["artifacts"][0]["fully_read"] is False
-    assert predicate["verdict"] == "inconclusive"
-
-
-def test_an_empty_report_set_is_inconclusive_and_never_a_pass():
-    assert inspection_predicate([])["verdict"] == "inconclusive"
-
-
-def test_the_predicate_is_byte_identical_across_two_runs_over_the_same_bytes(reports):
-    """A signed document that changes between runs cannot be compared, and a
-    signature over it proves only that somebody signed something."""
-    first = to_envelope(reports, inspected_at="2026-09-10T00:00:00+00:00").payload
-    second = to_envelope(reports, inspected_at="2026-09-10T00:00:00+00:00").payload
-
-    assert first == second
-
-
-def test_the_policy_the_verdict_was_computed_under_is_recorded(reports):
-    predicate = inspection_predicate(reports, scan_policy="known-bad", fail_on=Severity.CRITICAL)
-
-    assert predicate["policy"] == {"import_policy": "known-bad", "fail_on": "critical"}
-
+# The seven tests that used to sit here asserted the shape of the predicate
+# `to_envelope` wrote: its subject names, its verdict, its policy block, its
+# `fully_read` rows and its byte-stability. Phase A removed that writer, and a
+# test re-pointed at the suite's own writer would assert that the suite agrees
+# with itself. They are recoverable at `archive/model-scanner:tests/test_dsse.py`
+# alongside the code they covered. What the reader still owes - `_type`,
+# `predicateType`, `payloadType` - is asserted above, against envelopes this
+# tree did not write.
 
 def test_an_envelope_without_a_payload_type_is_refused_at_load():
     with pytest.raises(ValueError, match="payloadType"):

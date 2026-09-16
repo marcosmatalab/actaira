@@ -66,9 +66,9 @@ def test_an_unbuilt_tool_says_the_same_thing_however_it_is_called(name):
 
 def test_verify_answers_for_real_on_a_healthy_package(tmp_path):
     from actaira.attest import chain
-    from support.reports import make_report
+    from support.reports import record
 
-    report = make_report(tmp_path / "clean.safetensors")
+    report = record(tmp_path / "clean.safetensors")
     entries: list[chain.Entry] = []
     chain.append(entries, report.sha256, report.to_dict(), timestamp="2026-01-01T00:00:00")
     written = package.write_package(tmp_path / "a.zip", entries, signing.generate())
@@ -188,9 +188,9 @@ def _verify_payloads(tmp_path) -> list[tuple[str, dict]]:
     over three examples is three examples.
     """
     from actaira.attest import chain
-    from support.reports import make_report
+    from support.reports import record
 
-    report = make_report(tmp_path / "clean.safetensors")
+    report = record(tmp_path / "clean.safetensors")
     entries: list[chain.Entry] = []
     chain.append(entries, report.sha256, report.to_dict(), timestamp="2026-01-01T00:00:00")
     healthy = package.write_package(tmp_path / "healthy.zip", entries, signing.generate())

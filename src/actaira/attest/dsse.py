@@ -63,54 +63,50 @@ What the envelope gives up in exchange is everything the package holds that
 is not one payload: the chain, the root, the token, the BOM documents. That
 is a real loss and the reason both exist.
 
-The predicate schema, `https://actaira.dev/predicates/inspection/v1`
+The predicate schema, and why this module no longer writes one
 --------------------------------------------------------------------
-The `subject` of the statement is the artifacts, named and digested per
-in-toto. The `predicate` is the inspection, and every field in it comes from
-bytes that were parsed, on the same rule the ML-BOM obeys (D-16):
+This module reads DSSE envelopes. It does not write them.
 
-    tool          {"name": "actaira", "version": "1.0.0"}
-    policy        {"import_policy": "strict" | "known-bad",
-                   "fail_on": "critical" | "high" | "medium" | "low"}
-                  The settings the verdicts below were computed under. A
-                  verdict without its policy is not reproducible, and this
-                  predicate has to be reproducible or it is decoration.
-    verdict       "pass" | "fail" | "inconclusive": the worst verdict over
-                  the subjects, worst-first (fail, then inconclusive). Never
-                  a score, never a ratio. See D-41.
-    inspected_at  RFC 3339 UTC. Says when this statement was written and
-                  nothing more; on its own it is an unanchored claim about
-                  time, exactly as D-13 says of a chain entry.
-    artifacts     one row per subject, joined to it by `sha256`:
-                  {name, path, sha256, format, format_confidence, verdict,
-                   fully_read, max_severity | null, rules_fired: [id, ...]}
-                  `fully_read: false` is the row saying part of the artifact
-                  was never read, so a reader can tell "clean" from "not
-                  looked at" without opening the findings.
-    rules_fired   the union over all artifacts, aggregated as
-                  [{rule_id, severity, count}, ...] sorted by rule_id. Rule
-                  identifiers are the stable interface (D-07); the prose for
-                  them is in the message catalogue and deliberately not here,
-                  so a wording change cannot alter a signed document.
+Phase A removed the writing half. `to_envelope`, `inspection_predicate`,
+`subject_of`, `worst_verdict`, `in_toto_statement`, `_artifact_row` and
+`_aggregate_rules` built an `https://actaira.dev/predicates/inspection/v1`
+statement out of `ArtifactReport`, which was the model scanner's report shape.
+No command reached any of them: `actaira verify` enters this module at
+`Envelope.from_json` and `verify_envelope` and nowhere else.
 
-A consumer that does not know this predicate type still gets a valid in-toto
-statement over subjects it can verify digests against, which is the point of
-putting the artifact identity in `subject` rather than only in the predicate.
+Two reasons they went rather than waiting for a caller.
+
+The first is the reachability rule: a function no command reaches is not an
+interface, it is a claim the tree cannot keep. `ArtifactReport` existed only to
+feed this predicate, and it anchored `coverage.py` behind it.
+
+The second is doctrine, and it outweighs the line count. `worst_verdict` folded
+the verdicts of several artifacts into the worst one, and `_aggregate_rules`
+folded the severities one rule fired at into the worst of them. CLAUDE.md's
+first negative says an author's `severity` is an attributed label that is NOT
+aggregated or summed with others, and this module was doing exactly that inside
+the signed bytes of a published document. Two of the three `xfail(strict=True)`
+markers in the old `tests/test_receipt.py` named these two functions by line.
+They are now properties over every document this tree emits, in
+`tests/test_no_aggregate.py`, asserted forward rather than deferred.
+
+Recover the writing half from `archive/model-scanner:src/actaira/attest/dsse.py`
+if a future revision needs to speak OMS again. It will need a subject shape
+that is not the scanner's, and a verdict that is not a fold.
+
+The reading half still enforces the statement's outer shape - `_type`,
+`predicateType` and `payloadType` - so an envelope written by something else
+against the same predicate type still verifies here.
 """
 from __future__ import annotations
 
 import base64
 import json
-from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime
-from pathlib import PurePosixPath
 from typing import Any
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-from .. import __version__
-from ..model import ArtifactReport, Severity, Verdict
 from . import signing
 from .signing import KeyPair
 
@@ -123,11 +119,6 @@ PREDICATE_TYPE = "https://actaira.dev/predicates/inspection/v1"
 
 DSSE_HEADER = b"DSSEv1"
 SP = b" "
-
-# Verdicts, worst first. The order is the aggregation rule for a statement
-# covering several artifacts and it is written once, here, so that a reader
-# does not have to reconstruct it from a chain of comparisons.
-VERDICT_ORDER: tuple[Verdict, ...] = (Verdict.FAIL, Verdict.INCONCLUSIVE, Verdict.PASS)
 
 
 def pae(payload_type: str, payload: bytes) -> bytes:
@@ -250,144 +241,6 @@ class Envelope:
     @classmethod
     def from_json(cls, text: str | bytes) -> Envelope:
         return cls.from_dict(json.loads(text))
-
-
-def in_toto_statement(
-    subjects: Sequence[dict[str, Any]],
-    predicate: dict[str, Any],
-    predicate_type: str = PREDICATE_TYPE,
-) -> dict[str, Any]:
-    """An in-toto v1 statement. Four fields, in the order the spec names them."""
-    return {
-        "_type": STATEMENT_TYPE,
-        "subject": [dict(subject) for subject in subjects],
-        "predicateType": predicate_type,
-        "predicate": predicate,
-    }
-
-
-def subject_of(report: ArtifactReport) -> dict[str, Any]:
-    """The in-toto subject for one artifact: a name and a digest.
-
-    `name` is the file's base name rather than the path it happened to have
-    on the machine that ran the scan. An in-toto subject name is meant to be
-    an identifier a consumer can match against its own copy, and a consumer's
-    copy is not at `/home/ci/work/42/model.safetensors`. The full path is not
-    dropped: it goes in the predicate row, labelled `path`, where it reads as
-    provenance rather than as identity.
-    """
-    return {
-        "name": PurePosixPath(report.path.replace("\\", "/")).name or report.path,
-        "digest": {"sha256": report.sha256},
-    }
-
-
-def worst_verdict(reports: Sequence[ArtifactReport]) -> Verdict:
-    """The worst verdict over a set of reports, or INCONCLUSIVE for none.
-
-    Empty means nothing was inspected, and the answer to "what did you find
-    in nothing" is not "pass". D-04, one layer up.
-    """
-    for verdict in VERDICT_ORDER:
-        if any(report.verdict is verdict for report in reports):
-            return verdict
-    return Verdict.INCONCLUSIVE
-
-
-def inspection_predicate(
-    reports: Sequence[ArtifactReport],
-    scan_policy: str = "strict",
-    fail_on: Severity = Severity.HIGH,
-    inspected_at: str | None = None,
-) -> dict[str, Any]:
-    """The `predicate` body. Schema documented in the module docstring.
-
-    `inspected_at` is injectable so that a caller which needs a byte-stable
-    document (a test, a reproducible build) can supply the moment instead of
-    reading the clock. Nothing else in here varies between two runs over the
-    same bytes under the same policy, which is the property that makes the
-    signature worth anything.
-    """
-    rows = [_artifact_row(report) for report in reports]
-    return {
-        "tool": {"name": "actaira", "version": __version__},
-        "policy": {"import_policy": scan_policy, "fail_on": fail_on.value},
-        "verdict": worst_verdict(reports).value,
-        "inspected_at": inspected_at or datetime.now(UTC).isoformat(timespec="seconds"),
-        "artifacts": rows,
-        "rules_fired": _aggregate_rules(reports),
-    }
-
-
-def _artifact_row(report: ArtifactReport) -> dict[str, Any]:
-    return {
-        "name": subject_of(report)["name"],
-        "path": report.path,
-        "sha256": report.sha256,
-        "format": report.detected_format,
-        "format_confidence": report.format_confidence,
-        "verdict": report.verdict.value,
-        "fully_read": bool(report.metadata.get("fully_read", False)),
-        "max_severity": report.max_severity.value if report.max_severity else None,
-        "rules_fired": sorted({finding.rule_id for finding in report.findings}),
-    }
-
-
-def _aggregate_rules(reports: Sequence[ArtifactReport]) -> list[dict[str, Any]]:
-    """Counts per rule, sorted. A count of firings, never a score (D-41)."""
-    tally: dict[str, dict[str, Any]] = {}
-    for report in reports:
-        for finding in report.findings:
-            row = tally.setdefault(
-                finding.rule_id,
-                {"rule_id": finding.rule_id, "severity": finding.severity.value, "count": 0},
-            )
-            # A rule can fire at different severities in different inspectors;
-            # the worst one is kept so the row cannot understate the artifact.
-            if Severity(row["severity"]).rank < finding.severity.rank:
-                row["severity"] = finding.severity.value
-            row["count"] += 1
-    return [tally[rule_id] for rule_id in sorted(tally)]
-
-
-def to_envelope(
-    reports: Sequence[ArtifactReport],
-    keypair: KeyPair | None = None,
-    scan_policy: str = "strict",
-    fail_on: Severity = Severity.HIGH,
-    inspected_at: str | None = None,
-) -> Envelope:
-    """Inspection reports in, one signed DSSE envelope out.
-
-    `keypair` is optional and its absence produces an envelope with zero
-    signatures. That is a legitimate DSSE object (the format allows it) and
-    `verify_envelope` refuses it loudly, which is the behaviour wanted for a
-    document that is going to be handed to a co-signer before anyone verifies
-    it. What is not offered is a way to produce a *partially* signed envelope,
-    because there is no such thing here: every signature covers the whole
-    preimage.
-    """
-    statement = in_toto_statement(
-        subjects=[subject_of(report) for report in reports],
-        predicate=inspection_predicate(
-            reports,
-            scan_policy=scan_policy,
-            fail_on=fail_on,
-            inspected_at=inspected_at,
-        ),
-    )
-    # Sorted keys and compact separators for the same reason canonical_json
-    # exists (D-03): the payload is base64-encoded into the envelope and
-    # hashed by whoever verifies it, so two runs over the same facts must
-    # produce the same bytes. `ensure_ascii=False` keeps a non-ASCII file
-    # name readable in the document rather than escaped, and the PAE length
-    # prefix is computed over the encoded bytes, which is where a UTF-8
-    # payload gets its length right or wrong.
-    payload = json.dumps(
-        statement, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
-    ).encode("utf-8")
-    envelope = Envelope(payload=payload, payload_type=PAYLOAD_TYPE)
-    return envelope.signed(keypair) if keypair is not None else envelope
 
 
 def verify_envelope(envelope: Envelope, public_key: Ed25519PublicKey) -> tuple[bool, list[str]]:

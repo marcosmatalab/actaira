@@ -432,15 +432,52 @@ def test_a_refused_key_reaches_no_emitted_document(tmp_path, field):
     assert field.path not in blob
 
 
-def test_the_refused_list_names_keys_the_protocol_module_knows_about():
-    """A refusal about a key nobody has spelled anywhere is a refusal that
-    stops meaning anything the moment the key is renamed upstream."""
+def test_the_protocol_module_writes_no_refused_key_of_its_own():
+    """There is one list of refused keys, and it is this table.
+
+    This used to assert that `protocol.TRACESTATE_KEY`, `BAGGAGE_KEY` and
+    `CLIENT_CAPABILITIES_KEY` matched the three paths in `REFUSED`. That test
+    passes for exactly as long as somebody keeps two lists in step, and the
+    thing it was protecting is that there should not be a second list. A fourth
+    key added here and not there, or there and not here, was a test failure
+    nobody could act on without deciding which copy was right.
+
+    So it is inverted. `protocol.REFUSED_KEYS` is now derived from this table,
+    and this asserts that `protocol.py` contains no refused key as a literal.
+    A reason is the only thing that makes a refusal survive a rename upstream,
+    and the reason is written here, beside the key.
+    """
     from actaira.proxy import protocol
 
-    named = {protocol.TRACESTATE_KEY, protocol.BAGGAGE_KEY,
-             protocol.CLIENT_CAPABILITIES_KEY}
+    assert set(protocol.REFUSED_KEYS) == {field.path for field in REFUSED}
 
-    assert {field.path for field in REFUSED} == named
+    source = Path("src/actaira/proxy/protocol.py").read_text(encoding="utf-8")
+    code = [
+        line for line in source.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    written_again = [
+        f"{field.path} at line {number}"
+        for field in REFUSED
+        for number, line in enumerate(code, start=1)
+        if repr(field.path) in line or f'"{field.path}"' in line
+    ]
+    assert written_again == [], (
+        "a refused key is spelled in protocol.py as well as in provenance.py: "
+        + "; ".join(written_again)
+        + ". Read it from `provenance.refused()` instead."
+    )
+
+
+def test_that_scan_would_notice_a_refused_key_written_again():
+    """The non-vacuity half: an empty offender list has to mean something."""
+    planted = ['CLIENT_CAPABILITIES_KEY = "tracestate"', "BAGGAGE_KEY = 'baggage'"]
+    hits = [
+        line for field in REFUSED for line in planted
+        if repr(field.path) in line or f'"{field.path}"' in line
+    ]
+
+    assert len(hits) == 2, "the literal scan does not find a literal"
 
 
 def test_the_provenance_table_is_the_only_place_this_is_written_down():

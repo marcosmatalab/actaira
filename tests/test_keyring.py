@@ -29,7 +29,7 @@ from actaira.attest import chain, keyring, package, signing
 from actaira.attest import timestamp as ts
 from actaira.attest import verify as verify_mod
 from conftest import POSIX_MODE_BITS, requires_posix_modes
-from support.reports import write_report
+from support.reports import write_record
 
 NOW = datetime.now(UTC)
 
@@ -41,7 +41,7 @@ def iso(moment: datetime) -> str:
 @pytest.fixture
 def entries(tmp_path: Path) -> list[chain.Entry]:
     artifact = tmp_path / "clean.safetensors"
-    report = write_report(artifact)
+    report = write_record(artifact)
     built: list[chain.Entry] = []
     chain.append(built, report.sha256, report.to_dict())
     return built

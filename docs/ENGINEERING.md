@@ -98,8 +98,8 @@ pytest actually collects, so a renamed test is reported by name rather than
 leaving a total that still looks healthy.
 
 **128** defects have been found here, by **16** distinct mechanisms, and every
-one of them was found by a mechanism that can fail: **131**, all fixed, **42**
-pinned by a named regression test and **74** by a written note. 45 were never in
+one of them was found by a mechanism that can fail: **131**, all fixed, **14**
+pinned by a named regression test and **101** by a written note. 45 were never in
 a released build and are marked as such rather than dropped.
 
 Those four numbers are measured by `make figures` and refused by the release
@@ -161,6 +161,77 @@ byte-identical to the original, verification passed, and the harness counted
 every case as a pass while some of them had tested nothing at all. The
 mutation flips the verdict now, and a test asserts it can never rewrite an
 entry to itself.
+
+---
+
+## The fourth form: a test that asserts a property that is not the one it protects
+
+The section above names defects in the tool. This one names a defect in the
+*checking*, and it is worth its own heading because it has now appeared three
+times in three days, always in a different subsystem, and it is the
+characteristic failure of a project whose entire argument is rigor.
+
+The shape is always the same. A test is written to protect a property. It
+passes. The property it actually asserts is weaker than the one it was written
+for, and often trivially satisfiable, so the test goes on passing through
+exactly the change it existed to catch. It is worse than a missing test, because
+a missing test is visible in a coverage gap and this one shows up green.
+
+The three instances, because the shape is easier to recognise than to define:
+
+**1. The privacy corpus, and the hash that was not a redaction.** The corpus
+seeded high-entropy secrets into a session and asserted that none of them
+appeared in the emitted trace. They did not appear, and the test passed. What it
+was protecting was that a third-party value does not travel; what it asserted
+was that a value does not travel *verbatim*. An unsalted digest of a guessable
+name is an encoding, not a redaction: the value was reconstructible offline by
+anyone who could guess the input, and the test could not see it because it was
+looking for the plaintext. The property it should have asserted, and now does,
+is that neither the value nor a digest a third party can reproduce reaches the
+document (D-263).
+
+**2. The network guard's meta-test, and the gate of six.** The guard closes six
+`socket` entry points. The meta-test that proves the guard still bites exercised
+one of them. It passed for as long as any one door was shut, which is to say it
+would have passed with five of the six left open. The property it was protecting
+was "the suite cannot reach the network"; the property it asserted was "the
+suite cannot reach the network *through this one call*" (D-267).
+
+**3. The published-contract test, and `additionalProperties`.** Every schema
+here sets `additionalProperties: true`, deliberately, so a field can be added
+within a major version. That makes the schema a *floor* and not a ceiling, and
+it means a test that validates an emitted document against its schema cannot see
+a field the contract never declared: the validator accepts it silently. The test
+was written to check that the tool emits what it promises, and what it asserted
+was that the tool emits *at least* what it promises. The fix walks the emitted
+document rather than the schema, and fails on a key the provenance table does
+not classify (D-268).
+
+### What to do about it
+
+There is no rule that prevents this, because the defect is a gap between what a
+test means and what it says, and both are written by the same person in the same
+minute. What works is a second assertion whose only job is to make an empty or
+trivial pass impossible:
+
+- **Assert the enumeration is not empty before walking it.** A loop over zero
+  items passes every property inside it.
+  `tests/test_no_aggregate.py::test_the_enumeration_is_not_empty` is this.
+- **Plant the defect and assert the test catches it.** If the check cannot fail,
+  it is not a check. `tests/test_release_check.py` does this for every gate,
+  and `tests/test_reachability.py::test_the_graph_is_not_trivially_empty` does
+  it for the import walk.
+- **When two places record one fact, do not write a test that referees between
+  them.** That test passes for as long as somebody keeps the copies in step, and
+  the property it is really protecting is that there should be one copy. Invert
+  it: assert there is no second copy. Phase A did this twice, to the schema
+  version and to the list of refused protocol keys, and both times the inversion
+  removed the duplication instead of policing it.
+
+One of these caught a live instance while phase A was being written. The check
+that fails on a schema version written outside the registry shipped with a
+regex that matched nothing, so it passed on a tree with a planted violation in
+it. What found it was the planted violation, not review.
 
 ---
 

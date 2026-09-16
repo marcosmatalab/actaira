@@ -99,12 +99,25 @@ estaba en alcance y falló, sí.
    parece exigir un criterio nuevo, se escribe como línea de backlog y se sigue.
 3. PRESUPUESTO DE FICHEROS POR FASE, declarado antes de empezar. Superarlo
    requiere que yo lo autorice explícitamente en la conversación.
-   El presupuesto cuenta ficheros de DISEÑO. Los que fuerza el propio gate del
-   repositorio no cuentan: documentación que una comprobación de release exige,
-   generadores que abortan sin una entrada, y tests que afirman el estado
-   viejo. Cada fichero que se declare forzado TIENE QUE NOMBRAR en el informe
-   la comprobación concreta que lo fuerza. Un fichero forzado sin su
-   comprobación nombrada es alcance, y entonces sí cuenta.
+   Hay TRES categorías de fichero, no dos:
+
+   1. DISEÑO. Cuenta contra el presupuesto.
+   2. FORZADO POR LA PUERTA. No cuenta: documentación que una comprobación de
+      release exige, generadores que abortan sin una entrada, y tests que
+      afirman el estado viejo. Cada fichero que se declare forzado TIENE QUE
+      NOMBRAR en el informe la comprobación concreta que lo fuerza. Un fichero
+      forzado sin su comprobación nombrada es alcance, y entonces sí cuenta.
+   3. ALCANCE DESCUBIERTO A MITAD DE FASE. El objetivo de la fase se vuelve
+      incoherente sin él. No cuenta contra el presupuesto, PERO OBLIGA A PARAR
+      Y PREGUNTAR ANTES DE ESCRIBIRLO, y se anota en el commit con el argumento
+      de por qué la fase no se sostiene sin él.
+
+   La tercera existe porque en la 1.1b se usaron 11 de 10 y el de más fue
+   `cli.py`: ninguna comprobación de la puerta lo forzaba, lo forzaba que el
+   operador perdía la capacidad de encontrar su propia sesión. El argumento era
+   correcto y la categoría 2 no era su sitio. Archivar alcance descubierto como
+   "forzado por la puerta" por comodidad es como la categoría 2 deja de
+   significar nada.
 4. PROHIBIDO EMPEZAR LA FASE SIGUIENTE ANTES DE CERRAR LA ACTUAL. Aunque sea
    evidente, aunque queden tokens, aunque el cambio sea de una línea.
 5. CADA DECISIÓN DE DISEÑO SE ESCRIBE CON SU ALTERNATIVA RECHAZADA Y SU PORQUÉ,
@@ -123,6 +136,32 @@ estaba en alcance y falló, sí.
    ampliación de presupuesto o de alcance, esa autorización se escribe en el
    mensaje del commit de la fase, con el número, el motivo y qué ficheros la
    consumen. Una sesión posterior solo puede leer el repo.
+
+## La regla de alcanzabilidad
+
+Todo módulo del paquete tiene que ser alcanzable desde el CLI o desde el
+servidor MCP. Lo que no lo sea, sale. El historial lo guarda y
+`archive/model-scanner` está intacta; un `git show` lo trae de vuelta.
+
+La alcanzabilidad se calcula DESDE LAS RAÍCES A TRAVÉS DE LAS FUNCIONES QUE SE
+ALCANZAN, no a través de los imports a nivel de módulo. Un import que solo
+ocurre dentro de una función que ningún comando alcanza no es una arista de
+alcanzabilidad. Esto es más estricto que la regla anterior, no más laxo: sin
+esa precisión, la mitad de emisión muerta de `attest/dsse.py` mantenía viva a
+`ArtifactReport`, y esta a `coverage.py` detrás, y con ellas dos violaciones de
+la primera negativa dentro del paquete que se publica.
+
+Se aplica a nivel de MÓDULO. Una función muerta dentro de un módulo vivo va a
+`docs/BACKLOG.md` con su nombre; no bloquea una fase.
+
+PROHIBIDA UNA LISTA DE EXCEPCIONES. Una excepción se satisface añadiendo una
+línea a la lista, así que la regla la cumpliría quien decidiera no añadirla. Los
+dos módulos que pedían excepción cuando esto se escribió, `schemas/__init__.py`
+y `trace/provenance.py`, eran cada uno el segundo sitio donde estaba escrito un
+hecho, con un test arbitrando entre las copias. Se cablearon a sus lectores en
+vez de exceptuarse, y eso eliminó el defecto real que la regla había destapado.
+
+`tests/test_reachability.py` es la puerta y corre en `make all`.
 
 ## Reglas de código
 

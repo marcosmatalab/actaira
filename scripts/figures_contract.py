@@ -85,13 +85,6 @@ def derive() -> dict[str, Any]:
     """Read every canonical source once. Raises rather than guessing."""
     from actaira import __version__, schemas
     from actaira.cli import build_parser
-    from actaira.conformance.capability import CAPABILITY_RULES
-    from actaira.coverage import CoverageState, Surface
-    from actaira.policy.engine import PREDICATES
-    from actaira.state.evidence import EvidenceState
-    from actaira.state.graph import RELATIONS
-    from actaira.state.watch import ObservationState
-    from actaira.subject import SubjectKind
 
     def harness(relative: str, how: str) -> dict[str, Any]:
         path = ROOT / relative
@@ -131,14 +124,6 @@ def derive() -> dict[str, Any]:
         "schema_families": len(schemas.VERSIONS),
         "schema_documents": len(schemas.names()),
         "schemas_superseded": sum(len(item) for item in schemas.SUPERSEDED.values()),
-        "capability_rules": len(CAPABILITY_RULES),
-        "watch_states": len(list(ObservationState)),
-        "evidence_states": len(list(EvidenceState)),
-        "relations": len(RELATIONS),
-        "predicates": len(PREDICATES),
-        "subject_kinds": len(list(SubjectKind)),
-        "surfaces": len(list(Surface)),
-        "coverage_states": len(list(CoverageState)),
         "commands": len(commands),
         "design_notes": len(set(re.findall(r"^\| (D-\d+[a-z]?) \|", design, re.M))),
         "runtime_dependencies": 1,
@@ -216,22 +201,6 @@ def figures() -> list[Figure]:
                r"\b\d+(?= schema documents)", r"\b\d+(?= documentos de esquema)"),
         figure("schemas_superseded", "actaira.schemas.SUPERSEDED",
                r"\b\d+(?= superseded versions)", r"\b\d+(?= versiones sustituidas)"),
-        figure("coverage_states", "coverage.CoverageState",
-               r"\b\d+(?= coverage states)", r"\b\d+(?= estados de cobertura)"),
-        figure("capability_rules", "conformance.capability.CAPABILITY_RULES",
-               r"\b\d+(?= capability rules)", r"\b\d+(?= reglas de capacidades)"),
-        figure("watch_states", "state.watch.ObservationState",
-               r"\b\d+(?= observation states)", r"\b\d+(?= estados de observación)"),
-        figure("evidence_states", "state.evidence.EvidenceState",
-               r"\b\d+(?= evidence states)", r"\b\d+(?= estados de evidencia)"),
-        figure("relations", "state.graph.RELATIONS",
-               r"\b\d+(?= relation kinds)", r"\b\d+(?= tipos de relación)"),
-        figure("predicates", "policy.engine.PREDICATES",
-               r"\b\d+(?= policy predicates)", r"\b\d+(?= predicados de política)"),
-        figure("subject_kinds", "subject.SubjectKind",
-               r"\b\d+(?= kinds of subject)", r"\b\d+(?= tipos de sujeto)"),
-        figure("surfaces", "coverage.Surface",
-               r"\b\d+(?= coverage surfaces)", r"\b\d+(?= superficies de cobertura)"),
         figure("commands", "cli.build_parser",
                r"\b\d+(?= CLI commands)", r"\b\d+(?= comandos de CLI)"),
         # The ledger sentence's third figure, which the sync script writes
@@ -266,19 +235,16 @@ FORBIDDEN_NUMBER_WORDS = {
 COUNTED_NOUNS = {
     "README.md": (
         "defects", "mechanisms", "distinct mechanisms", "schemas", "schema documents",
-        "versioned contracts", "capability rules", "observation states", "evidence states",
-        "superseded versions", "coverage states",
-        "relation kinds", "policy predicates", "kinds of subject", "coverage surfaces",
+        "versioned contracts",
+        "superseded versions",
         "connectors", "executable controls", "obligations", "CLI commands", "design notes",
         "documented rules", "corpus artifacts", "fuzz targets", "tests",
     ),
     "README.es.md": (
         "defectos", "mecanismos", "mecanismos distintos", "esquemas", "documentos de esquema",
-        "contratos versionados", "reglas de capacidades", "estados de observación",
-        "versiones sustituidas", "estados de cobertura",
-        "estados de evidencia", "tipos de relación", "predicados de política",
-        "tipos de sujeto", "superficies de cobertura", "conectores", "controles ejecutables",
-        "obligaciones", "comandos de CLI", "notas de diseño", "reglas documentadas",
+        "contratos versionados", "versiones sustituidas", "conectores",
+        "controles ejecutables", "obligaciones", "comandos de CLI",
+        "notas de diseño", "reglas documentadas",
         "artefactos de corpus", "objetivos de fuzz", "tests",
     ),
 }

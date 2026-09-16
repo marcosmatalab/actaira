@@ -39,10 +39,10 @@ from actaira.attest import chain, package, signing
 from actaira.attest import keyring as keyring_mod
 from actaira.attest import timestamp as ts
 from actaira.attest import verify as verify_mod
-from actaira.attest.dsse import to_envelope
 from actaira.cli import _print_verify
 from actaira.i18n.catalog import SUPPORTED, Catalog, load
-from support.reports import make_report
+from support.reports import envelope as build_envelope
+from support.reports import record
 
 VERIFY_SOURCE = Path(verify_mod.__file__)
 
@@ -83,7 +83,7 @@ def signer():
 
 @pytest.fixture(scope="module")
 def entries(tmp_path_factory):
-    report = make_report(tmp_path_factory.mktemp("subject") / "clean.safetensors")
+    report = record(tmp_path_factory.mktemp("subject") / "clean.safetensors")
     built: list[chain.Entry] = []
     chain.append(built, report.sha256, report.to_dict(), timestamp="2026-01-01T00:00:00")
     return built, report
@@ -137,7 +137,7 @@ def corpus(tmp_path_factory, signer, authority, entries) -> list[Case]:
 
     # A DSSE envelope nobody signed. Its digest matches the manifest, so only
     # its own signature check can tell.
-    unsigned = to_envelope([report], None, inspected_at="2026-01-01T00:00:00+00:00")
+    unsigned = build_envelope([report], None)
     envelope = package.write_package(
         home / "unsigned-envelope.zip", built, signer, envelope=unsigned.to_json().encode("utf-8")
     )

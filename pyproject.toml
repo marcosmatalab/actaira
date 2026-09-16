@@ -8,7 +8,7 @@ version = "3.0.0"
 description = "Capture what an AI agent did from outside it, decide deterministically whether it left what it declared, and emit a record a third party verifies without trusting the operator. Nothing is ever scored."
 readme = "README.md"
 requires-python = ">=3.11"
-license = "MIT"
+license = "Apache-2.0"
 authors = [{ name = "Marcos Mata Garcia" }]
 keywords = [
   "ai-agents", "agent-security", "llm-security", "mcp", "attestation",

@@ -14,18 +14,12 @@ place that can be stated is a test that fails.
 """
 from __future__ import annotations
 
-import pickle
-from datetime import UTC, date, datetime
-from pathlib import Path
+import re
 
 import pytest
 
-from actaira import receipt as receipt_mod
 from actaira import schemas
-from actaira.attest import signing
-from actaira.policy import decide, load_policy_text
-from actaira.policy.engine import Claims
-from support.reports import write_report
+from conftest import REPO_ROOT, SRC_DIR
 
 jsonschema = pytest.importorskip("jsonschema", reason="the schema checks need jsonschema")
 
@@ -57,125 +51,65 @@ def check(name: str, document: dict) -> None:
     assert not errors, "\n".join(f"{list(error.path)}: {error.message}" for error in errors)
 
 
-@pytest.fixture
-def clean_report(tmp_path):
-    return write_report(tmp_path / "clean.pkl", payload=pickle.dumps({"w": [1.0, 2.0]}),
-                        detected_format="pickle")
-
-
-POLICY_TEXT = """
-policy: schema-demo
-version: 1
-rules:
-  - id: no-high
-    effect: deny
-    when:
-      finding_severity_at_least: high
-exceptions:
-  - rule: no-high
-    owner: marcos@example.com
-    reason: a documented, dated waiver
-    expires: 2026-12-01
-"""
-
-AGENT_TEXT = """
-agent: schema-demo
-version: "2"
-model: anthropic/claude-sonnet-4-5
-model_digest: sha256:abc
-prompt_sha256: def
-tools:
-  - name: search
-    effects:
-      - read
-mcp_servers:
-  - name: github
-    reference: ghcr.io/example/mcp@sha256:abc
-    publisher: example
-"""
-
-
 # --------------------------------------------------------------------------
-# What the tool actually emits validates
+# The version number is recorded once, and there is no second place
 # --------------------------------------------------------------------------
 
 
-def test_every_schema_file_is_itself_a_valid_schema():
-    for name in schemas.names():
-        jsonschema.Draft202012Validator.check_schema(schemas.load(name))
+def test_no_module_writes_a_schema_version_of_its_own():
+    """The version is read from `schemas.VERSIONS`. Nowhere may spell one again.
 
+    This used to be four parametrised cases asserting that a module constant and
+    a schema `const` agreed. That test passes for exactly as long as somebody
+    keeps two copies in step, and the thing it was really protecting is that
+    there should be one copy. So it is inverted: no module under `src/` may
+    contain a version literal at all, and `trace/model.py` gets its
+    `SCHEMA_VERSION` from the registry.
 
-def test_a_coverage_matrix_validates(clean_report):
-    check("coverage-v1", clean_report.coverage.to_dict())
+    Deliberately a text scan rather than an import check. A literal assigned to
+    a constant, buried in a dict, or interpolated into a document all read the
+    same way here, and all three are the second copy.
+    """
+    pattern = re.compile(r"""['"][a-z-]+/v\d+['"]""")
+    offenders = []
+    for path in sorted((SRC_DIR / "actaira").rglob("*.py")):
+        if "__pycache__" in path.parts or path.parent.name == "schemas":
+            continue  # the registry is the one place a version may be written
+        for number, line in enumerate(path.read_text("utf-8").splitlines(), start=1):
+            if line.lstrip().startswith("#"):
+                continue  # a comment naming a version is prose, not a second copy
+            for hit in pattern.findall(line):
+                offenders.append(f"{path.relative_to(REPO_ROOT)}:{number}: {hit}")
 
-
-def test_a_policy_validates():
-    check("policy-v1", load_policy_text(POLICY_TEXT).to_dict())
-
-
-def test_a_policy_decision_validates(clean_report):
-    policy = load_policy_text(POLICY_TEXT)
-    decision = decide(policy, [Claims(clean_report)], on=date(2026, 9, 11))
-
-    check("policy-decision-v1", decision.to_dict())
-
-
-def test_a_signed_receipt_validates(clean_report):
-    document = receipt_mod.sign(
-        receipt_mod.build([clean_report], observed_at=datetime(2026, 9, 11, tzinfo=UTC)),
-        signing.generate(),
+    assert offenders == [], (
+        "a schema version is written outside src/actaira/schemas/:\n"
+        + "\n".join(offenders)
+        + "\nRead it from `schemas.VERSIONS` instead."
     )
 
-    check("assurance-receipt-v2", document)
+
+def test_the_scan_above_would_notice_a_version_literal():
+    """The non-vacuity half: an empty offender list has to mean something.
+
+    An assertion over a scan that finds nothing passes whether the rule holds or
+    the scan is broken. This pins that the pattern matches what it is for.
+    """
+    pattern = re.compile(r"""['"][a-z-]+/v\d+['"]""")
+
+    assert pattern.findall('SCHEMA_VERSION = "trace/v3"') == ['"trace/v3"']
+    assert pattern.findall("version = 'policy-decision/v1'") == ["'policy-decision/v1'"]
+    assert pattern.findall("SCHEMA_VERSION = schemas.VERSIONS[\"trace\"]") == []
 
 
-def test_a_receipt_carrying_a_decision_validates(clean_report):
-    policy = load_policy_text(POLICY_TEXT)
-    decision = decide(policy, [Claims(clean_report)], on=date(2026, 9, 11))
-    document = receipt_mod.sign(
-        receipt_mod.build(
-            [clean_report],
-            observed_at=datetime(2026, 9, 11, tzinfo=UTC),
-            policy_decision=decision.to_dict(),
-            attestation={"signature_verified": True, "signer_trusted": True},
-        ),
-        signing.generate(),
-    )
+def test_the_reader_takes_its_versions_from_the_registry():
+    """The other direction: the one copy is the copy the writer actually uses."""
+    from actaira.trace import model as trace_model
 
-    check("assurance-receipt-v2", document)
-
-
-def test_the_shipped_policy_validates():
-    from actaira.policy import load_policy
-    from conftest import REPO_ROOT
-
-    check("policy-v1", load_policy(Path(REPO_ROOT) / "policies" / "production-model.yaml").to_dict())
-
-
-# --------------------------------------------------------------------------
-# The version number is recorded once, not twice
-# --------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    "module_path,constant,schema_name",
-    [
-        ("actaira.coverage", "SCHEMA_VERSION", "coverage-v1"),
-        ("actaira.policy.model", "POLICY_SCHEMA_VERSION", "policy-v1"),
-        ("actaira.policy.model", "SCHEMA_VERSION", "policy-decision-v1"),
-        ("actaira.receipt", "SCHEMA_VERSION", "assurance-receipt-v2"),
-    ],
-)
-def test_the_module_and_the_schema_agree_about_the_version(module_path, constant, schema_name):
-    """Two places recording one version number is how a document ends up
-    declaring a version whose shape it does not have."""
-    import importlib
-
-    module = importlib.import_module(module_path)
-    stated = getattr(module, constant)
-    schema = schemas.load(schema_name)
-
-    assert schema["properties"]["schema_version"]["const"] == stated
+    assert trace_model.SCHEMA_VERSION == schemas.VERSIONS["trace"]
+    assert trace_model.READS == schemas.accepted("trace")
+    assert schemas.load(schemas.stem(trace_model.SCHEMA_VERSION))["properties"][
+        "schema_version"
+    ]["const"] == trace_model.SCHEMA_VERSION
 
 
 def test_every_declared_version_has_a_schema_file():
@@ -192,19 +126,6 @@ def test_every_declared_version_has_a_schema_file():
 # the first v1 release; making an existing optional field required is v2. The
 # point of writing them out is that a deletion has to be typed deliberately.
 FROZEN_REQUIRED = {
-    "assurance-receipt-v2": [
-        "coverage", "findings_by_severity", "observed_at", "schema_version",
-        "states_what_it_does_not_cover", "subjects", "supply_chain", "tool",
-    ],
-    "coverage-v1": ["schema_version", "surfaces"],
-    "evidence-record-v1": [
-        "collector", "collector_version", "digest", "evidence_id", "kind",
-        "observed_at", "schema_version", "state", "subject",
-    ],
-    "policy-decision-v1": [
-        "decided_on", "decision", "policy", "proof", "schema_version", "subjects",
-    ],
-    "policy-v1": ["policy", "rules", "schema_version", "version"],
     "trace-v1": [
         "authenticity", "capture_level", "complete", "events", "gaps",
         "schema_version", "session_id", "source",
@@ -331,8 +252,7 @@ def test_the_schemas_ship_with_the_package():
     """A contract that is only in the repository is a contract a pip install
     does not carry, and the first thing an SDK author does is look for it."""
     import tomllib
-
-    from conftest import REPO_ROOT
+    from pathlib import Path
 
     pyproject = tomllib.loads((Path(REPO_ROOT) / "pyproject.toml").read_text(encoding="utf-8"))
     package_data = pyproject["tool"]["setuptools"]["package-data"]["actaira"]
@@ -342,7 +262,17 @@ def test_the_schemas_ship_with_the_package():
 
 def test_the_registry_resolves_every_reference():
     """Every `$ref` in every schema has to be in the local set, or an offline
-    validation silently skips the embedded document."""
+    validation silently skips the embedded document.
+
+    The three surviving contracts are self-contained, so there is nothing to
+    resolve and the old non-vacuity guard - "the schemas reference each other;
+    if not, this test is vacuous" - is now the thing that is false. It was
+    written when a report embedded a coverage matrix and a receipt embedded a
+    policy decision; all four of those schemas left in phase A. The guard is
+    inverted rather than deleted: this asserts there are no cross-references
+    AND that the walk would have found one, so the day a `$ref` reappears the
+    resolution check starts biting again instead of passing over nothing.
+    """
     registry = schemas.registry()
     referenced = set()
 
@@ -359,8 +289,15 @@ def test_the_registry_resolves_every_reference():
     for name in schemas.names():
         walk(schemas.load(name))
 
-    assert referenced, "the schemas reference each other; if not, this test is vacuous"
     assert referenced <= set(registry), sorted(referenced - set(registry))
+
+    # The non-vacuity half, in both directions.
+    assert referenced == set(), (
+        "a schema references another again; the assertion above is live now, and "
+        "this line is the one to delete"
+    )
+    walk({"properties": {"x": {"$ref": "https://actaira.dev/schemas/trace-v3.json"}}})
+    assert referenced == {"https://actaira.dev/schemas/trace-v3.json"}, "the walk does not walk"
 
 
 def test_every_published_contract_has_its_required_fields_frozen():
@@ -383,3 +320,45 @@ def test_every_published_contract_has_its_required_fields_frozen():
     assert not stale, (
         f"frozen entries for contracts that are not on disk: {', '.join(stale)}"
     )
+
+
+# --------------------------------------------------------------------------
+# Frozen history: two revisions this tree reads and never writes
+# --------------------------------------------------------------------------
+
+
+def test_the_superseded_revisions_are_read_and_never_emitted():
+    """`trace/v1` and `trace/v2` are history on disk, not live contracts.
+
+    A schema file that ships is a promise. These two are kept so a document an
+    earlier build wrote still parses - not so a consumer can expect new ones -
+    and the difference between those two readings is exactly what a consumer
+    gets wrong when nothing states it. `docs/COMPATIBILITY.md` says which
+    revision superseded each and why; this is the machine half of that.
+    """
+    from actaira.trace import model as trace_model
+
+    for old in schemas.SUPERSEDED["trace"]:
+        assert old in trace_model.READS, f"{old} is frozen, which means still readable"
+        assert old != trace_model.SCHEMA_VERSION, f"{old} is superseded and must not be written"
+        assert schemas.stem(old) in schemas.names(), f"{old} is declared with no file on disk"
+
+    assert trace_model.SCHEMA_VERSION == "trace/v3", "v3 is the only live revision"
+
+
+def test_no_document_this_tree_emits_declares_a_superseded_revision(tmp_path):
+    """The direction that actually bites: run the emitters and read the result.
+
+    Asserting on `SCHEMA_VERSION` alone would pass for a writer that
+    interpolated an old version into a document by hand. This takes what the
+    emitters produce and reads the field back out of it.
+    """
+    from support.reports import emitted_documents
+
+    emitted = emitted_documents(tmp_path)
+    assert emitted, "no emitted document was collected; this test would pass over nothing"
+
+    for name, document in emitted:
+        stated = document.get("schema_version")
+        assert stated == schemas.VERSIONS["trace"], f"{name} declares {stated!r}"
+        assert stated not in schemas.SUPERSEDED["trace"], f"{name} emits a frozen revision"

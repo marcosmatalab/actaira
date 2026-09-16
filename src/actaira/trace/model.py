@@ -30,16 +30,25 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from .. import schemas
 from ..model import canonical_json
 from . import CaptureLevel
 
-SCHEMA_VERSION = "trace/v3"
-# What this reader accepts, oldest first. Writing is v2 and reading is both:
-# a consumer written against v1 is old rather than wrong, and a v1 document on
-# somebody's disk still parses. `schemas.SUPERSEDED` records the same pair for
-# the release gate, and `tests/test_schemas.py` holds v1's required fields
-# frozen so it cannot shrink out from under a reader that still trusts it.
-READS = ("trace/v1", "trace/v2", SCHEMA_VERSION)
+# Read from the schema registry, not written again here. Until phase A this
+# module spelled "trace/v3" as a literal and `schemas.VERSIONS["trace"]` spelled
+# it too, with a test asserting the two agreed. A test that arbitrates between
+# two copies of a fact is the wrong shape: it passes as long as somebody keeps
+# them in step, and the fact it is really protecting is that there should be one
+# copy. `tests/test_schemas.py` now asserts no literal version is written here.
+# Rejected: keeping the literal for import-cost reasons - `schemas` imports only
+# the standard library and reads no file until `load` is called.
+SCHEMA_VERSION = schemas.VERSIONS["trace"]
+# What this reader accepts, oldest first. Writing is v3 and reading is all
+# three: a consumer written against v1 is old rather than wrong, and a v1
+# document on somebody's disk still parses. `schemas.accepted` is the same
+# ordering rule the release gate uses, so a superseded revision cannot be
+# retired from one of the two and left in the other.
+READS = schemas.accepted("trace")
 
 # The OpenTelemetry GenAI attribute names this document uses verbatim, from
 # open-telemetry/semantic-conventions-genai. CLAUDE.md: no invented vocabulary

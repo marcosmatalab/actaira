@@ -1,169 +1,139 @@
-# The EU AI Act, as something a machine can run
+# Governance
 
-Actaira models a set of obligations from Regulation (EU) 2024/1689, decides
-which of them bind **a given role on a given date**, and runs executable
-controls that record what was observed. It does not decide whether anyone
-complies.
+Where the line runs between this repository and the hosted product, and what is
+allowed to cross it.
 
-The counts on this page are not repeated from the catalogue: they live in
-[`FIGURES.md`](FIGURES.md), written by `make figures` from
-`src/actaira/governance/catalog.py`, and in the README under a contract that
-refuses a tree where any of them has drifted. What is written here is the
-shape of the thing, which is what a number cannot carry.
-
----
-
-## The three questions, in order
-
-Every governance answer in Actaira is the product of three inputs, and getting
-any of them wrong changes the answer:
-
-```
-        role                 date              evidence
-          |                    |                   |
-          v                    v                   v
-   who you are in       what is in force     what was actually
-   the supply chain     on that day          observed, and by what
-          |                    |                   |
-          +--------------------+-------------------+
-                               |
-                               v
-                 which obligations bind, which are
-                 forthcoming, and which of them any
-                 file could ever speak to at all
-```
-
-### Role
-
-The Regulation places different duties on different parties, and a tool that
-ignores that reports obligations at people they do not have. Actaira models the
-roles the Regulation names, and nothing beyond them: there is no invented role
-hierarchy, because the Regulation does not have one.
-
-`actaira governance clock --role <role>` prints what binds.
-
-### Date
-
-Obligations apply from different dates, several carry a transitional grace
-period, and some are not in force yet. Asking "what applies" without a date is
-asking a question with no answer, so the date is an input rather than
-`today()`, and a run can be reproduced years later.
-
-A date in the future is a legitimate question: *what will bind us when Annex
-III applies?* The clock answers it, and marks those obligations forthcoming
-rather than in force.
-
-### Evidence
-
-An obligation binds whether or not Actaira can see anything about it. Actaira
-reports what it observed, separately from what binds, and never merges the two
-into a single figure.
+This page used to model obligations from Regulation (EU) 2024/1689 and describe
+an `actaira governance` command. Both went with the model scanner: the
+obligation catalogue had no reader in Python, the command did not parse, and a
+governance page describing a surface that is not there is the same defect as a
+compatibility page doing it. That material is at tag `v2.3.0` and on
+`archive/model-scanner`.
 
 ---
 
-## Checkability tiers
+## This repository is the open core
 
-Every obligation carries a tier, and the tier says **what kind of thing could
-ever decide it**. This is the part of the model that keeps the tool honest,
-because it is written down per obligation rather than inferred.
+**Licence: [Apache-2.0](../LICENSE).** One licence, one repository, stated in
+`LICENSE`, `pyproject.toml`, `CITATION.cff` and both READMEs. A release check
+fails when any of those disagree, because the sentence above is the kind of
+claim that is easy to write and easy to stop being true: this repository was
+relicensed in phase A, which touched five files that nothing had ever compared.
+CHANGELOG.md records what it was before.
 
-| Tier | What it means | The rule it carries |
-|---|---|---|
-| **Machine-checkable** | A deterministic control parses bytes and decides. No model, reproducible anywhere. | May only answer for what it read. |
-| **Generatable** | The tool drafts the artifact the obligation asks for. | Outcome is never SATISFIED: a draft nobody signed is not evidence. |
-| **Evidence-judged** | Whether a supplied document addresses the obligation is a judgement. A model makes it, a verifier checks every span it cites, and it abstains when it cannot ground the answer. | How often it declines is published, and what was measured was the pipeline. |
-| **Organizational** | Nothing readable from a system can show it. | Carries `why_not`, a written reason. |
+What lives here, and stays here:
 
-Two consequences worth stating plainly:
+- **The CLI.** `scan`, `watch`, `verify`, `keygen` today; `contract`, `verdict`,
+  `receipt` and `fix` as they are built. CLAUDE.md caps the list at eight.
+- **The trace format.** The `trace/vN` schemas, the OpenTelemetry GenAI field
+  names, and the reader and writer for them.
+- **The rule packages.** A rule's id, version, package, author, the capture
+  level it requires, and its human-written remediation. A rule Actaira cannot
+  show you is a rule you cannot argue with, and the second negative makes the
+  norm somebody else's to write.
+- **The report.** What a human reads after a run.
+- **The self-hostable collector**, when it exists. Somebody who wants to run all
+  of this inside their own network must be able to, with no account and no
+  outbound connection.
 
-- **Machine-checkable is not compliant.** It means a control could look. What
-  it found is a separate fact.
-- **Partial evidence is not a satisfied obligation.** The control records what
-  it observed and what it did not, and the two are printed together.
-
-Zero obligations are marked as fully supported, and that is a result rather
-than an oversight. An obligation reaches that rating only if reading model
-files could carry it alone, and none can. Moving one up a tier is a code
-change plus a measurement, never an edit to a field: a test fails if an
-obligation claims to be machine-checkable with no control bound to it, and
-fails if an organizational one carries no written reason.
-
----
-
-## Why there is no compliance score
-
-Actaira refuses to produce one, and the refusal is enforced rather than
-promised: a test greps every finished document for `score`, `grade`, `rating`
-and `percent` and fails on any of them.
-
-The argument is short. Weighting obligations of different kinds against each
-other needs a number nobody has. A figure like "82% compliant" is built by
-choosing those weights silently, and the choice is invisible in the output.
-What Actaira publishes instead is the shape of the answer:
-
-```
-N applicable obligations
-  M have technical evidence from this run
-  K are drafted but unsigned, so not evidence
-  J are organizational and outside what any file can show
-```
-
-Anyone can add those up. Nobody can un-add a percentage.
+That list is the product. None of it is a teaser for a paid tier, and none of it
+is time-limited, seat-limited or telemetry-gated.
 
 ---
 
-## Controls
+## The hosted platform is a separate product
 
-A control is a function with a declared obligation, a declared input, and four
-possible outcomes. It records what it looked at and what it did not, and a
-control that could not read its input reports INCONCLUSIVE naming the reason
-rather than failing quietly.
+**A separate repository. A separate licence. It contains none of this.**
 
-The registry is checked in both directions: an obligation that claims a
-control must have one, and a control must name an obligation that exists.
+It consumes the records this repository produces. It does not extend them, fork
+them, or hold a privileged copy of them: a record verified by the hosted
+platform and a record verified by `actaira verify` on a laptop with no network
+are checked by the same rules, and neither answer outranks the other.
 
-```bash
-actaira controls list
-actaira controls run <path> --role provider
-```
+This matters more than it looks. The whole product argument is that a third
+party can check a record **without trusting the operator and without trusting
+Actaira**. A hosted service that was the only thing able to verify a record
+would have quietly made itself the trusted party, which is the position this
+tool exists to remove.
 
-One control needs Pillow, `ACT-C-15-MARK-ROBUSTNESS`, which re-encodes an
-image to see whether a marking survives. When Pillow is absent it reports
-INCONCLUSIVE naming the missing library, which is the behaviour a control is
-supposed to have.
+### Why the boundary is written down here
 
----
+In an open core where the paid part lives under the same licence in the same
+repository, the business gets given away by accident - not by a decision anybody
+made, but by a file landing in the wrong directory on a Tuesday. Nobody notices
+until it is irreversible, because the licence is irrevocable for what has
+already shipped.
 
-## The signed evidence dossier
-
-`actaira governance pack` produces a governance package: the obligations that
-bound a role on a date, what each control observed, and the evidence each one
-rests on, signed and verifiable offline by somebody who has neither the
-artifacts nor this tool.
-
-It is a record of an assessment, not a certificate. The distinction is in the
-document itself, which states what was read and what was outside its reach.
+So the rule is structural rather than editorial: **if it is in this repository,
+it is Apache-2.0, and it is free forever.** A feature that should be paid does
+not get added here with a flag around it. It goes in the other repository, or it
+does not get built.
 
 ---
 
-## What remains organizational, and why that is the honest answer
+## What crosses the wire
 
-A large part of the Regulation is about what an organisation *does*: risk
-management processes, human oversight arrangements, post-market monitoring,
-record-keeping practice. None of that is readable from a model file, and a
-tool that reported on it would be reporting on a form somebody filled in.
+Decided here, implemented in phase G. This is the contract the collector and the
+hosted platform are both written against.
 
-Those obligations carry `why_not`: a written reason, per obligation, for why
-no file can show it. They are not hidden, not scored down, and not quietly
-dropped from the denominator. They appear in the output as what they are.
+**What may cross:**
+
+| | |
+|---|---|
+| Verdicts | CONFORMS, DOES NOT CONFORM, INDETERMINATE, and the rule id, version, package and author that produced each |
+| Digests | Salted references to values, never the values |
+| Counts | How many events, how many calls, how many non-conformances |
+| Gaps | Which holes the run declared, by reason code |
+| Capture levels | L0 / L1 / L2 / L3, and which were in scope |
+| Windows | When a session started and ended |
+
+**What never crosses: content.** Not arguments. Not paths. Not code. Not file
+names. Not prompts, results, environment variables, or the text of anything the
+agent read or wrote.
+
+The line is not "sensitive content". It is **content**, full stop, because
+"sensitive" is a judgement somebody has to make correctly every time, on a
+field whose value space belongs to a third party. A digest has no false
+negatives and a secret filter does - the same argument `trace/redact.py` makes
+one layer down, applied to the network boundary.
+
+Three consequences worth stating, because each one is a thing the hosted product
+cannot do and somebody will eventually ask for:
+
+1. **The platform cannot show you what an agent read.** It can show you that
+   four files were read, at which capture level, and whether any rule fired. To
+   see the file names, open the record on the machine that produced it.
+2. **The platform cannot reproduce a run.** It never held the inputs.
+3. **The platform cannot answer a question the digests do not answer.** A
+   feature that needs content is a feature that needs the record, and the record
+   stays where it was written.
+
+A field added to the wire is a change to this page first and to the code second.
+If those two ever disagree, this page is the one that is right and the code is a
+defect.
 
 ---
 
-## Further reading
+## What this repository will not grow
 
-- [`CONCEPTS.md`](CONCEPTS.md) for the command index and the vocabulary.
-- [`FIGURES.md`](FIGURES.md) for every count on this page, measured.
-- [`EVALUATION.md`](EVALUATION.md) for the marking survival measurement and
-  the judged tier's abstention behaviour.
-- [`THREAT-MODEL.md`](THREAT-MODEL.md) for what the tool assumes and what it
-  refuses to assume.
+From CLAUDE.md, repeated here because this is the page somebody reads before
+proposing one:
+
+- No dashboard, no server mode, no multi-tenancy in this tree.
+- No second governance document. CLAUDE.md is the only one, and this page is
+  subordinate to it.
+- No runtime dependency beyond `cryptography` without an explicit decision
+  justified in `pyproject.toml` itself.
+- No model on the decision path, and no remediation written by one.
+
+---
+
+## Contributions
+
+By contributing you agree your contribution is licensed under Apache-2.0, like
+the rest of this repository. See [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+
+There is no contributor licence agreement and no copyright assignment. A CLA
+would let this repository be relicensed later without asking, and given
+everything above about the boundary, a project that reserves the right to close
+its open core has not really drawn one.
