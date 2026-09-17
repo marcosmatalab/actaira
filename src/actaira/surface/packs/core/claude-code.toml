@@ -1,0 +1,362 @@
+#  The core rule pack for Claude Code.
+#
+#  Every rule here compares an observed fact against a condition a human wrote.
+#  None of them says what a configuration would DO - that is the second
+#  negative - and none of them answers False about a fact nobody observed: the
+#  clauses name the facts, and a capability that does not carry one comes back
+#  INDETERMINATE on its own (D-275).
+#
+#  `severity` is the label this pack's author chose. It is published beside this
+#  author's name and this pack's name, and it is never summed, maximised or
+#  compared with another pack's. That is the whole of the first negative as it
+#  applies to a rule pack.
+#
+#  Format: TOML, because a rule has to carry the argument for its own existence
+#  next to itself and JSON has no comments - D-274 in `rules.py` has the two
+#  rejected alternatives.
+
+[pack]
+name = "core"
+author = "Actaira core"
+vendor = "claude-code"
+version = "1"
+
+# ---------------------------------------------------------------------------
+# Hooks: the mechanism both 2026 npm worms used
+# ---------------------------------------------------------------------------
+
+#  The one that catches Mini Shai-Hulud (29 Apr 2026) and the keyv wave
+#  (4 Aug 2026). Opening a session is not a decision to run code, and the hook
+#  applies before any workspace trust step - which is why this is `requires =
+#  DECLARED` rather than EFFECTIVE: there is no further condition to wait for.
+[[rule]]
+id = "ACT-S001"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "high"
+capability = ["hook.command"]
+remediation = "Remove the hook, or move it to ~/.claude/settings.json where it is yours rather than the repository's. A hook on a session-start event runs before you have read anything."
+atr = ["ATR-T1546"]
+references = [
+  "https://code.claude.com/docs/en/hooks",
+  "https://www.stepsecurity.io/blog/a-mini-shai-hulud-has-appeared",
+  "https://www.aikido.dev/blog/keyv-and-friends-compromised-in-npm-supply-chain-attack",
+]
+[[rule.when]]
+fact = "at_startup"
+op = "is_true"
+
+#  An HTTP hook posts the event's JSON input to a URL. Off the loopback
+#  interface that is somebody else's server receiving the contents of a
+#  developer's session.
+#
+#  MARKED: no public violating configuration was found. Seven searches on
+#  2026-09-17 returned 67 public `.claude/settings.json` files between them and
+#  not one declared an `http` hook, so the violating case is the shape the hooks
+#  page publishes. The searches are recorded below rather than summarised: "I
+#  found none" is a datum, and a datum has to say what was looked for.
+[[rule]]
+id = "ACT-S002"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "high"
+capability = ["hook.http"]
+remediation = "Point the hook at a loopback address, or remove it. The event's JSON input is posted to this host on every matching event."
+references = ["https://code.claude.com/docs/en/hooks"]
+no_real_violation = "seven recorded searches over 67 public configurations found no `http` hook"
+violation_source = "https://code.claude.com/docs/en/hooks"
+violation_source_sha256 = "e19530ebc7709e76ace04022835e8dc55c46247152f1e4b3449e84c6ebdcb5a4"
+violation_source_consulted = "2026-09-17"
+[[rule.when]]
+fact = "loopback"
+op = "is_false"
+[[rule.searches]]
+query = 'path:.claude filename:settings.json "type": "http"'
+date = "2026-09-17"
+results = 20
+violating = 0
+[[rule.searches]]
+query = 'path:.claude filename:settings.json "type":"http"'
+date = "2026-09-17"
+results = 1
+violating = 0
+[[rule.searches]]
+query = "path:.claude filename:settings.json hooks http url"
+date = "2026-09-17"
+results = 20
+violating = 0
+[[rule.searches]]
+query = "filename:settings.json path:.claude allowedHttpHookUrls"
+date = "2026-09-17"
+results = 3
+violating = 0
+[[rule.searches]]
+query = "path:.claude filename:settings.json httpHookAllowedEnvVars"
+date = "2026-09-17"
+results = 3
+violating = 0
+[[rule.searches]]
+query = 'path:.claude filename:settings.json hooks "url": "https'
+date = "2026-09-17"
+results = 0
+violating = 0
+[[rule.searches]]
+query = 'path:.claude filename:settings.json "mcp_tool"'
+date = "2026-09-17"
+results = 20
+violating = 0
+
+#  Inside the tree: whoever can land a commit decides what this runs. That is
+#  not a defect by itself - it is how a repository's own tooling works - and it
+#  is the fact an approval has to be tied to, which is why the finding carries
+#  the script's sha256 rather than its path (published limit 14).
+[[rule]]
+id = "ACT-S003"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "medium"
+capability = ["hook.command"]
+remediation = "Tie your approval to the script's sha256 rather than its path: the file at that path can change after you read it, and the hook will run whatever is there."
+references = ["https://code.claude.com/docs/en/hooks#reference-scripts-by-path"]
+[[rule.when]]
+fact = "target_facts.inside_tree"
+op = "is_true"
+
+#  Outside the tree: the repository decides, and the target is not even in the
+#  thing you reviewed.
+[[rule]]
+id = "ACT-S004"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "high"
+capability = ["hook.command"]
+remediation = "A hook in this repository runs a path outside it. Nothing in the repository's own history records what that file contains."
+references = ["https://code.claude.com/docs/en/hooks#reference-scripts-by-path"]
+[[rule.when]]
+fact = "target_facts.inside_tree"
+op = "is_false"
+
+#  Not there yet. A hook pointing at a missing file is not inert: it is a hook
+#  waiting for the file, and creating it is a smaller change than adding a hook.
+[[rule]]
+id = "ACT-S005"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "medium"
+capability = ["hook.command"]
+remediation = "The hook names a script that is not in the tree. Creating that file later is a one-file change that needs no edit to any settings file."
+references = ["https://code.claude.com/docs/en/hooks#reference-scripts-by-path"]
+[[rule.when]]
+fact = "target_facts.exists"
+op = "is_false"
+
+# ---------------------------------------------------------------------------
+# Settings keys that run a command without being hooks
+# ---------------------------------------------------------------------------
+
+#  Six keys, each confirmed against the settings reference's "executes a
+#  command" column rather than by the sound of its name. They are in the same
+#  trust row as hooks: used before any trust step.
+[[rule]]
+id = "ACT-S006"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "high"
+capability = ["helper.command"]
+remediation = "This key runs a command. Move it to ~/.claude/settings.json, or remove it: a repository file that sets one runs it on every developer who clones the repository."
+references = ["https://code.claude.com/docs/en/settings-reference"]
+[[rule.when]]
+fact = "key"
+op = "in"
+value = ["apiKeyHelper", "statusLine", "awsAuthRefresh", "awsCredentialExport", "otelHeadersHelper", "fileSuggestion"]
+
+# ---------------------------------------------------------------------------
+# Permissions
+# ---------------------------------------------------------------------------
+
+#  The canonical declared-versus-effective case. `requires = DECLARED` on
+#  purpose: whether it is EFFECTIVE depends on the agent's version, the resolver
+#  answers INDETERMINATE when the version is unknown, and this rule is reporting
+#  the declaration either way. What changes with the version is the capability's
+#  resolution, printed beside the finding - not whether the rule fires.
+[[rule]]
+id = "ACT-S007"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "critical"
+capability = ["permissions.default_mode"]
+remediation = "Remove the mode from the repository file. Before Claude Code 2.1.257 a committed settings file could start every session with the prompts skipped; from 2.1.257 it cannot, and the line is now a claim about what the repository wanted."
+atr = ["ATR-T1562"]
+references = [
+  "https://code.claude.com/docs/en/settings-reference#permissions-defaultmode",
+  "https://code.claude.com/docs/en/permission-modes#which-mode-a-session-starts-in",
+]
+[[rule.when]]
+fact = "mode"
+op = "in"
+value = ["bypassPermissions", "auto", "dontAsk"]
+
+#  A directory the agent may read and write that is not the repository. Waits
+#  for workspace trust, so it is DECLARED until the trust state is read - and
+#  `requires = DECLARED` is what lets it be reported at all in the pull-request
+#  case, where nobody's trust state exists yet.
+[[rule]]
+id = "ACT-S008"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "high"
+capability = ["permissions.additional_directory"]
+remediation = "This entry grants file access outside the repository. It takes effect once somebody accepts the workspace trust dialog for this folder."
+references = ["https://code.claude.com/docs/en/permissions#working-directories"]
+[[rule.when]]
+fact = "inside_tree"
+op = "is_false"
+
+#  A bare `Bash` allow, or one whose pattern is a wildcard, pre-approves shell
+#  execution for everybody who clones the repository and trusts the folder.
+[[rule]]
+id = "ACT-S009"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "high"
+capability = ["permissions.allow"]
+remediation = "Narrow the rule to the commands you meant. `Bash` on its own, or `Bash(*)`, pre-approves every shell command for anyone who trusts this folder."
+references = ["https://code.claude.com/docs/en/permissions#permission-rules"]
+[[rule.when]]
+fact = "rule"
+op = "in"
+value = ["Bash", "Bash(*)", "Bash(*:*)", "Bash(**)"]
+
+# ---------------------------------------------------------------------------
+# MCP
+# ---------------------------------------------------------------------------
+
+#  A repository approving its own servers. The documentation says a cloned
+#  repository cannot do this in an untrusted folder, so the capability is
+#  DECLARED until the trust state is known - and the rule reports the attempt.
+[[rule]]
+id = "ACT-S010"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "medium"
+capability = ["mcp.approval"]
+remediation = "The repository approves its own MCP servers. Claude Code ignores this in an untrusted folder; once anyone accepts the trust dialog, every server in .mcp.json connects without a further prompt."
+references = ["https://code.claude.com/docs/en/mcp#project-server-approvals-and-workspace-trust"]
+[[rule.when]]
+fact = "key"
+op = "in"
+value = ["enableAllProjectMcpServers", "enabledMcpjsonServers"]
+
+#  `npx some-server` resolves to whatever the registry serves at the moment it
+#  runs, which is the mechanism both 2026 worms used to get onto a machine in
+#  the first place.
+[[rule]]
+id = "ACT-S011"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "high"
+capability = ["mcp.server"]
+remediation = "Pin the version. An unpinned npx or uvx launch fetches whatever the registry serves at the moment the server starts."
+atr = ["ATR-T1195"]
+references = ["https://code.claude.com/docs/en/mcp#add-mcp-servers-from-json-configuration"]
+[[rule.when]]
+fact = "pinned"
+op = "is_false"
+
+#  A remote transport means the tool calls, and their arguments, leave the
+#  machine. Stated, not judged: this is ordinary for a hosted service and worth
+#  knowing about either way.
+[[rule]]
+id = "ACT-S012"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "medium"
+capability = ["mcp.server"]
+remediation = "Tool calls and their arguments reach this host. Confirm it is one you meant to send them to."
+references = ["https://code.claude.com/docs/en/mcp#transport-types"]
+[[rule.when]]
+fact = "remote"
+op = "is_true"
+[[rule.when]]
+fact = "loopback"
+op = "is_false"
+
+# ---------------------------------------------------------------------------
+# Sandbox
+# ---------------------------------------------------------------------------
+
+#  The two widening rules. Both need a managed scope to compare against, and
+#  both return INDETERMINATE when there is none, because "not in the managed
+#  list" and "we never read a managed list" are different answers.
+#
+#  BOTH MARKED, and this one is not for want of looking: a managed policy file
+#  lives at an operating-system path - /etc/claude-code/, /Library/Application
+#  Support/ClaudeCode/, C:\Program Files\ClaudeCode\ - which is outside every
+#  repository by construction. No public repository can contain one, so no
+#  search will ever find a violating sample. The violating case is the managed
+#  configuration the sandboxing page publishes.
+[[rule]]
+id = "ACT-S013"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "high"
+capability = ["sandbox.network_domain"]
+remediation = "This repository adds a domain the managed policy does not list. Set sandbox.network.allowManagedDomainsOnly in managed settings to stop a repository widening the network allowlist."
+references = ["https://code.claude.com/docs/en/sandboxing#keep-developers-from-widening-the-policy"]
+no_real_violation = "a managed policy file lives outside every repository, so no public sample can exist"
+violation_source = "https://code.claude.com/docs/en/sandboxing#keep-developers-from-widening-the-policy"
+violation_source_sha256 = "f4aea577087c100af55310a11beb32fc079684124c00d34d487bd7c9be9419b6"
+violation_source_consulted = "2026-09-17"
+[[rule.when]]
+fact = "widens_managed"
+op = "is_true"
+
+#  The documentation is explicit that this one has no managed-only lockdown at
+#  all: "a developer can always append entries that run additional commands
+#  outside the sandbox".
+[[rule]]
+id = "ACT-S014"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "high"
+capability = ["sandbox.excluded_command"]
+remediation = "This repository excludes a command from the sandbox that the managed policy does not exclude. excludedCommands has no managed-only lockdown, so keep the managed list narrow and review additions."
+references = ["https://code.claude.com/docs/en/sandboxing#keep-developers-from-widening-the-policy"]
+no_real_violation = "a managed policy file lives outside every repository, so no public sample can exist"
+violation_source = "https://code.claude.com/docs/en/sandboxing#keep-developers-from-widening-the-policy"
+violation_source_sha256 = "f4aea577087c100af55310a11beb32fc079684124c00d34d487bd7c9be9419b6"
+violation_source_consulted = "2026-09-17"
+[[rule.when]]
+fact = "widens_managed"
+op = "is_true"
+
+#  Switching the isolation off, in either of its two spellings.
+[[rule]]
+id = "ACT-S015"
+version = "1"
+vendor = "claude-code"
+requires = "DECLARED"
+severity = "high"
+capability = ["sandbox.disabled", "sandbox.unsandboxed_allowed"]
+remediation = "The sandbox is off, or a command may retry outside it. Set sandbox.allowUnsandboxedCommands to false in managed settings to close the escape hatch."
+references = [
+  "https://code.claude.com/docs/en/sandboxing#the-unsandboxed-retry-escape-hatch",
+  "https://code.claude.com/docs/en/sandboxing#sandbox-modes",
+]
+[[rule.when]]
+fact = "isolation_weakened"
+op = "is_true"

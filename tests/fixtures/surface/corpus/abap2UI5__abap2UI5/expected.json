@@ -1,0 +1,11 @@
+{
+  "capabilities": {
+    "permissions.allow": "declared"
+  },
+  "capability_count": 22,
+  "not_read": [
+    "~/.claude/settings.json and the managed policy"
+  ],
+  "rules_that_fire": [],
+  "unresolved_count": 0
+}

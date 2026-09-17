@@ -1,21 +1,29 @@
-"""The command line: four of the eight commands CLAUDE.md caps the set at.
+"""The command line: five of the eight commands CLAUDE.md caps the set at.
 
-`verify` reads an attestation package and says whether it holds together;
-`keygen` creates, rotates and revokes the key that signs one. `scan` reads the
-transcripts an agent already wrote and turns them into canonical traces, and
-`watch` records a run from outside the agent. `contract`, `verdict`, `receipt`
-and `fix` arrive with the phases that make each of them mean something.
+`check` reads the agent configuration of a repository or a machine, resolves
+what it permits across scopes, and applies the rule packs. `verify` reads an
+attestation package and says whether it holds together; `keygen` creates,
+rotates and revokes the key that signs one. `scan` reads the transcripts an
+agent already wrote and turns them into canonical traces, and `watch` records a
+run from outside the agent. `diff` and `seal` arrive in phase S3, which is what
+gives them a sealed baseline to mean something about.
 
 Rejected: keeping the previous 2 458-line parser with the dead subcommands
 hidden or stubbed. A command that parses and then says "not implemented" is a
 promise in the help text, and the help text is the contract COMPATIBILITY.md
 publishes.
 
-Three of the four never reach the network. `scan` is the strictest: it reads
-files full of somebody's conversation, so it opens no socket at all and a test
-enforces that rather than trusting it. `watch` is the exception and says so -
-it binds a loopback port when a server speaks HTTP, which is the whole
-mechanism by which it interposes.
+Four of the five never reach the network. `scan` and `check` are the strictest
+and for the same reason: one reads files full of somebody's conversation and the
+other files somebody else wrote, so neither opens a socket at all and a test
+enforces that rather than trusting it. `watch` is the exception and says so - it
+binds a loopback port when a server speaks HTTP, which is the whole mechanism by
+which it interposes.
+
+Nothing here ever runs what it reads. `check` records four facts about a script
+a hook names - existence, whether it is inside the tree, whether git tracks it,
+and its sha256 - and a test plants a script that would leave a sentinel behind
+to prove the fifth fact is never obtained.
 """
 from __future__ import annotations
 
@@ -37,6 +45,16 @@ from .trace.model import trace_digest
 EXIT_OK = 0
 EXIT_FAIL = 1
 EXIT_USAGE = 2
+# Design note D-276. "I could not tell" has to stay distinguishable from "I
+# decided no", and a pipeline that branched on 1 alone would read an unresolved
+# capability as a clean run. `check` is the first command that can answer that
+# way, so `check` is the command that brings the code back; COMPATIBILITY.md has
+# been promising its return since phase A.1 and now publishes it.
+#
+# A code INFORMS. Whether a non-zero exit blocks a merge is the user's branch
+# protection, which is theirs; exiting non-zero is not acting on what we
+# observed, and writing in their tree would be.
+EXIT_INDETERMINATE = 3
 # Not part of the published contract in COMPATIBILITY.md, and deliberately so:
 # it is the shell's own convention for a process killed by SIGPIPE, reported
 # here because the interpreter cannot be killed by one after it has caught the
@@ -94,6 +112,27 @@ def build_parser() -> argparse.ArgumentParser:
     ver.add_argument("--json", action="store_true")
     ver.add_argument("--extends", type=Path,
                      help="an older package this one must be an append-only extension of")
+
+    check = sub.add_parser(
+        "check", help="read this repository's agent configuration and resolve what it permits"
+    )
+    check.add_argument("--repo", type=Path, default=Path("."),
+                       help="the repository to read; the working directory otherwise")
+    check.add_argument("--machine", action="store_true",
+                       help="also read the user and managed scopes. Off by default: a pull "
+                            "request cannot change either, and reading somebody's home "
+                            "directory to answer a question about a repository is a cost "
+                            "with no answer attached")
+    check.add_argument("--agent-version", action="append", default=[], metavar="VENDOR=X.Y.Z",
+                       help="the agent version, for example claude-code=2.1.257. Never "
+                            "obtained by running the agent: asking the audited tool what it "
+                            "is is trusting it. Without one, every rule whose answer depends "
+                            "on the version is reported INDETERMINATE with its threshold named")
+    check.add_argument("--with-content", action="store_true",
+                       help="keep the literal commands, URLs and headers. Off by default: "
+                            "these files can carry secrets and this report is pasted into CI "
+                            "logs, so what travels is a sha256 and the shape")
+    check.add_argument("--json", action="store_true")
 
     scan = sub.add_parser(
         "scan", help="read the sessions an agent already recorded on this machine (L0)"
@@ -262,6 +301,147 @@ def run_verify(args: argparse.Namespace, catalog: Catalog) -> int:
     else:
         _print_verify(result, catalog)
     return EXIT_OK if result.ok else EXIT_FAIL
+
+
+# ---------------------------------------------------------------------------
+# check: the configuration surface
+# ---------------------------------------------------------------------------
+
+
+def _agent_versions(spoken: list[str]) -> tuple[dict[str, str], str | None]:
+    """`claude-code=2.1.257` -> {"claude-code": "2.1.257"}, or a usage message.
+
+    Design note D-277. The version is never obtained by running
+    `claude --version`, and not because running it would be slow. Asking the
+    audited tool what it is is trusting the audited tool, which is the same
+    objection `scan` files against an L0 transcript, and this tool does not
+    execute an agent binary for any reason (CLAUDE.md, "lo prohibido").
+
+    Rejected: reading it out of `~/.claude.json`. That file is written and
+    maintained by Claude Code about itself, so it is the same class of evidence
+    with a filesystem in between - and it exists only on the machine, so the
+    pull-request case, which is the case this command is for, would still have
+    nothing. The flag is the honest channel: somebody states the version, and
+    what depends on it is resolved against what they stated.
+    """
+    found: dict[str, str] = {}
+    for item in spoken:
+        vendor, sep, version = item.partition("=")
+        if not sep or not vendor.strip() or not version.strip():
+            return {}, f"--agent-version wants VENDOR=X.Y.Z, not {item!r}"
+        found[vendor.strip()] = version.strip()
+    return found, None
+
+
+def _print_check(document: dict[str, Any], catalog: Catalog) -> None:
+    """Capabilities, then what could not be resolved, then what was not read.
+
+    That order, always. The three are never merged and never totalled: a reader
+    who could add them up would be computing the thing CLAUDE.md's first
+    negative forbids, and a reader who could not see the second list would be
+    reading a clean report about a tree nobody finished looking at.
+
+    Findings are selected by vendor rather than reprinted under each one. There
+    is one vendor today and the two readings are identical; from phase S2 there
+    are six, and a loop that printed the whole list under every heading would
+    show each finding six times. Caught by the single adversarial pass of this
+    phase, before the second vendor existed to make it visible.
+    """
+    for surface in document["surfaces"]:
+        version = surface["agent_version"] or catalog.line("surface.version_unknown")
+        print(catalog.line("surface.vendor", vendor=surface["vendor"], version=version))
+        mine = [
+            finding
+            for finding in document["findings"]
+            if finding["evidence"].get("vendor", surface["vendor"]) == surface["vendor"]
+        ]
+        by_rule: dict[str, list[dict[str, Any]]] = {}
+        for finding in mine:
+            by_rule.setdefault(finding["rule_id"], []).append(finding)
+        if not mine:
+            print("  " + catalog.line("surface.nothing_fired"))
+        for rule_id in sorted(by_rule):
+            for finding in by_rule[rule_id]:
+                evidence = finding["evidence"]
+                print(
+                    "  {mark} {rule}  {capability}  {source}  [{scope}/{resolution}]".format(
+                        mark="!",
+                        rule=rule_id,
+                        capability=evidence["capability"],
+                        source=finding["location"],
+                        scope=evidence["scope"],
+                        resolution=evidence["resolution"],
+                    )
+                )
+                print("      " + catalog.rule(rule_id))
+                print(
+                    "      {}  {} {} / {}".format(
+                        catalog.line("surface.attributed"),
+                        finding["author"],
+                        finding["pack"],
+                        finding["severity"],
+                    )
+                )
+                print("      " + catalog.line("surface.merge", rule=evidence["merge_rule"]))
+                if evidence.get("condition"):
+                    print("      " + catalog.line("surface.condition", text=evidence["condition"]))
+                print("      " + catalog.line("surface.remediation", text=evidence["remediation"]))
+
+    print()
+    print(catalog.line("surface.unresolved", count=len(document["unresolved"])))
+    for gap in document["unresolved"]:
+        print("  ? {}\n      {}".format(gap["subject"], gap["cause"]))
+
+    print()
+    print(catalog.line("surface.not_read", count=len(document["not_read"])))
+    for entry in document["not_read"]:
+        print("  - {}\n      {}".format(entry["path"], entry["reason"]))
+
+    print()
+    print(catalog.line("surface.declares"))
+
+
+def run_check(args: argparse.Namespace, catalog: Catalog) -> int:
+    from .surface import document as build_document
+    from .surface.claude_code import read
+    from .surface.resolve import MERGE_TABLE, resolve
+    from .surface.rules import evaluate
+
+    versions, problem = _agent_versions(args.agent_version)
+    if problem:
+        print(problem, file=sys.stderr)
+        return EXIT_USAGE
+    repo = args.repo
+    if not repo.is_dir():
+        print(f"{repo} is not a directory", file=sys.stderr)
+        return EXIT_USAGE
+
+    reading = read(repo, machine=args.machine)
+    surface = resolve(
+        reading,
+        agent_version=versions.get("claude-code"),
+        with_content=args.with_content,
+    )
+    findings, gaps = evaluate(surface)
+    payload = build_document(
+        root=str(repo),
+        surfaces=(surface,),
+        findings=findings,
+        gaps=tuple([*surface.unresolved, *gaps]),
+        machine=args.machine,
+        merge_rules=MERGE_TABLE,
+    )
+
+    if args.json:
+        print(json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False))
+    else:
+        _print_check(payload, catalog)
+
+    if payload["findings"]:
+        return EXIT_FAIL
+    if payload["unresolved"]:
+        return EXIT_INDETERMINATE
+    return EXIT_OK
 
 
 # ---------------------------------------------------------------------------
@@ -492,6 +672,8 @@ def run_watch(args: argparse.Namespace, catalog: Catalog) -> int:
 def _main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     catalog = Catalog(args.lang)
+    if args.command == "check":
+        return run_check(args, catalog)
     if args.command == "keygen":
         return run_keygen(args, catalog)
     if args.command == "scan":

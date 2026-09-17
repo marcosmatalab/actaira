@@ -18,7 +18,7 @@ phase A, so all three xfails were about to turn red for PASSING, which is what
 
 They are not deleted with their code, because the first negative is not a
 property of `receipt.py` or of `dsse.py`. It is a property of the PRODUCT.
-`derive`, `verdict`, the acta and the collector are each a fresh opportunity to
+`check`, `diff`, the seal and the collector are each a fresh opportunity to
 fold two authors of labels into one, or to slip a confidence into signed bytes,
 and an xfail that dies with its code leaves nothing watching for that. A
 property over every emitted document watches it for free, because the assertion
@@ -115,20 +115,21 @@ def test_the_enumeration_names_every_emitter_this_tree_has(emitted):
     parser = build_parser()
     commands = set(parser._subparsers._group_actions[0].choices)
 
-    assert commands == {"scan", "watch", "verify", "keygen"}, (
+    assert commands == {"check", "scan", "watch", "verify", "keygen"}, (
         "a command was added or removed; decide whether it emits a document and "
         f"whether `emitted_documents` has to name it. Now: {sorted(commands)}"
     )
-    assert {name.split()[0] for name, _ in emitted} == {"scan", "watch"}
+    assert {name.split()[0] for name, _ in emitted} == {"check", "scan", "watch"}
 
 
 def test_these_properties_would_catch_the_defects_they_replaced():
     """The guard on the guards: each assertion is run against a document that
     violates it, so none of them can be passing because it never looks.
 
-    Without this, all three properties below pass trivially on a tree whose two
-    emitted documents happen to carry no severities at all - which is exactly
-    this tree's situation until phase B lands the rule packages.
+    Without this, all three properties below pass trivially on a tree whose
+    emitted documents happen to carry no severities at all - which was exactly
+    this tree's situation until phase S1 landed the rule packs, and `surface/v1`
+    is the first emitted document that carries one.
     """
     planted = {
         "schema_version": "trace/v3",

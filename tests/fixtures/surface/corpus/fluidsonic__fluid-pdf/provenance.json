@@ -1,0 +1,8 @@
+{
+  "commit": "96e078cd889c78dd1e5792d9f7c9ff8bfee6b827",
+  "files": {
+    ".claude/settings.json": "c157e4da489c0785f9a392f73da9a983ab3d0b98"
+  },
+  "licence": "apache-2.0",
+  "repo": "https://github.com/fluidsonic/fluid-pdf"
+}

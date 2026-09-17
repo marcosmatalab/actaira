@@ -1,0 +1,8 @@
+{
+  "commit": "ef28e90b2d314d8ef2d3907ad2f44ec8443b8fc0",
+  "files": {
+    ".claude/settings.json": "f8ce5bdc4096f865d02a22118b27d3da14b78e72"
+  },
+  "licence": "gpl-3.0",
+  "repo": "https://github.com/westberliner/checksum"
+}

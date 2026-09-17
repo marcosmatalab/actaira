@@ -1,0 +1,8 @@
+{
+  "commit": "4f367183f746f031da5fa73438ad75a46160ccd3",
+  "files": {
+    ".claude/settings.json": "89962227434cd029f0656402c87bcdfc68f2d75f"
+  },
+  "licence": "apache-2.0",
+  "repo": "https://github.com/apache/magpie"
+}

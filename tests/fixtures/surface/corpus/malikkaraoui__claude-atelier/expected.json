@@ -1,0 +1,21 @@
+{
+  "capabilities": {
+    "hook.command": "effective",
+    "mcp.server": "declared",
+    "permissions.allow": "declared",
+    "permissions.default_mode": "indeterminate"
+  },
+  "capability_count": 61,
+  "not_read": [
+    "~/.claude/settings.json and the managed policy"
+  ],
+  "rules_that_fire": [
+    "ACT-S001",
+    "ACT-S003",
+    "ACT-S004",
+    "ACT-S005",
+    "ACT-S011",
+    "ACT-S012"
+  ],
+  "unresolved_count": 2
+}

@@ -7,7 +7,8 @@ tool emits is meant to be shown to a third party, so the default is that none
 of that leaves the machine in it.
 
 What travels: the name of the tool, the shape of the call, and the sha256 of
-the arguments and of the result. What a rule in phase 2 needs in order to say
+the arguments and of the result. That is the same bargain `check` strikes on the
+configuration side, and for the same reason: what a rule needs in order to say
 "this run wrote outside its declared paths" is the tool name and the digest to
 compare against - not the bytes.
 

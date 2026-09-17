@@ -119,10 +119,11 @@ cannot honour, and reads to a consumer as still supported.
 
 ## Commands
 
-Four, and `actaira --help` prints the same four.
+Five, and `actaira --help` prints the same five.
 
 | Command | What it does |
 |---|---|
+| `actaira check` | Read this repository's (and with `--machine`, this machine's) agent configuration, resolve what it permits across scopes, and apply the rule packs |
 | `actaira scan` | Read the sessions an agent already recorded on this machine (L0) |
 | `actaira watch -- <command>` | Record a run from outside the agent, through an MCP proxy (L1) |
 | `actaira verify <package>` | Verify an attestation package offline |
@@ -132,9 +133,16 @@ Four, and `actaira --help` prints the same four.
 and `release_check.py` both fail when this list and the parser disagree.
 
 CLAUDE.md lists seven commands, caps the list at eight, and this tree
-implements four. `check`, `diff` and `seal` are named there with the phase each
-arrives in, and are not built; they are not documented here, because a command
-that does not parse is not a compatibility surface.
+implements five. `diff` and `seal` are named there with the phase each arrives
+in, and are not built; they are not documented here, because a command that does
+not parse is not a compatibility surface. `check` was one of those three until
+phase S1 built it.
+
+`check` reads Claude Code. The other vendors CLAUDE.md names - Codex, Cursor,
+Gemini CLI, VS Code, the devcontainer - arrive in phase S2, and until they do
+every one of their files that is on disk appears in the report's "not read"
+list. That is a promise about the report, not only about the command: a
+configuration this release does not read is named, never silently skipped.
 
 `contract`, `verdict`, `receipt` and `fix` were on that list until phase S0 and
 are not coming. They are named here once, in the past tense, for the only reason
@@ -152,22 +160,28 @@ line of anyone's configuration.
 | Code | Meaning |
 |---|---|
 | 0 | The command succeeded and nothing it checked objected |
-| 1 | A verification that failed |
+| 1 | A verification that failed, or a rule that fired |
 | 2 | Usage: bad arguments, or a key operation this tool refuses to perform |
+| 3 | Nothing objected, and something could not be resolved |
 
-This is less than 2.3.0 published. `--fail-on` and code `3` went to
-`archive/model-scanner` with the scanner: a threshold flag and an INCONCLUSIVE
-verdict are things a scanner produces, and nothing here inspects an artifact.
-Leaving them here would have been the one thing a compatibility document must
-never do — a pipeline branching on `3` would wait for an exit this tool cannot
-reach.
+Code `3` is back, on `check`, exactly as the previous release said it would be.
 
-Code `3` is expected back. "I could not tell" has to stay distinguishable from
-"I decided no", and the thing that can now be indeterminate is a capability that
-could not be resolved: an agent whose version is unknown, a scope that could not
-be read, a hook pointing at a script outside the tree. `check` is the command
-that can answer that way, so `check` is the command that brings the code back.
-It will be published here on the release that adds it and not before.
+`--fail-on` is not, and is not coming. A threshold over severities is a fold
+over labels two different authors wrote, which is CLAUDE.md's first negative;
+the way to act on a subset of findings is to choose which rule packs you load,
+not to ask this tool to rank them for you.
+
+**What `3` means, precisely.** Every rule that could answer did, and none of them
+fired; and at least one thing could not be resolved. An agent whose version is
+unknown, a settings file that would not parse, a plugin enabled from a
+marketplace that is not on disk, a skill whose frontmatter this release has no
+reader for. It is never a quieter `1`: a run with both a finding and an
+unresolved entry exits `1`, because a finding is the stronger statement and an
+exit code carries one number.
+
+**What an exit code is.** It informs. Whether a non-zero exit blocks a merge is
+your branch protection, which is yours. Exiting non-zero is not acting on what
+was observed; writing in your tree would be, and this tool does not.
 
 One code is deliberately absent from the table, because it is not part of this
 contract: a `verify` whose stdout is closed early — `actaira verify --json |
@@ -182,13 +196,22 @@ identifier is never reused for a different finding and never renumbered. The
 prose next to it is translated and rewritten; the identifier is what a
 suppression file and a defect ledger entry key on.
 
-**This tree currently emits no rule identifiers.** The forty-one the message
-catalogue carried belonged to the model scanner and to the conformance package,
-both of which left, and dead text that would be translated and reviewed forever
-is not a contract either. `tests/test_i18n.py` asserts both directions: a rule
-id in `src/` with no catalogue entry fails, and a catalogue entry with no rule
-fails. The rule packages arrive in phase S1 with their own identifiers, authors
-and versions.
+The shape is `ACT-` plus one category letter plus three digits: `ACT-S001`.
+`surface/rules.py` refuses a pack that spells one any other way, at load, with a
+message.
+
+**This tree emits fifteen**, the `core` pack's, listed with their authors,
+versions and the facts each needs in [`RULES.md`](RULES.md) — a generated page,
+written by `make rules` and compared against the packs by the release gate.
+Until phase S1 there were none: the forty-one the message catalogue carried
+belonged to the model scanner and to the conformance package, both of which left
+in phase A. `tests/test_i18n.py` asserts both directions: a rule the packs define
+with no catalogue entry fails, and a catalogue entry no pack defines fails.
+
+Every finding publishes `rule_id`, `rule_version`, `author` and `pack` beside its
+`severity`. **The severity is the label the rule's author wrote.** Actaira does
+not compute it, does not order it against another author's, and does not sum it.
+A consumer that needs a total is asking this tool for the one thing it refuses.
 
 ## What is not promised
 

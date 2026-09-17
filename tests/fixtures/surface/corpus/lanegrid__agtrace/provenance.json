@@ -1,0 +1,8 @@
+{
+  "commit": "29796f7faa5479bff7bf329b96349ce6b9a6ef07",
+  "files": {
+    ".claude/settings.json": "92dabf171dfb94bf2d922da8b770af04af0789df"
+  },
+  "licence": "apache-2.0",
+  "repo": "https://github.com/lanegrid/agtrace"
+}
