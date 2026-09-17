@@ -382,7 +382,7 @@ that drifted from what the code measures, a design note pointing at a line that
 does not argue it, a schema version written in two places, a document naming a
 test that no longer exists.
 
-1,736 tests over 27,923 lines of Python run on every commit, and both figures are
+1,819 tests over 28,056 lines of Python run on every commit, and both figures are
 measured by `make figures` rather than typed: the gate refuses a tree where a
 number in this file disagrees with what the code reports.
 

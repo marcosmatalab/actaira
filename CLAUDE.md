@@ -173,13 +173,22 @@ estaba en alcance y falló, sí.
    de noventa líneas es un pasivo.
 6. NINGUNA CIFRA PUBLICADA SIN UN COMANDO QUE LA MIDA. `make figures` la mide y
    el gate de release falla si deriva. Esto ya existe y se mantiene.
-7. LA PUERTA SE CORRE EN WSL, porque Windows no tiene `make` y probar los cuatro
-   comandos a mano no prueba el Makefile. Ubuntu 24.04, GNU Make 4.3, venv en
-   `/tmp/actaira-venv` con `pip install -e ".[dev]"`, el repo por su ruta
-   montada:
-   `wsl -e bash -lc 'cd /mnt/c/Users/Usuario/Desktop/actaira && PY=/tmp/actaira-venv/bin/python make all'`
-   Ahí la suite tarda ~85 s en vez de ~205 s, y no se salta el test de bits de
-   permiso POSIX que Windows no puede correr.
+7. LA PUERTA SE CORRE EN WSL Y SOBRE UN CLON LIMPIO DE HEAD, nunca sobre el
+   directorio de trabajo. En WSL porque Windows no tiene `make`, probar los
+   cuatro comandos a mano no prueba el Makefile, y ahí no se salta el test de
+   bits de permiso POSIX. Sobre un clon porque el árbol de trabajo tiene
+   ficheros que no se publican: la S1 pasó en verde con dos fixtures que
+   `.gitignore` excluía y `git add -A` saltó en silencio, y el rojo llegó en la
+   primera CI, que es el primer clon limpio que existió. Una puerta que corre
+   donde están esos ficheros no mide lo que se entrega, mide esta máquina.
+   Ubuntu 24.04, GNU Make 4.3, venv en `/tmp/actaira-venv` con
+   `pip install -e ".[dev]"`:
+   `wsl -e bash -lc 'rm -rf /tmp/actaira-gate && git clone -q /mnt/c/Users/Usuario/Desktop/actaira /tmp/actaira-gate && cd /tmp/actaira-gate && PY=/tmp/actaira-venv/bin/python make all'`
+   La variante sobre el directorio montado
+   (`cd /mnt/c/... && PY=... make all`) es un ATAJO DE ITERACIÓN y jamás la
+   puerta: es más rápida y responde por un árbol que nadie recibe.
+   `tests/test_fixtures_are_published.py` cubre el caso concreto que lo destapó;
+   el clon cubre la clase.
 8. UN PRESUPUESTO QUE SOLO VIVE EN EL CHAT NO EXISTE. Cuando yo autorice una
    ampliación de presupuesto o de alcance, esa autorización se escribe en el
    mensaje del commit de la fase, con el número, el motivo y qué ficheros la
