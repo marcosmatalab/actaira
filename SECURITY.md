@@ -63,7 +63,8 @@ features, not for security.
 
 ## In the threat model
 
-`docs/THREAT-MODEL.md` is the long form. These are the classes of report that
+`docs/archive/THREAT-MODEL.md` is the long form, archived in phase A.1 because it
+was written about the model scanner. These are the classes of report that
 count as vulnerabilities:
 
 * **Anything that executes.** Actaira's central claim is that nothing is ever

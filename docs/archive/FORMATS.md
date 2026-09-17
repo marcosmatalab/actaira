@@ -1,3 +1,12 @@
+> **Archived.** This page describes the model scanner Actaira was until 3.0.0:
+> static inspection of model artifacts, executable controls, policy as code and
+> the EU AI Act catalogue. **None of it is in this tree.** It is kept, unedited,
+> because a document that argued a decision is worth more than a summary of it,
+> and because deleting it would leave the design notes that cite it pointing at
+> nothing. The code it describes is on the `archive/model-scanner` branch and at
+> tag `v2.3.0`. For what Actaira is now, read [`../../README.md`](../../README.md).
+> Nothing below is maintained, and nothing below is checked by a gate.
+
 # Actaira: formats and rules
 
 One section per format: what is parsed, what is extracted into the report and

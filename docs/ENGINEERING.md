@@ -98,8 +98,8 @@ pytest actually collects, so a renamed test is reported by name rather than
 leaving a total that still looks healthy.
 
 **128** defects have been found here, by **16** distinct mechanisms, and every
-one of them was found by a mechanism that can fail: **131**, all fixed, **14**
-pinned by a named regression test and **101** by a written note. 45 were never in
+one of them was found by a mechanism that can fail: **131**, all fixed, **13**
+pinned by a named regression test and **102** by a written note. 45 were never in
 a released build and are marked as such rather than dropped.
 
 Those four numbers are measured by `make figures` and refused by the release
@@ -259,4 +259,5 @@ The suite is large and the gates are many, and neither of those is evidence of
 correctness. What they are evidence of is that a specific set of properties
 has been written down and is checked. The properties this project cares about
 most are the refusals, and they are listed in
-[`THREAT-MODEL.md`](THREAT-MODEL.md).
+[`archive/THREAT-MODEL.md`](archive/THREAT-MODEL.md),
+which phase A.1 archived with the scanner it was written about.

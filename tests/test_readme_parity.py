@@ -20,10 +20,11 @@ easier to keep with a test than with discipline.
 """
 from __future__ import annotations
 
-import contextlib
-import io
 import json
+import os
 import re
+import shlex
+import subprocess
 import sys
 from pathlib import Path
 
@@ -181,43 +182,134 @@ DIAGRAMS = (
 # ---------------------------------------------------------------------------
 # The console blocks, against the tool
 # ---------------------------------------------------------------------------
-def test_the_console_block_is_what_the_tool_actually_prints():
+# Every console block, against the tool that prints it
+# ---------------------------------------------------------------------------
+#
+# The rule: a block a reader can copy has to be a block a reader can reproduce.
+# It was one block - `scan --demo` - until phase A.1, which is the same shape of
+# defect this file exists for: the check named the property ("the blocks labelled
+# real output have to be output anybody can get") and asserted it of one of them.
+# The `watch` block beside it said `./actaira-watch` for a tool whose `--out`
+# defaults to `actaira-trace`, and nothing noticed, because nothing looked.
+#
+# So every ```console block in either README is collected, run, and compared.
+# Adding a block to a README with no way to produce it now fails here.
+
+# What is allowed to differ between a run and the page, and nothing else. Each
+# entry is a value the tool generates fresh every time; the placeholder is what
+# the README shows, so a reader can see it is a placeholder rather than believe
+# it is the id they will get.
+VOLATILE = ((re.compile('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'), "<session-id>"),)
+
+
+def console_blocks(page: str) -> list[tuple[str, str]]:
+    """(command, expected output) for every ```console block on a page."""
+    found = []
+    for body in re.findall(r"```console\n(.*?)```", page, re.S):
+        lines = body.splitlines()
+        assert lines and lines[0].startswith("$ "), (
+            "a console block does not open with a `$ ` command line: " + body[:80]
+        )
+        found.append((lines[0][2:].strip(), "\n".join(lines[1:])))
+    return found
+
+
+def normalise(text: str) -> str:
+    """One line of words, with the volatile values masked.
+
+    Joined rather than compared line by line because the READMEs wrap long lines
+    for width and the tool does not: the wrap is a formatting choice, and making
+    it a reason to stop checking is how a block stops being checked at all.
+    """
+    for pattern, placeholder in VOLATILE:
+        text = pattern.sub(placeholder, text)
+    return " ".join(text.split())
+
+
+def run_command(command: str, cwd: Path) -> str:
+    """Run one `actaira ...` command in `cwd` and return everything it printed.
+
+    A subprocess rather than `cli.main` under `redirect_stdout`, and the
+    difference is not cosmetic. `actaira watch` runs a CHILD, and the child
+    writes to file descriptor 1 directly; `redirect_stdout` only rebinds
+    `sys.stdout` inside this interpreter, so the child's own output is invisible
+    to it. The README block shows `agent ran` because that is what a reader sees
+    in their terminal, and an in-process capture said the block was wrong.
+
+    What a reader sees is the thing under test, so the test looks where the
+    reader looks: one process, both streams, real ordering.
+    """
+    assert command.startswith("actaira "), f"not an actaira command: {command!r}"
+    argv = shlex.split(command)[1:]
+
+    # The reader's environment, not the harness's. The Quickstart says to make a
+    # venv and activate it, and `watch -- python -c ...` is a command that works
+    # inside one: a venv provides `python` on every platform. Outside one, a
+    # stock Ubuntu has `python3` and no `python`, and this test found that by
+    # failing in WSL while passing on Windows.
+    #
+    # So the interpreter's own directory goes on PATH, which is the one thing
+    # activation does that matters here. The alternative was to rewrite the
+    # README example as `python3`, which would be correct on Linux and broken on
+    # Windows: changing the documentation so a harness can run it is how a
+    # README stops describing what a reader does.
+    environment = dict(os.environ, PYTHONIOENCODING="utf-8")
+    environment["PATH"] = os.pathsep.join(
+        [str(Path(sys.executable).parent), environment.get("PATH", "")]
+    )
+    result = subprocess.run(  # noqa: S603 - argv comes from a file in this repository
+        [sys.executable, "-m", "actaira", *argv],
+        cwd=cwd, capture_output=True, text=True, timeout=120, env=environment,
+    )
+    assert result.returncode == 0, (
+        f"`{command}` exited {result.returncode}\n{result.stdout}\n{result.stderr}"
+    )
+    return result.stdout
+
+
+def test_the_readmes_carry_console_blocks_to_check():
+    """The guard. If the regex stopped matching, every case below would vanish
+    and this file would report success having compared nothing."""
+    for name, page in BOTH.items():
+        blocks = console_blocks(page)
+        assert blocks, f"{name} has no console block; the extraction is broken"
+        for command, expected in blocks:
+            assert command.startswith("actaira "), f"{name}: {command!r}"
+            assert expected.strip(), f"{name}: `{command}` shows no output"
+
+
+@pytest.mark.parametrize("name", sorted(BOTH))
+def test_every_console_block_is_what_the_tool_actually_prints(name, tmp_path):
     """The blocks labelled real output have to be output anybody can get.
 
-    This used to run a `models/` recipe out of `docs/CONCEPTS.md` and assert the
-    two artifact digests the READMEs printed. Those were the model scanner's
-    fixtures; no command in this tree inspects a file, and neither README shows
-    a digest any more.
-
-    The property is unchanged and its subject moved. Both READMEs now open with
-    a `scan --demo` block, which is the first thing a stranger following the
-    Quickstart will run, and it is the single worst place in the repository for
-    a line of invented output to sit. So the command is run and its output is
-    compared against the block, line by line.
+    The Quickstart is the first thing a stranger runs and the single worst place
+    in the repository for a line of invented output to sit.
     """
-    from actaira import cli
+    for index, (command, expected) in enumerate(console_blocks(BOTH[name])):
+        workspace = tmp_path / f"{name.replace('.', '-')}-{index}"
+        workspace.mkdir()
+        printed = run_command(command, workspace)
+        assert printed.strip(), f"{name}: `{command}` printed nothing"
 
-    buffer = io.StringIO()
-    with contextlib.redirect_stdout(buffer):
-        code = cli.main(["scan", "--demo"])
-    assert code == 0, "scan --demo did not succeed"
-    printed = [line.rstrip() for line in buffer.getvalue().splitlines() if line.strip()]
-    assert printed, "scan --demo printed nothing, so this test would compare nothing"
-
-    for name, page in BOTH.items():
-        block = re.search(r"```console\n\$ actaira scan --demo\n(.*?)```", page, re.S)
-        assert block, f"{name} no longer carries the `scan --demo` console block"
-        shown = [line.rstrip() for line in block.group(1).splitlines() if line.strip()]
-        assert shown, f"{name} shows an empty console block"
-
-        # The README wraps long lines for width; the tool does not. Comparing
-        # the joined text rather than the lines keeps the wrap a formatting
-        # choice instead of making it a reason to stop checking.
-        assert " ".join(" ".join(shown).split()) == " ".join(" ".join(printed).split()), (
-            f"{name}'s `scan --demo` block is not what the command prints.\n"
-            f"printed: {' '.join(printed)}\n"
-            f"shown:   {' '.join(shown)}"
+        assert normalise(expected) == normalise(printed), (
+            f"{name}: the block for `{command}` is not what the command prints.\n"
+            f"printed: {normalise(printed)}\n"
+            f"shown:   {normalise(expected)}"
         )
+
+
+def test_the_comparison_would_notice_a_changed_line():
+    """The guard on the guard: masking must not swallow a real difference."""
+    real = "Recorded session 091ba264-e904-41ab-bfe9-de090d09903e at capture level L1"
+    page = "Recorded session <session-id> at capture level L1"
+
+    assert normalise(real) == normalise(page), "the session id mask does not mask"
+    assert normalise(real) != normalise(page.replace("L1", "L3")), (
+        "a changed capture level survives normalisation, so the comparison is vacuous"
+    )
+    assert normalise(real) != normalise(page.replace("Recorded", "Read")), (
+        "a changed word survives normalisation"
+    )
 
 
 # ---------------------------------------------------------------------------

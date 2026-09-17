@@ -9,22 +9,21 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-16T20:38:23+00:00 for actaira 3.0.0, at commit e13b1bc.
+Generated 2026-09-17T10:23:52+00:00 for actaira 3.0.0, at commit 08eb233.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, ruff>=0.6, jsonschema>=4.18
-- 17 commits, most recent 2026-09-16
+- 18 commits, most recent 2026-09-16
 
 ## Tests
 
-**1567** tests collected by pytest across 32 files.
+**1555** tests collected by pytest across 31 files.
 
 | file | tests |
 |---|---:|
-| `tests/test_action_entrypoint.py` | 14 |
 | `tests/test_attest_anchor.py` | 25 |
 | `tests/test_chain_and_signing.py` | 17 |
 | `tests/test_chain_domain_separation.py` | 14 |
@@ -33,7 +32,7 @@ Generated 2026-09-16T20:38:23+00:00 for actaira 3.0.0, at commit e13b1bc.
 | `tests/test_defect_ledger.py` | 348 |
 | `tests/test_design_notes.py` | 53 |
 | `tests/test_dsse.py` | 25 |
-| `tests/test_i18n.py` | 79 |
+| `tests/test_i18n.py` | 78 |
 | `tests/test_keyring.py` | 33 |
 | `tests/test_mcp.py` | 17 |
 | `tests/test_merkle.py` | 146 |
@@ -45,7 +44,7 @@ Generated 2026-09-16T20:38:23+00:00 for actaira 3.0.0, at commit e13b1bc.
 | `tests/test_proxy_protocol.py` | 17 |
 | `tests/test_proxy_transports.py` | 28 |
 | `tests/test_reachability.py` | 30 |
-| `tests/test_readme_parity.py` | 22 |
+| `tests/test_readme_parity.py` | 25 |
 | `tests/test_release_check.py` | 12 |
 | `tests/test_scan_claude_code.py` | 33 |
 | `tests/test_schemas.py` | 18 |
@@ -56,11 +55,11 @@ Generated 2026-09-16T20:38:23+00:00 for actaira 3.0.0, at commit e13b1bc.
 | `tests/test_trace_provenance.py` | 21 |
 | `tests/test_trust.py` | 13 |
 | `tests/test_verify_strictness.py` | 23 |
-| **total** | **1567** |
+| **total** | **1555** |
 
 ## Defects found in this repository
 
-**131** defects, from `docs/defects.json` (115 entries), found by **16** different mechanisms. **14** are pinned by a named regression test, across 26 tests. 86 were defects in the shipped tool; the rest were found the same way but lived in the measuring apparatus, and each says so.
+**131** defects, from `docs/defects.json` (115 entries), found by **16** different mechanisms. **13** are pinned by a named regression test, across 23 tests. 86 were defects in the shipped tool; the rest were found the same way but lived in the measuring apparatus, and each says so.
 
 | what found it | defects |
 |---|---:|
@@ -83,7 +82,7 @@ Generated 2026-09-16T20:38:23+00:00 for actaira 3.0.0, at commit e13b1bc.
 | **total** | **131** |
 
 Every test named in the ledger was checked against what pytest collects: all of them are collected.
-Pinned by a note rather than by a test, with the reason stated in the ledger: DEF-01, DEF-03, DEF-04, DEF-05, DEF-06, DEF-07, DEF-08, DEF-09, DEF-10, DEF-13, DEF-15, DEF-16, DEF-17, DEF-18, DEF-19, DEF-20, DEF-21, DEF-22, DEF-23, DEF-24, DEF-25, DEF-26, DEF-27, DEF-28, DEF-29, DEF-30, DEF-31, DEF-32, DEF-33, DEF-34, DEF-35, DEF-36, DEF-37, DEF-40, DEF-43, DEF-44, DEF-45, DEF-46, DEF-47, DEF-48, DEF-49, DEF-50, DEF-51, DEF-52, DEF-54, DEF-55, DEF-56, DEF-57, DEF-58, DEF-59, DEF-60, DEF-61, DEF-62, DEF-65, DEF-66, DEF-67, DEF-68, DEF-69, DEF-70, DEF-71, DEF-72, DEF-73, DEF-74, DEF-75, DEF-76, DEF-77, DEF-78, DEF-79, DEF-80, DEF-81, DEF-82, DEF-83, DEF-84, DEF-85, DEF-86, DEF-87, DEF-88, DEF-89, DEF-90, DEF-91, DEF-92, DEF-93, DEF-94, DEF-95, DEF-97, DEF-98, DEF-99, DEF-101, DEF-102, DEF-103, DEF-104, DEF-105, DEF-107, DEF-108, DEF-109, DEF-110, DEF-111, DEF-112, DEF-113, DEF-114, DEF-115.
+Pinned by a note rather than by a test, with the reason stated in the ledger: DEF-01, DEF-03, DEF-04, DEF-05, DEF-06, DEF-07, DEF-08, DEF-09, DEF-10, DEF-13, DEF-15, DEF-16, DEF-17, DEF-18, DEF-19, DEF-20, DEF-21, DEF-22, DEF-23, DEF-24, DEF-25, DEF-26, DEF-27, DEF-28, DEF-29, DEF-30, DEF-31, DEF-32, DEF-33, DEF-34, DEF-35, DEF-36, DEF-37, DEF-40, DEF-43, DEF-44, DEF-45, DEF-46, DEF-47, DEF-48, DEF-49, DEF-50, DEF-51, DEF-52, DEF-54, DEF-55, DEF-56, DEF-57, DEF-58, DEF-59, DEF-60, DEF-61, DEF-62, DEF-65, DEF-66, DEF-67, DEF-68, DEF-69, DEF-70, DEF-71, DEF-72, DEF-73, DEF-74, DEF-75, DEF-76, DEF-77, DEF-78, DEF-79, DEF-80, DEF-81, DEF-82, DEF-83, DEF-84, DEF-85, DEF-86, DEF-87, DEF-88, DEF-89, DEF-90, DEF-91, DEF-92, DEF-93, DEF-94, DEF-95, DEF-97, DEF-98, DEF-99, DEF-101, DEF-102, DEF-103, DEF-104, DEF-105, DEF-106, DEF-107, DEF-108, DEF-109, DEF-110, DEF-111, DEF-112, DEF-113, DEF-114, DEF-115.
 
 ## Code
 
@@ -100,15 +99,14 @@ and the modules are the source of truth.
 | schemas | 1 | 121 | 22 | 36 | 43 | 20 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
 | rest | 1 | 204 | 144 | 23 | 10 | 27 |
-| tests | 37 | 12449 | 7024 | 1933 | 725 | 2767 |
-| scripts | 9 | 2780 | 1730 | 455 | 210 | 385 |
-| **total** | 74 | 23932 | 14001 | 4019 | 1653 | 4259 |
+| tests | 36 | 12291 | 6930 | 1902 | 723 | 2736 |
+| scripts | 9 | 2819 | 1736 | 472 | 222 | 389 |
+| **total** | 73 | 23813 | 13913 | 4005 | 1663 | 4232 |
 
 Documentation, in lines of Markdown:
 
-- `docs/DESIGN.md`: 1712
-- `docs/THREAT-MODEL.md`: 537
-- total: 2249
+- `docs/DESIGN.md`: 718
+- total: 718
 
 ## Rules
 
