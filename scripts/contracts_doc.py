@@ -31,6 +31,13 @@ OUT = ROOT / "docs" / "CONTRACTS.md"
 # no amount of reading a JSON Schema tells a reader when they would want the
 # document it describes.
 FAMILIES: dict[str, tuple[str, str]] = {
+    "surface": (
+        "What an agent CAN do in one root: every capability resolved across scopes, "
+        "naming the file it came from, the documented merge rule that settled it and "
+        "how far it resolved. Three lists that are never merged - what resolved, what "
+        "could not, and what this release does not read.",
+        "actaira check",
+    ),
     "trace": (
         "What an agent did, in one shape whatever observed it: an ordered list of tool "
         "calls with the digest of each call's arguments and result, the capture level "

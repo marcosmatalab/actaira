@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "Bash(kubectl get *)",
+      "Bash(kubectl describe *)",
+      "Bash(kubectl logs *)",
+      "Bash(kubectl config current-context)",
+      "Bash(kubectl config get-contexts *)",
+      "Bash(bats tests/*.bats)",
+      "Bash(shellcheck *)",
+      "Bash(ruff check *)",
+      "Bash(python3 -m pytest *)",
+      "Bash(python3 tests/check_skill_frontmatter.py)",
+      "Bash(python3 tests/check_repo_readiness.py)",
+      "Bash(python3 skills/shared/scripts/generate_skill_ux_catalog.py *)",
+      "Bash(.venv/bin/python -m pytest *)",
+      "Bash(.venv/bin/python -m ruff check *)",
+      "Bash(.venv/bin/python tests/check_skill_frontmatter.py)",
+      "Bash(.venv/bin/python tests/check_repo_readiness.py)",
+      "Bash(bats *)",
+      "Bash(shellcheck *)"
+    ]
+  }
+}

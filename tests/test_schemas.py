@@ -138,6 +138,14 @@ FROZEN_REQUIRED = {
         "authenticity", "capture_level", "complete", "events", "gaps",
         "schema_version", "session_id", "source",
     ],
+    # The three lists that must never be merged are three required fields. A
+    # `surface/v1` document that dropped `unresolved` would be reporting a clean
+    # answer about a tree nobody finished reading, and `not_read` is what keeps
+    # the vendors phase S1 does not read from looking absent.
+    "surface-v1": [
+        "findings", "machine", "not_read", "root", "schema_version", "surfaces",
+        "unresolved",
+    ],
 }
 
 
@@ -358,7 +366,16 @@ def test_no_document_this_tree_emits_declares_a_superseded_revision(tmp_path):
     emitted = emitted_documents(tmp_path)
     assert emitted, "no emitted document was collected; this test would pass over nothing"
 
+    # Which family each emitter writes. Named rather than inferred from the
+    # string: an emitter that wrote the wrong family's version would otherwise
+    # be checked against its own mistake.
+    families = {"scan": "trace", "watch": "trace", "check": "surface"}
+
     for name, document in emitted:
+        family = families.get(name.split()[0])
+        assert family, f"{name} emits a document and this test does not know its family"
         stated = document.get("schema_version")
-        assert stated == schemas.VERSIONS["trace"], f"{name} declares {stated!r}"
-        assert stated not in schemas.SUPERSEDED["trace"], f"{name} emits a frozen revision"
+        assert stated == schemas.VERSIONS[family], f"{name} declares {stated!r}"
+        assert stated not in schemas.SUPERSEDED.get(family, ()), (
+            f"{name} emits a frozen revision"
+        )

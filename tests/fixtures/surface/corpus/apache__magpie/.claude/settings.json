@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "sandbox": {
+    "enabled": true,
+    "excludedCommands": [
+      "gh *"
+    ],
+    "filesystem": {
+      "denyRead": [
+        "~/"
+      ],
+      "allowRead": [
+        ".",
+        "~/.gitconfig",
+        "~/.config/git/",
+        "~/.config/gh/",
+        "~/.cache/",
+        "~/.local/share/uv/",
+        "~/.local/bin/",
+        "~/.config/apache-magpie/",
+        "~/.gnupg/",
+        "/run/user/*/gnupg/"
+      ],
+      "allowWrite": [
+        "~/.cache/",
+        "~/.local/share/uv/"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "api.bitbucket.org",
+        "raw.githubusercontent.com",
+        "objects.githubusercontent.com",
+        "codeload.github.com",
+        "uploads.github.com",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "lists.apache.org",
+        "dist.apache.org",
+        "downloads.apache.org",
+        "archive.apache.org",
+        "cveprocess.apache.org",
+        "cve.org",
+        "www.cve.org",
+        "cveawg.mitre.org",
+        "oauth2.googleapis.com",
+        "gmail.googleapis.com",
+        "*.crates.io",
+        "static.rust-lang.org"
+      ],
+      "enableWeakerNetworkIsolation": true
+    },
+    "credentials": {
+      "envVars": [
+        { "name": "ANTHROPIC_API_KEY", "mode": "deny" },
+        { "name": "ANTHROPIC_AUTH_TOKEN", "mode": "deny" },
+        { "name": "CLAUDE_CODE_OAUTH_TOKEN", "mode": "deny" },
+        { "name": "GH_TOKEN", "mode": "deny" },
+        { "name": "GITHUB_TOKEN", "mode": "deny" },
+        { "name": "AWS_ACCESS_KEY_ID", "mode": "deny" },
+        { "name": "AWS_SECRET_ACCESS_KEY", "mode": "deny" },
+        { "name": "AWS_SESSION_TOKEN", "mode": "deny" },
+        { "name": "NPM_TOKEN", "mode": "deny" },
+        { "name": "TWINE_PASSWORD", "mode": "deny" }
+      ]
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Bash(gh api graphql *)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr diff *)",
+      "Bash(gh pr checks *)",
+      "Bash(gh issue view *)",
+      "Bash(gh issue list *)",
+      "Bash(gh repo view *)",
+      "Bash(gh repo list *)",
+      "Bash(gh run view *)",
+      "Bash(gh run list *)",
+      "Bash(gh run watch *)",
+      "Bash(gh workflow view *)",
+      "Bash(gh workflow list *)",
+      "Bash(gh release view *)",
+      "Bash(gh release list *)",
+      "Bash(gh label list *)",
+      "Bash(gh cache list *)",
+      "Bash(gh search *)",
+      "Bash(gh browse *)",
+      "Bash(gh auth status*)",
+      "mcp__claude_ai_Gmail__get_thread",
+      "mcp__claude_ai_Gmail__search_threads",
+      "mcp__gmail-plaintext__create_draft",
+      "mcp__ponymail__search_list",
+      "mcp__ponymail__auth_status",
+      "mcp__ponymail__get_thread",
+      "mcp__ponymail__get_email",
+      "mcp__ponymail__list_restrictions",
+      "mcp__apache-projects__project_stats",
+      "mcp__apache-projects__get_committee",
+      "mcp__apache-projects__get_group_members",
+      "mcp__apache-projects__get_person",
+      "mcp__apache-projects__search_people",
+      "Bash(zizmor *)"
+    ],
+    "deny": [
+      "Read(~/.aws/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.netrc)",
+      "Read(~/.docker/**)",
+      "Read(~/.kube/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.config/apache-magpie/**)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.azure/**)",
+      "Read(//**/.env)",
+      "Read(//**/.env.local)",
+      "Read(//**/.env.*.local)",
+      "Edit(.claude/settings.json)",
+      "Edit(.claude/settings.local.json)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(aws *)",
+      "Bash(gcloud *)",
+      "Bash(az *)",
+      "Bash(kubectl *)",
+      "Bash(docker login *)",
+      "Bash(npm publish *)",
+      "Bash(pip install --upgrade *)",
+      "Bash(uv self update *)",
+      "Bash(gh auth token*)",
+      "Bash(gh auth refresh*)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(git push --force *)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(gh *)"
+    ]
+  },
+  "extraKnownMarketplaces": {
+    "apache-magpie": {
+      "source": { "source": "github", "repo": "apache/magpie" }
+    }
+  },
+  "enabledPlugins": {
+    "magpie-setup@apache-magpie": true,
+    "magpie-utilities@apache-magpie": true,
+    "magpie-agent-guard@apache-magpie": true
+  }
+}

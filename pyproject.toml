@@ -77,7 +77,15 @@ Issues = "https://github.com/marcosmatalab/actaira/issues"
 where = ["src"]
 
 [tool.setuptools.package-data]
-actaira = ["i18n/*.json", "schemas/*.json", "trace/*.jsonl"]
+actaira = [
+    "i18n/*.json",
+    "schemas/*.json",
+    "trace/*.jsonl",
+    # The rule packs travel inside the package rather than beside it. A rule
+    # pack that has to be fetched is a rule pack a disconnected machine does
+    # not have, and `check` is offline like every other command here.
+    "surface/packs/*/*.toml",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

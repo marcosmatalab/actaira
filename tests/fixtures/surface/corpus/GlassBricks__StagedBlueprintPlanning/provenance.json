@@ -1,0 +1,8 @@
+{
+  "commit": "18c8ad774e552c411004600466af1284a4069d46",
+  "files": {
+    ".claude/settings.json": "7c11c306f8b01acaa027b8dd7ae3e9b10b2256d6"
+  },
+  "licence": "lgpl-3.0",
+  "repo": "https://github.com/GlassBricks/StagedBlueprintPlanning"
+}

@@ -6,7 +6,7 @@ Actaira reads the configuration your coding agents load, resolves what it actual
 
 **Actaira 3.0.0** · Python 3.11 · 3.12 · 3.13 · Apache-2.0 · one runtime dependency · offline, no telemetry, no account
 
-**[Español](README.es.md)** · [Quickstart](#quickstart) · [The four commands](#the-four-commands) · [Capture levels](#capture-levels) · [What Actaira refuses to do](#what-actaira-refuses-to-do) · [Limits](#published-limits) · [Docs](#the-rest-of-the-documentation)
+**[Español](README.es.md)** · [Quickstart](#quickstart) · [The five commands](#the-five-commands) · [Capture levels](#capture-levels) · [What Actaira refuses to do](#what-actaira-refuses-to-do) · [Limits](#published-limits) · [Docs](#the-rest-of-the-documentation)
 
 </div>
 
@@ -115,9 +115,10 @@ If you have Claude Code, Cursor or Cline on this machine, drop the `--demo` and
 
 ---
 
-## The four commands
+## The five commands
 
 ```
+actaira check     read this repo's agent configuration and resolve what it permits
 actaira scan      read the sessions an agent already recorded on this machine (L0)
 actaira watch     record a run from outside the agent, through an MCP proxy (L1)
 actaira verify    verify an attestation package offline
@@ -125,9 +126,34 @@ actaira keygen    create, rotate or revoke a signing key
 ```
 
 That is the complete list of what works, and `actaira --help` prints the same
-four. [`CLAUDE.md`](CLAUDE.md) lists seven, each unbuilt one carrying the phase
+five. [`CLAUDE.md`](CLAUDE.md) lists seven, each unbuilt one carrying the phase
 it arrives in; `tests/test_cli.py` fails on a name in that list that neither
 exists in the parser nor says when it will.
+
+### `actaira check` - what an agent can do here
+
+`check` reads the agent configuration in this repository, resolves what it
+actually permits across scopes, and applies the rule packs. It reads Claude Code
+today; the other vendors arrive in phase S2 and until then every one of their
+files that is on disk is printed in the report's "not read" list.
+
+```
+actaira check                                   # this repository
+actaira check --machine                         # and the user and managed scopes
+actaira check --agent-version claude-code=2.1.257
+actaira check --json                            # a surface/v1 document
+```
+
+Three things it will not do. It never runs what it reads: of a script a hook
+names it records four facts - whether it exists, whether it is inside the tree,
+whether git tracks it, and its sha256 - and never a fifth. It prints no literal
+command, URL or header without `--with-content`, because a settings file can
+carry a secret and this report is pasted into CI logs. And it never guesses: a
+capability whose answer depends on an agent version nobody stated comes back
+INDETERMINATE with the threshold named, counted apart from everything else.
+
+Exit codes: `0` nothing fired and nothing was unresolved, `1` a rule fired, `3`
+nothing fired and something could not be resolved.
 
 ### `actaira watch` - recording from outside
 
@@ -322,7 +348,7 @@ show, which is `scan` and `watch`; the last four are about what reading a
 
 ## The published contracts
 
-3 schema documents ship in the package: one family, one live emitter.
+4 schema documents ship in the package: one family, one live emitter.
 
 | Contract | Status | Emitted by |
 |---|---|---|
@@ -356,7 +382,7 @@ that drifted from what the code measures, a design note pointing at a line that
 does not argue it, a schema version written in two places, a document naming a
 test that no longer exists.
 
-1,566 tests over 23,940 lines of Python run on every commit, and both figures are
+1,736 tests over 27,923 lines of Python run on every commit, and both figures are
 measured by `make figures` rather than typed: the gate refuses a tree where a
 number in this file disagrees with what the code reports.
 

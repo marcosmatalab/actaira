@@ -226,6 +226,18 @@ vez de exceptuarse, y eso eliminó el defecto real que la regla había destapado
   publicada en un informe de incidente, citando la URL y el fragmento del que
   sale. Nunca inventada. Una regla probada contra un fixture que escribimos
   nosotros prueba que sabemos escribir el fixture.
+- TERCERA RAMA, ESTRECHA, PARA EL CASO VIOLADOR. Se admite la configuración
+  publicada por la documentación del fabricante, citada con URL, digest de la
+  página y fecha, SOLO en dos situaciones: cuando el alcance de la regla hace
+  imposible una muestra pública —una política gestionada vive fuera de todo
+  repositorio— o cuando una búsqueda REGISTRADA, con su consulta y su fecha, no
+  encontró ninguna. La regla queda marcada y la marca se publica en
+  `docs/RULES.md`, no solo en la procedencia del fixture. Existe porque negar la
+  rama no crea la muestra: obliga a inventarla o a no escribir la regla, y las
+  dos son peores que decir cuál no tiene violador real. El cargador rechaza una
+  marca sin su cita o sin su búsqueda, y un test comprueba que ese rechazo muerde:
+  una excepción que se satisface escribiendo una línea la cumple quien decida no
+  escribirla.
 - NINGÚN FIXTURE CONTIENE CARGA MALICIOSA. Reconstruimos la FORMA de la
   configuración, no su efecto: el script al que apunta un hook es un stub
   inerte o no existe. Un repositorio de seguridad que reparte el payload del
@@ -246,7 +258,7 @@ un noveno exige quitar otro.
 
     actaira check                lee la configuración de los agentes de este
                                  repo y de esta máquina, resuelve la superficie
-                                 efectiva y aplica las reglas       (fase S1)
+                                 efectiva y aplica las reglas
     actaira diff A B             qué capacidad aparece, desaparece, se ensancha
                                  o se estrecha entre dos momentos   (fase S3)
     actaira seal                 sella una línea base firmada de la superficie,
@@ -256,8 +268,9 @@ un noveno exige quitar otro.
     actaira scan                 analiza sesiones que el agente ya grabó (L0)
     actaira watch -- <comando>   graba una ejecución desde el borde (L1 o más)
 
-Los tres primeros no están construidos, y cada uno lleva escrita la fase en la
-que llega. `tests/test_cli.py` lo comprueba: un comando de esta lista que ni
+`check` llegó en la S1 y lee Claude Code; los fabricantes que le faltan están en
+la lista de «no leído» de su propio informe, no en silencio. `diff` y `seal` no
+están construidos, y cada uno lleva escrita la fase en la que llega. `tests/test_cli.py` lo comprueba: un comando de esta lista que ni
 exista en el parser ni lleve su fase marcada rompe la puerta. Un nombre en esta
 lista sin fase es una promesa publicada.
 

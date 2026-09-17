@@ -1,0 +1,8 @@
+{
+  "commit": "2d694943cb5cf90fd7ce1adfb926b0b7337a1b1b",
+  "files": {
+    ".claude/settings.json": "cab4bea18853d242fcc6ff433cf8708406ba4c09"
+  },
+  "licence": "apache-2.0",
+  "repo": "https://github.com/tomtom-international/tomtom-maps-mcp"
+}

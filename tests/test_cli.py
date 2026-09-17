@@ -1,10 +1,10 @@
 """The commands that exist, and the contract each of them publishes.
 
-Four of the seven CLAUDE.md lists: `verify`, `keygen`, `scan` and `watch`. That
-is the interesting assertion in this file and the first test makes it - the help
-text is the contract, and a command that does not exist must not appear in it.
-The other three arrive phase by phase, and adding one here before it works would
-be publishing a promise.
+Five of the seven CLAUDE.md lists: `check`, `verify`, `keygen`, `scan` and
+`watch`. That is the interesting assertion in this file and the first test makes
+it - the help text is the contract, and a command that does not exist must not
+appear in it. The other two arrive phase by phase, and adding one here before it
+works would be publishing a promise.
 
 Which is why the last section of this file reads that list out of `CLAUDE.md`
 rather than trusting a copy kept here. Phase S0 changed the list, and a name on
@@ -67,8 +67,8 @@ def no_network(monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-SHIPPED = {"verify", "keygen", "scan", "watch"}
-# The three CLAUDE.md names that this release still cannot mean anything by,
+SHIPPED = {"check", "verify", "keygen", "scan", "watch"}
+# The two CLAUDE.md names that this release still cannot mean anything by,
 # the four that phase S0 removed from the list, and `serve`.
 #
 # The retired four stay here rather than being deleted with the doctrine that
@@ -78,17 +78,18 @@ SHIPPED = {"verify", "keygen", "scan", "watch"}
 # `serve` is in the list and is not one of the seven: the MCP server is a
 # separate entry point, `actaira-mcp`, precisely so that it is not another
 # command, and this is where that stays true.
-NOT_BUILT_YET = ["check", "diff", "seal"]
+NOT_BUILT_YET = ["diff", "seal"]
 RETIRED = ["contract", "verdict", "receipt", "fix"]
 UNSHIPPED = [*NOT_BUILT_YET, *RETIRED, "serve"]
 
 
 def test_the_cli_publishes_exactly_the_commands_that_work():
-    """CLAUDE.md lists seven, caps the set at eight, and this release ships four.
+    """CLAUDE.md lists seven, caps the set at eight, and this release ships five.
 
-    The three that are missing need a configuration reader, which phase S1
-    builds. A parser that accepted them and printed "not implemented" would be
-    advertising them.
+    Phase S1 built the configuration reader, so `check` moved from the promised
+    list to this one. `diff` and `seal` are the two still outstanding; both need
+    a sealed baseline, which is phase S3. A parser that accepted them and
+    printed "not implemented" would be advertising them.
     """
     subparsers = [
         action

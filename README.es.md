@@ -6,7 +6,7 @@ Actaira lee la configuración que cargan tus agentes de código, resuelve lo que
 
 **Actaira 3.0.0** · Python 3.11 · 3.12 · 3.13 · Apache-2.0 · una dependencia en tiempo de ejecución · sin conexión, sin telemetría, sin cuenta
 
-**[English](README.md)** · [Quickstart](#quickstart) · [Los cuatro comandos](#los-cuatro-comandos) · [Niveles de captura](#niveles-de-captura) · [Lo que Actaira se niega a hacer](#lo-que-actaira-se-niega-a-hacer) · [Límites](#límites-publicados) · [Docs](#el-resto-de-la-documentación)
+**[English](README.md)** · [Quickstart](#quickstart) · [Los cinco comandos](#los-cinco-comandos) · [Niveles de captura](#niveles-de-captura) · [Lo que Actaira se niega a hacer](#lo-que-actaira-se-niega-a-hacer) · [Límites](#límites-publicados) · [Docs](#el-resto-de-la-documentación)
 
 </div>
 
@@ -38,7 +38,7 @@ sitio donde se describiría un producto terminado, porque la alternativa es una
 página que describe en presente una intención, que es justo el defecto que este
 proyecto se pasó la fase A.1 quitando y no una costumbre que conservó. Lo que el
 árbol sí sabe hacer hoy está más abajo, en [los cuatro
-comandos](#los-cuatro-comandos).
+comandos](#los-cinco-comandos).
 
 **1. Superficie** - lo que un agente puede hacer en este repositorio o en esta
 máquina, resuelto entre ámbitos y fabricantes. Cada capacidad cita el fichero
@@ -118,9 +118,10 @@ escribieron en disco.
 
 ---
 
-## Los cuatro comandos
+## Los cinco comandos
 
 ```
+actaira check     lee la configuración de agentes de este repo y resuelve qué permite
 actaira scan      lee las sesiones que un agente ya grabó en esta máquina (L0)
 actaira watch     graba una ejecución desde fuera del agente, por un proxy MCP (L1)
 actaira verify    verifica un paquete de atestación sin conexión
@@ -128,9 +129,34 @@ actaira keygen    crea, rota o revoca una clave de firma
 ```
 
 Esa es la lista completa de lo que funciona, y `actaira --help` imprime los
-mismos cuatro. [`CLAUDE.md`](CLAUDE.md) enumera siete, y cada uno que no está
+mismos cinco. [`CLAUDE.md`](CLAUDE.md) enumera siete, y cada uno que no está
 construido lleva escrita la fase en la que llega; `tests/test_cli.py` falla con
 un nombre de esa lista que ni existe en el parser ni dice cuándo llegará.
+
+### `actaira check` - qué puede hacer un agente aquí
+
+`check` lee la configuración de agentes de este repositorio, resuelve qué
+permite de verdad entre ámbitos y aplica los paquetes de reglas. Hoy lee Claude
+Code; los demás fabricantes llegan en la fase S2 y hasta entonces cada fichero
+suyo que esté en disco sale en la lista de «no leído» del informe.
+
+```
+actaira check                                   # este repositorio
+actaira check --machine                         # y los ámbitos de usuario y gestionado
+actaira check --agent-version claude-code=2.1.257
+actaira check --json                            # un documento surface/v1
+```
+
+Tres cosas que no hará. Nunca ejecuta lo que lee: de un script al que apunta un
+hook registra cuatro hechos - si existe, si está dentro del árbol, si lo controla
+git y su sha256 - y jamás un quinto. No imprime literales de comandos, URLs ni
+cabeceras sin `--with-content`, porque un fichero de configuración puede llevar
+un secreto y este informe se pega en un log de CI. Y nunca adivina: una
+capacidad cuya respuesta dependa de una versión del agente que nadie declaró
+sale INDETERMINADA con el umbral nombrado, y se cuenta aparte de todo lo demás.
+
+Códigos de salida: `0` no disparó nada y no quedó nada sin resolver, `1` disparó
+una regla, `3` no disparó nada y algo no se pudo resolver.
 
 ### `actaira watch` - grabar desde fuera
 
@@ -331,7 +357,7 @@ que es `scan` y `watch`; los cuatro últimos son de lo que leer una
 
 ## Los contratos publicados
 
-3 documentos de esquema viajan en el paquete: una familia, un emisor vivo.
+4 documentos de esquema viajan en el paquete: una familia, un emisor vivo.
 
 | Contrato | Estado | Lo emite |
 |---|---|---|
@@ -366,7 +392,7 @@ cifra que se desvió de lo que el código mide, una nota de diseño que apunta a
 línea que no la argumenta, una versión de esquema escrita en dos sitios, un
 documento que nombra un test que ya no existe.
 
-1.566 tests sobre 23.940 líneas de Python corren en cada commit, y las dos cifras las
+1.736 tests sobre 27.923 líneas de Python corren en cada commit, y las dos cifras las
 mide `make figures` en vez de escribirlas a mano: la puerta rechaza un árbol
 donde un número de este fichero no coincide con lo que el código reporta.
 

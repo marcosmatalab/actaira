@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer run *)",
+      "Bash(python3 -c ' *)",
+      "Bash(composer dump-autoload *)",
+      "Bash(npm run *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git checkout *)",
+      "Bash(git push origin *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(gh pr create*)",
+      "Bash(gh issue comment*)",
+      "Bash(gh issue edit*)",
+      "Bash(gh run *)",
+      "Edit(/.claude/skills/implement-enhancement/**)",
+      "Edit(/.claude/skills/fix-bug/**)",
+      "Edit(/.claude/skills/prepare-release/**)"
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "commit": "215e2c2305dca67512b3f28865dd2e8e54406254",
+  "files": {
+    ".claude/settings.json": "299e00c33f2e2989bc7a2709ede813a36a367d59"
+  },
+  "licence": "apache-2.0",
+  "repo": "https://github.com/chambear2809/splunk-cisco-skills"
+}

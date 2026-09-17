@@ -9,30 +9,30 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-17T15:24:53+00:00 for actaira 3.0.0, at commit aef5206.
+Generated 2026-09-17T19:06:04+00:00 for actaira 3.0.0, at commit b30a451.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, ruff>=0.6, jsonschema>=4.18
-- 20 commits, most recent 2026-09-17
+- 21 commits, most recent 2026-09-17
 
 ## Tests
 
-**1566** tests collected by pytest across 31 files.
+**1736** tests collected by pytest across 33 files.
 
 | file | tests |
 |---|---:|
 | `tests/test_attest_anchor.py` | 25 |
 | `tests/test_chain_and_signing.py` | 17 |
 | `tests/test_chain_domain_separation.py` | 14 |
-| `tests/test_cli.py` | 35 |
+| `tests/test_cli.py` | 34 |
 | `tests/test_consistency.py` | 285 |
 | `tests/test_defect_ledger.py` | 348 |
-| `tests/test_design_notes.py` | 54 |
+| `tests/test_design_notes.py` | 64 |
 | `tests/test_dsse.py` | 25 |
-| `tests/test_i18n.py` | 78 |
+| `tests/test_i18n.py` | 98 |
 | `tests/test_keyring.py` | 33 |
 | `tests/test_mcp.py` | 15 |
 | `tests/test_merkle.py` | 146 |
@@ -43,19 +43,21 @@ Generated 2026-09-17T15:24:53+00:00 for actaira 3.0.0, at commit aef5206.
 | `tests/test_proxy_http_interposition.py` | 15 |
 | `tests/test_proxy_protocol.py` | 17 |
 | `tests/test_proxy_transports.py` | 28 |
-| `tests/test_reachability.py` | 30 |
+| `tests/test_reachability.py` | 34 |
 | `tests/test_readme_parity.py` | 25 |
 | `tests/test_release_check.py` | 12 |
 | `tests/test_scan_claude_code.py` | 33 |
-| `tests/test_schemas.py` | 18 |
+| `tests/test_schemas.py` | 20 |
 | `tests/test_signing_domain_separation.py` | 4 |
+| `tests/test_surface.py` | 93 |
+| `tests/test_surface_rules.py` | 42 |
 | `tests/test_timestamp.py` | 47 |
 | `tests/test_trace_model.py` | 19 |
 | `tests/test_trace_privacy.py` | 77 |
 | `tests/test_trace_provenance.py` | 21 |
 | `tests/test_trust.py` | 13 |
 | `tests/test_verify_strictness.py` | 23 |
-| **total** | **1566** |
+| **total** | **1736** |
 
 ## Defects found in this repository
 
@@ -93,27 +95,28 @@ and the modules are the source of truth.
 | area | files | lines | code | docstrings | comments | blank |
 |---|---:|---:|---:|---:|---:|---:|
 | attest | 10 | 4018 | 2496 | 700 | 290 | 532 |
-| trace | 5 | 1705 | 939 | 382 | 161 | 223 |
+| trace | 5 | 1706 | 939 | 383 | 161 | 223 |
 | proxy | 5 | 1929 | 1232 | 343 | 164 | 190 |
-| core | 4 | 671 | 384 | 140 | 43 | 104 |
+| core | 4 | 839 | 487 | 179 | 55 | 118 |
 | schemas | 1 | 121 | 22 | 36 | 43 | 20 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
-| rest | 1 | 179 | 111 | 30 | 10 | 28 |
-| tests | 36 | 12443 | 6995 | 1931 | 754 | 2763 |
-| scripts | 9 | 2819 | 1736 | 472 | 222 | 389 |
-| **total** | 73 | 23940 | 13945 | 4041 | 1694 | 4260 |
+| rest | 5 | 2269 | 1501 | 356 | 110 | 302 |
+| tests | 38 | 13624 | 7688 | 2117 | 819 | 3000 |
+| scripts | 11 | 3362 | 2131 | 521 | 254 | 456 |
+| **total** | 81 | 27923 | 16526 | 4642 | 1903 | 4852 |
 
 Documentation, in lines of Markdown:
 
-- `docs/DESIGN.md`: 817
-- total: 817
+- `docs/DESIGN.md`: 827
+- total: 827
 
 ## Rules
 
-**0** rule identifiers, each with text in 2 languages, 0 of them with an explanation of what to do about the finding.
+**15** rule identifiers, each with text in 2 languages, 0 of them with an explanation of what to do about the finding.
 
 | family | rules |
 |---|---:|
+| `ACT` | 15 |
 
 Catalogue key sets identical in both languages: **yes** (asserted by `tests/test_i18n.py`).
 
