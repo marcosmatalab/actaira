@@ -5,15 +5,16 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "actaira"
 version = "3.0.0"
-description = "Capture what an AI agent did from outside it, decide deterministically whether it left what it declared, and emit a record a third party verifies without trusting the operator. Nothing is ever scored."
+description = "Change control for what AI coding agents can do: read the configuration they load, resolve the effective surface across scopes and vendors, and say what changed. Every finding cites a rule with an author; nothing is ever scored. The surface half is under construction, and the commands this release ships are scan, watch, verify and keygen."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
 authors = [{ name = "Marcos Mata Garcia" }]
 keywords = [
   "ai-agents", "agent-security", "llm-security", "mcp", "attestation",
-  "transparency-log", "conformance", "agent-observability", "agentic-ai",
-  "ai-assurance", "policy-as-code", "provenance", "ed25519", "audit-trail",
+  "agent-configuration", "claude-code", "coding-agents", "hooks",
+  "supply-chain-security", "static-analysis", "drift-detection",
+  "policy-as-code", "provenance", "ed25519",
 ]
 classifiers = [
   # Back to Beta, and deliberately. 5 described the scanner, which is archived;

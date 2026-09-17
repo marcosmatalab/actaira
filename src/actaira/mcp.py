@@ -1,13 +1,28 @@
-"""The MCP server: three tools, and two of them saying they are not built.
+"""The MCP server: one tool, and nothing announced that does not run.
 
-Design note D-256. This exists before two thirds of it does, and the reason is
+Design note D-256. This exists before the product does, and the reason is
 distribution rather than function: directories list servers, not proxies, and
-a server is the shape this reaches anybody in. That argument is only honest if
-the two unbuilt tools refuse to answer. A stub that returns a plausible
-verdict is the fail-open shape of this entire product, arriving through the
-one surface other people's agents call directly - so `actaira_verdict` and
-`actaira_contract` return a state and the phase that will answer them, the
-same bytes whatever they are asked, and never a value.
+a server is the shape this reaches anybody in.
+
+The note used to settle the other half differently, and the change is worth
+recording rather than quietly making. Two unbuilt tools, `actaira_contract`
+and `actaira_verdict`, were announced in `tools/list` and answered every call
+with a state and the phase that would answer them, the same bytes whatever
+they were asked. The argument was that a stub returning a plausible verdict is
+the fail-open shape of this entire product, arriving through the one surface
+other people's agents call directly, so the refusal had to be explicit.
+
+That was right about the answer and wrong about the announcement. Phase S0
+took contract and verdict out of the plan, and a refusal naming a phase that
+no longer exists is worse than no tool at all: an agent reading `tools/list`
+takes what it finds there as capability, and nothing further down can correct
+a reading that already happened. The honest refusal was answering a question
+nobody should have been invited to ask.
+
+So the rule is structural now, and narrow: a tool is announced only if it
+runs. The handler lives in the entry rather than in a branch below it, so a
+tool cannot be added to this table and left unwired, and `tests/test_mcp.py`
+calls every name the server lists.
 
 `actaira_verify` is real, and is the existing offline verifier with nothing
 added: no network, no anchors the caller did not supply, the same verdict the
@@ -27,43 +42,6 @@ from . import __version__
 from .attest import verify as verify_mod
 
 PROTOCOL_VERSION = "2025-06-18"
-NOT_IMPLEMENTED = "not_implemented"
-
-TOOLS: dict[str, dict[str, Any]] = {
-    "actaira_contract": {
-        "description": (
-            "The contract derived from what an agent declared, and how wide it is. "
-            "Not implemented yet: it arrives with the phase that derives a contract."
-        ),
-        "inputSchema": {"type": "object", "properties": {}, "additionalProperties": True},
-        "phase": "phase 2, which is where a contract is derived and its width is measured",
-    },
-    "actaira_verdict": {
-        "description": (
-            "Whether one session conforms to a contract, naming the event and the rule "
-            "when it does not. Not implemented yet."
-        ),
-        "inputSchema": {
-            "type": "object",
-            "properties": {"session_id": {"type": "string"}},
-            "additionalProperties": True,
-        },
-        "phase": "phase 2, which is where rules are evaluated against a trace",
-    },
-    "actaira_verify": {
-        "description": (
-            "Verify an Actaira attestation package offline and report its state. "
-            "Nothing is scored."
-        ),
-        "inputSchema": {
-            "type": "object",
-            "properties": {"path": {"type": "string", "description": "path to the package"}},
-            "required": ["path"],
-            "additionalProperties": True,
-        },
-        "phase": "",
-    },
-}
 
 
 def _text(payload: dict[str, Any], is_error: bool = False) -> dict[str, Any]:
@@ -71,26 +49,6 @@ def _text(payload: dict[str, Any], is_error: bool = False) -> dict[str, Any]:
         "content": [{"type": "text", "text": json.dumps(payload, indent=2, sort_keys=True)}],
         "isError": is_error,
     }
-
-
-def _unbuilt(name: str) -> dict[str, Any]:
-    """The same answer to every call, because it is not computing anything.
-
-    A stub whose answer varies with its input is a stub pretending to work,
-    and the first caller to see two different answers will reasonably assume
-    one of them was derived from something.
-    """
-    return _text(
-        {
-            "state": NOT_IMPLEMENTED,
-            "tool": name,
-            "phase": TOOLS[name]["phase"],
-            "detail": (
-                "This tool is declared so that it can be refused by name. It returns no "
-                "value: an invented one would be indistinguishable from a computed one."
-            ),
-        }
-    )
 
 
 def _verify(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -114,6 +72,23 @@ def _verify(arguments: dict[str, Any]) -> dict[str, Any]:
     # package is the other thing, and both end up false-with-reasons here, so
     # the flag follows the verdict and the reasons are always in the payload.
     return _text(payload, is_error=not result.ok)
+
+
+TOOLS: dict[str, dict[str, Any]] = {
+    "actaira_verify": {
+        "description": (
+            "Verify an Actaira attestation package offline and report its state. "
+            "Nothing is scored."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {"path": {"type": "string", "description": "path to the package"}},
+            "required": ["path"],
+            "additionalProperties": True,
+        },
+        "run": _verify,
+    },
+}
 
 
 def handle(message: dict[str, Any]) -> dict[str, Any] | None:
@@ -154,15 +129,15 @@ def handle(message: dict[str, Any]) -> dict[str, Any] | None:
     if method == "tools/call":
         params = message.get("params") or {}
         name = params.get("name")
-        if name not in TOOLS:
+        tool = TOOLS.get(name) if isinstance(name, str) else None
+        if tool is None:
             return {
                 "jsonrpc": "2.0",
                 "id": identifier,
                 "error": {"code": -32602, "message": f"no tool named {name!r}"},
             }
         arguments = params.get("arguments") or {}
-        result = _verify(arguments) if name == "actaira_verify" else _unbuilt(str(name))
-        return {"jsonrpc": "2.0", "id": identifier, "result": result}
+        return {"jsonrpc": "2.0", "id": identifier, "result": tool["run"](arguments)}
 
     return {
         "jsonrpc": "2.0",

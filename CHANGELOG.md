@@ -24,7 +24,129 @@ everything else here is checkable against the tree it describes.
 
 ## Unreleased
 
-Nothing yet.
+**The subject changes: from what an agent did to what an agent can do.** No code
+moved in phase S0 and no version is released here. What changed is the doctrine
+the code is written against, and it is recorded now rather than at the release
+that first ships against it, because a later session can only read the
+repository.
+
+### Changed
+
+- `CLAUDE.md`'s three product claims are now **surface**, **change** and
+  **currency**, replacing authenticity, conformance and inclusion. Surface is
+  what an agent can do here, resolved across scopes and vendors, with every
+  capability citing its file, the vendor's documented merge rule with the URL
+  and version that states it, and the Actaira rule that names it. Change is what
+  appears, disappears, widens or narrows between two moments. Currency is
+  whether an approval still describes what is there, bound to digests and never
+  to names or dates.
+- Three resolution states are added for a capability, alongside and not
+  replacing the capture levels: `DECLARADO`, `EFECTIVO`, `INDETERMINADO`. L0 to
+  L3 keep governing `scan` and `watch`, which are what look at a run.
+- The four negatives are unchanged as principles. Three nouns moved: a
+  non-conformance is a **finding**, the *acta* is a **report**, and the fourth
+  negative now states that an exit code informs while blocking is decided by the
+  user's own branch protection.
+- The published limits go from ten to fourteen. The first ten are about what
+  watching a run cannot show; the four new ones are about what reading a
+  configuration cannot show, starting with the one that governs the rest:
+  configuration declares, it does not demonstrate behaviour.
+- The CLI list goes from eight names to seven, with the cap left at eight.
+  `check`, `diff` and `seal` arrive in phases S1 and S3 and each carries the
+  phase it arrives in; `contract`, `verdict`, `receipt` and `fix` leave the list.
+  Nothing in the parser changed: this release still ships `scan`, `watch`,
+  `verify` and `keygen`.
+- Two code rules are added. A rule's two tests are now over a **real**
+  configuration, from a public repository under an OSI licence with repo, commit
+  and licence cited, or reconstructed from a configuration published in an
+  incident report with URL and fragment cited, and never invented; and no fixture
+  carries a live payload, so the script a hook points at is an inert stub or does
+  not exist. Readers touch the disk; resolution and rules are pure functions over
+  what was read.
+- Executing what a hook, a task or an MCP server declares is added to the
+  forbidden list, in `CLAUDE.md` and in `docs/GOVERNANCE.md`.
+- `docs/GOVERNANCE.md`'s wire table now carries rules that fired, resolution
+  states and currency states where it carried verdicts. What never crosses is
+  unchanged: content, full stop.
+
+### Added
+
+- `docs/DESIGN.md` section 11, design note D-269, with the three products that
+  were tried against this question first and dropped, each for a fact about
+  somebody else's shipped code: cross-vendor session forensics, sandbox
+  containment validation, and the generated-to-shipped code metric. Section 11.3
+  records why this note's file is `CLAUDE.md` rather than a module, which makes
+  it the first row in the table whose location is not code.
+- `tests/test_cli.py` gains a check that reads the CLI list out of `CLAUDE.md`
+  and fails on a name there that neither exists in the parser nor states the
+  phase it arrives in. A name on that list without a phase is a published
+  promise.
+
+### Removed
+
+- `.pre-commit-hooks.yaml`, which published two hooks that could not run: both
+  called `actaira scan --fail-on high` over `.pkl`, `.onnx` and `.h5`, and
+  neither `--fail-on` nor exit code 3 has existed since 3.0.0. Phase A.1 found
+  it and left it, because deciding which integrations the project publishes was
+  not its call. It is the same decision A.1 made about
+  `.github/actions/actaira-scan`, applied to the sibling that was left. The
+  pre-commit integration returns when there is something to hook a commit to.
+- `actaira_contract` and `actaira_verdict` from the MCP server's `tools/list`.
+  Both were inert, returning a constant that named a phase which no longer
+  exists. **Design note D-256 changes its answer with them**: it used to decide
+  that an unbuilt tool is announced and refused by name, on the argument that an
+  explicit refusal beats a stub inventing a verdict. That was right about the
+  answer and wrong about the announcement, because an agent reads `tools/list`
+  as capability and the reading has already happened by the time the refusal
+  arrives. A tool is now announced only if it runs, the handler lives in the
+  table entry rather than in a branch below it, and `tests/test_mcp.py` calls
+  every name the server lists.
+
+### Fixed
+
+Seven published documents that described a product this tree does not have.
+None was caught by a gate, and each says something about why:
+
+- `CITATION.cff` still described the 2.x model scanner, pickle protocols and
+  all. The release gate reads that file for the version and the licence and
+  never for the abstract.
+- The `Dockerfile` stamped "An independent witness for AI agents" into
+  `org.opencontainers.image.description` on every image built. Nothing reads
+  that label.
+- `docs/COMPATIBILITY.md` named `contract`, `verdict`, `receipt` and `fix` as
+  the commands still to come. `release_check.readme_documents_the_commands`
+  checks only that the commands which exist are named, never that the ones said
+  to be missing are the right ones, so that page could have named four
+  imaginary commands indefinitely. It now names the three that are coming, and
+  the four retired ones in the past tense, because somebody's script will still
+  type one and what it must get is a usage error.
+- `SECURITY.md` carried a section titled "This repository contains malicious
+  model artifacts", describing a corpus generator that left in phase A, and a
+  supported-versions table that said 2.2.x for a 3.0.0 package. Trimmed to how
+  to report, which versions are supported, and what the four commands do. The
+  threat model for configuration read out of other people's repositories is
+  deliberately not written yet: it belongs to the phase that builds the reader.
+- `CONTRIBUTING.md` told contributors never to commit an artifact from a corpus
+  that does not exist, listed six `make` targets the `Makefile` does not have,
+  and named a `dev` extra with two packages too many.
+- `docs/ENGINEERING.md` said design notes live in the modules they argue about.
+  It now states the whole rule, whose second branch is deliberately narrow: a
+  decision about **how** something is built is implemented by its module; a
+  doctrine decision, about **what** gets built, is implemented by `CLAUDE.md`,
+  and nothing else may point there. `docs/DESIGN.md` section 11.3 argues it.
+- `src/actaira/mcp.py`, above.
+- `CONTRIBUTING.md` again, on a second reading: it said the repository has no
+  remote and that nothing runs on its own, and that `.github/workflows/ci.yml`
+  had not been rewritten since the scanner left. Phase A.1 rewrote that
+  workflow and it runs on every push to `main` and every pull request. The same
+  page stated the type ratchet's counts by hand, named a test file that does not
+  exist, listed optional dependencies this tree does not have, and pointed at an
+  entry point and a harness that left with the scanner. `MANIFEST.in` explained
+  an exclusion by describing a corpus builder that writes gadget pickles, which
+  has not been in the tree since phase A.
+- The backlog line that reassigned `ci.yml` to phase S3. It had been closed by
+  A.1 already, and this phase moved it to a new phase without rechecking it,
+  which is the one thing a backlog must not do to an inherited line.
 
 ## [3.0.0] - 2026-09-15
 
