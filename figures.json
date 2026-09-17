@@ -74,21 +74,21 @@
       "note": "this script"
     },
     "tests": {
-      "blank": 3000,
-      "code": 7688,
-      "comment": 819,
-      "docstring": 2117,
-      "files": 38,
-      "lines": 13624,
+      "blank": 3026,
+      "code": 7758,
+      "comment": 821,
+      "docstring": 2152,
+      "files": 39,
+      "lines": 13757,
       "note": "the test suite"
     },
     "total": {
-      "blank": 4852,
-      "code": 16526,
-      "comment": 1903,
-      "docstring": 4642,
-      "files": 81,
-      "lines": 27923,
+      "blank": 4878,
+      "code": 16596,
+      "comment": 1905,
+      "docstring": 4677,
+      "files": 82,
+      "lines": 28056,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -242,12 +242,12 @@
     },
     "total_lines": 827
   },
-  "generated_at": "2026-09-17T19:06:04+00:00",
+  "generated_at": "2026-09-17T19:25:14+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 21,
-    "head": "b30a451",
+    "commits": 22,
+    "head": "38cfca6",
     "head_date": "2026-09-17"
   },
   "package": {
@@ -267,8 +267,8 @@
   },
   "tests": {
     "available": true,
-    "collected": 1736,
-    "files": 33,
+    "collected": 1819,
+    "files": 34,
     "per_file": {
       "tests/test_attest_anchor.py": 25,
       "tests/test_chain_and_signing.py": 17,
@@ -278,7 +278,8 @@
       "tests/test_defect_ledger.py": 348,
       "tests/test_design_notes.py": 64,
       "tests/test_dsse.py": 25,
-      "tests/test_i18n.py": 98,
+      "tests/test_fixtures_are_published.py": 82,
+      "tests/test_i18n.py": 99,
       "tests/test_keyring.py": 33,
       "tests/test_mcp.py": 15,
       "tests/test_merkle.py": 146,

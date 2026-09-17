@@ -167,9 +167,9 @@ entry to itself.
 ## The fourth form: a test that asserts a property that is not the one it protects
 
 The section above names defects in the tool. This one names a defect in the
-*checking*, and it is worth its own heading because it has now appeared three
-times in three days, always in a different subsystem, and it is the
-characteristic failure of a project whose entire argument is rigor.
+*checking*, and it is worth its own heading because it has now appeared four
+times, always in a different subsystem, and it is the characteristic failure of
+a project whose entire argument is rigor.
 
 The shape is always the same. A test is written to protect a property. It
 passes. The property it actually asserts is weaker than the one it was written
@@ -177,7 +177,10 @@ for, and often trivially satisfiable, so the test goes on passing through
 exactly the change it existed to catch. It is worse than a missing test, because
 a missing test is visible in a coverage gap and this one shows up green.
 
-The three instances, because the shape is easier to recognise than to define:
+The four instances, because the shape is easier to recognise than to define.
+The fourth is a variant the first three do not have, and it is called out at the
+end: there the assertion was already exactly right, and what was wrong was the
+tree it ran on.
 
 **1. The privacy corpus, and the hash that was not a redaction.** The corpus
 seeded high-entropy secrets into a session and asserted that none of them
@@ -207,6 +210,32 @@ was that the tool emits *at least* what it promises. The fix walks the emitted
 document rather than the schema, and fails on a key the provenance table does
 not classify (D-268).
 
+**4. The worm fixture that existed on one laptop, and the tree nobody receives.**
+Phase S1's fixtures for the two 2026 npm worms carry a `.vscode/tasks.json`,
+because that file is half of the attack and the report's "not read in this
+release" list is what names the half `check` cannot see. A test asserted exactly
+that: that `.vscode/tasks.json` appears in `not_read`. The assertion was right,
+the property was the right one, and it passed - on a tree where `.gitignore`
+excluded `.vscode/` everywhere and `git add -A` had silently skipped both files.
+The property it was protecting was "the report names the half it does not read".
+The property it asserted was "the report names the half it does not read *given
+a tree that has it*", and no tree anybody else could obtain had it. Green on the
+machine that wrote it; red on the first clean clone, which was CI.
+
+This one is the variant, and the reason it gets a paragraph rather than a line.
+In the first three, the fix was a stronger assertion: the person who wrote the
+test could have written the better one that minute. Here the assertion could not
+have been improved, because nothing was wrong with it. What was wrong was its
+SUBJECT: every test in this suite reads the working directory, and the working
+directory is not the artifact. No second assertion inside the suite reaches that,
+because the suite is inside the thing being mis-measured. So the remedy is at a
+different level, and it is two things: `tests/test_fixtures_are_published.py`
+asserts that everything under `tests/fixtures/` is in git's index, which closes
+the specific hole; and CLAUDE.md's rule 7 now runs the gate on a CLEAN CLONE OF
+HEAD rather than on the working directory, which closes the class. The
+working-directory run survives as an iteration shortcut and is explicitly not the
+gate.
+
 ### What to do about it
 
 There is no rule that prevents this, because the defect is a gap between what a
@@ -221,6 +250,12 @@ trivial pass impossible:
   it is not a check. `tests/test_release_check.py` does this for every gate,
   and `tests/test_reachability.py::test_the_graph_is_not_trivially_empty` does
   it for the import walk.
+- **Ask what the test is running ON, not only what it asserts.** A suite that
+  reads the working directory answers for a tree nobody else has. That is not
+  fixable by a better assertion, because the suite is inside the thing being
+  mis-measured; it is fixed by running the gate on a clean clone of HEAD, which
+  is what rule 7 now says, and by asserting that the inputs a test reads are
+  ones git will actually hand to somebody else.
 - **When two places record one fact, do not write a test that referees between
   them.** That test passes for as long as somebody keeps the copies in step, and
   the property it is really protecting is that there should be one copy. Invert

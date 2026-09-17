@@ -392,7 +392,7 @@ cifra que se desvió de lo que el código mide, una nota de diseño que apunta a
 línea que no la argumenta, una versión de esquema escrita en dos sitios, un
 documento que nombra un test que ya no existe.
 
-1.736 tests sobre 27.923 líneas de Python corren en cada commit, y las dos cifras las
+1.819 tests sobre 28.056 líneas de Python corren en cada commit, y las dos cifras las
 mide `make figures` en vez de escribirlas a mano: la puerta rechaza un árbol
 donde un número de este fichero no coincide con lo que el código reporta.
 
