@@ -25,6 +25,20 @@ venv/
 *.swp
 .DS_Store
 
+# Two lines, in this order, and both are needed. `.vscode/` above excludes the
+# DIRECTORY, and git will not re-include a file whose parent directory is
+# excluded, so un-ignoring the contents alone does nothing: the walk never
+# descends. The first line re-includes the directory, the second its contents.
+#
+# They exist because `.vscode/tasks.json` is HALF OF THE ATTACK phase S1 is
+# written about. Both 2026 npm worms plant a `runOn: folderOpen` task there, the
+# fixtures carry it so the report can name it as not read in this release, and
+# `git add -A` silently skipped both files - green on the machine that wrote
+# them, red on a clean clone. `tests/test_fixtures_are_published.py` is the
+# invariant now; this is the exception it needs to be satisfiable.
+!tests/fixtures/**/.vscode/
+!tests/fixtures/**/.vscode/**
+
 # Coverage.
 .coverage
 .coverage.*
