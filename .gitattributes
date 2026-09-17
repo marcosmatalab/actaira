@@ -1,0 +1,13 @@
+# One line ending in the repository, decided here rather than by whichever
+# machine last touched a file.
+#
+# This tree is written on Windows and its gate runs in WSL, so the same file
+# was being checked out CRLF and committed LF, and `git status` printed a
+# renormalisation warning on every second command. That is noise, and noise is
+# how a real diff gets scrolled past. Git already stored LF in the index; this
+# makes the checkout agree with it.
+#
+# `text=auto` lets git decide what is text and leaves binaries alone, which
+# matters for the fixtures under tests/: a forced `text` on a .jsonl or a
+# signed package would rewrite bytes that are hashed.
+* text=auto eol=lf

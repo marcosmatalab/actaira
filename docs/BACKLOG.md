@@ -241,8 +241,11 @@ llevan seis meses mintiendo.
   sección 10 dice dónde recuperarlo. Lo que no debe pasar es que un lector las
   tome por una descripción del árbol de hoy.
 
-**Sin fase asignada.** No entran en la A porque el alcance nombraba cuatro
-documentos y ampliarlo a diez habría sido decidir yo el tamaño de la fase.
+**Cerrado en la A.1.** Los seis pasaron a `docs/archive/` sin editarlos, con una
+cabecera que dice que describen el producto retirado, y las secciones 2, 5, 6, 7,
+8 y 9 de `DESIGN.md` con ellos. No se reescribieron: un documento que argumenta
+una decisión vale más que un resumen de esa decisión, y el siguiente que escriba
+un lector de artefactos debería poder leer por qué este se hizo así.
 
 ### Otros
 
@@ -254,3 +257,56 @@ documentos y ampliarlo a diez habría sido decidir yo el tamaño de la fase.
 - `examples/` quedó vacío: sus dos ficheros los leían `conformance/` y
   `policy/`. Si la fase B necesita un ejemplo de declaración, se escribe uno
   nuevo contra el formato nuevo en vez de resucitar el viejo.
+
+## Fase A.1 — lo que la medición de alcanzabilidad no mide
+
+- **`test_reachability` mide módulos, no si la cadena del producto se cierra.**
+  Pregunta si todo módulo es alcanzable desde un comando. `attest/` lo es:
+  `verify` entra en `package.py`, `merkle.py`, `chain.py`, `trust.py`,
+  `timestamp.py` y `keyring.py`. Lo que no pregunta es si algo que esta
+  herramienta ESCRIBE es algo que esta herramienta puede VERIFICAR, y hoy no lo
+  es: `attest/package.py::write_package` es el único escritor de paquetes y no
+  lo llama nada fuera de `tests/`. Reproducción:
+
+      grep -rn 'write_package' src/ | grep -v 'def write_package'
+
+  devuelve solo una mención en un comentario de `keyring.py`. Es decir: la 3.0
+  tiene un verificador de paquetes y ningún productor de paquetes. Eso no es un
+  defecto del código, es una fase sin terminar, pero la puerta no lo dice y el
+  README sí tiene que decirlo (y lo dice). La comprobación que faltaría es de
+  otra clase que la de alcanzabilidad: «para cada formato que este árbol
+  verifica, existe un comando que lo produce». **Fase G**, que es cuando el acta
+  se firma y la pregunta deja de ser retórica.
+
+- **`.pre-commit-hooks.yaml` publica dos hooks que no pueden ejecutarse.** Ambos
+  llaman `actaira scan --fail-on high` sobre ficheros `.pkl`, `.onnx`, `.h5` y
+  compañía. Ni `--fail-on` ni el código de salida 3 existen desde la 3.0, y
+  `scan` ya no lee artefactos: lee sesiones de agentes. Es exactamente el mismo
+  defecto que tenía `.github/actions/actaira-scan`, que la A.1 borró.
+  Reproducción: `actaira scan --fail-on high` sale con código 2. No se borró en
+  la A.1 porque el alcance nombraba la acción de GitHub y no este fichero, y
+  decidir por mi cuenta qué integraciones publica el proyecto no me toca.
+  **Sin fase asignada.**
+
+- **`docs/CONTRACTS.md` y `docs/FIGURES.md` se generan, y nadie comprueba que
+  los enlaces internos de los documentos archivados sigan resolviendo.** Los
+  seis de `docs/archive/` se movieron con sus enlaces relativos intactos, así
+  que un `[x](CONCEPTS.md)` dentro de `archive/FORMATS.md` sigue funcionando
+  porque los dos se movieron juntos, pero un enlace de un archivado a algo que
+  se quedó en `docs/` (o al revés) no lo comprueba nada.
+  `tests/test_readme_parity.py::test_every_repository_link_resolves` solo mira
+  los dos READMEs. **Sin fase asignada.**
+
+- **`make all` falla en la primera pasada después de tocar código, y pasa en la
+  segunda.** El orden es `lint test figures release-check`, y `make test`
+  incluye `tests/test_release_check.py::test_the_gate_passes_on_this_repository`,
+  que corre la puerta sobre una copia del árbol. Si `figures.json` está sin
+  remedir (o sea, siempre que se haya editado un fichero .py desde el último
+  `make figures`), esa comprobación falla dentro de `make test`, antes de que
+  `make figures` la habría arreglado. Reproducción: toca cualquier test, corre
+  `make all` (rojo), córrelo otra vez (verde). Es la forma de D-181: una puerta
+  cuyo remedio es acordarse de correr otra cosa primero es una puerta que se
+  rodea. Lo obvio sería `all: lint figures test release-check`, pero eso hace
+  que `make all` escriba en el árbol antes de comprobarlo, que es peor por otro
+  motivo. Merece una decisión, no un reordenamiento a ciegas.
+  **Sin fase asignada.**

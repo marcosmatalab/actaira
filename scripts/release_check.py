@@ -103,21 +103,24 @@ def version_is_consistent() -> str:
     # The two places that pin a tag for somebody else's CI. A pre-commit
     # `rev:` two majors old is an example that installs a tool without the
     # rules it documents; the composite action's comment is read the same way.
-    pinned = {
-        ".pre-commit-hooks.yaml": r"rev:\s*v([\d.]+)",
-        ".github/actions/actaira-scan/action.yml": r"`@v([\d.]+)` scans with Actaira",
-    }
+    pinned = {".pre-commit-hooks.yaml": r"rev:\s*v([\d.]+)"}
+    checked_pins = 0
     for name, pattern in pinned.items():
         path = ROOT / name
         if not path.is_file():
             continue
         for found in re.findall(pattern, path.read_text(encoding="utf-8")):
+            checked_pins += 1
             if found != version:
                 raise DriftError(f"{name} pins v{found}, the package says {version}")
 
+    # Counted rather than typed. This line said "the two tag pins" for a commit
+    # after `.github/actions/actaira-scan` was deleted, which is a gate reporting
+    # a comparison it did not make - the defect this whole script exists to
+    # refuse, in the script's own success message.
     return (
         f"{version}, in pyproject.toml, __init__.py, CHANGELOG.md, CITATION.cff, "
-        f"`actaira --version` and the two tag pins"
+        f"`actaira --version` and {checked_pins} tag pin(s)"
     )
 
 
@@ -157,7 +160,10 @@ def licence_is_consistent() -> str:
         raise DriftError("CITATION.cff declares no licence")
     stated["CITATION.cff"] = citation.group(1)
 
-    for page in ("README.md", "README.es.md", "docs/GOVERNANCE.md"):
+    # The Dockerfile states the licence in an OCI label, which is metadata a
+    # registry and every scanner downstream will read and nothing here compared
+    # until phase A.1. It said MIT for a whole commit after the relicensing.
+    for page in ("README.md", "README.es.md", "docs/GOVERNANCE.md", "Dockerfile"):
         text_of = (ROOT / page).read_text(encoding="utf-8")
         found = {name for name in heads if name in text_of}
         if found != {licence}:
@@ -437,20 +443,44 @@ def _collect_count() -> int:
     return collected
 
 
-@check("every rule the catalogue defines is documented and translated")
+@check("every rule the catalogue defines is translated, and none is undocumented")
 def rules_are_documented() -> str:
+    """Two directions, and a third that has no page to point at yet.
+
+    This read `docs/FORMATS.md` for the rule table until phase A.1 archived it
+    with the scanner that owned those rules. A live gate reading an archived
+    document is the same defect one level up, so the table half is not re-pointed
+    at the archive - it is held open.
+
+    This tree emits no rule identifiers: the forty-one in the catalogue belonged
+    to the scanner and to the conformance package, and both left in phase A. So
+    the catalogue must be empty, and that is asserted here rather than letting an
+    empty catalogue make the two loops below pass over nothing.
+
+    When phase B lands the rule packages, each rule carries its own id, version,
+    package and author, and the page that documents them does not exist yet. The
+    `documented` half comes back with it, pointed at whatever that page turns out
+    to be; `docs/BACKLOG.md` carries the line.
+    """
     en = json.loads((ROOT / "src" / "actaira" / "i18n" / "en.json").read_text(encoding="utf-8"))
     es = json.loads((ROOT / "src" / "actaira" / "i18n" / "es.json").read_text(encoding="utf-8"))
-    formats = (ROOT / "docs" / "FORMATS.md").read_text(encoding="utf-8")
 
     missing_es = sorted(set(en["rules"]) - set(es["rules"]))
     if missing_es:
         raise DriftError(f"rules with no Spanish text: {', '.join(missing_es)}")
+    extra_es = sorted(set(es["rules"]) - set(en["rules"]))
+    if extra_es:
+        raise DriftError(f"rules with Spanish text and no English: {', '.join(extra_es)}")
 
-    undocumented = sorted(rule for rule in en["rules"] if f"`{rule}`" not in formats)
+    undocumented = sorted(set(en["rules"]) | set(es["rules"]))
     if undocumented:
-        raise DriftError(f"rules not in docs/FORMATS.md: {', '.join(undocumented)}")
-    return f"{len(en['rules'])} rules, each in both languages and in the table"
+        raise DriftError(
+            "the catalogue carries rule text again and the page that documents a rule "
+            f"does not exist yet: {', '.join(undocumented)}. Add the page, and re-point "
+            "this check at it: a rule with no documentation is a rule id whose link "
+            "goes nowhere."
+        )
+    return "0 rules, and both catalogues agree that there are none"
 
 
 @check("no module writes a schema version of its own")
@@ -541,12 +571,16 @@ def design_notes_are_listed() -> str:
 
 @check("the CLI's commands are the ones the documentation lists")
 def readme_documents_the_commands() -> str:
-    """The command index moved out of the README in 2.2.0.
+    """A command nobody can find is a command nobody uses.
 
-    A README that lists 22 commands with a line each is a reference manual
-    wearing a landing page's clothes, so the index lives in
-    `docs/CONCEPTS.md` and the README links to it. This check follows it
-    there: a command nobody can find is a command nobody uses.
+    This followed the index into `docs/CONCEPTS.md`, which phase A.1 archived
+    with the scanner. There are four commands now rather than twenty-two, so the
+    index is back where a reader looks first: both READMEs list them, and
+    `docs/COMPATIBILITY.md` states them as a surface with a promise attached.
+
+    Three pages rather than two, and both languages, because a command named in
+    English and missing in Spanish is the parity failure this repository already
+    had once.
     """
     from actaira.cli import build_parser
 
@@ -557,7 +591,7 @@ def readme_documents_the_commands() -> str:
 
     pages = {
         name: (ROOT / name).read_text(encoding="utf-8")
-        for name in ("docs/CONCEPTS.md", "docs/CONCEPTS.es.md")
+        for name in ("README.md", "README.es.md", "docs/COMPATIBILITY.md")
     }
     for page, text in pages.items():
         undocumented = sorted(name for name in commands if f"actaira {name}" not in text)
@@ -566,7 +600,7 @@ def readme_documents_the_commands() -> str:
                 f"commands {page} never mentions: {', '.join(undocumented)}. "
                 "A command nobody can find is a command nobody uses."
             )
-    return f"{len(commands)} commands, each named in both concept pages"
+    return f"{len(commands)} commands, each named on all {len(pages)} pages that list them"
 
 
 @check("the published contract index is the one the package ships")

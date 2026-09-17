@@ -85,7 +85,12 @@ AREAS: list[tuple[str, list[str], str]] = [
     ("scripts", ["scripts"], "this script"),
 ]
 
-DOC_FILES = ["docs/DESIGN.md", "docs/THREAT-MODEL.md"]
+# The design document, which is the only long-form page phase A.1 left live.
+# `docs/THREAT-MODEL.md` was the second entry and is in `docs/archive/` now:
+# measuring an archived page publishes a figure about a document nobody
+# maintains, and a figure that cannot go stale because nothing changes it is
+# a figure that says nothing.
+DOC_FILES = ["docs/DESIGN.md"]
 
 
 # ---------------------------------------------------------------------------

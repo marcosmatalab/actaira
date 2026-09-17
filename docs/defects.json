@@ -1057,11 +1057,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "the action is an integration definition in this tree, not a service running anywhere; nothing has ever executed it outside its own tests",
-      "pinned_by": [
-        "tests/test_action_entrypoint.py::test_a_newline_in_an_input_cannot_write_an_output_the_script_never_emitted",
-        "tests/test_action_entrypoint.py::test_a_newline_in_a_scanned_file_name_cannot_forge_an_output",
-        "tests/test_action_entrypoint.py::test_an_input_outside_its_closed_set_fails_the_job_rather_than_scanning_anyway"
-      ]
+      "pinned_note": "the test that pinned this went with the integration it covered in phase A.1, which removed the GitHub composite action because every flag it passed (`--policy`, `--fail-on`, `--format sarif`) belongs to the archived scanner; it is at commit 08eb233, `tests/test_action_entrypoint.py`"
     },
     {
       "id": "DEF-107",
