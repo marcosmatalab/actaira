@@ -1,0 +1,8 @@
+{
+  "commit": "1212f2355b7f68296d99785c3138a52f07e1a854",
+  "files": {
+    ".claude/settings.json": "e17c127cf6090d331f7fc1ca3059ee2da5f5078d"
+  },
+  "licence": "gpl-3.0",
+  "repo": "https://github.com/PrayerfulDrop/ESPHome-Guition-ESP32-S3-4848S040"
+}

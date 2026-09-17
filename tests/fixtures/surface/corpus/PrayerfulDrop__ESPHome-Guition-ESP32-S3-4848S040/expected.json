@@ -1,0 +1,14 @@
+{
+  "capabilities": {
+    "permissions.additional_directory": "declared",
+    "permissions.allow": "declared"
+  },
+  "capability_count": 46,
+  "not_read": [
+    "~/.claude/settings.json and the managed policy"
+  ],
+  "rules_that_fire": [
+    "ACT-S008"
+  ],
+  "unresolved_count": 0
+}

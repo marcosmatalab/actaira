@@ -1,0 +1,8 @@
+{
+  "commit": "0659c9648cc962c2c20c14fe5be819dae1513138",
+  "files": {
+    ".claude/settings.json": "6b73a6d03640b464e5b6424189040644b92518bc"
+  },
+  "licence": "mpl-2.0",
+  "repo": "https://github.com/Twingate/gateway"
+}

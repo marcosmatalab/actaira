@@ -443,3 +443,111 @@ cogió, y esa parte sigue siendo verdad.
   por el atacante en el sentido más literal, y eso merece un modelo de amenazas
   contra el código que lo lee y no contra el que se piensa escribir. **Fase
   S1**, y está en su puerta.
+
+## Fase S1 — lo que `check` deja abierto
+
+### Cerradas en esta fase, comprobadas contra el árbol
+
+- **«phase B» y «phase 2» en cinco ficheros.** Resueltas. `src/actaira/model.py`
+  (dos veces) se reescribió al reutilizar `Finding` y borrar `Severity` y
+  `Verdict`; `tests/test_i18n.py` y `tests/test_no_aggregate.py` se repuntaron a
+  la S1 y a los paquetes de reglas; `src/actaira/trace/redact.py` dice ahora qué
+  necesita una regla, sin fase. Queda UNA mención viva y es deliberada:
+  `scripts/release_check.py` CITA entre comillas el docstring viejo que se
+  sustituyó, porque el argumento de por qué el check estaba abierto es lo que
+  explica por qué ya no lo está. Reproducción: `grep -rn 'phase B\|phase 2' src/
+  scripts/ tests/ --include='*.py'` devuelve esa sola línea.
+- **`i18n` sin vocabulario que sustituyera a los 41 ids del escáner.** Cerrada:
+  `packs/core` define 15, los dos catálogos los llevan, y
+  `release_check.rules_are_documented` ya no exige el catálogo vacío sino que lo
+  compara contra los paquetes y contra `docs/RULES.md`.
+- **`model.Severity`, `model.Verdict` y `model.Finding` sin llamante.** Cerrada.
+  `Finding` lo tiene: `surface/rules.py` levanta uno por regla que dispara, con
+  `rule_version`, `author` y `pack` nuevos para que la severidad viaje
+  atribuida. `Severity` y `Verdict` se borraron, cada uno con su porqué escrito
+  en el propio `model.py`.
+- **`discover_unavailable` marca incompleta una sesión por servidor configurado
+  y no por servidor observado.** Cerrada en cuanto al árbitro: `check` lee del
+  disco qué servidores MCP hay configurados y no necesita preguntárselo a la
+  sesión. Lo que NO se ha hecho es cambiar `proxy/session.py` para usarlo; eso
+  es trabajo de `proxy/`, que está aparcado, y se reabre abajo con su fase.
+- **El modelo de amenazas de la entrada nueva.** Escrito en `SECURITY.md`, con
+  diez defensas y el test que sujeta cada una.
+
+### Abiertas, con su fase
+
+- **`check` no está expuesto por el servidor MCP.** Es la decisión que la fase
+  traía: cabe en `mcp.py` con una entrada en `TOOLS` y una función como
+  `_verify`, pero el fichero 17 del presupuesto era `SECURITY.md` y exponerlo
+  habría sido el 18. No es alcance descubierto: el comando funciona entero por
+  CLI y nadie pierde una capacidad. **Fase S2**, junto con los lectores nuevos,
+  para exponer una herramienta que ya cubra más de un fabricante.
+- **Tres de las quince reglas no tienen caso violador REAL. Cerrada como
+  desviación, no como deuda.** CLAUDE.md tiene desde esta fase una tercera rama
+  estrecha que la admite, y las tres la cumplen: ACT-S013 y ACT-S014 comparan
+  contra una política gestionada, que vive en una ruta del sistema operativo
+  fuera de todo repositorio, así que ninguna búsqueda encontrará jamás una
+  muestra pública; ACT-S002 registra siete búsquedas del 17-sep-2026 que
+  devolvieron 67 configuraciones públicas entre todas y ni un solo hook `http`.
+  La marca está en el propio paquete de reglas, se publica en la fila y en la
+  entrada de `docs/RULES.md`, el cargador rechaza una marca sin cita ni
+  búsqueda, y `test_a_mark_with_no_evidence_is_refused_at_load` comprueba que el
+  rechazo muerde. **Sin fase**: ACT-S002 se desmarca sola el día que una de esas
+  búsquedas devuelva un caso, y el guion de corpus ya las sabe correr. ACT-S013
+  y ACT-S014 no se desmarcan nunca, por construcción.
+- **La versión del agente solo entra por `--agent-version`.** D-277 explica por
+  qué no se ejecuta `claude --version` ni se lee de `~/.claude.json`. Queda sin
+  resolver si en modo `--machine` merece leerse de disco CON la salvedad de L0
+  escrita al lado, que es lo que hace `scan` con un transcript. **Fase S4**, que
+  es la del modo máquina.
+- **`referenced_path` es una heurística y lo dice.** Reconoce un token con
+  forma de ruta y devuelve `None` cuando no reconoce ninguno, con lo que la
+  regla que quería un objetivo sale INDETERMINADA. Un comando como
+  `sh -c "$(curl ...)"` no nombra ninguna ruta y por tanto no produce hechos
+  sobre un objetivo. **Sin fase**: arreglarlo bien es escribir un shell, que es
+  exactamente lo que D-272 rechaza.
+- **El frontmatter de skills y subagentes no se lee.** Se detecta que hay una
+  clave `hooks` y sale INDETERMINADO con causa. No hay lector YAML en el árbol y
+  no se añade dependencia. **Fase S2**, que es donde ya hay que decidir qué
+  hacer con AGENTS.md.
+- **`enabledPlugins` solo se resuelve si el plugin está descargado en el árbol.**
+  Lo que viene de un marketplace remoto sale INDETERMINADO. Es correcto y es la
+  causa de gap más frecuente del corpus (8 de 20 configuraciones). Puede que
+  merezca agruparse por marketplace en la consola en vez de una línea por
+  plugin. **Sin fase.**
+- **`MANIFEST.in` excluye `.pre-commit-hooks.yaml`, que ya no existe.** Sigue
+  abierta desde la A.1, sin tocar. **Fase S3.**
+
+### De la pasada adversarial de la S1
+
+- **Con `--lang es`, la `condition` de una capacidad y la `remediation` de una
+  regla salen en inglés.** El texto de la regla sí está traducido; esos dos
+  campos no. La `remediation` es correcto que no lo esté: la escribe el autor
+  del paquete de reglas y traducirla sería reescribir lo que otro dijo, que es
+  la segunda negativa. La `condition` es otra cosa: la genera el resolvedor de
+  Actaira, así que es texto nuestro sin entrada de catálogo. Arreglarlo bien
+  exige convertir cada condición en una clave con parámetros, lo que toca
+  `resolve.py` entero. **Sin fase**, y no es alcance de la S1: la pasada
+  adversarial solo puede producir un arreglo o una línea aquí.
+- **Los hechos de un script al que apunta el hook de un PLUGIN no se calculan.**
+  `Reading.scripts` se rellena recorriendo `settings`, no los `hooks/hooks.json`
+  de los plugins descargados, así que ACT-S003, ACT-S004 y ACT-S005 salen
+  INDETERMINADAS sobre un hook de plugin en vez de responder. Es honesto y es
+  incompleto. **Fase S2**, que ya vuelve a tocar el lector.
+
+### Para el estudio del lanzamiento
+
+- **Que los hooks y `env` NO esperen a la confianza en la carpeta es el
+  mecanismo por el que los dos gusanos de 2026 funcionan, y es material del
+  estudio.** La tabla «What runs before you trust a folder» de la página de
+  permisos pone los hooks de los ficheros de settings, el bloque `env` y los
+  comandos auxiliares en la fila que dice **Used** en las dos situaciones sin
+  confianza; solo esperan `permissions.allow`, `additionalDirectories`, las
+  aprobaciones de `.mcp.json` y `extraKnownMarketplaces`. La lectura intuitiva
+  —«el diálogo de confianza me protege de un repositorio que no he leído»— es
+  falsa justo donde importa, y es lo que convierte un `.claude/settings.json`
+  commiteado en ejecución de código al abrir la sesión. Está citada en la fila
+  correspondiente de `surface/resolve.MERGE_TABLE`, con la URL, el digest de la
+  página y la fecha, y la condición sale escrita en cada capacidad afectada del
+  informe. **Fase de lanzamiento**, sección 7 del plan maestro: es uno de los
+  «lo habría cazado», y el punto que explica por qué.

@@ -8,13 +8,9 @@ it. The scanner's threat model, its section on the crafted artifacts its corpus
 generated, and its build-attestation recipe are at tag `v2.3.0` and on
 `archive/model-scanner`, unedited.
 
-**The threat model for what comes next is deliberately not written here yet.**
-Actaira is becoming a tool that reads configuration files out of repositories
-other people wrote, which is attacker-controlled input in the most literal
-sense. That deserves a real threat model rather than an anticipated one, so it
-is written in phase S1, against the code that reads those files, and not
-before. See [`CLAUDE.md`](CLAUDE.md) and [`README.md`](README.md) for what
-exists today and what does not.
+The threat model for the new input is [below](#threat-model-reading-somebody-elses-repository).
+It was deliberately held open until phase S1 so that it would describe code that
+exists rather than code that was intended.
 
 ## Reporting a vulnerability
 
@@ -67,8 +63,13 @@ current and which are superseded and kept.
 
 ## What is in this tree
 
-Four commands, and the scope of a report is what they do.
+Five commands, and the scope of a report is what they do.
 
+- **`actaira check`** reads agent configuration files out of a repository, and
+  with `--machine` out of the user and managed scopes too. It executes nothing
+  it reads and opens no socket. Its input is the one nobody on your side wrote,
+  so it has a threat model of its own
+  [below](#threat-model-reading-somebody-elses-repository).
 - **`actaira scan`** reads session transcripts an agent already wrote to disk.
   The input is somebody's conversation, so arguments and results travel as
   salted digests unless `--with-content` is passed.
@@ -90,3 +91,68 @@ evidence.
 A finding that is not about those, or about the offline and no-content
 guarantees above, is a bug rather than a vulnerability, and
 [`docs/BACKLOG.md`](docs/BACKLOG.md) is where it goes.
+
+## Threat model: reading somebody else's repository
+
+`actaira check` is the first command whose input nobody on your side wrote. It
+runs on a clone of a pull request, on a dependency you vendored, on a repository
+a colleague sent you a link to. Every byte it reads - the settings files, the
+paths inside them, the skill definitions, the git index - is chosen by whoever
+opened that pull request.
+
+That inverts the usual reading of this project's refusals. "Actaira never runs
+what it reads" is not only a claim about honesty; it is the control that stops
+this command being the delivery mechanism for the thing it was pointed at.
+
+### The attacker, and what they want
+
+Somebody who can put a file in a repository you will read. They are not
+assumed to have anything else: no account on your machine, no network position,
+no ability to make you type a command other than `actaira check`.
+
+What they want, in the order the defences below are argued:
+
+1. **Execution.** Get `check` to run something they wrote.
+2. **Disclosure.** Get `check` to read a file outside the repository and put its
+   contents somewhere they can see - a CI log, a JSON artifact, a PR comment.
+3. **Denial.** Get `check` to hang, exhaust memory, or crash, so the answer
+   never arrives and the pull request goes in unreviewed.
+4. **A false clean answer.** Get `check` to report nothing wrong about a
+   repository that is. This is the worst of the four, because the other three
+   are visible and this one is not.
+
+### The defences, each with the test that holds it down
+
+| What they try | What stops it | Test |
+|---|---|---|
+| A hook, helper or MCP entry whose command runs their script | Nothing in the package executes what it reads, ever. Of a referenced script `check` records four facts - exists, inside the tree, tracked by git, sha256 - and no fifth | `test_surface.py::test_nothing_the_configuration_names_is_ever_run` plants a script that would leave a sentinel behind and asserts the sentinel is absent, while asserting the digest was still taken |
+| A path like `../../../etc/shadow`, so a fact about a file outside the tree reaches the report | Every path is resolved and compared against the resolved root before it is opened; outside is a recorded fact, not a read | `test_a_path_that_leaves_the_tree_is_reported_as_outside_it` |
+| A symlink in the tree pointing at `/etc`, which a textual `..` check would call inside | Both sides are `Path.resolve()`d, not `os.path.abspath`ed | `test_a_symlink_out_of_the_tree_is_outside_it` (POSIX; skipped on Windows, where creating a symlink needs a privilege) |
+| A path that is absolute on another platform - a UNC share `\\host\share`, a drive letter `C:/...` - so a POSIX reader joins it to the root and calls it inside | A path absolute in any platform's syntax is outside, checked before the join | `test_a_path_absolute_on_another_platform_is_outside_here_too`, over nine paths including a backslash that is a legal POSIX filename |
+| A settings file large enough to exhaust memory | A byte ceiling checked with `stat` before the bytes are requested, so a hostile file costs a stat | `test_a_settings_file_over_the_ceiling_is_a_cause_and_not_a_read` |
+| A deep or enormous `.claude/skills/` tree | Depth and file-count ceilings, and the ceiling is reported when it bites rather than silently truncating | `test_surface_rules.py` corpus walk, and `claude_code.frontmatter_files` |
+| A document whose shape is wrong at any level - a list where an object belongs, `null` where a handler belongs | Every level is checked before it is walked; a wrong shape is a stated cause | `test_a_hostile_shape_anywhere_is_survived`, eight documents, and `test_a_settings_document_of_the_wrong_shape_is_a_cause_and_not_a_crash` |
+| A corrupt `.git/index`, to crash the tracked-file lookup | Parsed defensively with explicit bounds; a version this release does not read returns a cause, never a `False` | `test_the_git_index_is_read_rather_than_git_being_run` |
+| A secret planted in a hook command or URL, so `check` copies it into a CI log | No literal command, URL or header is printed without `--with-content`; a literal is reduced to a sha256 at the reader | `test_no_literal_reaches_the_report_without_with_content`, with one high-entropy and one low-entropy secret, over both the console and the JSON |
+| A malformed settings file, hoping it is read as empty and reported as "no hooks" | An unparsed file never reaches a consumer as a mapping; it is INDETERMINATE with the cause | `test_invalid_json_is_indeterminate_and_never_an_empty_configuration` |
+| Configuration this release does not read, hoping silence is taken for absence | Every file seen and not read is printed in the report's "not read" list | `test_the_2026_npm_worms_are_caught` asserts `.vscode/tasks.json` appears there |
+
+### What this model does not cover
+
+- **`--with-content` is your decision.** It exists because an operator
+  sometimes needs the literal, and with it the literals go wherever the output
+  goes. Do not pass it in CI.
+- **`--machine` reads your own home directory and the managed policy.** It is
+  off by default and should stay off when the subject is a pull request: a
+  repository cannot change either scope, so reading them answers nothing about
+  it and puts your own configuration in the report.
+- **The configuration is not the behaviour.** Nothing here detects an attack
+  that leaves no file. Published limit 11, limit 12 for what a vendor pushes
+  from a server, and they are limits rather than gaps to be closed.
+- **A clean report is not safety.** Published limit 9: no rule fired means no
+  rule named it, and a repository can be badly configured for a reason none of
+  the fifteen rules describes.
+- **The corpus script reaches the network, and it is not the tool.**
+  `scripts/surface_corpus.py` is run by a person, outside the package and
+  outside the suite. `tests/netguard.py` is armed and a release check asserts it
+  still bites.

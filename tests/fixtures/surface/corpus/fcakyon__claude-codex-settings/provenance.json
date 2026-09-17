@@ -1,0 +1,8 @@
+{
+  "commit": "38611a8e21b1f76a2c442d24dd5861cff3751209",
+  "files": {
+    ".claude/settings.json": "53bcd7c53948fc5e270580fc933b3f6099441682"
+  },
+  "licence": "apache-2.0",
+  "repo": "https://github.com/fcakyon/claude-codex-settings"
+}

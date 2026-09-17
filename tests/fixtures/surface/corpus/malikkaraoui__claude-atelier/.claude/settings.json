@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "Template claude-atelier consolide (ex §15 env + §23 permissions). A copier dans .claude/settings.json (projet) ou ~/.claude/settings.json (global). Ajuster maxBudgetUsd et permissions selon le niveau d'autonomie voulu.",
+  "env": {
+    "MAX_THINKING_TOKENS": "10000",
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "haiku",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1"
+  },
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "_comment_allow": "Liste blanche pour le mode 'acceptEdits' (nuit). Garde 'default' pour le dev interactif.",
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "Bash(npm ci:*)",
+      "Bash(pnpm run:*)",
+      "Bash(pnpm test:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git diff:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Edit",
+      "Write",
+      "Bash(npm run *)",
+      "Bash(npm test *)",
+      "Bash(npm version *)",
+      "Bash(npm view *)",
+      "Bash(npm run lint*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git diff *)",
+      "Bash(git status*)",
+      "Bash(git log *)",
+      "Bash(git push*)",
+      "Bash(git push --tags*)",
+      "Bash(git tag *)",
+      "Bash(gh run *)",
+      "Bash(gh pr *)",
+      "Bash(ls *)",
+      "Bash(cat /tmp/claude-atelier*)",
+      "Bash(chmod *)",
+      "Bash(cd *)",
+      "Bash(python scripts/switch_model.py*)",
+      "Bash(python3 scripts/switch_model.py*)"
+    ],
+    "_comment_deny": "Liste noire absolue. Jamais autorisee, peu importe le mode.",
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git filter-branch:*)",
+      "Bash(git filter-repo:*)",
+      "Bash(curl * | sh:*)",
+      "Bash(curl * | bash:*)",
+      "Bash(wget * | sh:*)",
+      "Bash(wget * | bash:*)"
+    ]
+  },
+  "preferences": {
+    "_comment_budget": "Disjoncteur hard. Claude stoppe automatiquement au-dela.",
+    "maxBudgetUsd": 20
+  },
+  "mcpServers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "_comment": "MCP GitHub officiel — outils: get_pull_request, request_copilot_review, create_pull_request. Auth: OAuth Copilot (automatique si CLI gh authentifié)."
+    },
+    "obsidian-vault": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/malik/Vault/Malik"
+      ],
+      "_comment": "MCP filesystem vault Obsidian — lecture/écriture .md directs, sans dépendance API Obsidian. Vault global : /Users/malik/Vault/Malik/"
+    },
+    "vault-peter": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR}/bin/cli.js",
+        "vault",
+        "mcp",
+        "--cwd",
+        "${CLAUDE_PROJECT_DIR}"
+      ],
+      "_comment": "MCP vault Peter — outils: query_vault, get_node, neighbors, stale_status. Expose le graphe dynamique du projet maintenu par Peter via claude-atelier vault."
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/session-model.sh\""
+          },
+          {
+            "type": "command",
+            "command": "node \"/Users/malik/Documents/Claude Atelier/scripts/memory-read.js\" --episodes-only --timeout 2000"
+          },
+          {
+            "type": "command",
+            "command": "bash \"hooks/vault-context.sh\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-qmd-first.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-loop-master.sh\"",
+            "if": "Bash(*git commit*)"
+          },
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-no-sign.sh\"",
+            "if": "Bash(*git commit*)"
+          },
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-commit-french.sh\"",
+            "if": "Bash(*git commit*)"
+          },
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-tests-before-push.sh\"",
+            "if": "Bash(*git push*)"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-hooks-reload.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-review-auto.sh\"",
+            "if": "Bash(*git commit*)"
+          },
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-anti-loop.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-tests-before-push.sh\"",
+            "if": "Bash(*npm test*)"
+          },
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-tests-before-push.sh\"",
+            "if": "Bash(*jest*)"
+          },
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-tests-before-push.sh\"",
+            "if": "Bash(*vitest*)"
+          },
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-tests-before-push.sh\"",
+            "if": "Bash(*pytest*)"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/guard-s1-header.sh\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/routing-check.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/model-metrics.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"/Users/malik/Documents/Claude Atelier/hooks/detect-design-need.sh\""
+          },
+          {
+            "type": "command",
+            "command": "node \"/Users/malik/Documents/Claude Atelier/scripts/memory-read.js\" --context --timeout 2000"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/executor-ctx-monitor.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

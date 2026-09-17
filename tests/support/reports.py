@@ -156,13 +156,22 @@ __all__ = [
 def emitted_documents(tmp_path: Path) -> list[tuple[str, dict[str, Any]]]:
     """(name, document) for every document an Actaira command can write today.
 
-    Two, because there are two: the demo trace `actaira scan --demo` prints, and
-    a `watch` trace assembled from a recorded session. When a command that emits
-    a third arrives, it is added here and every property over this list starts
-    covering it with no edit at the call sites.
+    Three: the demo trace `actaira scan --demo` prints, a `watch` trace assembled
+    from a recorded session, and the `surface/v1` document `actaira check`
+    writes. When a command that emits a fourth arrives, it is added here and
+    every property over this list starts covering it with no edit at the call
+    sites.
+
+    The `check` document is built over a configuration that DOES fire rules,
+    which is the only version of it worth walking: `surface/v1` is the first
+    document this tree emits that carries a `severity` at all, so a surface with
+    no findings would leave the attribution property asserting nothing. The
+    fixture is one of the two reconstructed worms, so the walk runs over a
+    document with real findings, real authors and real severities in it.
     """
     from actaira.proxy import Recorder
     from actaira.proxy.session import WatchSession
+    from actaira.surface import claude_code, document, resolve, rules
     from actaira.trace.claude_code import demo_trace
 
     session = WatchSession(tmp_path / "records", "s")
@@ -175,9 +184,25 @@ def emitted_documents(tmp_path: Path) -> list[tuple[str, dict[str, Any]]]:
     recorder.call("read_file", {"path": "x"}, at="2026-01-01T00:00:00.000Z", call_id="1")
     recorder.close()
 
+    worm = Path(__file__).resolve().parents[1] / "fixtures" / "surface" / "mini-shai-hulud"
+    surface = resolve.resolve(claude_code.read(worm))
+    findings, gaps = rules.evaluate(surface, rules.load())
+    assert findings, "the check fixture fires no rule, so the severity walk would be vacuous"
+
     return [
         ("scan --demo", demo_trace().to_dict()),
         ("watch", session.assemble(child_returncode=0).to_dict()),
+        (
+            "check",
+            document(
+                root=str(worm),
+                surfaces=(surface,),
+                findings=findings,
+                gaps=tuple([*surface.unresolved, *gaps]),
+                machine=False,
+                merge_rules=resolve.MERGE_TABLE,
+            ),
+        ),
     ]
 
 

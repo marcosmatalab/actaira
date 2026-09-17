@@ -22,6 +22,7 @@ actaira schema report-v1       # print one
 
 | Contract | What it is | Produced by |
 |---|---|---|
+| `surface/v1` | What an agent CAN do in one root: every capability resolved across scopes, naming the file it came from, the documented merge rule that settled it and how far it resolved. Three lists that are never merged - what resolved, what could not, and what this release does not read. | `actaira check` |
 | `trace/v3` | What an agent did, in one shape whatever observed it: an ordered list of tool calls with the digest of each call's arguments and result, the capture level that produced every one, and the holes that level did not cover. | `actaira scan, actaira watch` |
 
 ## Superseded
@@ -39,6 +40,7 @@ Each contract's required fields are frozen in the test suite, so dropping one fa
 
 | Contract | Required |
 |---|---|
+| `surface-v1` | `schema_version`, `root`, `machine`, `surfaces`, `findings`, `unresolved`, `not_read` |
 | `trace-v1` | `schema_version`, `session_id`, `source`, `capture_level`, `authenticity`, `complete`, `events`, `gaps` |
 | `trace-v2` | `schema_version`, `session_id`, `source`, `capture_level`, `authenticity`, `complete`, `events`, `gaps` |
 | `trace-v3` | `schema_version`, `session_id`, `source`, `capture_level`, `authenticity`, `complete`, `events`, `gaps` |

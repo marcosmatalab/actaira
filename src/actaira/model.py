@@ -5,12 +5,23 @@
 it, and two runs over the same facts have to produce the same bytes or every
 signature in the tree is decoration (D-03).
 
-`Severity`, `Verdict` and `Finding` are the reporting vocabulary (D-01, D-04).
-Phase A left them with no caller in `src/`: the rule packages that will raise a
-`Finding` are phase B's, and nothing between here and there produces one. They
-are kept rather than deleted because they are the shape phase B is written
-against, and `docs/BACKLOG.md` records that they are currently unreached so the
-next reader does not mistake "present" for "used".
+`Finding` is the reporting vocabulary (D-01), and phase S1 is where it acquired
+the caller phase A kept it for: `surface/rules.py` raises one per rule that
+fires. Two of its three companions did not survive that meeting.
+
+`Severity` is gone. It was a five-member enum whose only reason to be an enum
+rather than a string was `rank`, and `rank` exists to ORDER severities - which
+is the fold CLAUDE.md's first negative forbids, sitting inside the package as a
+finished implementation waiting for a caller. A rule pack's severity is a label
+its author wrote, it is published verbatim beside that author's name, and the
+set of labels belongs to whoever writes the pack rather than to us. So the field
+is a `str` and the enum is in the history.
+
+`Verdict` is gone too, and it is the cleaner deletion: PASS, FAIL and
+INCONCLUSIVE are conformance vocabulary, and the conformance product left in
+phase S0. What replaced INCONCLUSIVE is `surface.Resolution.INDETERMINATE`,
+which says something different and says it about a capability rather than about
+an inspection. Recover either from `archive/model-scanner:src/actaira/model.py`.
 
 What left with the scanner, and why, since a reader looking for it should not
 have to use `git log`: `ArtifactReport` and `TensorInfo` described a file that
@@ -26,65 +37,40 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Any
-
-
-class Severity(str, Enum):
-    """Ordered severity. Comparison uses `rank`, never string order."""
-
-    CRITICAL = "critical"
-    HIGH = "high"
-    MEDIUM = "medium"
-    LOW = "low"
-    INFO = "info"
-
-    @property
-    def rank(self) -> int:
-        return _SEVERITY_RANK[self]
-
-
-_SEVERITY_RANK: dict[Severity, int] = {
-    Severity.CRITICAL: 4,
-    Severity.HIGH: 3,
-    Severity.MEDIUM: 2,
-    Severity.LOW: 1,
-    Severity.INFO: 0,
-}
-
-
-class Verdict(str, Enum):
-    """Outcome of an inspection.
-
-    `INCONCLUSIVE` is a first-class result, not an error. Design note D-04:
-    an inspector that cannot parse an artifact must say so instead of
-    returning PASS, because a silent PASS on an unparsed file is exactly the
-    failure mode that makes a supply-chain tool worthless.
-    """
-
-    PASS = "pass"
-    FAIL = "fail"
-    INCONCLUSIVE = "inconclusive"
 
 
 @dataclass(frozen=True)
 class Finding:
-    """One observation about an artifact.
+    """One observation, and the four fields that say whose observation it is.
 
-    `rule_id` is stable across versions and is what the eval harness asserts
-    on. Human-readable text lives in the i18n catalogue, never here, so that
+    `rule_id` is stable across versions and is what a suppression file keys on.
+    Human-readable text lives in the i18n catalogue, never here, so that
     changing wording can never change a test outcome (D-07).
+
+    `rule_version`, `author` and `pack` are not decoration and not metadata:
+    CLAUDE.md's second negative says Actaira never judges, only cites, so a
+    finding that did not name who wrote the rule it came from would be Actaira
+    holding the opinion. They travel as siblings of `severity` for the same
+    reason - a severity standing on its own is one somebody computed, and
+    `tests/test_no_aggregate.py` fails on one that does.
     """
 
     rule_id: str
-    severity: Severity
+    rule_version: str
+    author: str
+    pack: str
+    severity: str
     location: str
     evidence: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "rule_id": self.rule_id,
-            "severity": self.severity.value,
+            "rule_version": self.rule_version,
+            "author": self.author,
+            "pack": self.pack,
+            "severity": self.severity,
             "location": self.location,
             "evidence": self.evidence,
         }

@@ -32,7 +32,7 @@ inside a section that is otherwise live: **3.4** (CycloneDX ML-BOM) and **3.5**
 |---|---|---|
 | D-01 | One `Finding` shape for every inspector | `src/actaira/model.py:8` |
 | D-03 | Canonical JSON under every hash | `src/actaira/model.py:6` |
-| D-04 | `INCONCLUSIVE` is a result, not an error | `src/actaira/model.py:8` |
+| D-04 | A state that means "I could not tell" is a result, not an error | `src/actaira/surface/__init__.py:33` |
 | D-07 | Rule identifiers are the stable interface | `src/actaira/i18n/catalog.py:3` |
 | D-11 | RFC 6962 Merkle tree | `src/actaira/attest/merkle.py:3` |
 | D-12 | Ed25519 | `src/actaira/attest/signing.py:3` |
@@ -54,12 +54,12 @@ inside a section that is otherwise live: **3.4** (CycloneDX ML-BOM) and **3.5**
 | D-230 | A figure that is derivable is never maintained by hand, in prose either | `scripts/figures_contract.py:3` |
 | D-232 | The index of published contracts is generated, because an index with a hole in it still looks complete | `scripts/contracts_doc.py:4` |
 | D-234 | The console blocks are output this tool produced, and the gate re-runs them under two hash seeds | `scripts/cli_transcripts.py:4` |
-| D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:540` |
+| D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:722` |
 | D-236 | The published line count is a sum over a partition of the tree, checked, not a sum over a list somebody maintained | `scripts/figures.py:60` |
 | D-237 | A line number in the note table is derived, because a reference wrong by four hundred lines is not stale, it is wrong | `scripts/design_notes.py:4` |
 | D-239 | A build writes into `dist/` and is then opened and checked, because the one artifact nobody looks at is a package | `scripts/build_package.py:4` |
-| D-240 | The default key path is resolved when a parser is built, not at import, so a host with no home does not break every command | `src/actaira/cli.py:50` |
-| D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:507` |
+| D-240 | The default key path is resolved when a parser is built, not at import, so a host with no home does not break every command | `src/actaira/cli.py:68` |
+| D-241 | What this tool prints is UTF-8 when it is redirected, because the locale is not something a report should depend on | `src/actaira/cli.py:689` |
 | D-242 | Type checking is a ratchet: the exemption list is empty, a new error fails, and a stale exemption fails as loudly | `scripts/type_check.py:4` |
 | D-250 | One trace document for every source and every level, and failure is its default | `src/actaira/trace/model.py:3` |
 | D-251 | The capture level is not a label on the record, it is what decides what the record may claim | `src/actaira/trace/__init__.py:3` |
@@ -68,19 +68,29 @@ inside a section that is otherwise live: **3.4** (CycloneDX ML-BOM) and **3.5**
 | D-254 | Completeness is the proxy's invariant, kept above both transports so neither can forget it | `src/actaira/proxy/__init__.py:3` |
 | D-255 | A server the rewriter cannot interpose on is declared, never silently passed through | `src/actaira/proxy/session.py:3` |
 | D-256 | A tool is announced only if it runs, because a name in `tools/list` is read as capability and nothing downstream can unread it | `src/actaira/mcp.py:3` |
-| D-257 | A digest covers the arguments; the sentence about a failure is the other half of the boundary | `src/actaira/trace/redact.py:75` |
+| D-257 | A digest covers the arguments; the sentence about a failure is the other half of the boundary | `src/actaira/trace/redact.py:76` |
 | D-258 | A hole cites the identity of the event it follows, and says so when there is none, rather than a line number | `src/actaira/trace/model.py:171` |
 | D-259 | The transcript format records no end of session, so an L0 trace is never complete and says why | `src/actaira/trace/claude_code.py:207` |
 | D-260 | One call is one event however many times the source records it, and a disagreement is a hole rather than a choice | `src/actaira/trace/claude_code.py:289` |
 | D-261 | What the agent was configured with, against what was observed, and the answer fails closed | `src/actaira/proxy/session.py:321` |
-| D-262 | A session id is a string out of somebody's file, so it is sanitised and a collision is numbered, never overwritten | `src/actaira/cli.py:278` |
-| D-263 | A reference computed as an unsalted digest of a guessable name is an encoding, not a redaction | `src/actaira/trace/redact.py:126` |
+| D-262 | A session id is a string out of somebody's file, so it is sanitised and a collision is numbered, never overwritten | `src/actaira/cli.py:458` |
+| D-263 | A reference computed as an unsalted digest of a guessable name is an encoding, not a redaction | `src/actaira/trace/redact.py:127` |
 | D-264 | MCP 2026-07-28 removed the session, so every message declares itself and a missing declaration is a hole | `src/actaira/proxy/protocol.py:3` |
 | D-265 | Interposing on HTTP for real, and refusing an answer whose JSON-RPC id is somebody else's | `src/actaira/proxy/http.py:14` |
 | D-266 | One writer at a time, records that name their own run, and an order taken from the records rather than from the filenames | `src/actaira/proxy/__init__.py:83` |
 | D-267 | A network guard that only runs when somebody remembers it is not a guard, and it needs a test that it still bites | `tests/netguard.py:3` |
 | D-268 | Every field of the published document is classified by who writes its value, and a third-party value is referenced unless the table says why not | `src/actaira/trace/provenance.py:3` |
 | D-269 | The subject is what an agent CAN do, not what one did, and the three products that were tried against that question first | `CLAUDE.md:18` |
+| D-270 | Three resolution states for what a FILE permits, kept apart from the four capture levels for what a RUN did | `src/actaira/surface/__init__.py:3` |
+| D-271 | Every read of somebody else's repository is bounded before it is attempted, and every path is resolved before it is opened | `src/actaira/surface/claude_code.py:8` |
+| D-272 | Finding the script a hook names is a parse, and a shape it cannot parse costs a stated gap rather than a guess | `src/actaira/surface/claude_code.py:381` |
+| D-273 | Every merge decision is a cited row, anchored to a digest of the page because these pages publish no version | `src/actaira/surface/resolve.py:3` |
+| D-274 | Rule packs are TOML read with `tomllib`, because a rule has to carry its own argument and JSON has no comments | `src/actaira/surface/rules.py:3` |
+| D-275 | A rule's needed facts are derived from its clauses, so INDETERMINATE happens without anybody remembering to check | `src/actaira/surface/rules.py:15` |
+| D-276 | Exit code 3 comes back, because a pipeline branching on 1 alone reads "I could not tell" as a clean run | `src/actaira/cli.py:48` |
+| D-277 | The agent's version is never obtained by running the agent, because asking the audited tool what it is is trusting it | `src/actaira/cli.py:314` |
+| D-278 | The rule page is generated, so it cannot be the stale fourth copy of what a rule says | `scripts/rules_doc.py:4` |
+| D-279 | A path that is absolute on another platform is absolute here too, or the same repository gets two answers on two machines | `src/actaira/surface/claude_code.py:180` |
 
 Thirty-nine rows left this table in phase A, with the modules they argued
 about: every note numbered for `coverage.py`, `miniyaml.py`, `io_budget.py`,

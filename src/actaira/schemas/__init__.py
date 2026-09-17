@@ -42,7 +42,7 @@ HERE = Path(__file__).parent
 # module and the `const` in the schema must agree, and a test asserts it: two
 # places recording one version number is how a document ends up declaring a
 # version whose shape it does not have.
-VERSIONS = {"trace": "trace/v3"}
+VERSIONS = {"trace": "trace/v3", "surface": "surface/v1"}
 
 # The versions this release still READS, per family, oldest first. Emitting is
 # the asymmetric half: this tool writes `VERSIONS` and reads everything here.

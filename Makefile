@@ -60,6 +60,13 @@ figures:
 contracts:
 	$(PY) scripts/contracts_doc.py
 
+# docs/RULES.md, written from the rule packs the package ships. Same argument as
+# `contracts`: a rule's id, author, version and severity are recorded in the
+# pack, and a page typed by hand is a second copy that nothing would notice
+# going stale. `release-check` runs this with --check and fails on a difference.
+rules:
+	$(PY) scripts/rules_doc.py
+
 # The design-note table's line numbers, which drift on every edit above them.
 # `--check` is what the release gate runs; without it the rows are rewritten.
 design-notes:

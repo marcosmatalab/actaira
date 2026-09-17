@@ -28,18 +28,18 @@ SECTIONS = ("ui",)
 RULE_SECTIONS = ("rules", "rule_help")
 CATALOGUES = {lang: json.loads((SRC_DIR / "actaira" / "i18n" / f"{lang}.json").read_text("utf-8")) for lang in SUPPORTED}
 
-# `grep -rn 'ACT-...' src/`, done in-process so the failure message can name the
-# file and line. The pattern is deliberately wider than `rule_id="ACT-`: in
-# pickle_scan the rule is chosen by a conditional and assigned to a variable
-# before it reaches `rule_id=`, so a narrower grep would silently miss
-# ACT-PKL-002 and ACT-PKL-007, the two most important rules in the project.
-# The trailing guard was added when the controls layer arrived: a control
-# identifier such as `ACT-C-53-ANNEX-XI` or `ACT-C-50-1-DISCLOSE` starts with
-# something this pattern reads as a rule id and then keeps going. Without the
-# guard the scan reported `ACT-C-53` and `ACT-C-50` as rules with no
-# catalogue entry, which they are not: they are prefixes of identifiers that
-# never reach `Finding.rule_id`. A rule id is the whole token or it is not one.
-RULE_LITERAL = re.compile(r"ACT-[A-Z0-9]+-\d+(?![-\w])")
+# The rules this tree can emit, taken from the rule PACKS rather than from a grep
+# over `src/`. Phase S1 moved rule identifiers out of Python and into TOML, which
+# is what `surface/rules.py` loads, so the packs are now the single place a rule
+# id is written down - and asserting the catalogue against the thing that
+# actually emits is the whole argument of this file.
+#
+# The shape changed with them. It was `ACT-XXX-123`, wide enough to catch a rule
+# id assigned to a variable in the scanner's `pickle_scan` and narrow enough to
+# reject a control identifier like `ACT-C-53-ANNEX-XI`. It is now `ACT-` plus one
+# category letter plus three digits, refused at load by `rules.load_pack` and
+# promised unrenumbered by `docs/COMPATIBILITY.md`.
+RULE_LITERAL = re.compile(r"ACT-[A-Z]\d{3}(?![-\w])")
 
 
 def python_files(*roots: Path) -> list[Path]:
@@ -54,8 +54,18 @@ def python_files(*roots: Path) -> list[Path]:
 
 
 def rule_ids_in_source() -> dict[str, list[str]]:
-    """rule_id -> the source locations that mention it."""
+    """rule_id -> where it is defined: the pack files, then any Python mention.
+
+    Both, because either alone is a blind spot. A rule defined in a pack and
+    never translated is what the packs half catches; an identifier hard-coded in
+    Python that no pack defines is what the Python half catches, and that is the
+    shape the scanner's forty-one had.
+    """
     found: dict[str, list[str]] = {}
+    for path in sorted((SRC_DIR / "actaira" / "surface" / "packs").rglob("*.toml")):
+        for number, line in enumerate(path.read_text("utf-8").splitlines(), start=1):
+            for rule_id in RULE_LITERAL.findall(line):
+                found.setdefault(rule_id, []).append(f"{path.relative_to(REPO_ROOT)}:{number}")
     for path in python_files(SRC_DIR):
         for number, line in enumerate(path.read_text("utf-8").splitlines(), start=1):
             for rule_id in RULE_LITERAL.findall(line):
@@ -107,38 +117,41 @@ def test_no_catalogue_entry_is_empty(section):
 def test_the_scan_would_find_a_rule_id_if_one_existed():
     """The non-vacuity guard, and the reason it is written this way.
 
-    This used to assert `len(SOURCE_RULES) >= 30` over a tree whose scanner and
-    conformance packages emitted forty-one rule ids. Phase A removed both, so
-    `SOURCE_RULES` is empty and every test below it that iterates over it would
-    now pass by iterating over nothing - which is the failure this whole file
-    exists to prevent one level down.
+    It asserted `len(SOURCE_RULES) >= 30` over the scanner's forty-one ids, then
+    - once phase A removed those - it asserted only that the pattern still
+    worked, because `SOURCE_RULES` was empty and every test below would have
+    passed by iterating over nothing.
 
-    So the guard moved from "the scan found rules" to "the scan still works".
-    The pattern is exercised against lines it must match and lines it must not,
-    including the control-identifier prefix that made the trailing guard
-    necessary. When phase B lands a rule package, the two tests below start
-    biting again on their own, with no edit here.
+    Phase S1 gave it rules again, so both halves are asserted: the pattern
+    matches what it must and refuses what it must, AND the scan comes back
+    non-empty. The refusals are the shapes that were wrong before - a control
+    identifier, and the old three-segment spelling, which is not this format.
     """
-    assert RULE_LITERAL.findall("        rule_id=\"ACT-PKL-002\",") == ["ACT-PKL-002"]
-    assert RULE_LITERAL.findall("chosen = ACT-PATH-002 if x else ACT-PATH-003") == [
-        "ACT-PATH-002", "ACT-PATH-003"
+    assert RULE_LITERAL.findall('id = "ACT-S001"') == ["ACT-S001"]
+    assert RULE_LITERAL.findall("chosen = ACT-S002 if x else ACT-S003") == [
+        "ACT-S002", "ACT-S003"
     ]
     assert RULE_LITERAL.findall("ACT-C-53-ANNEX-XI") == [], "a control id is not a rule id"
+    assert RULE_LITERAL.findall("ACT-PKL-002") == [], "the scanner's spelling is not this one"
+
+    assert len(SOURCE_RULES) >= 15, (
+        f"the scan found {len(SOURCE_RULES)} rule ids; the packs define more than that, so "
+        "the walk is not walking and every test below it is vacuous"
+    )
 
 
-def test_this_tree_emits_no_rule_ids_and_the_catalogues_say_so():
-    """Phase A's state, asserted in both directions so it cannot drift quietly.
+def test_every_rule_the_packs_define_is_one_the_loader_accepts():
+    """The two halves agree: what this file greps out of the packs is what
+    `surface/rules.py` loads from them. A grep that drifted from the loader
+    would police a set nothing emits."""
+    from actaira.surface import rules as rule_module
 
-    Nothing in `src/` raises a `Finding`, so neither catalogue may carry rule
-    text: forty-one entries describing rules no module can emit were dead text
-    that would be translated and reviewed forever. If phase B adds a rule id
-    and forgets its text, `test_every_rule_id_in_the_source_has_a_catalogue_
-    entry` fails. If it adds text with no rule, this one does.
-    """
-    assert SOURCE_RULES == {}, f"a rule id is back in src/: {sorted(SOURCE_RULES)}"
-    for lang, catalogue in CATALOGUES.items():
-        for section in RULE_SECTIONS:
-            assert catalogue[section] == {}, f"{lang}.{section} describes a rule nothing emits"
+    loaded = {rule.id for rule in rule_module.load()}
+
+    assert loaded == set(SOURCE_RULES), (
+        "the loader and the grep disagree about which rules exist: "
+        f"{sorted(loaded ^ set(SOURCE_RULES))}"
+    )
 
 
 @pytest.mark.parametrize("lang", SUPPORTED)
