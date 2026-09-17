@@ -7,37 +7,40 @@ message: >-
   describes, and `make release-check` refuses a tree whose figures and code
   disagree. Cite the version together with the commit, because a version is a
   claim about an interface and a commit is the thing that was measured.
-title: "Actaira: local-first AI assurance for model artifacts and agents"
+title: "Actaira: change control for what AI coding agents can do"
 abstract: >-
-  Actaira reads an AI system without running it, records what it observed as
-  evidence with a lifetime, decides under a versioned policy, and signs a
-  receipt a third party can verify offline. Nothing is ever loaded,
-  deserialised or executed, and nothing is ever scored.
-  Static inspection covers pickle protocols 0 to 5, PyTorch zip checkpoints,
-  safetensors, ONNX, GGUF, NumPy .npy and Keras/HDF5, with format detection by
-  content; the default import policy is an allowlist of the callables tensor
-  deserialisation needs, because a denylist fails open, and the evaluation
-  harness prices both. What each control looked at is published per coverage
-  surface rather than collapsed into a verdict, and a surface nobody undertook
-  to read cannot make a verdict inconclusive.
-  On top of inspection: an evidence lifecycle in which supersession is bound to
-  a subject's digest rather than to its name; a relation graph whose every edge
-  carries the document that stated it, with impact answered as a route;
-  governance over agent declarations, including capability rules and an
-  attack-path search that reports what would break each route; policy as code,
-  where a predicate with no information goes to REVIEW rather than quietly
-  returning false; trust kept separate from cryptography, so that a signature
-  verifying is a fact about bytes and whether this environment accepts the
-  signer is a local decision; attestation over an RFC 6962 Merkle tree with
-  Ed25519 signatures, an optional RFC 3161 time anchor and an in-toto Statement
-  in a DSSE envelope; and executable EU AI Act controls over an obligation
-  catalogue on four checkability tiers, each obligation carrying a written
-  reason for the tier it is on.
-  The verifier reports what it did not check - an unanchored signing key as
-  embedded_key_only, an unvalidated authority chain as tsa_chain not_verified -
-  rather than showing a tick for it, and the tool refuses to emit a compliance
-  score: a test greps every finished document for score, grade, rating and
-  percent and fails on any of them.
+  Actaira reads the configuration files AI coding agents load, resolves what
+  they add up to across the scopes each vendor merges, and reports what an agent
+  can do in a repository or on a machine. It runs nothing: no agent binary, no
+  hook, no referenced script, and no model on the decision path. Readers touch
+  the disk; resolution and rules are pure functions over what was read.
+  Three claims are made and no others. SURFACE is what an agent can do here,
+  with every capability citing the file it came from, the vendor's documented
+  merge rule together with the URL and version that states it, and the rule that
+  names it. CHANGE is which capability appears, disappears, widens or narrows
+  between two moments. CURRENCY is whether an approval still describes what is
+  there, bound to the digest of what was approved rather than to its name or its
+  date, so an approval expires by itself when the thing it covered changes.
+  Four constraints are load-bearing. Nothing is ever scored: a test greps every
+  finished document for score, grade, rating and percent and fails on any of
+  them. Nothing is judged, only cited, so a finding names a rule whose norm was
+  written by somebody else. Nothing unobserved is inferred: a capability that
+  could not be resolved is INDETERMINATE, counted apart and never distributed
+  across the answers that were. And nothing is acted on: an exit code informs,
+  and whether that blocks anything is the user's own branch protection.
+  The published limits are part of the claim rather than a caveat on it. The
+  governing one is that configuration declares and does not demonstrate
+  behaviour: a hook that is written is not a hook that ran, and a hook that is
+  absent is not proof that nothing ran. Only what is on disk is visible, merge
+  semantics depend on the agent version, and a referenced script can change
+  after it is read, which is why everything binds to a digest.
+  This release ships the capture half rather than the surface half: scan reads
+  the sessions an agent recorded about itself, watch records one from outside
+  the agent through an MCP proxy, and every record declares the level it was
+  captured at and what that level may not claim. Underneath both, an offline
+  verifier over an RFC 6962 Merkle tree with Ed25519 signatures, integrity and
+  identity kept as separate answers. The surface commands are under
+  construction; README.md states which, and which phase each arrives in.
 repository-code: "https://github.com/marcosmatalab/actaira"
 type: software
 version: 3.0.0
@@ -47,23 +50,20 @@ authors:
   - given-names: Marcos
     family-names: Mata Garcia
 keywords:
-  - machine-learning
-  - ai-assurance
-  - ai-governance
+  - ai-agents
   - agent-security
-  - policy-as-code
-  - eu-ai-act
+  - coding-agents
+  - claude-code
+  - agent-configuration
+  - mcp
+  - hooks
   - supply-chain-security
-  - pickle
-  - safetensors
-  - onnx
-  - gguf
-  - sbom
-  - cyclonedx
-  - ml-bom
+  - static-analysis
+  - drift-detection
+  - configuration-as-code
+  - policy-as-code
+  - provenance
   - attestation
   - ed25519
   - merkle-tree
   - rfc-6962
-  - rfc-3161
-  - static-analysis

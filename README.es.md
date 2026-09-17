@@ -1,8 +1,8 @@
 <div align="center">
 
-**Un testigo independiente para agentes de IA.**
+**Control de cambios de lo que tus agentes de IA pueden hacer.**
 
-Actaira produce evidencia verificable de lo que un agente hizo, comparada con lo que estaba autorizado a hacer.
+Actaira lee la configuración que cargan tus agentes de código, resuelve lo que de verdad les permite hacer, y dice qué cambió entre dos momentos.
 
 **Actaira 3.0.0** · Python 3.11 · 3.12 · 3.13 · Apache-2.0 · una dependencia en tiempo de ejecución · sin conexión, sin telemetría, sin cuenta
 
@@ -14,53 +14,71 @@ Actaira produce evidencia verificable de lo que un agente hizo, comparada con lo
 
 ## Qué es esto
 
-Un agente se ejecuta. Lee ficheros, llama a herramientas, habla con un proveedor
-de modelos. Después alguien pregunta qué hizo en realidad, y el único relato
-disponible es el que el propio agente escribió sobre sí mismo.
+Un agente abre tu repositorio. Antes de que escribas nada ya ha leído un fichero
+de ajustes que puede registrar un hook para ejecutarse al abrir sesión, una
+lista de servidores MCP a los que conectarse, un conjunto de permisos, una
+política de sandbox y un fichero de instrucciones. Esos ficheros llegan de
+varios ámbitos a la vez (gestión, usuario, proyecto, local) y cada fabricante
+documenta sus propias reglas para mezclarlos. La respuesta a «qué puede hacer
+este agente aquí» no está escrita en ninguno de ellos.
 
-Actaira captura ese relato **desde fuera del proceso**, decide de forma
-determinista si la ejecución se salió de lo que declaró, y emite un acta que un
-tercero puede comprobar sin confiar en el operador y sin confiar en Actaira.
+Actaira lee esos ficheros, resuelve a qué suman, nombra cada capacidad con la
+regla que la encontró, y dice qué ha cambiado desde la última vez.
 
 No es un escáner de modelos. No es una plataforma de observabilidad. No es una
-herramienta de cumplimiento.
+herramienta de cumplimiento. No es un EDR: no vigila en ejecución y no bloquea.
 
 ### El objetivo, y dónde está de verdad
 
-Un acta de Actaira terminada afirma exactamente tres cosas y nada más. Cualquier
-cosa fuera de esas tres es un defecto de producto, aunque sea verdad.
+Actaira afirma exactamente tres cosas y nada más. Cualquier cosa fuera de esas
+tres es un defecto de producto, aunque sea verdad.
 
-**Eso es el objetivo. Una de las tres está a medias y dos no existen todavía.**
-Esta sección dice cuál es cuál, porque un README que describe en presente el
-producto terminado es justo lo que esta release se ha pasado una fase quitando.
+**Ninguna de las tres está construida.** Se enuncian aquí igualmente, en el
+sitio donde se describiría un producto terminado, porque la alternativa es una
+página que describe en presente una intención, que es justo el defecto que este
+proyecto se pasó la fase A.1 quitando y no una costumbre que conservó. Lo que el
+árbol sí sabe hacer hoy está más abajo, en [los cuatro
+comandos](#los-cuatro-comandos).
 
-**1. Autenticidad** - la traza se capturó en el borde del proceso, no la produjo
-el agente sobre sí mismo; está firmada, encadenada, y declara el nivel al que se
-capturó.
+**1. Superficie** - lo que un agente puede hacer en este repositorio o en esta
+máquina, resuelto entre ámbitos y fabricantes. Cada capacidad cita el fichero
+del que sale, la regla de mezcla documentada que la resolvió, con la URL y la
+versión de la documentación del fabricante que la enuncia, y la regla de Actaira
+que la nombra.
 
-> **A medias.** El nivel de captura se declara, y la traza lleva un bloque
-> `authenticity` que dice si la autenticidad *aplica* a ese nivel, si quedó
-> *establecida*, y la razón: un transcript L0 dice que no se puede evaluar, y una
-> ejecución L1 con huecos dice que no quedó establecida y nombra los huecos. Lo
-> que falta es la criptografía: **la traza no se firma y no se encadena.** Se
-> escribe un `.sha256` al lado, que sirve para notar un fichero que cambió y no
-> sirve de nada contra quien cambie los dos. La firma llega en la fase G.
+> **No existe.** En este árbol no hay lector, ni resolución de ámbitos, ni
+> paquete de reglas. `actaira check` llega en la fase S1, para Claude Code y sus
+> cuatro ámbitos; la fase S2 añade Codex, Cursor, Gemini CLI, el fichero de
+> tareas de VS Code, el devcontainer y AGENTS.md.
 
-**2. Conformidad** - la ejecución conforma, no conforma, o es indeterminada
-respecto a un contrato; cuando no conforma, el acta nombra el evento, su índice
-y la regla.
+**2. Cambio** - qué capacidad aparece, desaparece, se ensancha o se estrecha
+entre dos momentos.
 
-> **No existe.** En este árbol no hay contrato, ni paquete de reglas, ni motor.
-> `actaira scan` y `actaira watch` capturan y describen; ninguno decide nada. Los
-> contratos llegan en la fase E y los paquetes de reglas en la F.
+> **No existe.** `actaira diff`, la línea base firmada que escribe `actaira
+> seal`, el informe y la acción de GitHub llegan en la fase S3. La fase S4 añade
+> la línea base de máquina, que es donde un hook plantado en el ámbito de
+> usuario y no en un repositorio se vuelve visible siquiera.
 
-**3. Inclusión** - el acta está en un registro append-only cofirmado por testigos.
+**3. Vigencia** - si una aprobación o una evidencia sigue describiendo lo que
+hay. Ligada a digests, nunca a nombres y nunca a fechas.
 
-> **No existe.** Ni registro, ni testigos, ni colector. Fase G.
+> **No existe**, y es la única de las tres que ya tiene su argumento escrito:
+> [`docs/DESIGN.md`](docs/DESIGN.md) §10 conserva el razonamiento de los cinco
+> estados de evidencia y de la sustitución ligada a un digest en vez de al
+> nombre del sujeto, del paquete `state/` que la fase A quitó por inalcanzable.
+> Su consumidor es la fase P1.
 
-Lo que este árbol hace hoy es la primera mitad de la primera afirmación: captura
-lo que hizo un agente, desde fuera del agente donde puede, y es explícito sobre
-lo que no vio.
+Y lo que ninguna de las tres puede afirmar, dicho aquí en vez de dejarlo a la
+deducción: **la configuración declara; no demuestra comportamiento.** Un hook
+escrito no es un hook que se ejecutó, y un hook ausente no prueba que no se
+ejecutara nada. Lo que no se pudo resolver es INDETERMINADO, se cuenta aparte, y
+nunca se reparte entre las respuestas que sí se pudieron dar.
+
+Lo que este árbol hace hoy no es ninguna de las dos: lee lo que un agente grabó
+sobre una ejecución, y graba una desde fuera del agente donde puede. Esa es la
+[escalera de captura](#niveles-de-captura) de abajo, y se conserva porque un
+cambio en una configuración y las sesiones que corrieron después son la misma
+pregunta hecha dos veces.
 
 ---
 
@@ -90,9 +108,9 @@ retrospective analysis, not evidence a third party can rely on. Use `actaira
 watch` to record a run from outside the agent.
 ```
 
-Ese bloque es el producto entero en miniatura. Leyó una sesión, dijo lo que vio,
-y a continuación dijo - sin que nadie se lo pidiera - que lo que acababa de leer
-no puede sostener la afirmación para la que existe la herramienta.
+Ese bloque es el estilo de la casa en miniatura. Leyó una sesión, dijo lo que
+vio, y a continuación dijo - sin que nadie se lo pidiera - que lo que acababa de
+leer no puede sostener la afirmación que un lector le atribuiría.
 
 Con `--lang es` la salida sale en español. Si tienes Claude Code, Cursor o Cline
 en esta máquina, quita el `--demo` y `actaira scan` lee las sesiones que ya
@@ -109,7 +127,10 @@ actaira verify    verifica un paquete de atestación sin conexión
 actaira keygen    crea, rota o revoca una clave de firma
 ```
 
-Esa es la lista completa. `actaira --help` imprime los mismos cuatro.
+Esa es la lista completa de lo que funciona, y `actaira --help` imprime los
+mismos cuatro. [`CLAUDE.md`](CLAUDE.md) enumera siete, y cada uno que no está
+construido lleva escrita la fase en la que llega; `tests/test_cli.py` falla con
+un nombre de esa lista que ni existe en el parser ni dice cuándo llegará.
 
 ### `actaira watch` - grabar desde fuera
 
@@ -165,8 +186,9 @@ filtro de secretos sí.
 > `attest/package.py::write_package` - y no lo llama nada fuera de los tests.
 > Así que `verify` es un lector sin escritor en esta release: útil si tienes un
 > paquete 2.x en la mano, inútil si no, y se conserva porque el día que este
-> árbol firme sus propias actas (fase G) el verificador es la mitad que ya tiene
-> que estar bien.
+> árbol firme algo propio, que es la línea base de superficie que escribe
+> `actaira seal` en la fase S3, el verificador es la mitad que ya tiene que
+> estar bien.
 >
 > `tests/test_reachability.py` no coge esto. Pregunta si todo módulo es
 > alcanzable desde un comando, y `attest/` lo es: `verify` llega a todo él. No
@@ -233,22 +255,25 @@ no un cálculo de Actaira, y nunca se agrega ni se suma con otra.
 
 **2. Nunca juzgar, solo citar.** Actaira no tiene opinión sobre lo que un agente
 debería haber hecho. Compara lo observado contra una norma **escrita por otro**,
-y la nombra. Todo NO CONFORMA publica el id de la regla, su versión, su paquete
-y su autor. De aquí se sigue: prohibido llamar a un modelo en el camino de
+y la nombra. Todo hallazgo publica el id de la regla, su versión, su paquete y
+su autor. De aquí se sigue: prohibido llamar a un modelo en el camino de
 decisión. Un LLM puede ayudar a redactar una regla; no puede evaluarla, y tampoco
 puede escribir su remediación.
 
-**3. Nunca inferir lo no observado.** Si el nivel de captura no cubría algo, el
-acta lo dice. Un predicado sin información devuelve INDETERMINADO, jamás False.
-Cada regla declara el nivel de captura que necesita, y por debajo de él devuelve
-INDETERMINADO sola, sin que nadie se acuerde de comprobarlo.
+**3. Nunca inferir lo no observado.** Si lo que se leyó no cubría algo, el
+informe lo dice. Un predicado sin información devuelve INDETERMINADO, jamás
+False. Cada regla declara lo que necesita para responder, y por debajo de eso
+devuelve INDETERMINADO sola, sin que nadie se acuerde de comprobarlo.
 
-**4. Nunca actuar sobre lo que se observa.** Actaira *sugiere* remediaciones,
-nunca las aplica. Un testigo que además actúa no puede dar fe de sus propios
-actos, y ese conflicto de interés es exactamente lo que nos separa de un
-proveedor de observabilidad. Si algún día existe un `--apply`, el cambio queda
-registrado como un evento más de la traza, atribuido a Actaira, y el motor lo
-evalúa como cualquier otro. Silencioso, jamás.
+**4. Nunca actuar sobre lo que se observa.** Actaira *sugiere* la remediación
+que trae su regla, nunca la aplica. Un testigo que además actúa no puede dar fe
+de sus propios actos, y ese conflicto de interés es exactamente lo que nos
+separa de un proveedor de observabilidad. Si algún día existe un `--apply`, el
+cambio queda registrado como un hallazgo más, atribuido a Actaira, y se evalúa
+como cualquier otro. Silencioso, jamás. Un código de salida **informa**: si un
+pull request se bloquea o no lo decide la protección de rama del usuario, que es
+suya. Salir con código distinto de cero no es actuar; escribir en el árbol del
+usuario sí.
 
 > **Tres de estas cuatro son restricciones sobre código que aún no está
 > escrito.** En este árbol no hay reglas, ni predicados, ni remediaciones: la
@@ -267,8 +292,10 @@ evalúa como cualquier otro. Silencioso, jamás.
 
 ## Límites publicados
 
-Están en el README, en la web y en el propio acta. No se ablandan para vender
-mejor.
+Están en el README, en la web y en el propio informe. No se ablandan para vender
+mejor. Los diez primeros son de lo que mirar una **ejecución** no puede enseñar,
+que es `scan` y `watch`; los cuatro últimos son de lo que leer una
+**configuración** no puede enseñar, y llegan con la superficie.
 
 1. No reproducimos la salida de un modelo hospedado. Ni con seed ni con
    temperatura cero. La causa es el tamaño de lote del proveedor y el
@@ -281,8 +308,24 @@ mejor.
 6. No demostramos la ausencia de una acción, solo su presencia.
 7. Una traza producida por el propio agente no es evidencia.
 8. Un testigo detecta una inconsistencia pero no la denuncia.
-9. Conformidad no es seguridad. Un agente puede conformar con un contrato malo.
-10. El contrato derivado hereda los errores de la declaración de la que se deriva.
+9. No disparar ninguna regla no es seguridad. Un repositorio puede no producir
+   un solo hallazgo y estar mal configurado por una razón que ninguna regla
+   nombra.
+10. Lo resuelto hereda los errores de aquello de lo que se resuelve. Una
+    superficie efectiva calculada sobre la configuración equivocada es una
+    respuesta correcta a la pregunta equivocada.
+11. **La configuración no es el comportamiento.** Que una capacidad esté
+    declarada no prueba que se ejerciera, y su ausencia no prueba que no
+    ocurriera nada.
+12. **Solo vemos lo que está en disco.** La configuración que un fabricante
+    empuja desde un servidor sin dejar fichero es invisible para nosotros, y eso
+    se declara en vez de tratarse como ausencia.
+13. **La semántica de mezcla depende de la versión del agente.** Sin versión
+    conocida, la capacidad que dependa de ella sale INDETERMINADA; no se resuelve
+    con la versión que parezca más probable.
+14. **Un script referenciado puede cambiar después de leído.** Por eso todo se
+    liga a su digest y no a su ruta: una aprobación sobre un nombre de fichero es
+    una aprobación sobre lo que haya ahí mañana.
 
 ---
 
@@ -323,7 +366,7 @@ cifra que se desvió de lo que el código mide, una nota de diseño que apunta a
 línea que no la argumenta, una versión de esquema escrita en dos sitios, un
 documento que nombra un test que ya no existe.
 
-1.555 tests sobre 23.813 líneas de Python corren en cada commit, y las dos cifras las
+1.566 tests sobre 23.940 líneas de Python corren en cada commit, y las dos cifras las
 mide `make figures` en vez de escribirlas a mano: la puerta rechaza un árbol
 donde un número de este fichero no coincide con lo que el código reporta.
 

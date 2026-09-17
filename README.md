@@ -1,8 +1,8 @@
 <div align="center">
 
-**An independent witness for AI agents.**
+**Change control for what your AI agents can do.**
 
-Actaira produces verifiable evidence of what an agent did, compared against what it was authorised to do.
+Actaira reads the configuration your coding agents load, resolves what it actually lets them do, and says what changed between two moments.
 
 **Actaira 3.0.0** · Python 3.11 · 3.12 · 3.13 · Apache-2.0 · one runtime dependency · offline, no telemetry, no account
 
@@ -14,55 +14,69 @@ Actaira produces verifiable evidence of what an agent did, compared against what
 
 ## What this is
 
-An agent runs. It reads files, calls tools, talks to a model provider. Afterwards
-somebody asks what it actually did - and the only account available is the one
-the agent wrote about itself.
+An agent opens your repository. Before you type anything it has already read a
+settings file that can register a hook to run at session start, a list of MCP
+servers to connect to, a permission set, a sandbox policy and an instructions
+file. Those files arrive from several scopes at once - managed, user, project,
+local - and each vendor documents its own rules for merging them. The answer to
+"what can this agent do here" is written down in none of them.
 
-Actaira captures that account **from outside the process**, decides
-deterministically whether the run departed from what it declared, and emits a
-record a third party can check without trusting the operator and without
-trusting Actaira.
+Actaira reads those files, resolves what they add up to, names each capability
+with the rule that found it, and says what changed since last time.
 
 It is not a model scanner. It is not an observability platform. It is not a
-compliance tool.
+compliance tool. It is not an EDR: it does not watch at runtime, and it does
+not block.
 
 ### The objective, and where it actually stands
 
-A finished Actaira record claims exactly three things and nothing else. Anything
-outside those three is a product defect, even when it is true.
+Actaira claims exactly three things and nothing else. Anything outside those
+three is a product defect, even when it is true.
 
-**That is the objective. One of the three is partly built and two do not exist
-yet.** This section states which, because a README that describes the finished
-product in the present tense is the thing this release spent a phase removing.
+**None of the three is built.** They are stated here anyway, in the place a
+finished product would be described, because the alternative is a page that
+describes an intention in the present tense - which is the defect this project
+spent phase A.1 removing rather than a habit it kept. What the tree can do
+today is further down, under [the four commands](#the-four-commands).
 
-**1. Authenticity** - the trace was captured at the edge of the process, not
-produced by the agent about itself; it is signed, hash-chained, and declares the
-level it was captured at.
+**1. Surface** - what an agent can do in this repository or on this machine,
+resolved across scopes and vendors. Every capability cites the file it came
+from, the documented merge rule that resolved it, with the URL and version of
+the vendor documentation that states it, and the Actaira rule that names it.
 
-> **Partly built.** The capture level is declared, and the trace carries an
-> `authenticity` block that says whether authenticity *applies* at that level,
-> whether it was *established*, and the reason - an L0 transcript says it cannot
-> be evaluated, and an L1 run with holes in it says it was not established and
-> names the holes. What is missing is the cryptography: **the trace is not
-> signed and not hash-chained.** A `.sha256` is written beside it, which lets
-> you notice a file that changed and does nothing against somebody who changes
-> both. Signing arrives in phase G.
+> **Does not exist.** No reader, no resolver and no rule package in this tree.
+> `actaira check` arrives in phase S1, for Claude Code and its four scopes;
+> phase S2 adds Codex, Cursor, Gemini CLI, the VS Code task file, the
+> devcontainer and AGENTS.md.
 
-**2. Conformance** - the run conforms, does not conform, or is indeterminate
-against a contract; where it does not conform, the record names the event, its
-index and the rule.
+**2. Change** - which capability appears, disappears, widens or narrows between
+two moments.
 
-> **Does not exist.** There is no contract, no rule package and no engine in
-> this tree. `actaira scan` and `actaira watch` capture and describe; neither
-> decides anything. Contracts arrive in phase E and the rule packages in phase F.
+> **Does not exist.** `actaira diff`, the signed surface baseline `actaira
+> seal` writes, the report and the GitHub Action arrive in phase S3. Phase S4
+> adds the machine baseline, which is where a hook planted in the user scope
+> rather than in a repository becomes visible at all.
 
-**3. Inclusion** - the record is in an append-only log co-signed by witnesses.
+**3. Currency** - whether an approval or a piece of evidence still describes
+what is there. Bound to digests, never to names and never to dates.
 
-> **Does not exist.** No log, no witnesses, no collector. Phase G.
+> **Does not exist**, and it is the one of the three that already has its
+> argument written down: [`docs/DESIGN.md`](docs/DESIGN.md) §10 keeps the
+> reasoning for the five evidence states and for supersession bound to a digest
+> rather than to a subject's name, from the `state/` package phase A removed
+> for being unreachable. Its consumer is phase P1.
 
-What this tree does today is the first half of the first claim: it captures what
-an agent did, from outside the agent where it can, and it is explicit about what
-it did not see.
+And what none of the three may claim, stated here rather than left to be
+inferred: **configuration declares; it does not demonstrate behaviour.** A hook
+that is written is not a hook that ran, and a hook that is absent is not proof
+that nothing ran. Whatever could not be resolved is INDETERMINATE, counted
+apart, and never distributed across the answers that were.
+
+What this tree does today is neither: it reads what an agent recorded about a
+run, and it records one from outside the agent where it can. That is the
+[capture ladder](#capture-levels) below, and it is kept because a change to a
+configuration and the sessions that ran after it are the same question asked
+twice.
 
 ---
 
@@ -92,9 +106,9 @@ retrospective analysis, not evidence a third party can rely on. Use `actaira
 watch` to record a run from outside the agent.
 ```
 
-That block is the whole product in miniature. It read a session, said what it
-saw, and then said - unprompted - that what it read cannot support the claim
-the tool exists to make.
+That block is the house style in miniature. It read a session, said what it
+saw, and then said - unprompted - that what it read cannot support the claim a
+reader would otherwise take it for.
 
 If you have Claude Code, Cursor or Cline on this machine, drop the `--demo` and
 `actaira scan` reads the sessions they have already written to disk.
@@ -110,7 +124,10 @@ actaira verify    verify an attestation package offline
 actaira keygen    create, rotate or revoke a signing key
 ```
 
-That is the complete list. `actaira --help` prints the same four.
+That is the complete list of what works, and `actaira --help` prints the same
+four. [`CLAUDE.md`](CLAUDE.md) lists seven, each unbuilt one carrying the phase
+it arrives in; `tests/test_cli.py` fails on a name in that list that neither
+exists in the parser nor says when it will.
 
 ### `actaira watch` - recording from outside
 
@@ -165,8 +182,9 @@ does.
 > The writer is still in the tree - `attest/package.py::write_package` - and
 > nothing outside the test suite calls it. So `verify` is a reader with no
 > matching writer in this release: useful if you are holding a 2.x package,
-> useless if you are not, and kept because the day this tree signs its own
-> records (phase G) the verifier is the half that has to already be right.
+> useless if you are not, and kept because the day this tree signs something
+> of its own, which is the surface baseline `actaira seal` writes in phase S3,
+> the verifier is the half that has to already be right.
 >
 > `tests/test_reachability.py` does not catch this. It asks whether every module
 > is reachable from a command, and `attest/` is: `verify` reaches all of it. It
@@ -231,22 +249,24 @@ performed, and it is never aggregated or summed with another.
 
 **2. Never judge, only cite.** Actaira has no opinion about what an agent should
 have done. It compares what was observed against a norm **written by somebody
-else**, and names it. Every non-conformance publishes the rule's id, version,
-package and author. From which it follows: calling a model on the decision path
-is forbidden. An LLM may help draft a rule; it may not evaluate one, and it may
+else**, and names it. Every finding publishes the rule's id, version, package
+and author. From which it follows: calling a model on the decision path is
+forbidden. An LLM may help draft a rule; it may not evaluate one, and it may
 not write a remediation.
 
-**3. Never infer the unobserved.** If the capture level did not cover something,
-the record says so. A predicate with no information returns INDETERMINATE, never
-False. Every rule declares the capture level it needs, and below that level it
+**3. Never infer the unobserved.** If what was read did not cover something, the
+report says so. A predicate with no information returns INDETERMINATE, never
+False. Every rule declares what it needs in order to answer, and below that it
 returns INDETERMINATE on its own, without anybody remembering to check.
 
-**4. Never act on what is observed.** Actaira *suggests* remediations; it never
-applies them. A witness that also acts cannot attest to its own acts, and that
-conflict of interest is exactly what separates this from an observability
-vendor. If an `--apply` ever exists, the change is recorded as one more event in
-the trace, attributed to Actaira, and evaluated by the engine like any other.
-Never silently.
+**4. Never act on what is observed.** Actaira *suggests* the remediation its
+rule carries; it never applies it. A witness that also acts cannot attest to its
+own acts, and that conflict of interest is exactly what separates this from an
+observability vendor. If an `--apply` ever exists, the change is recorded as one
+more finding, attributed to Actaira, and evaluated like any other. Never
+silently. An exit code **informs**: whether a pull request is blocked is decided
+by the user's own branch protection, which is theirs. Leaving with a non-zero
+status is not acting; writing in the user's tree is.
 
 > **Three of these four are constraints on code that is not written yet.** There
 > are no rules, no predicates and no remediations in this tree, so the second
@@ -265,8 +285,10 @@ Never silently.
 
 ## Published limits
 
-These are in the README, on the site, and in the record itself. They do not get
-softened to sell better.
+These are in the README, on the site, and in the report itself. They do not get
+softened to sell better. The first ten are about what watching a **run** cannot
+show, which is `scan` and `watch`; the last four are about what reading a
+**configuration** cannot show, and they arrive with the surface.
 
 1. We do not reproduce the output of a hosted model. Not with a seed, not at
    temperature zero. The cause is the provider's batch size and MoE routing, and
@@ -279,8 +301,22 @@ softened to sell better.
 6. We do not prove the absence of an action, only its presence.
 7. A trace produced by the agent itself is not evidence.
 8. A witness detects an inconsistency; it does not denounce it.
-9. Conformance is not safety. An agent can conform to a bad contract.
-10. A derived contract inherits the errors of the declaration it came from.
+9. Firing no rule is not safety. A repository can produce no finding at all and
+   be badly configured for a reason no rule names.
+10. What is resolved inherits the errors of what it was resolved from. An
+    effective surface computed over the wrong configuration is a correct answer
+    to the wrong question.
+11. **Configuration is not behaviour.** A capability being declared does not
+    prove it was exercised, and its absence does not prove nothing happened.
+12. **We see only what is on disk.** Configuration a vendor pushes from a server
+    without leaving a file is invisible to us, and that gets declared rather
+    than treated as absence.
+13. **Merge semantics depend on the agent's version.** With no known version,
+    any capability that depends on it comes out INDETERMINATE; it is not
+    resolved with whichever version looks likeliest.
+14. **A referenced script can change after it is read.** Which is why everything
+    binds to its digest and not to its path: an approval over a file name is an
+    approval over whatever is there tomorrow.
 
 ---
 
@@ -320,7 +356,7 @@ that drifted from what the code measures, a design note pointing at a line that
 does not argue it, a schema version written in two places, a document naming a
 test that no longer exists.
 
-1,555 tests over 23,813 lines of Python run on every commit, and both figures are
+1,566 tests over 23,940 lines of Python run on every commit, and both figures are
 measured by `make figures` rather than typed: the gate refuses a tree where a
 number in this file disagrees with what the code reports.
 

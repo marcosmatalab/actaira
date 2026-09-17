@@ -45,12 +45,12 @@
       "note": "the MCP proxy, its two transports and the watch session"
     },
     "rest": {
-      "blank": 27,
-      "code": 144,
+      "blank": 28,
+      "code": 111,
       "comment": 10,
-      "docstring": 23,
+      "docstring": 30,
       "files": 1,
-      "lines": 204,
+      "lines": 179,
       "note": "everything in src/ the areas above do not claim"
     },
     "schemas": {
@@ -72,21 +72,21 @@
       "note": "this script"
     },
     "tests": {
-      "blank": 2736,
-      "code": 6930,
-      "comment": 723,
-      "docstring": 1902,
+      "blank": 2763,
+      "code": 6995,
+      "comment": 754,
+      "docstring": 1931,
       "files": 36,
-      "lines": 12291,
+      "lines": 12443,
       "note": "the test suite"
     },
     "total": {
-      "blank": 4232,
-      "code": 13913,
-      "comment": 1663,
-      "docstring": 4005,
+      "blank": 4260,
+      "code": 13945,
+      "comment": 1694,
+      "docstring": 4041,
       "files": 73,
-      "lines": 23813,
+      "lines": 23940,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -236,17 +236,17 @@
   },
   "docs": {
     "docs/DESIGN.md": {
-      "lines": 718
+      "lines": 817
     },
-    "total_lines": 718
+    "total_lines": 817
   },
-  "generated_at": "2026-09-17T10:23:52+00:00",
+  "generated_at": "2026-09-17T15:24:53+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 18,
-    "head": "08eb233",
-    "head_date": "2026-09-16"
+    "commits": 20,
+    "head": "aef5206",
+    "head_date": "2026-09-17"
   },
   "package": {
     "declared_version": "3.0.0",
@@ -265,20 +265,20 @@
   },
   "tests": {
     "available": true,
-    "collected": 1555,
+    "collected": 1566,
     "files": 31,
     "per_file": {
       "tests/test_attest_anchor.py": 25,
       "tests/test_chain_and_signing.py": 17,
       "tests/test_chain_domain_separation.py": 14,
-      "tests/test_cli.py": 23,
+      "tests/test_cli.py": 35,
       "tests/test_consistency.py": 285,
       "tests/test_defect_ledger.py": 348,
-      "tests/test_design_notes.py": 53,
+      "tests/test_design_notes.py": 54,
       "tests/test_dsse.py": 25,
       "tests/test_i18n.py": 78,
       "tests/test_keyring.py": 33,
-      "tests/test_mcp.py": 17,
+      "tests/test_mcp.py": 15,
       "tests/test_merkle.py": 146,
       "tests/test_netguard.py": 19,
       "tests/test_no_aggregate.py": 11,

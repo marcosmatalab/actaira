@@ -1,4 +1,11 @@
 # Actaira in a container, for a pipeline that has docker and not python.
+#
+# What the tool is for, and what this image can actually do, are not the same
+# sentence yet, so they are two. The project is change control for what AI
+# coding agents can do: read the configuration they load, resolve it across
+# scopes, and report what changed. What is in this image is the half that
+# exists, which reads and records agent runs. README.md says which commands
+# those are and which phase the rest arrive in.
 # Nothing here is published anywhere. This file builds an image locally:
 # `docker build -t actaira . && docker run --rm actaira --version` is the
 # whole of it.
@@ -27,7 +34,7 @@ FROM python:3.12-slim
 # local tree. A label pointing at a repository that does not exist is worse
 # than a missing label, because tooling reads it and nothing checks it.
 LABEL org.opencontainers.image.title="actaira" \
-      org.opencontainers.image.description="An independent witness for AI agents: capture what an agent did from outside the process, at a declared capture level, into a trace a third party can read offline. Nothing is scored." \
+      org.opencontainers.image.description="Change control for what AI coding agents can do. This image ships the commands that exist today: read the sessions an agent already recorded, record one from outside the agent at a declared capture level, and verify a package offline. Nothing is scored, and nothing is executed to find out what it would do." \
       org.opencontainers.image.licenses="Apache-2.0"
 
 # No .pyc files and no pip cache, so the layer holds the package and not a copy

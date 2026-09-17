@@ -1,10 +1,15 @@
 """The commands that exist, and the contract each of them publishes.
 
-Four of the eight CLAUDE.md caps the set at: `verify`, `keygen`, `scan` and
-`watch`. That is the interesting assertion in this file and the first test
-makes it - the help text is the contract, and a command that does not exist
-must not appear in it. The remaining four arrive phase by phase, and adding
-one here before it works would be publishing a promise.
+Four of the seven CLAUDE.md lists: `verify`, `keygen`, `scan` and `watch`. That
+is the interesting assertion in this file and the first test makes it - the help
+text is the contract, and a command that does not exist must not appear in it.
+The other three arrive phase by phase, and adding one here before it works would
+be publishing a promise.
+
+Which is why the last section of this file reads that list out of `CLAUDE.md`
+rather than trusting a copy kept here. Phase S0 changed the list, and a name on
+it that neither parses nor says when it will is exactly the promise the
+paragraph above refuses: it reads as shipped to anybody who has not tried it.
 
 What is tested is what a caller can rely on: the exit codes, the fact that
 `verify` opens no socket, and that it reports a broken package as broken
@@ -24,6 +29,7 @@ import pytest
 
 from actaira import cli
 from actaira.attest import chain, package
+from conftest import REPO_ROOT
 
 
 @pytest.fixture
@@ -62,18 +68,27 @@ def no_network(monkeypatch):
 
 
 SHIPPED = {"verify", "keygen", "scan", "watch"}
-# The four CLAUDE.md names that this release still cannot mean anything by.
-# `serve` is in the list and is not one of the eight: the MCP server is a
-# separate entry point, `actaira-mcp`, precisely so that it is not a ninth
+# The three CLAUDE.md names that this release still cannot mean anything by,
+# the four that phase S0 removed from the list, and `serve`.
+#
+# The retired four stay here rather than being deleted with the doctrine that
+# named them, and the reason is that this test asserts a usage error, not an
+# absence: a name that used to be planned is a name somebody's script may still
+# type, and the answer it gets must be an error rather than something worse.
+# `serve` is in the list and is not one of the seven: the MCP server is a
+# separate entry point, `actaira-mcp`, precisely so that it is not another
 # command, and this is where that stays true.
-UNSHIPPED = ["contract", "verdict", "receipt", "fix", "serve"]
+NOT_BUILT_YET = ["check", "diff", "seal"]
+RETIRED = ["contract", "verdict", "receipt", "fix"]
+UNSHIPPED = [*NOT_BUILT_YET, *RETIRED, "serve"]
 
 
 def test_the_cli_publishes_exactly_the_commands_that_work():
-    """CLAUDE.md caps the finished set at eight and this release ships four.
+    """CLAUDE.md lists seven, caps the set at eight, and this release ships four.
 
-    The four that are missing need a contract, which phase 2 derives. A parser
-    that accepted them and printed "not implemented" would be advertising them.
+    The three that are missing need a configuration reader, which phase S1
+    builds. A parser that accepted them and printed "not implemented" would be
+    advertising them.
     """
     subparsers = [
         action
@@ -124,6 +139,115 @@ def test_version_is_the_package_version(capsys):
 
     assert exit_info.value.code == cli.EXIT_OK
     assert capsys.readouterr().out.strip() == f"actaira {__version__}"
+
+
+# ---------------------------------------------------------------------------
+# The list in CLAUDE.md, against this parser
+# ---------------------------------------------------------------------------
+#
+# `release_check.readme_documents_the_commands` asks one direction: every
+# command that exists is named on the pages that list commands. It cannot ask
+# the other, because the other direction is only answerable for a list that
+# says which of its names are promises. CLAUDE.md's is, one phase per unbuilt
+# name, so it is the one list in this repository where both directions are
+# checkable, and this is the check.
+#
+# It exists because phase S0 rewrote that list without touching a line of the
+# parser. Four names left it and three arrived, and nothing in the tree would
+# have noticed had the three arrived without their phases: a reader meeting
+# `actaira check` in the governance document has no way to tell a shipped
+# command from an intention, and the whole point of the phase before this one
+# was that the tree stops describing intentions in the present tense.
+
+CLI_SECTION = re.compile(r"^## El CLI$(.*?)^## ", re.M | re.S)
+CLI_ENTRY = re.compile(r"^ {4}actaira (\S+)(.*?)(?=^ {4}actaira |\Z)", re.M | re.S)
+PHASE_MARK = re.compile(r"\(fase [A-Z]\d(?:\.\d)?\)")
+
+
+def doctrine_commands(text: str) -> list[tuple[str, bool]]:
+    """(command name, whether its entry states the phase it arrives in).
+
+    An entry is its `    actaira <name>` line plus the continuation lines under
+    it, because the phase is written at the end of the description and the
+    description wraps.
+    """
+    section = CLI_SECTION.search(text)
+    assert section, "CLAUDE.md has no `## El CLI` section, or it is now the last one"
+    return [
+        (name, bool(PHASE_MARK.search(body)))
+        for name, body in CLI_ENTRY.findall(section.group(1))
+    ]
+
+
+DOCTRINE = doctrine_commands((Path(REPO_ROOT) / "CLAUDE.md").read_text(encoding="utf-8"))
+
+
+def test_the_doctrine_list_was_actually_parsed():
+    """The non-vacuity guard, which is the whole risk in a test that greps a
+    document: a regex that stopped matching reports success having compared
+    nothing, and this file would go on passing through the next rewrite of the
+    section it reads."""
+    assert len(DOCTRINE) >= len(SHIPPED), f"parsed only {DOCTRINE} out of CLAUDE.md"
+
+    names = [name for name, _phased in DOCTRINE]
+    assert len(names) == len(set(names)), f"a command is listed twice: {names}"
+    assert SHIPPED <= set(names), (
+        f"CLAUDE.md's list is missing a command that exists: {sorted(SHIPPED - set(names))}"
+    )
+    assert len(names) <= 8, f"CLAUDE.md caps the list at eight and lists {len(names)}"
+
+
+@pytest.mark.parametrize("name, phased", DOCTRINE, ids=lambda item: str(item))
+def test_every_name_in_the_doctrine_list_either_exists_or_says_when(name, phased):
+    parser_commands = set(cli.build_parser()._subparsers._group_actions[0].choices)  # noqa: SLF001
+
+    if name in parser_commands:
+        assert not phased, (
+            f"CLAUDE.md marks `{name}` with a phase and the parser already has it. "
+            "A shipped command described as arriving later is the same defect "
+            "pointing the other way."
+        )
+        return
+
+    assert phased, (
+        f"CLAUDE.md lists `actaira {name}`, which this parser does not have, and "
+        "does not say which phase it arrives in. A name on that list without a "
+        "phase reads as a shipped command to anybody who has not typed it."
+    )
+
+
+def test_the_check_would_notice_a_planted_command():
+    """The guard on the guard. A check over a document is worth what its
+    failure mode is worth, so a command is planted into a copy of the section
+    and both halves are asserted: that it is parsed at all, and that it is
+    parsed as unphased."""
+    real = (Path(REPO_ROOT) / "CLAUDE.md").read_text(encoding="utf-8")
+    planted = real.replace(
+        "    actaira keygen ",
+        "    actaira publish             sube el acta al registro\n    actaira keygen ",
+        1,
+    )
+    assert planted != real, "the plant did not apply; the fixture line moved"
+
+    found = dict(doctrine_commands(planted))
+    assert "publish" in found, "a planted command was not even parsed out"
+    assert found["publish"] is False, "a command with no phase was read as phased"
+
+    parser_commands = set(cli.build_parser()._subparsers._group_actions[0].choices)  # noqa: SLF001
+    assert "publish" not in parser_commands
+    assert not (found["publish"] or "publish" in parser_commands), (
+        "the condition this file fails on does not hold for a planted command, "
+        "so the check passes over anything"
+    )
+
+    # And the same plant WITH a phase must be accepted, or the check is just a
+    # ban on adding a name.
+    with_phase = real.replace(
+        "    actaira keygen ",
+        "    actaira publish             sube el acta al registro    (fase S9)\n    actaira keygen ",
+        1,
+    )
+    assert dict(doctrine_commands(with_phase))["publish"] is True
 
 
 # ---------------------------------------------------------------------------

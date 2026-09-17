@@ -1,11 +1,17 @@
-"""The MCP server: three tools, and two of them saying so.
+"""The MCP server: nothing announced that does not run.
 
-Why it exists before two of its three tools do: directories list servers, not
-proxies, and a server is how this reaches anybody. That is a distribution
-argument, and it is only honest if the two unbuilt tools say they are unbuilt
-rather than returning something plausible. A stub that invents a verdict is
-the fail-open shape of this whole product, in the one surface other people's
-agents will call.
+Why it exists before the product does: directories list servers, not proxies,
+and a server is how this reaches anybody. That is a distribution argument, and
+what makes it honest is what the server is willing to put its name to.
+
+It used to answer that differently. Two unbuilt tools were announced and
+refused by name, on the argument that an explicit refusal beats a stub
+inventing a verdict. Phase S0 took contract and verdict out of the plan, and a
+refusal naming a retired phase is worse than no tool: an agent reads
+`tools/list` as capability, and the reading has already happened by the time
+the refusal arrives. So the property under test is now the announcement rather
+than the refusal, and it is the strongest of the three: every name this server
+lists is a name that runs.
 """
 from __future__ import annotations
 
@@ -14,11 +20,14 @@ import subprocess
 import sys
 import zipfile
 
-import pytest
-
 from actaira.attest import package, signing
-from actaira.mcp import NOT_IMPLEMENTED, TOOLS, handle
+from actaira.mcp import TOOLS, handle
 from actaira.trace import CaptureLevel
+
+# The names the server announced until phase S0, kept so that removing a tool
+# is a thing this file can still fail about. A retired name must be refused as
+# unknown, not answered: an agent that cached an old `tools/list` will call one.
+RETIRED = ("actaira_contract", "actaira_verdict")
 
 
 def _request(identifier, method, params=None):
@@ -29,39 +38,55 @@ def _call(name, arguments=None):
     return handle(_request(1, "tools/call", {"name": name, "arguments": arguments or {}}))
 
 
+def _listed():
+    return [tool["name"] for tool in handle(_request(1, "tools/list"))["result"]["tools"]]
+
+
 # ---------------------------------------------------------------------------
-# Gate 7: three tools, and the two unbuilt ones are explicit about it
+# Gate 7: tools/list announces only tools that run
 # ---------------------------------------------------------------------------
 
 
-def test_the_server_publishes_exactly_three_tools():
-    listed = handle(_request(1, "tools/list"))
+def test_the_server_announces_only_the_tools_it_has():
+    names = _listed()
 
-    names = [tool["name"] for tool in listed["result"]["tools"]]
-    assert names == ["actaira_contract", "actaira_verdict", "actaira_verify"]
-    assert set(names) == set(TOOLS)
-
-
-@pytest.mark.parametrize("name", ["actaira_verdict", "actaira_contract"])
-def test_an_unbuilt_tool_returns_an_explicit_state_and_never_a_value(name):
-    response = _call(name, {"session_id": "whatever"})
-
-    payload = json.loads(response["result"]["content"][0]["text"])
-    assert payload["state"] == NOT_IMPLEMENTED
-    assert payload["phase"], "it has to say which phase answers this"
-    assert "verdict" not in payload
-    assert "contract" not in payload
-    assert response["result"]["isError"] is False, "unbuilt is not the same as broken"
+    assert names == ["actaira_verify"]
+    assert set(names) == set(TOOLS), "tools/list and TOOLS disagree"
 
 
-@pytest.mark.parametrize("name", ["actaira_verdict", "actaira_contract"])
-def test_an_unbuilt_tool_says_the_same_thing_however_it_is_called(name):
-    """A stub that answers differently for different inputs is a stub that is
-    pretending to compute something."""
-    first = _call(name, {"session_id": "a"})
-    second = _call(name, {"session_id": "b", "unexpected": 1})
+def test_every_announced_tool_actually_runs():
+    """The property, asserted over whatever is announced rather than over a
+    list written here.
 
-    assert first["result"] == second["result"]
+    A tool added to `TOOLS` with no `run` fails here, and so does one wired to
+    something that answers with a not-implemented state. That second half is
+    the one worth keeping: it is how the two tools this phase removed would
+    have come back, one plausible stub at a time, each with a good local
+    reason.
+    """
+    names = _listed()
+    assert names, "the server announces nothing; the property below is vacuous"
+
+    for name in names:
+        response = _call(name)
+
+        assert "error" not in response, f"{name} is announced and not dispatchable"
+        payload = json.loads(response["result"]["content"][0]["text"])
+        assert payload.get("state") != "not_implemented", (
+            f"{name} is announced in tools/list and answers that it is not built. "
+            "A name in tools/list is read as capability by the agent that reads it."
+        )
+
+
+def test_a_retired_tool_is_refused_by_name_rather_than_answered():
+    for name in RETIRED:
+        assert name not in _listed()
+
+        response = _call(name, {"session_id": "whatever"})
+
+        assert "result" not in response, f"{name} still answers something"
+        assert response["error"]["code"] == -32602
+        assert name in response["error"]["message"]
 
 
 def test_verify_answers_for_real_on_a_healthy_package(tmp_path):
@@ -77,7 +102,7 @@ def test_verify_answers_for_real_on_a_healthy_package(tmp_path):
 
     assert payload["ok"] is True
     assert payload["trust_state"] == "embedded_key_only"
-    assert payload["state"] != NOT_IMPLEMENTED
+    assert payload["state"] == "verified"
 
 
 def test_verify_on_a_path_that_does_not_exist_is_an_error_not_a_pass(tmp_path):
@@ -156,7 +181,10 @@ def test_the_entry_point_speaks_json_rpc_over_stdio():
     assert run.returncode == 0, run.stderr
     answers = [json.loads(line) for line in run.stdout.splitlines() if line.strip()]
     assert [answer["id"] for answer in answers] == [1, 2], "the notification was answered"
-    assert len(answers[1]["result"]["tools"]) == 3
+    # Against TOOLS rather than a literal: what this case is about is that the
+    # real entry point serves the same table the in-process tests drive, and a
+    # hard-coded count made removing a tool fail here for the wrong reason.
+    assert [tool["name"] for tool in answers[1]["result"]["tools"]] == sorted(TOOLS)
 
 
 def test_the_server_prints_nothing_on_stdout_that_is_not_a_response():

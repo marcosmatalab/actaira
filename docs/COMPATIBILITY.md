@@ -131,10 +131,17 @@ Four, and `actaira --help` prints the same four.
 `tests/test_no_aggregate.py::test_the_enumeration_names_every_emitter_this_tree_has`
 and `release_check.py` both fail when this list and the parser disagree.
 
-CLAUDE.md allows eight commands and this tree implements four. `contract`,
-`verdict`, `receipt` and `fix` are named there and are not built; they are not
-documented here, because a command that does not parse is not a compatibility
-surface.
+CLAUDE.md lists seven commands, caps the list at eight, and this tree
+implements four. `check`, `diff` and `seal` are named there with the phase each
+arrives in, and are not built; they are not documented here, because a command
+that does not parse is not a compatibility surface.
+
+`contract`, `verdict`, `receipt` and `fix` were on that list until phase S0 and
+are not coming. They are named here once, in the past tense, for the only reason
+a retired name belongs in a compatibility document: somebody's script may still
+type one, and what it gets is exit code 2 and a usage error rather than
+something worse. `tests/test_cli.py` asserts that for all four, and it reads the
+current list out of CLAUDE.md so this paragraph cannot quietly go stale again.
 
 ## Exit codes
 
@@ -156,9 +163,11 @@ never do — a pipeline branching on `3` would wait for an exit this tool cannot
 reach.
 
 Code `3` is expected back. "I could not tell" has to stay distinguishable from
-"I decided no", and the trace-era equivalent is a contract whose conformance is
-INDETERMINATE. It returns with the command that can be indeterminate, and it
-will be published here on the release that adds it and not before.
+"I decided no", and the thing that can now be indeterminate is a capability that
+could not be resolved: an agent whose version is unknown, a scope that could not
+be read, a hook pointing at a script outside the tree. `check` is the command
+that can answer that way, so `check` is the command that brings the code back.
+It will be published here on the release that adds it and not before.
 
 One code is deliberately absent from the table, because it is not part of this
 contract: a `verify` whose stdout is closed early — `actaira verify --json |
@@ -178,7 +187,7 @@ catalogue carried belonged to the model scanner and to the conformance package,
 both of which left, and dead text that would be translated and reviewed forever
 is not a contract either. `tests/test_i18n.py` asserts both directions: a rule
 id in `src/` with no catalogue entry fails, and a catalogue entry with no rule
-fails. The rule packages arrive in phase B with their own identifiers, authors
+fails. The rule packages arrive in phase S1 with their own identifiers, authors
 and versions.
 
 ## What is not promised
