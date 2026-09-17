@@ -3,10 +3,12 @@
 # `docker build -t actaira . && docker run --rm actaira --version` is the
 # whole of it.
 #
-# The image carries the tool and nothing else: no tests, no docs, and above all
-# no `evals/artifacts`, which is a directory of crafted malicious pickles that
-# has no business inside any image. What goes in is decided by the COPY lines
-# below and enforced by .dockerignore.
+# The image carries the tool and nothing else: no tests and no docs. What goes
+# in is decided by the COPY lines below and enforced by .dockerignore. It used
+# to say "and above all no `evals/artifacts`, a directory of crafted malicious
+# pickles"; that directory went to archive/model-scanner with the scanner, and a
+# comment guarding against a hazard the tree no longer has reads as a description
+# of a tree that still has it.
 #
 # On reproducibility: the base is pinned to a tag, not a digest. Pinning the
 # digest is stricter and is the right thing to do in a release pipeline, where
@@ -25,8 +27,8 @@ FROM python:3.12-slim
 # local tree. A label pointing at a repository that does not exist is worse
 # than a missing label, because tooling reads it and nothing checks it.
 LABEL org.opencontainers.image.title="actaira" \
-      org.opencontainers.image.description="Local-first AI assurance for model artifacts and agents: static inspection, evidence lifecycle, policy-as-code, agent governance and verifiable attestations. Nothing is ever loaded or executed." \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.description="An independent witness for AI agents: capture what an agent did from outside the process, at a declared capture level, into a trace a third party can read offline. Nothing is scored." \
+      org.opencontainers.image.licenses="Apache-2.0"
 
 # No .pyc files and no pip cache, so the layer holds the package and not a copy
 # of everything used to install it.
@@ -51,8 +53,10 @@ RUN groupadd --gid 10001 actaira \
     && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin actaira
 USER 10001:10001
 
-# Where a caller is expected to mount the models. Nothing is written here by
-# the tool unless `--out` asks for it.
+# Where a caller is expected to mount the workspace. Nothing is written here by
+# the tool unless `--out` asks for it. It said "the models" until phase A, which
+# was the scanner's noun for the thing being looked at; what gets mounted now is
+# whatever the agent runs against.
 WORKDIR /work
 
 ENTRYPOINT ["actaira"]

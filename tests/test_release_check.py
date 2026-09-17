@@ -165,14 +165,16 @@ def test_a_second_copy_of_a_schema_version_fails(working_tree, tmp_path):
 def test_a_command_the_documentation_never_mentions_fails(working_tree, tmp_path):
     """A command nobody can find is a command nobody uses.
 
-    The index moved from the README to `docs/CONCEPTS.md` in 2.2.0, when the
-    README became a landing page rather than a reference manual. Breaking the
-    English page is enough: both are checked, and a gate that only noticed the
-    one the author reads is the parity failure this repository already had.
+    The index lived in `docs/CONCEPTS.md` from 2.2.0 until phase A.1 archived
+    that page with the scanner. There are four commands now rather than
+    twenty-two, so it is back on the pages a reader opens first, and the planted
+    defect moved with the check: breaking the English README is enough, because
+    all three pages are checked and a gate that only noticed the one the author
+    reads is the parity failure this repository already had.
     """
     broken = tmp_path / "undocumented-command"
     shutil.copytree(working_tree, broken)
-    page = broken / "docs" / "CONCEPTS.md"
+    page = broken / "README.md"
     page.write_text(
         page.read_text(encoding="utf-8").replace("actaira verify", "actaira verfiy"),
         encoding="utf-8",

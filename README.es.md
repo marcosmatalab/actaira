@@ -25,17 +25,42 @@ tercero puede comprobar sin confiar en el operador y sin confiar en Actaira.
 No es un escáner de modelos. No es una plataforma de observabilidad. No es una
 herramienta de cumplimiento.
 
-Un acta de Actaira afirma exactamente tres cosas y nada más:
+### El objetivo, y dónde está de verdad
 
-1. **Autenticidad.** La traza se capturó en el borde del proceso, no la produjo
-   el agente sobre sí mismo. Está firmada, encadenada, y declara el nivel al que
-   se capturó.
-2. **Conformidad.** La ejecución conforma, no conforma, o es indeterminada
-   respecto a un contrato. Cuando no conforma, el acta nombra el evento, su
-   índice y la regla.
-3. **Inclusión.** El acta está en un registro append-only cofirmado por testigos.
+Un acta de Actaira terminada afirma exactamente tres cosas y nada más. Cualquier
+cosa fuera de esas tres es un defecto de producto, aunque sea verdad.
 
-Cualquier cosa fuera de esas tres es un defecto de producto, aunque sea verdad.
+**Eso es el objetivo. Una de las tres está a medias y dos no existen todavía.**
+Esta sección dice cuál es cuál, porque un README que describe en presente el
+producto terminado es justo lo que esta release se ha pasado una fase quitando.
+
+**1. Autenticidad** - la traza se capturó en el borde del proceso, no la produjo
+el agente sobre sí mismo; está firmada, encadenada, y declara el nivel al que se
+capturó.
+
+> **A medias.** El nivel de captura se declara, y la traza lleva un bloque
+> `authenticity` que dice si la autenticidad *aplica* a ese nivel, si quedó
+> *establecida*, y la razón: un transcript L0 dice que no se puede evaluar, y una
+> ejecución L1 con huecos dice que no quedó establecida y nombra los huecos. Lo
+> que falta es la criptografía: **la traza no se firma y no se encadena.** Se
+> escribe un `.sha256` al lado, que sirve para notar un fichero que cambió y no
+> sirve de nada contra quien cambie los dos. La firma llega en la fase G.
+
+**2. Conformidad** - la ejecución conforma, no conforma, o es indeterminada
+respecto a un contrato; cuando no conforma, el acta nombra el evento, su índice
+y la regla.
+
+> **No existe.** En este árbol no hay contrato, ni paquete de reglas, ni motor.
+> `actaira scan` y `actaira watch` capturan y describen; ninguno decide nada. Los
+> contratos llegan en la fase E y los paquetes de reglas en la F.
+
+**3. Inclusión** - el acta está en un registro append-only cofirmado por testigos.
+
+> **No existe.** Ni registro, ni testigos, ni colector. Fase G.
+
+Lo que este árbol hace hoy es la primera mitad de la primera afirmación: captura
+lo que hizo un agente, desde fuera del agente donde puede, y es explícito sobre
+lo que no vio.
 
 ---
 
@@ -44,7 +69,7 @@ Cualquier cosa fuera de esas tres es un defecto de producto, aunque sea verdad.
 Cinco minutos, sin ningún agente instalado, sin red.
 
 ```bash
-git clone https://github.com/<tu-fork>/actaira
+git clone https://github.com/marcosmatalab/actaira
 cd actaira
 python -m venv .venv && . .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e .
@@ -95,7 +120,7 @@ ejecuta tu comando, y ensambla lo que el proxy vio en una sola traza.
 $ actaira watch -- python -c "print('agent ran')"
 
 agent ran
-Recorded session 1587a6c3-ae8f-4d5a-915c-21e763c88b44 at capture level L1
+Recorded session <session-id> at capture level L1
   0 tool call(s) observed from outside the agent
   ! [end_not_recorded] nothing recorded the end of this session, so what came
     after the last event was not observed
@@ -106,13 +131,19 @@ Recorded session 1587a6c3-ae8f-4d5a-915c-21e763c88b44 at capture level L1
     tool cannot tell which - so it declares the hole rather than publishing an
     empty clean trace.
   INCOMPLETE: the gaps above are what this run could not observe
-  wrote the trace and its digest to ./actaira-watch
+  wrote the trace and its digest to actaira-trace
 ```
 
 Lee esa salida otra vez, porque es el diseño. No se observó nada, y la
 herramienta lo dijo de tres maneras distintas en vez de escribir una traza
 limpia y vacía. Un testigo que informa del silencio como «no pasó nada» es peor
 que no tener testigo, porque alguien se va a fiar de él.
+
+`actaira-trace/` guarda después la traza en JSON, un `.sha256` al lado, y un
+`index.json`. Con `--out` van a otro sitio. El id de sesión es un uuid nuevo en
+cada ejecución, y por eso arriba está escrito `<session-id>`: todos los demás
+caracteres de ese bloque los compara `tests/test_readme_parity.py` contra la
+salida real.
 
 Apúntalo a un agente real con su configuración MCP y el mismo comando graba las
 llamadas a herramientas:
@@ -126,6 +157,22 @@ argumentos viajan como digests con sal: un digest no tiene falsos negativos y un
 filtro de secretos sí.
 
 ### `actaira verify` - comprobar sin confiar en nadie
+
+> **Lee esto antes de probarlo: ningún comando de Actaira 3.0 produce un
+> paquete.** `verify` lee paquetes de atestación escritos por el escáner de
+> modelos 2.x, y el comando que los escribía (`actaira attest`) se fue a
+> `archive/model-scanner`. El escritor sigue en el árbol -
+> `attest/package.py::write_package` - y no lo llama nada fuera de los tests.
+> Así que `verify` es un lector sin escritor en esta release: útil si tienes un
+> paquete 2.x en la mano, inútil si no, y se conserva porque el día que este
+> árbol firme sus propias actas (fase G) el verificador es la mitad que ya tiene
+> que estar bien.
+>
+> `tests/test_reachability.py` no coge esto. Pregunta si todo módulo es
+> alcanzable desde un comando, y `attest/` lo es: `verify` llega a todo él. No
+> pregunta si la cadena del producto se cierra, es decir si algo que esta
+> herramienta escribe es algo que esta herramienta puede verificar.
+> `docs/BACKLOG.md` lleva la línea.
 
 ```bash
 actaira verify attestation.zip
@@ -146,7 +193,10 @@ actaira keygen --rotate             # retirar la clave actual, seguir verificand
 actaira keygen --revoke <key-id>    # nada de lo que firmó se acepta nunca más
 ```
 
-Ed25519. El llavero vive al lado de la clave.
+Ed25519. El llavero vive al lado de la clave. Mismo matiz que en `verify`: esto
+gestiona la clave que firma un paquete, y en la 3.0 no hay nada que escriba uno.
+La rotación y la revocación las ejercita la suite de punta a punta, contra
+paquetes que construye ella misma.
 
 ---
 
@@ -199,6 +249,19 @@ actos, y ese conflicto de interés es exactamente lo que nos separa de un
 proveedor de observabilidad. Si algún día existe un `--apply`, el cambio queda
 registrado como un evento más de la traza, atribuido a Actaira, y el motor lo
 evalúa como cualquier otro. Silencioso, jamás.
+
+> **Tres de estas cuatro son restricciones sobre código que aún no está
+> escrito.** En este árbol no hay reglas, ni predicados, ni remediaciones: la
+> segunda negativa no tiene regla que citar, la tercera no tiene predicado que
+> devuelva INDETERMINADO, y la cuarta no tiene remediación que negarse a
+> aplicar. Están escritas ahora, antes de que exista el código, porque una
+> restricción que se adopta después se discute; y la tercera ya sostiene peso en
+> lo que sí existe: `scan --demo` declara que a nivel L0 la autenticidad no se
+> puede evaluar, y `watch` declara los huecos por los que no pudo ver en vez de
+> informar de una ejecución limpia.
+>
+> La primera negativa sí se aplica hoy, sobre todos los documentos que este
+> árbol emite, en `tests/test_no_aggregate.py`.
 
 ---
 
@@ -260,7 +323,7 @@ cifra que se desvió de lo que el código mide, una nota de diseño que apunta a
 línea que no la argumenta, una versión de esquema escrita en dos sitios, un
 documento que nombra un test que ya no existe.
 
-1.567 tests sobre 23.932 líneas de Python corren en cada commit, y las dos cifras las
+1.555 tests sobre 23.813 líneas de Python corren en cada commit, y las dos cifras las
 mide `make figures` en vez de escribirlas a mano: la puerta rechaza un árbol
 donde un número de este fichero no coincide con lo que el código reporta.
 
@@ -280,7 +343,7 @@ desde ningún comando.
 | [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) | Qué se promete entre versiones, y qué no. |
 | [`docs/GOVERNANCE.md`](docs/GOVERNANCE.md) | La frontera entre este núcleo abierto y la plataforma alojada. |
 | [`docs/DESIGN.md`](docs/DESIGN.md) | Cada decisión de diseño con su alternativa rechazada, cada una nombrando el fichero y la línea que la implementa. |
-| [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) | Qué puede y qué no puede hacerle un atacante a un acta. |
+| [`docs/archive/`](docs/archive/) | La documentación del escáner de modelos, archivada sin editar en la fase A.1: formatos, evaluación, arquitectura, modelo de amenazas, las dos páginas de conceptos y las secciones de diseño que las argumentan. Nada de eso describe este árbol. |
 | [`docs/ENGINEERING.md`](docs/ENGINEERING.md) | Las puertas, el trinquete de tipos, y el registro de defectos. |
 | [`docs/BACKLOG.md`](docs/BACKLOG.md) | Defectos conocidos y trabajo aplazado, con su reproducción. |
 

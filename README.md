@@ -26,17 +26,43 @@ trusting Actaira.
 It is not a model scanner. It is not an observability platform. It is not a
 compliance tool.
 
-An Actaira record claims exactly three things and nothing else:
+### The objective, and where it actually stands
 
-1. **Authenticity.** The trace was captured at the edge of the process, not
-   produced by the agent about itself. It is signed, hash-chained, and declares
-   the level it was captured at.
-2. **Conformance.** The run conforms, does not conform, or is indeterminate
-   against a contract. Where it does not conform, the record names the event,
-   its index, and the rule.
-3. **Inclusion.** The record is in an append-only log co-signed by witnesses.
+A finished Actaira record claims exactly three things and nothing else. Anything
+outside those three is a product defect, even when it is true.
 
-Anything outside those three is a product defect, even when it is true.
+**That is the objective. One of the three is partly built and two do not exist
+yet.** This section states which, because a README that describes the finished
+product in the present tense is the thing this release spent a phase removing.
+
+**1. Authenticity** - the trace was captured at the edge of the process, not
+produced by the agent about itself; it is signed, hash-chained, and declares the
+level it was captured at.
+
+> **Partly built.** The capture level is declared, and the trace carries an
+> `authenticity` block that says whether authenticity *applies* at that level,
+> whether it was *established*, and the reason - an L0 transcript says it cannot
+> be evaluated, and an L1 run with holes in it says it was not established and
+> names the holes. What is missing is the cryptography: **the trace is not
+> signed and not hash-chained.** A `.sha256` is written beside it, which lets
+> you notice a file that changed and does nothing against somebody who changes
+> both. Signing arrives in phase G.
+
+**2. Conformance** - the run conforms, does not conform, or is indeterminate
+against a contract; where it does not conform, the record names the event, its
+index and the rule.
+
+> **Does not exist.** There is no contract, no rule package and no engine in
+> this tree. `actaira scan` and `actaira watch` capture and describe; neither
+> decides anything. Contracts arrive in phase E and the rule packages in phase F.
+
+**3. Inclusion** - the record is in an append-only log co-signed by witnesses.
+
+> **Does not exist.** No log, no witnesses, no collector. Phase G.
+
+What this tree does today is the first half of the first claim: it captures what
+an agent did, from outside the agent where it can, and it is explicit about what
+it did not see.
 
 ---
 
@@ -45,7 +71,7 @@ Anything outside those three is a product defect, even when it is true.
 Five minutes, no agent installed, no network.
 
 ```bash
-git clone https://github.com/<your-fork>/actaira
+git clone https://github.com/marcosmatalab/actaira
 cd actaira
 python -m venv .venv && . .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e .
@@ -95,7 +121,7 @@ command, and assembles what the proxy saw into one trace.
 $ actaira watch -- python -c "print('agent ran')"
 
 agent ran
-Recorded session 1587a6c3-ae8f-4d5a-915c-21e763c88b44 at capture level L1
+Recorded session <session-id> at capture level L1
   0 tool call(s) observed from outside the agent
   ! [end_not_recorded] nothing recorded the end of this session, so what came
     after the last event was not observed
@@ -106,13 +132,19 @@ Recorded session 1587a6c3-ae8f-4d5a-915c-21e763c88b44 at capture level L1
     tool cannot tell which - so it declares the hole rather than publishing an
     empty clean trace.
   INCOMPLETE: the gaps above are what this run could not observe
-  wrote the trace and its digest to ./actaira-watch
+  wrote the trace and its digest to actaira-trace
 ```
 
 Read that output again, because it is the design. Nothing was observed, and the
 tool said so three different ways rather than writing a clean empty trace. A
 witness that reports silence as "nothing happened" is worse than no witness,
 because somebody will rely on it.
+
+`actaira-trace/` then holds the trace as JSON, a `.sha256` beside it, and an
+`index.json`. `--out` puts them somewhere else. The session id is a fresh uuid
+per run, which is why it is written as `<session-id>` above - every other
+character of that block is compared against the real output by
+`tests/test_readme_parity.py`.
 
 Point it at a real agent with an MCP configuration and the same command records
 the tool calls:
@@ -126,6 +158,20 @@ travel as salted digests: a digest has no false negatives and a secret filter
 does.
 
 ### `actaira verify` - checking without trusting anyone
+
+> **Read this before you try it: no command in Actaira 3.0 produces a package.**
+> `verify` reads attestation packages written by the 2.x model scanner, and the
+> command that wrote them (`actaira attest`) went to `archive/model-scanner`.
+> The writer is still in the tree - `attest/package.py::write_package` - and
+> nothing outside the test suite calls it. So `verify` is a reader with no
+> matching writer in this release: useful if you are holding a 2.x package,
+> useless if you are not, and kept because the day this tree signs its own
+> records (phase G) the verifier is the half that has to already be right.
+>
+> `tests/test_reachability.py` does not catch this. It asks whether every module
+> is reachable from a command, and `attest/` is: `verify` reaches all of it. It
+> does not ask whether the product's chain closes - whether anything this tool
+> writes is anything this tool can verify. `docs/BACKLOG.md` carries the line.
 
 ```bash
 actaira verify attestation.zip
@@ -145,7 +191,10 @@ actaira keygen --rotate             # retire the current key, keep verifying old
 actaira keygen --revoke <key-id>    # nothing it ever signed is accepted again
 ```
 
-Ed25519. The keyring lives beside the key.
+Ed25519. The keyring lives beside the key. Same caveat as `verify`: this
+manages the key that signs a package, and nothing in 3.0 writes one. Rotation
+and revocation are exercised end to end by the suite, against packages the suite
+builds itself.
 
 ---
 
@@ -198,6 +247,19 @@ conflict of interest is exactly what separates this from an observability
 vendor. If an `--apply` ever exists, the change is recorded as one more event in
 the trace, attributed to Actaira, and evaluated by the engine like any other.
 Never silently.
+
+> **Three of these four are constraints on code that is not written yet.** There
+> are no rules, no predicates and no remediations in this tree, so the second
+> negative has no rule to cite, the third has no predicate to return
+> INDETERMINATE, and the fourth has no remediation to decline to apply. They are
+> written down now, before the code exists, because a constraint adopted after
+> the fact is one that gets argued with; and the third is already load-bearing
+> in what does exist - `scan --demo` declares that authenticity cannot be
+> evaluated at L0, and `watch` declares the holes it could not see through
+> rather than reporting a clean run.
+>
+> The first negative is enforced today, over every document this tree emits, by
+> `tests/test_no_aggregate.py`.
 
 ---
 
@@ -258,7 +320,7 @@ that drifted from what the code measures, a design note pointing at a line that
 does not argue it, a schema version written in two places, a document naming a
 test that no longer exists.
 
-1,567 tests over 23,932 lines of Python run on every commit, and both figures are
+1,555 tests over 23,813 lines of Python run on every commit, and both figures are
 measured by `make figures` rather than typed: the gate refuses a tree where a
 number in this file disagrees with what the code reports.
 
@@ -278,7 +340,7 @@ command.
 | [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) | What is promised across versions, and what is not. |
 | [`docs/GOVERNANCE.md`](docs/GOVERNANCE.md) | The boundary between this open core and the hosted platform. |
 | [`docs/DESIGN.md`](docs/DESIGN.md) | Every design decision with its rejected alternative, each naming the file and line that implements it. |
-| [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) | What an attacker can and cannot do to a record. |
+| [`docs/archive/`](docs/archive/) | The model scanner's documentation, archived unedited in phase A.1: formats, evaluation, architecture, threat model, both concept pages and the design sections that argue them. None of it describes this tree. |
 | [`docs/ENGINEERING.md`](docs/ENGINEERING.md) | The gates, the type ratchet, and the defect ledger. |
 | [`docs/BACKLOG.md`](docs/BACKLOG.md) | Known defects and deferred work, with reproductions. |
 
