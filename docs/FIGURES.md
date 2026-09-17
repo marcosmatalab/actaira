@@ -9,32 +9,32 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-17T10:23:52+00:00 for actaira 3.0.0, at commit 08eb233.
+Generated 2026-09-17T15:24:53+00:00 for actaira 3.0.0, at commit aef5206.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, ruff>=0.6, jsonschema>=4.18
-- 18 commits, most recent 2026-09-16
+- 20 commits, most recent 2026-09-17
 
 ## Tests
 
-**1555** tests collected by pytest across 31 files.
+**1566** tests collected by pytest across 31 files.
 
 | file | tests |
 |---|---:|
 | `tests/test_attest_anchor.py` | 25 |
 | `tests/test_chain_and_signing.py` | 17 |
 | `tests/test_chain_domain_separation.py` | 14 |
-| `tests/test_cli.py` | 23 |
+| `tests/test_cli.py` | 35 |
 | `tests/test_consistency.py` | 285 |
 | `tests/test_defect_ledger.py` | 348 |
-| `tests/test_design_notes.py` | 53 |
+| `tests/test_design_notes.py` | 54 |
 | `tests/test_dsse.py` | 25 |
 | `tests/test_i18n.py` | 78 |
 | `tests/test_keyring.py` | 33 |
-| `tests/test_mcp.py` | 17 |
+| `tests/test_mcp.py` | 15 |
 | `tests/test_merkle.py` | 146 |
 | `tests/test_netguard.py` | 19 |
 | `tests/test_no_aggregate.py` | 11 |
@@ -55,7 +55,7 @@ Generated 2026-09-17T10:23:52+00:00 for actaira 3.0.0, at commit 08eb233.
 | `tests/test_trace_provenance.py` | 21 |
 | `tests/test_trust.py` | 13 |
 | `tests/test_verify_strictness.py` | 23 |
-| **total** | **1555** |
+| **total** | **1566** |
 
 ## Defects found in this repository
 
@@ -98,15 +98,15 @@ and the modules are the source of truth.
 | core | 4 | 671 | 384 | 140 | 43 | 104 |
 | schemas | 1 | 121 | 22 | 36 | 43 | 20 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
-| rest | 1 | 204 | 144 | 23 | 10 | 27 |
-| tests | 36 | 12291 | 6930 | 1902 | 723 | 2736 |
+| rest | 1 | 179 | 111 | 30 | 10 | 28 |
+| tests | 36 | 12443 | 6995 | 1931 | 754 | 2763 |
 | scripts | 9 | 2819 | 1736 | 472 | 222 | 389 |
-| **total** | 73 | 23813 | 13913 | 4005 | 1663 | 4232 |
+| **total** | 73 | 23940 | 13945 | 4041 | 1694 | 4260 |
 
 Documentation, in lines of Markdown:
 
-- `docs/DESIGN.md`: 718
-- total: 718
+- `docs/DESIGN.md`: 817
+- total: 817
 
 ## Rules
 

@@ -67,7 +67,7 @@ inside a section that is otherwise live: **3.4** (CycloneDX ML-BOM) and **3.5**
 | D-253 | The real shape of a Claude Code transcript, written down because it is somebody else's format and it moves | `src/actaira/trace/claude_code.py:3` |
 | D-254 | Completeness is the proxy's invariant, kept above both transports so neither can forget it | `src/actaira/proxy/__init__.py:3` |
 | D-255 | A server the rewriter cannot interpose on is declared, never silently passed through | `src/actaira/proxy/session.py:3` |
-| D-256 | A tool that is not built returns a state and a phase, never a value that looks computed | `src/actaira/mcp.py:3` |
+| D-256 | A tool is announced only if it runs, because a name in `tools/list` is read as capability and nothing downstream can unread it | `src/actaira/mcp.py:3` |
 | D-257 | A digest covers the arguments; the sentence about a failure is the other half of the boundary | `src/actaira/trace/redact.py:75` |
 | D-258 | A hole cites the identity of the event it follows, and says so when there is none, rather than a line number | `src/actaira/trace/model.py:171` |
 | D-259 | The transcript format records no end of session, so an L0 trace is never complete and says why | `src/actaira/trace/claude_code.py:207` |
@@ -80,6 +80,7 @@ inside a section that is otherwise live: **3.4** (CycloneDX ML-BOM) and **3.5**
 | D-266 | One writer at a time, records that name their own run, and an order taken from the records rather than from the filenames | `src/actaira/proxy/__init__.py:83` |
 | D-267 | A network guard that only runs when somebody remembers it is not a guard, and it needs a test that it still bites | `tests/netguard.py:3` |
 | D-268 | Every field of the published document is classified by who writes its value, and a third-party value is referenced unless the table says why not | `src/actaira/trace/provenance.py:3` |
+| D-269 | The subject is what an agent CAN do, not what one did, and the three products that were tried against that question first | `CLAUDE.md:18` |
 
 Thirty-nine rows left this table in phase A, with the modules they argued
 about: every note numbered for `coverage.py`, `miniyaml.py`, `io_budget.py`,
@@ -598,6 +599,13 @@ matters: its argument cannot be reconstructed by reading its SQL, and later
 phases will want it. So the argument is here, in its own words where they were
 well put, and the code is one command away.
 
+**Its intended consumer now has a name and a phase: currency, in phase P1.** An
+approval is granted over a surface digest, and the question "does this approval
+still describe what is there" is `decide.py`'s `CURRENT` /
+`REQUIRES_REASSESSMENT` / `UNDETERMINED` asked about a configuration instead of
+about a model artifact. Section 11 argues the change of subject; this section is
+the half of it that was already written.
+
 Recover the code from `archive/model-scanner:src/actaira/state/`.
 
 ### 10.1 Five evidence states, and supersession bound to a digest (D-223)
@@ -716,3 +724,94 @@ it is worth carrying in a tree where no command can reach it.
   `v2.3.0:src/actaira/web/static/styles.css` and the `<svg>` sprite at the top
   of `v2.3.0:src/actaira/web/static/index.html`. Phase C's HTML report is where
   this gets read again.
+
+## 11. The pivot to surface (D-269)
+
+**Decided.** The subject of this tool is what an agent **can** do, read from the
+configuration files it loads, resolved across scopes and vendors, and compared
+between two moments. It is not what an agent **did**. `scan` and `watch` stay,
+demoted from the product to a companion: they answer which sessions ran after a
+configuration changed, which is a question only the new subject makes worth
+asking. The doctrine this replaces is in `CLAUDE.md`'s history and in the 3.0.0
+entry of `CHANGELOG.md`.
+
+**Why.** Three properties the old subject never had. The input is small, on
+disk, and does not move while it is read, so the whole decision path is a pure
+function over bytes and the third negative is cheap to keep rather than
+expensive. The merge semantics are documented by each vendor, so a finding cites
+somebody else's rule and the second negative is kept by construction. And the
+question repeats: a configuration changes on a Tuesday and somebody has to know
+what it now permits, where a run is a one-off nobody returns to.
+
+**What is given up.** Everything that needed a run. Authenticity, in the sense
+of a signed record captured at the edge of a process, stops being a product
+claim; the cryptography under it does not leave, it moves to sealing a surface
+baseline. A configuration that declares nothing and an agent that did nothing
+look identical from here, which is limit 11 and is not recoverable by reading
+harder.
+
+### 11.1 The three products tried against this question first
+
+Each was a real candidate, and each was dropped for a reason that is a fact
+about somebody else's shipped code rather than a preference. Kept because the
+next person to have one of these ideas deserves the search results rather than
+the conclusion.
+
+**Rejected: cross-vendor session forensics.**
+[AgentDFIR](https://github.com/efij/AgentDFIR) already ships it whole: twelve
+agents, a detection catalogue, packages signed with a chain of custody. Nothing
+was left to invent, only to maintain. And Claude Code and Gemini CLI delete
+transcripts after thirty days by default, so the evidence expires under the
+product.
+
+**Rejected: validating sandbox containment.**
+[Promptfoo](https://www.promptfoo.dev/docs/red-team/plugins/coding-agent/), now
+OpenAI's, ships sandbox-escape plugins with canaries, and Cymulate sells the
+scenarios. The failures that matter are CVEs the vendor patches, so a
+deterministic battery would report CLOSED on precisely the versions that were
+open, which is worse than reporting nothing.
+
+**Rejected: the five leaks between generated and shipped code.**
+[Git AI](https://usegitai.com/blog/git-ai-is-joining-openai) already sells the
+relation between lines an agent generated and lines that shipped, and is now
+OpenAI's. Competing with an incumbent's core metric using their new owner's
+distribution is not a gap, and the metric is a number, which is the first
+negative.
+
+### 11.2 What the pivot does not change
+
+The four negatives, unchanged, and they fit the new subject better than the old
+one. A finding cites a rule with an author, because the merge semantics belong
+to the vendor. Nothing is ever scored. What could not be resolved is
+INDETERMINATE rather than absent, which is the third negative applied to a file
+that could not be read instead of to an event that was not captured. And Actaira
+still never acts: an exit code informs, and whether that blocks anything is the
+user's branch protection, which is theirs.
+
+The one place the fourth negative needed a sentence rather than a translation is
+the exit code, and it is in `CLAUDE.md` rather than only here, because "leaving
+CI red is acting" is the objection somebody raises in a review and the doctrine
+is where a review is settled.
+
+### 11.3 Why this note's file is `CLAUDE.md`
+
+The table's promise is that every note names the file and line that
+**implements** its decision. For a decision about how something is built, that
+file is the module, which is why almost every row points at one. For a decision
+about what gets built, it is `CLAUDE.md`: the doctrine is what decides what
+exists, and reversing this decision means editing `CLAUDE.md` and letting the
+tree follow, not editing a module.
+
+Pointing this row at a module would have meant inventing one or naming a file
+that does not argue this, and `scripts/design_notes.py` fails on a file that
+never names its note, which is the right failure.
+
+**This is written as a rule and not as an exception, and the rule is narrow.**
+An exception is satisfied by adding a line to a list, so the rule would be kept
+by whoever chose not to add the line, which is the same objection `CLAUDE.md`
+makes to an exception list under the reachability rule. So the criterion is
+stated instead, in `docs/ENGINEERING.md` where the note convention is defined:
+a doctrine decision, about what gets built, may point at `CLAUDE.md`, and
+nothing else may. A note about a format, a gate, a data structure or an
+algorithm points at code even when the prose explaining it sits in a document.
+D-269 is the only row of that kind today.

@@ -23,15 +23,18 @@ CHANGELOG.md records what it was before.
 
 What lives here, and stays here:
 
-- **The CLI.** `scan`, `watch`, `verify`, `keygen` today; `contract`, `verdict`,
-  `receipt` and `fix` as they are built. CLAUDE.md caps the list at eight.
-- **The trace format.** The `trace/vN` schemas, the OpenTelemetry GenAI field
-  names, and the reader and writer for them.
+- **The CLI.** `scan`, `watch`, `verify`, `keygen` today; `check`, `diff` and
+  `seal` as they are built. CLAUDE.md lists seven and caps the list at eight.
+- **The trace format, and the surface format beside it.** The `trace/vN`
+  schemas, the OpenTelemetry GenAI field names, and the reader and writer for
+  them; and, as they are built, the per-vendor configuration readers, the scope
+  resolution with the merge rule each step cites, and the surface, diff and seal
+  schemas.
 - **The rule packages.** A rule's id, version, package, author, the capture
   level it requires, and its human-written remediation. A rule Actaira cannot
   show you is a rule you cannot argue with, and the second negative makes the
   norm somebody else's to write.
-- **The report.** What a human reads after a run.
+- **The report.** What a human reads after a check or after a run.
 - **The self-hostable collector**, when it exists. Somebody who wants to run all
   of this inside their own network must be able to, with no account and no
   outbound connection.
@@ -73,17 +76,21 @@ does not get built.
 
 ## What crosses the wire
 
-Decided here, implemented in phase G. This is the contract the collector and the
-hosted platform are both written against.
+Decided here, implemented in phase P1, which is where the fleet collector and
+the hosted platform first exist. This is the contract both are written against,
+and it was decided before either, on purpose: a boundary drawn after the first
+feature needs it is a boundary drawn around that feature.
 
 **What may cross:**
 
 | | |
 |---|---|
-| Verdicts | CONFORMS, DOES NOT CONFORM, INDETERMINATE, and the rule id, version, package and author that produced each |
+| Rules that fired | The rule id, version, package and author of each, and nothing the rule was looking at |
+| Resolution states | DECLARED, EFFECTIVE, INDETERMINATE, and for INDETERMINATE the named cause |
+| Currency states | CURRENT, REQUIRES_REASSESSMENT, UNDETERMINED, and the digest an approval was granted over |
 | Digests | Salted references to values, never the values |
-| Counts | How many events, how many calls, how many non-conformances |
-| Gaps | Which holes the run declared, by reason code |
+| Counts | How many capabilities, how many events, how many rules fired |
+| Gaps | Which holes a run declared, by reason code |
 | Capture levels | L0 / L1 / L2 / L3, and which were in scope |
 | Windows | When a session started and ended |
 
@@ -100,9 +107,12 @@ one layer down, applied to the network boundary.
 Three consequences worth stating, because each one is a thing the hosted product
 cannot do and somebody will eventually ask for:
 
-1. **The platform cannot show you what an agent read.** It can show you that
-   four files were read, at which capture level, and whether any rule fired. To
-   see the file names, open the record on the machine that produced it.
+1. **The platform cannot show you what an agent read, or what it is configured
+   to do.** It can show you that four files were read, at which capture level,
+   which rules fired and over which digests. To see the file names, the hook's
+   command or the script it points at, open the record on the machine that
+   produced it. An approval is granted over a digest for exactly this reason:
+   approving requires no content to cross.
 2. **The platform cannot reproduce a run.** It never held the inputs.
 3. **The platform cannot answer a question the digests do not answer.** A
    feature that needs content is a feature that needs the record, and the record
@@ -125,6 +135,9 @@ proposing one:
 - No runtime dependency beyond `cryptography` without an explicit decision
   justified in `pyproject.toml` itself.
 - No model on the decision path, and no remediation written by one.
+- No executing what a hook, a task or an MCP server declares. Configuration is
+  read, cited and bound to its digest. A tool that runs the thing it is
+  analysing to find out what it does is the delivery mechanism.
 
 ---
 

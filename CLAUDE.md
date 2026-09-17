@@ -2,26 +2,54 @@
 
 ## Qué es
 
-Actaira captura lo que hizo un agente de IA desde fuera de él, decide de forma
-determinista si se salió de lo que declaró, y emite un acta que un tercero
-verifica sin confiar en el operador ni en Actaira.
+Actaira es el control de cambios de lo que los agentes de código pueden hacer.
+Lee la configuración de Claude Code, Codex, Cursor, Gemini CLI, VS Code y el
+devcontainer; resuelve entre ámbitos y fabricantes lo que de verdad pueden
+hacer; dice qué ha cambiado entre dos momentos; y ata las aprobaciones al
+digest de lo que se aprobó, de forma que caducan solas cuando eso cambia.
 
 No es un escáner de modelos. No es una plataforma de observabilidad. No es una
-herramienta de compliance. Si una decisión de diseño solo tiene sentido bajo una
-de esas tres descripciones, está mal.
+herramienta de compliance. No es un EDR: no vigila en ejecución y no bloquea.
+Si una decisión de diseño solo tiene sentido bajo una de esas cuatro
+descripciones, está mal.
+
+Por qué el producto es este y no el anterior, con las tres alternativas que se
+descartaron antes de llegar aquí y la fuente de cada descarte: `docs/DESIGN.md`
+§11, nota de diseño D-269.
 
 ## Las tres afirmaciones del producto
 
-El acta afirma exactamente esto y nada más:
+Actaira afirma exactamente esto y nada más:
 
-1. AUTENTICIDAD. La traza se capturó en el borde del proceso, no la produjo el
-   agente sobre sí mismo. Está firmada, encadenada, y declara su nivel de captura.
-2. CONFORMIDAD. La ejecución conforma, no conforma, o es indeterminada, respecto
-   a un contrato. Cuando no conforma, se nombra el evento, su índice y la regla.
-3. INCLUSIÓN. El acta está en un registro append-only cofirmado por testigos.
+1. SUPERFICIE. Lo que un agente puede hacer en este repo o en esta máquina,
+   resuelto entre ámbitos y fabricantes. Cada capacidad cita el fichero de
+   donde sale, la regla de mezcla documentada que la resolvió (con la URL y la
+   versión de la documentación del fabricante) y la regla de Actaira que la
+   nombra.
+2. CAMBIO. Qué capacidad aparece, desaparece, se ensancha o se estrecha entre
+   dos momentos.
+3. VIGENCIA. Si una aprobación o una evidencia sigue describiendo lo que hay.
+   Se liga a digests, nunca a nombres ni a fechas.
 
 Cualquier afirmación fuera de estas tres es un defecto de producto, aunque sea
 verdadera.
+
+Y lo que ninguna de las tres puede afirmar, dicho aquí para que no haga falta
+deducirlo: la configuración DECLARA, no demuestra comportamiento. Que un hook
+esté escrito no prueba que se ejecutara, y que no lo esté no prueba que nada se
+ejecutara. Lo que no se pudo resolver es INDETERMINADO, se cuenta aparte y
+nunca se reparte entre las respuestas que sí se pudieron dar.
+
+## Los tres estados de resolución de una capacidad
+
+  DECLARADO       está escrito en un fichero, y se cita cuál
+  EFECTIVO        resuelto entre ámbitos, con la versión del agente conocida
+  INDETERMINADO   no se pudo resolver, con la causa nombrada
+
+Los cuatro niveles de captura de abajo no se van: siguen gobernando `scan` y
+`watch`, que son lo que mira una ejecución. Estos tres gobiernan lo que mira un
+fichero. Un documento que mezcle los dos vocabularios está confundiendo lo que
+un agente PUEDE hacer con lo que un agente HIZO.
 
 ## Las cuatro negativas
 
@@ -34,24 +62,30 @@ Son invariantes. Un cambio que las viole se rechaza sin discusión.
    Actaira, y NO se agrega ni se suma con otras.
 2. NUNCA JUZGAR, SOLO CITAR. Actaira no tiene opinión sobre lo que un agente
    debería haber hecho. Solo compara lo observado contra una norma ESCRITA POR
-   OTRO, y la nombra. Todo NO CONFORMA publica el id de la regla, su versión, su
+   OTRO, y la nombra. Todo hallazgo publica el id de la regla, su versión, su
    paquete y su autor. De aquí se sigue lo de siempre: prohibido llamar a un
    modelo en el camino de decisión. Un LLM puede ayudar a redactar una regla;
    no puede evaluarla, y tampoco puede escribir su remediación.
-3. NUNCA INFERIR LO NO OBSERVADO. Si el nivel de captura no cubría algo, el acta
+3. NUNCA INFERIR LO NO OBSERVADO. Si lo que se leyó no cubría algo, el informe
    lo dice. Un predicado sin información devuelve INDETERMINADO, jamás False.
-   Cada regla declara el nivel de captura que necesita; por debajo de él la
+   Cada regla declara lo que necesita para responder; por debajo de eso la
    regla devuelve INDETERMINADO sola, sin que nadie se acuerde de comprobarlo.
-4. NUNCA ACTUAR SOBRE LO QUE SE OBSERVA. Actaira SUGIERE remediaciones, nunca
-   las aplica por su cuenta. Un testigo que además actúa no puede dar fe de sus
-   propios actos, y ese conflicto de interés es exactamente el que nos separa
-   de los proveedores de observabilidad. Si algún día existe un `--apply`, el
-   cambio queda registrado como un evento más de la traza, atribuido a Actaira,
-   y el motor lo evalúa como cualquier otro. Silencioso, jamás.
+4. NUNCA ACTUAR SOBRE LO QUE SE OBSERVA. Actaira SUGIERE la remediación que
+   trae la regla, nunca la aplica por su cuenta. Un testigo que además actúa no
+   puede dar fe de sus propios actos, y ese conflicto de interés es exactamente
+   el que nos separa de los proveedores de observabilidad. Si algún día existe
+   un `--apply`, el cambio queda registrado como un hallazgo más, atribuido a
+   Actaira, y el motor lo evalúa como cualquier otro. Silencioso, jamás.
+   Un código de salida INFORMA: bloquear o no lo decide la protección de rama
+   del usuario, que es suya. Salir con código distinto de cero no es actuar;
+   escribir en el árbol del usuario sí.
 
 ## Los límites publicados
 
-Van en el README, en la web y en el propio acta. No se ablandan para vender mejor.
+Van en el README, en la web y en el propio informe. No se ablandan para vender
+mejor. Los diez primeros son de lo que mira una EJECUCIÓN, que es `scan` y
+`watch`. Los cuatro últimos son de lo que mira la CONFIGURACIÓN, y llegan con
+la superficie.
 
 1. No reproducimos la salida de un modelo hospedado. Ni con seed ni con
    temperatura cero. La causa es el tamaño de lote del proveedor y el
@@ -64,8 +98,22 @@ Van en el README, en la web y en el propio acta. No se ablandan para vender mejo
 6. No demostramos la ausencia de una acción, solo su presencia.
 7. Una traza producida por el propio agente no es evidencia.
 8. Un testigo detecta una inconsistencia pero no la denuncia.
-9. Conformidad no es seguridad. Un agente puede conformar con un contrato malo.
-10. El contrato derivado hereda los errores de la declaración de la que se deriva.
+9. No disparar ninguna regla no es seguridad. Un repo puede no tener un solo
+   hallazgo y estar mal configurado por una razón que ninguna regla nombra.
+10. Lo resuelto hereda los errores de aquello de lo que se resuelve. Una
+    superficie efectiva calculada sobre una configuración equivocada es una
+    respuesta correcta a la pregunta equivocada.
+11. LA CONFIGURACIÓN NO ES EL COMPORTAMIENTO. Que una capacidad esté declarada
+    no prueba que se ejerciera, y que no lo esté no prueba que no ocurriera.
+12. Solo se ve lo que está en disco. La configuración que un fabricante empuja
+    desde un servidor sin dejar fichero es invisible para nosotros, y eso se
+    declara en vez de tratarse como ausencia.
+13. La semántica de mezcla depende de la versión del agente. Sin versión
+    conocida, la capacidad que dependa de ella sale INDETERMINADA; no se
+    resuelve con la versión que nos parezca más probable.
+14. Un script referenciado puede cambiar después de leído. Por eso todo se liga
+    a su digest y no a su ruta: una aprobación sobre un nombre de fichero es
+    una aprobación sobre lo que haya ahí mañana.
 
 ## Los cuatro niveles de captura
 
@@ -172,25 +220,51 @@ vez de exceptuarse, y eso eliminó el defecto real que la regla había destapado
   se le pasó. El tiempo es un argumento, nunca una llamada.
 - Los errores de formato se detectan al cargar, no al evaluar. Un identificador
   mal escrito es un error de carga con mensaje, no un traceback ni un DENY.
-- Cada regla nueva llega con dos tests: un caso conforme y un caso violador,
-  ambos sobre una traza real, no sintética.
+- Cada regla nueva llega con dos tests: un caso conforme y un caso violador.
+  Los dos sobre una configuración REAL: o de un repo público con licencia OSI,
+  citando repo, commit y licencia; o reconstruida de una configuración
+  publicada en un informe de incidente, citando la URL y el fragmento del que
+  sale. Nunca inventada. Una regla probada contra un fixture que escribimos
+  nosotros prueba que sabemos escribir el fixture.
+- NINGÚN FIXTURE CONTIENE CARGA MALICIOSA. Reconstruimos la FORMA de la
+  configuración, no su efecto: el script al que apunta un hook es un stub
+  inerte o no existe. Un repositorio de seguridad que reparte el payload del
+  gusano que detecta es el gusano.
+- Los lectores tocan disco y no hacen nada más. La resolución de ámbitos y las
+  reglas son funciones puras sobre lo que los lectores leyeron. Actaira NUNCA
+  ejecuta un binario de agente ni un script referenciado para averiguar algo:
+  preguntarle a la herramienta auditada qué haría es fiarse de ella, y ejecutar
+  lo que estamos analizando es ser el vector.
 - Los nombres de los campos de la traza siguen las convenciones GenAI de
   OpenTelemetry, que viven en `open-telemetry/semantic-conventions-genai`.
   No inventamos vocabulario donde ya existe.
 
 ## El CLI
 
-Ocho comandos y ni uno más. Añadir uno exige quitar otro.
+Siete comandos. El tope sigue siendo ocho: añadir uno octavo es una decisión, y
+un noveno exige quitar otro.
 
+    actaira check                lee la configuración de los agentes de este
+                                 repo y de esta máquina, resuelve la superficie
+                                 efectiva y aplica las reglas       (fase S1)
+    actaira diff A B             qué capacidad aparece, desaparece, se ensancha
+                                 o se estrecha entre dos momentos   (fase S3)
+    actaira seal                 sella una línea base firmada de la superficie,
+                                 que es lo que `verify` verifica    (fase S3)
+    actaira verify <sello.zip>   verifica un sello sin red
+    actaira keygen               crea, rota o revoca una clave
     actaira scan                 analiza sesiones que el agente ya grabó (L0)
     actaira watch -- <comando>   graba una ejecución desde el borde (L1 o más)
-    actaira contract             deriva y muestra el contrato, y su anchura
-    actaira verdict              emite el veredicto de una sesión
-    actaira receipt              firma el acta
-    actaira verify <acta.zip>    verifica un acta sin red
-    actaira keygen               crea, rota o revoca una clave
-    actaira fix                  imprime las remediaciones que traen las reglas
-                                 que dispararon. Imprime. No aplica nada.
+
+Los tres primeros no están construidos, y cada uno lleva escrita la fase en la
+que llega. `tests/test_cli.py` lo comprueba: un comando de esta lista que ni
+exista en el parser ni lleve su fase marcada rompe la puerta. Un nombre en esta
+lista sin fase es una promesa publicada.
+
+Salieron de la lista `contract`, `verdict`, `receipt` y `fix`. Los tres
+primeros eran el producto de conformidad, que el plan retira; `fix` imprimía
+remediaciones, y la remediación pasa a ser un campo que `check` imprime con su
+hallazgo en vez de un comando propio.
 
 `actaira scan --demo` corre sobre un fixture incluido, para quien no tenga
 ningún agente instalado.
@@ -208,3 +282,6 @@ ningún agente instalado.
 - Escribir un documento de gobierno nuevo. Este fichero es el único.
 - Construir un dashboard, un modo servidor propio, multi tenant, o cualquier
   cosa que empiece por "y además".
+- Ejecutar lo que declaran un hook, una tarea o un servidor MCP. Se lee, se
+  cita y se liga a su digest. No se corre, ni para ver qué hace, ni en un
+  sandbox, ni con el argumento de que así el hallazgo sería más preciso.

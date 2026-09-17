@@ -237,11 +237,32 @@ it. What found it was the planted violation, not review.
 
 ## Design notes
 
-The design notes live in the modules they argue about, and
-[`DESIGN.md`](DESIGN.md) consolidates them into one table. Every note names
-the file **and the line** that implements it, `scripts/design_notes.py`
-derives those line numbers, and the release gate refuses a tree where they
-have drifted.
+A design note names the file **and the line** that implements its decision.
+[`DESIGN.md`](DESIGN.md) consolidates them into one table,
+`scripts/design_notes.py` derives those line numbers, and the release gate
+refuses a tree where they have drifted.
+
+Where that file is follows from what kind of decision it is, and there are
+exactly two kinds:
+
+- **A decision about how something is built** is implemented by code, so its
+  note lives in the module it argues about. This is almost every note.
+- **A decision about what gets built** is implemented by `CLAUDE.md`, which is
+  the only governance document and the thing that decides what exists, so its
+  note points there.
+
+That second clause is a rule and not an exception, and it is written narrowly on
+purpose: it admits doctrine decisions only, and nothing else may point at
+`CLAUDE.md`. A note about a data structure, a format, a gate or an algorithm
+points at code even when the prose explaining it happens to sit in a document,
+because what implements it is the code. The distinction is not where the
+argument reads best; it is what a reader would have to change to reverse the
+decision. Reverse a doctrine decision and you edit `CLAUDE.md` and the tree
+follows. Reverse anything else and you edit the module.
+
+D-269 is the only note of the second kind today: it decides that the subject of
+this tool is what an agent can do rather than what one did, which is a decision
+about what gets built and is argued in [`DESIGN.md`](DESIGN.md) section 11.
 
 Two checks run in opposite directions: a note argued in the code and missing
 from the table fails, and a row pointing at the wrong line fails. The suite

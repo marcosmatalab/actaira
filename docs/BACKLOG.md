@@ -16,11 +16,14 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
 - `README.md` y `README.es.md` siguen describiendo el escáner de modelos entero.
   Cada una de esas frases es también una frase de posicionamiento, y la
   autorización de la fase 0 era mecánica, así que solo se borraron los bloques
-  de imagen. **Fase 5.**
+  de imagen. **Cerrado en la A**, que los reescribió enteros, y otra vez en la
+  S0, que los reescribió sobre superficie, cambio y vigencia.
 - Catorce líneas de cada README enuncian una cifra que ya no mide ningún
   comando, medidas contra `scripts/figures_contract.py`, que es la lista de las
   21 que sí se miden. Los dos ficheros están alineados línea a línea, así que
-  los números valen para ambos. Regla de trabajo 6 de `CLAUDE.md`. **Fase 5.**
+  los números valen para ambos. Regla de trabajo 6 de `CLAUDE.md`. **Cerrado en
+  la A**; la tabla se conserva porque nombra el mecanismo, no porque siga
+  abierta.
 
   | línea | cifra sin fuente | lo que dice |
   |---|---|---|
@@ -46,7 +49,8 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   `subject_kinds`, `surfaces`, `commands` y `design_notes`.
   `readme_figures_are_current` pasa por esas catorce, no por las catorce de
   arriba: la comprobación solo mira las cifras que el contrato declara, así que
-  su verde no dice nada sobre la tabla.
+  su verde no dice nada sobre la tabla. **Cerrado en la A**: ninguna de las
+  catorce líneas sobrevivió a la reescritura de los dos READMEs.
 
   Las tres cifras de este apartado se derivan, no se escriben: 14 y 14 son
   `len(tabla)` y el recuento de patrones que casan en cada página, y 21 es
@@ -63,40 +67,66 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   ```
 
 - `CONTRIBUTING.md` y `docs/ENGINEERING.md` nombran `make diagrams`, `make
-  screenshots` y `docs/img/`, que ya no existen. **Fase 5.**
+  screenshots` y `docs/img/`, que ya no existen. Sigue abierto y recomprobado en
+  la S0: `grep -n 'make diagrams' CONTRIBUTING.md docs/ENGINEERING.md` devuelve
+  dos líneas y el `Makefile` no tiene ninguno de los dos objetivos. **Fase S3**,
+  que es cuando vuelve a haber una imagen que generar: el informe HTML.
 - `docs/GOVERNANCE.md`, `docs/FORMATS.md`, `docs/EVALUATION.md` y
   `docs/CONCEPTS*.md` documentan módulos archivados. `docs/COMPATIBILITY.md`
   promete que un contrato publicado sigue publicado, y 3.0.0 retira diez.
-  **Fase 5.**
+  **Cerrado entre la A y la A.1**: `GOVERNANCE.md` se reescribió, los otros tres
+  pasaron a `docs/archive/` con su cabecera, y `COMPATIBILITY.md` documenta la
+  retirada. Lo que sigue abierto de `COMPATIBILITY.md` está en la sección de la
+  fase S0, más abajo, y es otra cosa.
 - `conformance/model.py` declara `SCHEMA_VERSION = "agent-bom/v2"` y ese esquema
   ya no se publica: el módulo emite un documento contra un contrato que no está
-  en `schemas/`. Se resuelve cuando los paquetes de reglas de conformidad
-  definan qué documento emiten. **Fase 2.**
+  en `schemas/`. **Cerrado por desaparición**: `conformance/` se fue entero a
+  `archive/model-scanner` en la 3.0.0, y el producto que lo iba a necesitar sale
+  del plan en la S0. Reproducción: `ls src/actaira/conformance` no existe.
 - `statecli._record_manifest` grababa un manifiesto de sujetos en el grafo de
-  estado. Se fue con `statecli.py`; `manifest.py` y `state/` siguen aquí y la
-  función no. Tiene que volver con `actaira contract`. **Fase 1.**
+  estado. Se fue con `statecli.py`, y `manifest.py` y `state/` se fueron después
+  con la fase A. `actaira contract`, que era quien tenía que traerla de vuelta,
+  sale del plan en la S0. Si vuelve, vuelve con la vigencia y su sujeto es una
+  superficie, no un artefacto. **Fase P1.**
 - Tres tests de `test_state_graph.py` que cubrían esa función se borraron con
   ella, y con ellos la única cobertura de las aristas de pertenencia grabadas
-  desde un manifiesto. **Fase 1.**
+  desde un manifiesto. Vuelven con `state/` o no vuelven. **Fase P1.**
 - DEF-115 (un recibo emitido desde un espacio de trabajo no referenciaba
   evidencia) perdió su test: pasaba por `actaira receipt issue --state`. El
   defecto está arreglado en `state/` y el registro lo apunta contra la etiqueta
-  `v2.3.0`. Necesita un test nuevo cuando `actaira receipt` vuelva. **Fase 4.**
+  `v2.3.0`. `actaira receipt` no vuelve: el documento firmado del plan nuevo es
+  el sello de superficie. La forma del defecto sí vuelve, porque es la misma, un
+  documento firmado que no referencia aquello sobre lo que se firmó.
+  **Fase S3**, con `seal`.
 - `i18n` conserva 41 ids de regla del escáner, que son los que siguen citados en
-  `coverage.py` y en `conformance/`. Son el vocabulario que `report/sarif.py` y
-  `report/junit.py` traducen, y no hay otro todavía. Se sustituyen por el
-  vocabulario de la traza. **Fase 2.**
+  `coverage.py` y en `conformance/`. **Medio cerrado**: el catálogo está vacío
+  desde la fase A, y `release_check.rules_are_documented` lo exige vacío en vez
+  de dejar que sus dos bucles pasen sobre nada. Lo que falta es el vocabulario
+  que lo sustituye, que son los ids de `packs/core`. **Fase S1.**
 - `examples/subjects.yaml` documenta en su cabecera dos comandos que ya no
-  existen (`policy check --subjects`, `graph build --subjects`). **Fase 3.**
-- `.github/actions/actaira-scan/` sigue apuntando al escáner, por orden. **Fase 4.**
+  existen (`policy check --subjects`, `graph build --subjects`). **Cerrado por
+  desaparición** en la fase A: `examples/` quedó vacío y se fue. Reproducción:
+  `ls examples` no existe.
+- `.github/actions/actaira-scan/` sigue apuntando al escáner, por orden.
+  **Cerrado en la A.1**, que lo borró. Reproducción: `ls .github/actions` no
+  existe. La acción de GitHub que llega en la S3 es otra y no hereda nada de
+  esta.
 - `.github/workflows/ci.yml` todavía puede invocar pasos de `make` que ya no
-  existen. No se tocó: la puerta de la fase 0 es `make all`, no CI. **Fase 4.**
+  existen. No se tocó: la puerta de la fase 0 es `make all`, no CI. **Cerrado en
+  la A.1**, que lo reescribió entero: quitó los cinco trabajos que corrían
+  comandos y directorios inexistentes (`eval`, `fuzz`, `benchmark`,
+  `attest-self` y `figures`) y dejó escrito en la cabecera del fichero cuáles
+  corren y cuáles no, con su motivo. Corre en cada push a `main` y en cada pull
+  request. **La S0 reasignó esta línea a S3 sin volver a comprobarla**, que es
+  el defecto que el backlog existe para no cometer: una línea heredada se
+  reasigna o se cierra, y cerrarla exige mirar.
 - `figures.json` registra `git.head` del momento en que se generó, y commitearlo
   cambia el head, así que siempre va un commit por detrás (572f86f registra
   6cec2ec). `release-check` lo tolera por diseño. No se puede arreglar dentro del
   propio fichero: es el problema del punto fijo, el mismo que resuelven los
-  árboles de Merkle anclando la constancia fuera del objeto. Candidato a ejemplo
-  del ensayo de la fase 4.5A.
+  árboles de Merkle anclando la constancia fuera del objeto. El ensayo de la
+  fase 4.5A, que era su destino, no existe en el plan v3. **Sin fase**: es una
+  propiedad conocida y tolerada por diseño, no trabajo pendiente.
 
 ## Fase 1 — leer y grabar la traza
 
@@ -120,7 +150,9 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   `actaira/agents/cassettes/judged-gold.json` y `actaira/schemas/report-v1.json`,
   que se fueron a `archive/model-scanner` en la 3.0.0. `make package` no está en
   `make all`, así que la puerta no lo ve. Encontrado leyendo el fichero para
-  saber si el fixture del `--demo` viajaba en la rueda. **Fase 4.**
+  saber si el fixture del `--demo` viajaba en la rueda. **Fase S3**: es la
+  primera que publica algo que instala un tercero, y ese día un `make package`
+  roto deja de ser un problema interno.
 
 ## Fase 1.1b — la sesión que el protocolo ya no tiene
 
@@ -135,8 +167,10 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   agente no llegó a usar, porque nadie le preguntó su inventario. Es correcto y
   es ruidoso: la mayoría de las configuraciones traen servidores que una sesión
   concreta no toca. Puede que el hueco deba ser por servidor observado y no por
-  servidor configurado. Se decide cuando el derivador de contrato diga qué
-  necesita del inventario. **Fase del derivador de contrato.**
+  servidor configurado. El derivador de contrato, que era quien iba a arbitrar
+  esto, sale del plan en la S0. El árbitro nuevo es `check`, que lee del disco
+  qué servidores MCP hay configurados y no necesita preguntárselo a nadie.
+  **Fase S1.**
 - `actaira scan` sin `--out` no tiene dónde guardar la sal, así que un hueco
   sobre un fichero ilegible no nombra referencia ninguna. El operador que
   diagnostica desde la terminal pierde saber cuál de sus ficheros falló. El
@@ -146,7 +180,8 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   sigue siendo 3.0.0 y su entrada ya está escrita, así que la nota pertenece a
   la subida de versión siguiente, no a una edición de una entrada publicada.
   El `schemas/__init__.py` dice que ensanchar un enum cerrado es nota de
-  CHANGELOG, y esto lo es. **Fase 5.**
+  CHANGELOG, y esto lo es. **Fase S3**, que es la primera que sube versión
+  porque es la primera que publica algo nuevo que un tercero instala.
 - El guardián de red tapa seis puertas de `socket`. No tapa `ssl.SSLSocket`
   creado sobre un descriptor ya conectado, ni `os.system`, ni un subproceso: el
   agente de prueba de `test_proxy_http_interposition.py` es un subproceso y sale
@@ -173,7 +208,10 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   procesos distintos los escriben y fundirlos exigiria que alguien escriba
   despues de que todos hayan terminado. Un solo `actaira resolve` que los lea
   los tres seria mejor que tres formatos que el operador tiene que conocer, y
-  seria un noveno comando, que CLAUDE.md prohibe sin quitar otro. **Fase 5.**
+  seria un octavo comando. La lista de la S0 tiene siete de ocho, asi que ya
+  cabe sin quitar nada, y eso lo convierte de imposible en una decision.
+  **Fase S4**, que es la que junta el ambito de maquina con las sesiones que
+  corrieron despues, y por tanto la que tiene los tres mapas delante a la vez.
 - `trace/v2` queda publicado y sin ningun consumidor posible: vivio un commit.
   La regla de `schemas/__init__.py` dice que un contrato publicado sigue
   publicado y que «nadie lo estaba usando» no es un argumento, asi que se queda
@@ -186,7 +224,8 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   operador que empaquete `--out` entero publica lo que la sal protegia. El acta
   de la fase 3 empaqueta la traza firmada y no `records/`, asi que el camino
   correcto ya existe; lo que falta es que el directorio lo diga y que el
-  empaquetador se niegue si lo encuentra dentro. **Fase 3.**
+  empaquetador se niegue si lo encuentra dentro. El empaquetador es `seal`.
+  **Fase S3.**
 - El guardian de red tapa seis puertas de `socket` y su meta-test las ejercita
   una a una. Sigue sin tapar un subproceso, que es como sale el agente de prueba
   de `test_proxy_http_interposition.py`. Va a loopback y se puede leer, pero la
@@ -206,11 +245,13 @@ La regla de alcanzabilidad se aplica a nivel de módulo, así que estas no
 bloquearon la fase. Cada una está en un fichero que un comando sí alcanza.
 
 - `model.Severity`, `model.Verdict` y `model.Finding` no los usa nada en `src/`.
-  Son la forma contra la que se escribe la fase B (los paquetes de reglas
-  levantan un `Finding`), y por eso se conservan en vez de borrarse, pero a día
+  Son la forma contra la que se escribe S1 (los paquetes de reglas levantan un
+  `Finding`), y por eso se conservan en vez de borrarse, pero a día
   de hoy están presentes y sin usar. Reproducción:
   `grep -rn 'Severity\|Verdict\|Finding' src/ | grep -v src/actaira/model.py`
-  no devuelve nada. **Fase B**, que es cuando pasan a tener llamante o a irse.
+  no devuelve nada. **Fase S1**, que es cuando pasan a tener llamante o a irse:
+  `Finding` es la forma natural del hallazgo citado y `check` la usa o la
+  sustituye. `Verdict` es vocabulario de conformidad y es el que peor lo tiene.
 - `attest/timestamp.py` (1.129 líneas) es el módulo vivo más grande del árbol y
   solo se entra en él desde `verify`, para comprobar un token RFC 3161 que casi
   ningún paquete lleva. No está medido cuánto de él alcanza `verify` de verdad.
@@ -255,8 +296,9 @@ un lector de artefactos debería poder leer por qué este se hizo así.
   sujetado por una nota está peor sujetado que uno sujetado por un test, y la
   cifra de `docs/ENGINEERING.md` lo refleja ahora.
 - `examples/` quedó vacío: sus dos ficheros los leían `conformance/` y
-  `policy/`. Si la fase B necesita un ejemplo de declaración, se escribe uno
-  nuevo contra el formato nuevo en vez de resucitar el viejo.
+  `policy/`. Si la **fase S1** necesita un ejemplo, es una configuración de
+  fixture y no una declaración, y llega bajo la regla de código nueva: real o
+  reconstruida de un informe publicado, citada, y con el script inerte.
 
 ## Fase A.1 — lo que la medición de alcanzabilidad no mide
 
@@ -275,8 +317,8 @@ un lector de artefactos debería poder leer por qué este se hizo así.
   defecto del código, es una fase sin terminar, pero la puerta no lo dice y el
   README sí tiene que decirlo (y lo dice). La comprobación que faltaría es de
   otra clase que la de alcanzabilidad: «para cada formato que este árbol
-  verifica, existe un comando que lo produce». **Fase G**, que es cuando el acta
-  se firma y la pregunta deja de ser retórica.
+  verifica, existe un comando que lo produce». **Fase S3**, que es cuando
+  `seal` escribe una línea base firmada y la pregunta deja de ser retórica.
 
 - **`.pre-commit-hooks.yaml` publica dos hooks que no pueden ejecutarse.** Ambos
   llaman `actaira scan --fail-on high` sobre ficheros `.pkl`, `.onnx`, `.h5` y
@@ -286,7 +328,8 @@ un lector de artefactos debería poder leer por qué este se hizo así.
   Reproducción: `actaira scan --fail-on high` sale con código 2. No se borró en
   la A.1 porque el alcance nombraba la acción de GitHub y no este fichero, y
   decidir por mi cuenta qué integraciones publica el proyecto no me toca.
-  **Sin fase asignada.**
+  **Cerrado en la S0**, con esa decisión tomada: el fichero se borró. La
+  entrada de la fase S0, más abajo, dice cómo.
 
 - **`docs/CONTRACTS.md` y `docs/FIGURES.md` se generan, y nadie comprueba que
   los enlaces internos de los documentos archivados sigan resolviendo.** Los
@@ -310,3 +353,93 @@ un lector de artefactos debería poder leer por qué este se hizo así.
   que `make all` escriba en el árbol antes de comprobarlo, que es peor por otro
   motivo. Merece una decisión, no un reordenamiento a ciegas.
   **Sin fase asignada.**
+
+## Fase S0 — lo que sigue vendiendo el producto anterior
+
+La pasada adversarial de la S0 (regla de trabajo 2) barrió el árbol entero
+fuera de `docs/archive/` y de `CHANGELOG.md` buscando frases que presenten el
+producto viejo como objetivo vigente. Encontró siete cosas, y una segunda
+pasada, pedida con un criterio más estrecho (¿hace que un fichero PUBLICADO
+diga algo falso sobre el estado actual?), encontró dos más que la primera
+perdió por barrer frases de posicionamiento en vez de referencias al corpus.
+
+Siete de las nueve se arreglaron en una ampliación de presupuesto autorizada en
+la propia fase. Las dos que quedan abiertas no cumplen ese criterio: no son
+documentos publicados, son comentarios y docstrings.
+
+### Arregladas en la S0
+
+Se dejan escritas porque cada una dice algo sobre por qué ninguna puerta las
+cogió, y esa parte sigue siendo verdad.
+
+- `CITATION.cff` describía el escáner de modelos entero, con protocolos pickle,
+  ONNX y GGUF. **La puerta lee de ese fichero la versión y la licencia, no el
+  resumen**, que es exactamente por qué llevaba dos fases mintiendo en el
+  fichero por el que cita este trabajo quien lo cite.
+- El `Dockerfile` imprimía «An independent witness for AI agents» en
+  `org.opencontainers.image.description` de cada imagen construida. Ninguna
+  comprobación lee esa etiqueta.
+- `docs/COMPATIBILITY.md` nombraba `contract`, `verdict`, `receipt` y `fix`
+  como los comandos que faltaban. **`readme_documents_the_commands` solo
+  comprueba que los que SÍ existen estén nombrados**, nunca que los que faltan
+  sean los de verdad, así que la página podía nombrar cuatro comandos
+  imaginarios indefinidamente. Ahora nombra los tres que faltan y los cuatro
+  retirados en pasado, con el motivo por el que un nombre retirado merece una
+  línea: alguien lo tecleará.
+- `docs/ENGINEERING.md` decía que las notas de diseño viven en los módulos que
+  argumentan. Ahora dice la regla entera, que tiene dos ramas y es estrecha en
+  la segunda: una decisión sobre CÓMO se construye algo la implementa el
+  módulo; una decisión de doctrina, sobre QUÉ se construye, la implementa
+  `CLAUDE.md`, y nada más puede apuntar ahí. `docs/DESIGN.md` §11.3 la
+  argumenta y D-269 es la única fila de la segunda clase.
+- `src/actaira/mcp.py` anunciaba en `tools/list` dos herramientas del producto
+  retirado. Ya no las anuncia. Se comprobó antes de tocarlas que ninguna hacía
+  nada: las dos caían en `_unbuilt`, que devolvía una constante. La D-256
+  cambia de respuesta y se reescribe con el cambio: una herramienta se anuncia
+  solo si se ejecuta, porque un nombre en `tools/list` lo lee un agente como
+  capacidad y nada posterior deshace esa lectura.
+- `SECURITY.md` tenía una sección entera, «This repository contains malicious
+  model artifacts», sobre `evals/corpus/build.py` escribiendo gadget pickles
+  funcionales en `evals/artifacts/`. `evals/` no existe desde la fase A, así
+  que el documento decía que este repositorio genera malware cuando no lo hace,
+  y contradecía la regla de código que la propia S0 escribió. Recortado a lo
+  que es verdad: cómo reportar, qué versiones tienen soporte, y qué hay en el
+  árbol. **La tabla de versiones soportadas decía 2.2.x** para un paquete
+  3.0.0, y eso estaba en una de las dos secciones que se conservan.
+- `CONTRIBUTING.md`, que la primera pasada perdió, tenía «Never commit an
+  artifact from the corpus» sobre tres directorios que no existen, un bloque de
+  `make` con seis objetivos que el `Makefile` no tiene, y un extra `dev` con
+  dos dependencias de menos. Recortado igual, sin escribir nada nuevo.
+- `.pre-commit-hooks.yaml` publicaba dos hooks que no podían ejecutarse
+  (`actaira scan --fail-on high` sobre `.pkl`, `.onnx`, `.h5`). Lo encontró la
+  A.1 y no lo borró porque decidir qué integraciones publica el proyecto no le
+  tocaba. Borrado. `release_check` ya toleraba su ausencia (`if not
+  path.is_file(): continue`), así que el recuento de pines pasa de 1 a 0 sin
+  que nada se rompa, que es la misma forma que tuvo borrar
+  `.github/actions/actaira-scan`.
+
+### Siguen abiertas
+
+- **«phase B» y «phase 2» sobreviven en cinco ficheros de código y de puerta.**
+  `src/actaira/model.py` (dos veces), `src/actaira/trace/redact.py`,
+  `scripts/release_check.py`, `tests/test_i18n.py` (dos veces) y
+  `tests/test_no_aggregate.py`. Todas quieren decir S1, que es la fase que trae
+  los paquetes de reglas. No entran en el criterio de arreglo de la S0: son
+  comentarios y docstrings, no documentos publicados, y ningún lector del
+  producto los ve. Reproducción: `grep -rn 'phase B\|phase 2' src/ scripts/
+  tests/`. `tests/test_cli.py` y `src/actaira/mcp.py` estaban en esta lista y
+  salieron al arreglarse en la S0. **Fase S1**, con la fase que las vuelve
+  verdad en vez de reescribirlas dos veces.
+
+- **`MANIFEST.in` excluye `.pre-commit-hooks.yaml`, que ya no existe.** Un
+  `exclude` sobre un fichero ausente es un aviso de setuptools, no un error, y
+  `make package` no está en `make all`. Es la misma línea de trabajo que
+  `scripts/build_package.py`, que exige tres ficheros archivados. Se arreglan
+  juntos. **Fase S3.**
+
+- **El modelo de amenazas de la entrada nueva no está escrito.** `SECURITY.md`
+  lo dice en su cabecera en vez de anticiparlo: la S1 lee ficheros de
+  configuración de repositorios que escribió otro, que es entrada controlada
+  por el atacante en el sentido más literal, y eso merece un modelo de amenazas
+  contra el código que lo lee y no contra el que se piensa escribir. **Fase
+  S1**, y está en su puerta.
