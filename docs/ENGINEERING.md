@@ -98,7 +98,7 @@ pytest actually collects, so a renamed test is reported by name rather than
 leaving a total that still looks healthy.
 
 **128** defects have been found here, by **16** distinct mechanisms, and every
-one of them was found by a mechanism that can fail: **134**, all fixed, **15**
+one of them was found by a mechanism that can fail: **135**, all fixed, **16**
 pinned by a named regression test and **103** by a written note. 45 were never in
 a released build and are marked as such rather than dropped.
 

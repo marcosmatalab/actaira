@@ -371,8 +371,22 @@ def rotate(key_path: Path, when: str | None = None) -> Rotation:
     rotate is unchanged, because whoever had a copy still has it.
     """
     key_path = Path(key_path)
-    stamp = when or now_iso()
+    # DEF-119. AFTER `load_local`, not before it. On a path with no key yet,
+    # `load_local` CREATES one and stamps its `not_before` from its own
+    # `now_iso()`; a stamp taken above that line can therefore be EARLIER than
+    # the creation of the key it is about to retire, and `retire` writes it into
+    # `not_after`. The result is a window running backwards - an empty interval,
+    # which rejects every moment, so nothing that key ever signed verifies
+    # again. `now_iso` truncates to seconds, so it needed the clock to tick
+    # between two adjacent statements and stayed invisible until one CI job out
+    # of three interpreters went red.
+    #
+    # One stamp, read once, used by both sides: `retire` closes the old window
+    # with it and `from_keypair` opens the new one with it, so they cannot drift
+    # into a gap either. Both halves are pinned by
+    # `test_rotation_never_leaves_the_retired_key_an_inverted_or_gapped_window`.
     local = load_local(key_path)
+    stamp = when or now_iso()
     keyring = local.keyring
 
     retired_record: KeyRecord | None = None

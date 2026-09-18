@@ -18,7 +18,8 @@
     "writing a test for an adjacent feature": "a test written for something new asserted, for the first time, on a value the old code had always produced incorrectly",
     "adversarial review of new code": "the modules written for this release read back as an attacker would read them, before the release, looking for the path the tests were written around",
     "using the tool as a person would": "the commands run end to end against a workspace written the way somebody would write it, rather than the way the fixtures do",
-    "running it on the runner for the first time": "the published integration executed where it actually runs, on a GitHub Actions runner. `make all` on a clean clone deliberately reaches none of it - there is no runner on a laptop - so this is the one mechanism in the list that costs a push to operate"
+    "running it on the runner for the first time": "the published integration executed where it actually runs, on a GitHub Actions runner. `make all` on a clean clone deliberately reaches none of it - there is no runner on a laptop - so this is the one mechanism in the list that costs a push to operate",
+    "an intermittent failure on one interpreter": "a test that passes almost always failed on one of the three interpreters in a run where the other two passed, so the difference was timing rather than code. It is the kind of red build that gets re-run rather than read, which is why the mechanism is named: the re-run is the bug's best defence"
   },
   "defects": [
     {
@@ -1177,6 +1178,18 @@
         "tests/test_action_yml.py::test_the_check_would_have_caught_the_defect_it_was_written_for"
       ],
       "pinned_note": "Fully reproducible without a runner, which is why `tests/test_action_yml.py` exists at all: the step bodies are extracted from `action.yml` and executed under `bash -e` with a stub `actaira` on PATH. The second test named is the guard - it removes `|| code=$?` and requires the step to die and to write no file, so the first test cannot be passing under a shell that is not the one the runner uses."
+    },
+    {
+      "id": "DEF-119",
+      "title": "rotating a key could leave the retired one an inverted validity window, so nothing it ever signed verified again",
+      "effect": "`keyring.rotate` read the clock into `stamp` BEFORE calling `load_local`, and on a path with no key yet `load_local` creates one and stamps its `not_before` from its own `now_iso()`. So the stamp that `retire` writes into the retired key's `not_after` could be EARLIER than that key's `not_before`: a window running backwards, which is an empty interval. `evaluate` then rejects every moment - any instant is either before the start or after the end - so every signature that key ever made stops verifying, in a tool whose product is that an approval expires by itself rather than by accident. `now_iso` truncates to seconds, so it needed the clock to tick between two adjacent statements, which is why it survived every local run and every CI run until one interpreter out of three went red on a documentation-only commit. The fix moves one line - the stamp is read after `load_local` - so the same single stamp closes the old window and opens the new one, which is also what stops the two sides drifting into a gap. A sweep of every clock read in `attest/` found no second instance of the pattern.",
+      "found_by": "an intermittent failure on one interpreter",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_keyring.py::test_rotation_never_leaves_the_retired_key_an_inverted_or_gapped_window"
+      ],
+      "pinned_note": "The test forces the clock to tick between the two reads inside `rotate` and asserts BOTH invariants, because fixing either one alone breaks the other: the retired window must be ordered, and it must close exactly where the new one opens. It guards itself as well - a clock stub that returned a constant would make every assertion pass on the broken ordering, so the test checks that the clock was read twice and that the two readings differ. Verified to bite: against the code before the fix it fails with `assert '2026-09-18T19:00:01+00:00' <= '2026-09-18T19:00:00+00:00'`."
     }
   ]
 }
