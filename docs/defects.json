@@ -17,7 +17,8 @@
     "product review against a roadmap": "the repository read against a written plan for what it should become, looking for the place the plan's first requirement was already violated",
     "writing a test for an adjacent feature": "a test written for something new asserted, for the first time, on a value the old code had always produced incorrectly",
     "adversarial review of new code": "the modules written for this release read back as an attacker would read them, before the release, looking for the path the tests were written around",
-    "using the tool as a person would": "the commands run end to end against a workspace written the way somebody would write it, rather than the way the fixtures do"
+    "using the tool as a person would": "the commands run end to end against a workspace written the way somebody would write it, rather than the way the fixtures do",
+    "running it on the runner for the first time": "the published integration executed where it actually runs, on a GitHub Actions runner. `make all` on a clean clone deliberately reaches none of it - there is no runner on a laptop - so this is the one mechanism in the list that costs a push to operate"
   },
   "defects": [
     {
@@ -1141,6 +1142,41 @@
       "counts_as": 1,
       "shipped_defect": true,
       "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_state_change.py`"
+    },
+    {
+      "id": "DEF-116",
+      "title": "the workflow invoked zizmor as `python -m zizmor`, which is not a thing",
+      "effect": "`.github/workflows/ci.yml` installed `zizmor` and then ran `python -m zizmor`. zizmor is a Rust binary distributed through PyPI: `pip install` puts an executable on PATH and ships no importable module, so the step died with `No module named zizmor` on its first execution. It had never been executed before - every local run during phase S3 called the binary by its path in a venv, which is the one spelling the workflow does not use, so the clean zizmor output quoted in the phase commit was real and was obtained a different way from the one the gate would use. The fix is to call `zizmor` and to PIN it to 1.30.1: an unpinned linter turns this job red on somebody else's release, and a gate that goes red for a reason that is not a change to this repository is one people learn to skip.",
+      "found_by": "running it on the runner for the first time",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_note": "NOT REPRODUCIBLE WITH A STUB, and this entry names the run instead rather than pretending otherwise. The fact that broke is a property of a third-party distribution - that it has no importable module - and the only place it can be observed is where that distribution is installed. Installing zizmor in the suite would make it a test dependency of a tool whose whole argument is that it has one runtime dependency, and it is deliberately installed in its own CI job and nowhere else; a stub that emulated `pip` and a missing module would be a test of Python's `-m` semantics rather than of this repository. The regression test is the `workflows` job in `.github/workflows/ci.yml`, which runs on every push. It first failed in run 35381167282 and first passed in run 35382239038."
+    },
+    {
+      "id": "DEF-117",
+      "title": "the Action's exit code was unreadable in the only case it matters, because a failed composite maps no outputs",
+      "effect": "`action.yml` published an `exit-code` output and this repository's own CI job read it. A composite action whose step fails does not map its outputs, so the value was an empty string exactly when a rule had fired - the clean run reported `0` and the keyv run reported nothing. The job compared an empty string against `1` and failed, which is the lucky direction; written a little more loosely it would have compared two empty strings and passed. It is also a false promise in published metadata, which is the class this phase built `readme_claims_resolve_against_the_tree` for and which that check cannot see because it reads pages and not `action.yml`. The fix writes the number to `actaira-exit-code.txt` before anything can fail, moves the failing into a step of its own so the step that records the outputs succeeds, and says in the output's own description that a caller who needs it on failure reads the file.",
+      "found_by": "running it on the runner for the first time",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_action_yml.py::test_the_diff_step_records_everything_whatever_the_tool_exits_with",
+        "tests/test_action_yml.py::test_the_exit_code_reaches_the_job_unchanged"
+      ],
+      "pinned_note": "The two tests pin the REMEDY and not GitHub's behaviour: they execute the step bodies and require the exit code to be recorded in a file and in `$GITHUB_OUTPUT` whatever the tool exited with, and the pass-through step to exit with that number. Remove the file write and they fail. That a failed composite maps no outputs is a fact about the runner and no stub can show it; it was observed in run 35381167282."
+    },
+    {
+      "id": "DEF-118",
+      "title": "the composite step ran under `bash -e` and died at the tool call, before recording anything",
+      "effect": "GitHub executes a composite `run` step as `/usr/bin/bash -e {0}`. The step's own `set -uo pipefail` looked like it was managing the shell options and was not: a script cannot turn off an `-e` the shell was invoked with by omitting it from its own `set` line. So when `actaira diff` exited 1 the step died AT THAT LINE - before the step summary, before `$GITHUB_OUTPUT`, and before `actaira-exit-code.txt`, which is why DEF-117's fix could not help: the file it told the job to read was never written. The clean side exited 0 and sailed through, so the job failed in the one direction it exists to check and passed in the other. `code=0` and `|| code=$?`: a failure that is handled is a failure `-e` does not act on.",
+      "found_by": "running it on the runner for the first time",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "pinned_by": [
+        "tests/test_action_yml.py::test_the_diff_step_records_everything_whatever_the_tool_exits_with",
+        "tests/test_action_yml.py::test_the_check_would_have_caught_the_defect_it_was_written_for"
+      ],
+      "pinned_note": "Fully reproducible without a runner, which is why `tests/test_action_yml.py` exists at all: the step bodies are extracted from `action.yml` and executed under `bash -e` with a stub `actaira` on PATH. The second test named is the guard - it removes `|| code=$?` and requires the step to die and to write no file, so the first test cannot be passing under a shell that is not the one the runner uses."
     }
   ]
 }
