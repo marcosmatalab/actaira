@@ -730,22 +730,14 @@ cogió, y esa parte sigue siendo verdad.
 
 ### Abiertas de la fase S3
 
-- **`uses: $/` está sin probar y se deja para después, a propósito.** `zizmor`
-  pide la sintaxis de auto-repositorio en vez de `uses: ./`, y tiene razón: no
-  puede cargar una acción que un paso anterior clonó en tiempo de ejecución, y
-  cuenta como fijación para las políticas de GitHub. Tiene dos meses y nada en
-  un portátil puede correr un runner, así que la primera evidencia de que
-  resuelve sería el trabajo `action` poniéndose verde - en el mismo commit que
-  estrena la acción, que tampoco ha corrido nunca nadie. Dos cosas sin verificar
-  en un commit, y un build rojo que no puede decir cuál de las dos falló.
-  **Autorizado en conversación (regla 8)**: la variable se aísla. `./` es la
-  grafía que funciona en todas partes, el trabajo demuestra que la acción
-  funciona con ella, y los dos hallazgos `self-repository` se silencian EN LA
-  PROPIA LÍNEA con `# zizmor: ignore[self-repository]`, con el argumento escrito
-  encima del trabajo en `ci.yml`. **Fase S3.1, o el commit de una línea que
-  venga después**: cambiar las dos líneas a `$/` y quitar los dos silencios,
-  UNA VEZ que el trabajo `action` haya salido verde al menos una vez. Si falla,
-  revertir cuesta diez segundos y no arrastra nada.
+- ~~**`uses: $/` está sin probar y se deja para después, a propósito.**~~
+  **Cerrada.** El trabajo `action` salió verde dos veces con `uses: ./` (runs
+  35382239038 y 35384198525), y solo entonces las dos líneas pasaron a `uses: $/`
+  en un commit propio, de forma que un rojo ahí solo podía ser de esa línea. Los
+  dos silencios `# zizmor: ignore[self-repository]` se fueron con ellas: zizmor
+  sale ahora limpio sin ninguna exención, «No findings to report» sin
+  «(N ignored)». El aislamiento de la variable, que es lo que la línea pedía,
+  funcionó exactamente como estaba previsto.
 - **El informe HTML no tiene una comprobación de que se lea.** Se afirma que no
   carga nada de la red, que sale igual dos veces y que escapa lo que viene de
   otro; no se afirma nada de que el resultado sea legible, y eso no es
