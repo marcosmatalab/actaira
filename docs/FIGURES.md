@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-18T19:23:25+00:00 for actaira 3.0.0, at commit bba5403.
+Generated 2026-09-18T19:46:07+00:00 for actaira 3.0.0, at commit 93363ce.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, ruff>=0.6, jsonschema>=4.18
-- 28 commits, most recent 2026-09-18
+- 29 commits, most recent 2026-09-18
 
 ## Tests
 
-**2317** tests collected by pytest across 40 files.
+**2321** tests collected by pytest across 40 files.
 
 | file | tests |
 |---|---:|
@@ -31,13 +31,13 @@ Generated 2026-09-18T19:23:25+00:00 for actaira 3.0.0, at commit bba5403.
 | `tests/test_chain_domain_separation.py` | 14 |
 | `tests/test_cli.py` | 32 |
 | `tests/test_consistency.py` | 285 |
-| `tests/test_defect_ledger.py` | 357 |
+| `tests/test_defect_ledger.py` | 360 |
 | `tests/test_design_notes.py` | 86 |
 | `tests/test_diff.py` | 25 |
 | `tests/test_dsse.py` | 25 |
 | `tests/test_fixtures_are_published.py` | 194 |
 | `tests/test_i18n.py` | 136 |
-| `tests/test_keyring.py` | 33 |
+| `tests/test_keyring.py` | 34 |
 | `tests/test_mcp.py` | 15 |
 | `tests/test_merkle.py` | 146 |
 | `tests/test_netguard.py` | 19 |
@@ -64,11 +64,11 @@ Generated 2026-09-18T19:23:25+00:00 for actaira 3.0.0, at commit bba5403.
 | `tests/test_trace_provenance.py` | 21 |
 | `tests/test_trust.py` | 13 |
 | `tests/test_verify_strictness.py` | 23 |
-| **total** | **2317** |
+| **total** | **2321** |
 
 ## Defects found in this repository
 
-**134** defects, from `docs/defects.json` (118 entries), found by **17** different mechanisms. **15** are pinned by a named regression test, across 26 tests. 89 were defects in the shipped tool; the rest were found the same way but lived in the measuring apparatus, and each says so.
+**135** defects, from `docs/defects.json` (119 entries), found by **18** different mechanisms. **16** are pinned by a named regression test, across 27 tests. 90 were defects in the shipped tool; the rest were found the same way but lived in the measuring apparatus, and each says so.
 
 | what found it | defects |
 |---|---:|
@@ -87,9 +87,10 @@ Generated 2026-09-18T19:23:25+00:00 for actaira 3.0.0, at commit bba5403.
 | benchmark self-tests | 2 |
 | running the harness | 2 |
 | writing a test for an adjacent feature | 2 |
+| an intermittent failure on one interpreter | 1 |
 | benign corpus | 1 |
 | exhaustive sweep | 1 |
-| **total** | **134** |
+| **total** | **135** |
 
 Every test named in the ledger was checked against what pytest collects: all of them are collected.
 Pinned by a note rather than by a test, with the reason stated in the ledger: DEF-01, DEF-03, DEF-04, DEF-05, DEF-06, DEF-07, DEF-08, DEF-09, DEF-10, DEF-13, DEF-15, DEF-16, DEF-17, DEF-18, DEF-19, DEF-20, DEF-21, DEF-22, DEF-23, DEF-24, DEF-25, DEF-26, DEF-27, DEF-28, DEF-29, DEF-30, DEF-31, DEF-32, DEF-33, DEF-34, DEF-35, DEF-36, DEF-37, DEF-40, DEF-43, DEF-44, DEF-45, DEF-46, DEF-47, DEF-48, DEF-49, DEF-50, DEF-51, DEF-52, DEF-54, DEF-55, DEF-56, DEF-57, DEF-58, DEF-59, DEF-60, DEF-61, DEF-62, DEF-65, DEF-66, DEF-67, DEF-68, DEF-69, DEF-70, DEF-71, DEF-72, DEF-73, DEF-74, DEF-75, DEF-76, DEF-77, DEF-78, DEF-79, DEF-80, DEF-81, DEF-82, DEF-83, DEF-84, DEF-85, DEF-86, DEF-87, DEF-88, DEF-89, DEF-90, DEF-91, DEF-92, DEF-93, DEF-94, DEF-95, DEF-97, DEF-98, DEF-99, DEF-101, DEF-102, DEF-103, DEF-104, DEF-105, DEF-106, DEF-107, DEF-108, DEF-109, DEF-110, DEF-111, DEF-112, DEF-113, DEF-114, DEF-115, DEF-116.
@@ -102,16 +103,16 @@ and the modules are the source of truth.
 
 | area | files | lines | code | docstrings | comments | blank |
 |---|---:|---:|---:|---:|---:|---:|
-| attest | 11 | 4302 | 2649 | 764 | 316 | 573 |
+| attest | 11 | 4316 | 2649 | 764 | 330 | 573 |
 | trace | 5 | 1706 | 939 | 383 | 161 | 223 |
 | proxy | 5 | 1929 | 1232 | 343 | 164 | 190 |
 | core | 4 | 1182 | 732 | 208 | 83 | 159 |
 | schemas | 1 | 126 | 27 | 36 | 43 | 20 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
 | rest | 18 | 6455 | 4254 | 969 | 412 | 820 |
-| tests | 45 | 16991 | 9586 | 2672 | 1029 | 3704 |
+| tests | 45 | 17040 | 9608 | 2686 | 1032 | 3714 |
 | scripts | 12 | 3987 | 2571 | 581 | 321 | 514 |
-| **total** | 103 | 36733 | 22020 | 5963 | 2536 | 6214 |
+| **total** | 103 | 36796 | 22042 | 5977 | 2553 | 6224 |
 
 Documentation, in lines of Markdown:
 

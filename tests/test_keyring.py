@@ -564,3 +564,52 @@ def test_rotate_and_revoke_together_are_a_usage_error(tmp_path, capsys):
     assert "two different things" in capsys.readouterr().err
 
 
+
+
+def test_rotation_never_leaves_the_retired_key_an_inverted_or_gapped_window(tmp_path, monkeypatch):
+    """DEF-119. The clock is forced to tick inside `rotate`, and both invariants
+    are asserted rather than the one that happened to be noticed.
+
+    `rotate` reads the clock twice: once when `load_local` CREATES the key it is
+    about to retire, and once for the stamp that closes the old window and opens
+    the new one. `now_iso` truncates to seconds, so in almost every run those two
+    reads land in the same second and every ordering bug is invisible. This makes
+    the second land one tick later, every time.
+
+    TWO INVARIANTS, because fixing one of them can break the other. Take the
+    stamp too early and the retired window is INVERTED - `not_before` after
+    `not_after`, an empty interval, and nothing that key ever signed verifies
+    again. Take it from a source the two sides do not share and they drift apart
+    into a GAP, a second in which neither key is valid. The window must be
+    ordered AND it must close exactly where the new one opens.
+    """
+    calls: list[str] = []
+
+    def ticking() -> str:
+        calls.append(f"2026-09-18T19:00:{len(calls):02d}+00:00")
+        return calls[-1]
+
+    monkeypatch.setattr(keyring, "now_iso", ticking)
+
+    rotation = keyring.rotate(tmp_path / "signing-key.pem")
+    retired, fresh = rotation.retired, rotation.fresh
+
+    # The guard, and it is not decoration: a stub that returned a constant would
+    # make every assertion below pass on the broken ordering too, which is
+    # exactly how this defect survived every run until one CI job noticed.
+    assert len(calls) >= 2, f"the clock was read {len(calls)} time(s); nothing was forced"
+    assert calls[0] != calls[1], "the clock did not tick, so no ordering is under test"
+
+    assert retired.not_before <= retired.not_after, (
+        f"the retired key's window is inverted: [{retired.not_before} .. "
+        f"{retired.not_after}]. An empty interval rejects every moment, so "
+        "nothing that key ever signed verifies again."
+    )
+    assert retired.not_after == fresh.not_before, (
+        f"the old window closes at {retired.not_after} and the new one opens at "
+        f"{fresh.not_before}. A signature made in between falls inside neither."
+    )
+
+    moment = keyring.parse_moment(fresh.not_before)
+    assert keyring.evaluate(retired, moment).accepted
+    assert keyring.evaluate(fresh, moment).accepted
