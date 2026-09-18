@@ -9,14 +9,14 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-18T18:41:20+00:00 for actaira 3.0.0, at commit 20fa90d.
+Generated 2026-09-18T18:47:02+00:00 for actaira 3.0.0, at commit 206e7d8.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, ruff>=0.6, jsonschema>=4.18
-- 24 commits, most recent 2026-09-18
+- 25 commits, most recent 2026-09-18
 
 ## Tests
 
