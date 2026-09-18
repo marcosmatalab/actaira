@@ -1,0 +1,8 @@
+{
+  "commit": "0673104dd415d5d1d2e44f80ec5c9878dd86825c",
+  "files": {
+    ".claude/settings.json": "f452be6aa972d4c70e6949365bd375dfa3235409"
+  },
+  "licence": "apache-2.0",
+  "repo": "https://github.com/RedHatInsights/ccx-notification-service"
+}

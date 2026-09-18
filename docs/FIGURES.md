@@ -9,31 +9,32 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-17T19:25:14+00:00 for actaira 3.0.0, at commit 38cfca6.
+Generated 2026-09-18T10:20:12+00:00 for actaira 3.0.0, at commit 3f66eed.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, ruff>=0.6, jsonschema>=4.18
-- 22 commits, most recent 2026-09-17
+- 23 commits, most recent 2026-09-18
 
 ## Tests
 
-**1819** tests collected by pytest across 34 files.
+**2216** tests collected by pytest across 37 files.
 
 | file | tests |
 |---|---:|
 | `tests/test_attest_anchor.py` | 25 |
+| `tests/test_capability_coverage.py` | 12 |
 | `tests/test_chain_and_signing.py` | 17 |
 | `tests/test_chain_domain_separation.py` | 14 |
 | `tests/test_cli.py` | 34 |
 | `tests/test_consistency.py` | 285 |
 | `tests/test_defect_ledger.py` | 348 |
-| `tests/test_design_notes.py` | 64 |
+| `tests/test_design_notes.py` | 77 |
 | `tests/test_dsse.py` | 25 |
-| `tests/test_fixtures_are_published.py` | 82 |
-| `tests/test_i18n.py` | 99 |
+| `tests/test_fixtures_are_published.py` | 191 |
+| `tests/test_i18n.py` | 127 |
 | `tests/test_keyring.py` | 33 |
 | `tests/test_mcp.py` | 15 |
 | `tests/test_merkle.py` | 146 |
@@ -44,21 +45,23 @@ Generated 2026-09-17T19:25:14+00:00 for actaira 3.0.0, at commit 38cfca6.
 | `tests/test_proxy_http_interposition.py` | 15 |
 | `tests/test_proxy_protocol.py` | 17 |
 | `tests/test_proxy_transports.py` | 28 |
-| `tests/test_reachability.py` | 34 |
+| `tests/test_reachability.py` | 42 |
 | `tests/test_readme_parity.py` | 25 |
 | `tests/test_release_check.py` | 12 |
 | `tests/test_scan_claude_code.py` | 33 |
 | `tests/test_schemas.py` | 20 |
 | `tests/test_signing_domain_separation.py` | 4 |
-| `tests/test_surface.py` | 93 |
-| `tests/test_surface_rules.py` | 42 |
+| `tests/test_surface.py` | 97 |
+| `tests/test_surface_instructions.py` | 34 |
+| `tests/test_surface_rules.py` | 76 |
+| `tests/test_surface_vendors.py` | 155 |
 | `tests/test_timestamp.py` | 47 |
 | `tests/test_trace_model.py` | 19 |
 | `tests/test_trace_privacy.py` | 77 |
 | `tests/test_trace_provenance.py` | 21 |
 | `tests/test_trust.py` | 13 |
 | `tests/test_verify_strictness.py` | 23 |
-| **total** | **1819** |
+| **total** | **2216** |
 
 ## Defects found in this repository
 
@@ -98,26 +101,26 @@ and the modules are the source of truth.
 | attest | 10 | 4018 | 2496 | 700 | 290 | 532 |
 | trace | 5 | 1706 | 939 | 383 | 161 | 223 |
 | proxy | 5 | 1929 | 1232 | 343 | 164 | 190 |
-| core | 4 | 839 | 487 | 179 | 55 | 118 |
+| core | 4 | 904 | 524 | 190 | 66 | 124 |
 | schemas | 1 | 121 | 22 | 36 | 43 | 20 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
-| rest | 5 | 2269 | 1501 | 356 | 110 | 302 |
-| tests | 39 | 13757 | 7758 | 2152 | 821 | 3026 |
-| scripts | 11 | 3362 | 2131 | 521 | 254 | 456 |
-| **total** | 82 | 28056 | 16596 | 4677 | 1905 | 4878 |
+| rest | 13 | 5273 | 3540 | 767 | 314 | 652 |
+| tests | 42 | 15454 | 8725 | 2422 | 915 | 3392 |
+| scripts | 11 | 3578 | 2292 | 542 | 272 | 472 |
+| **total** | 93 | 33038 | 19800 | 5390 | 2232 | 5616 |
 
 Documentation, in lines of Markdown:
 
-- `docs/DESIGN.md`: 827
-- total: 827
+- `docs/DESIGN.md`: 840
+- total: 840
 
 ## Rules
 
-**15** rule identifiers, each with text in 2 languages, 0 of them with an explanation of what to do about the finding.
+**32** rule identifiers, each with text in 2 languages, 0 of them with an explanation of what to do about the finding.
 
 | family | rules |
 |---|---:|
-| `ACT` | 15 |
+| `ACT` | 32 |
 
 Catalogue key sets identical in both languages: **yes** (asserted by `tests/test_i18n.py`).
 

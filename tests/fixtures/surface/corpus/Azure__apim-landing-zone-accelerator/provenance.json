@@ -1,0 +1,8 @@
+{
+  "commit": "0180a563a0131224d4ae149508d5d45645a4928e",
+  "files": {
+    ".devcontainer/devcontainer.json": "797375dad63ad2d8b43b0407a71a25404ae644d2"
+  },
+  "licence": "mit",
+  "repo": "https://github.com/Azure/apim-landing-zone-accelerator"
+}

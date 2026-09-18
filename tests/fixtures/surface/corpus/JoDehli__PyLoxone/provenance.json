@@ -1,0 +1,8 @@
+{
+  "commit": "75612473e1d6882c44514e61edc12ed2bf4ab5b9",
+  "files": {
+    ".devcontainer.json": "a82a46b248f67bacd1b3626d2b9df83de36101e8"
+  },
+  "licence": "apache-2.0",
+  "repo": "https://github.com/JoDehli/PyLoxone"
+}

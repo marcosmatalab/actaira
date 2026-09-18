@@ -105,7 +105,70 @@ QUERIES = {
     "bash-allow": 'path:.claude filename:settings.json "Bash(*)"',
     "sandbox": "path:.claude filename:settings.json sandbox excludedCommands",
     "sandbox-off": 'path:.claude filename:settings.json sandbox "enabled": false',
+    # Phase S2. One broad query per vendor, then the targeted ones a rule needs
+    # when the broad sweep produces no violating case. Same argument as above: a
+    # rule with no real violating case goes LOOKING for one, and if it still
+    # finds none it says so with the queries and the date (CLAUDE.md's third,
+    # narrow branch) rather than getting a fixture we wrote ourselves.
+    "vscode-tasks": 'path:.vscode filename:tasks.json "folderOpen"',
+    "vscode-tasks-broad": "path:.vscode filename:tasks.json runOptions",
+    "devcontainer": "filename:devcontainer.json initializeCommand",
+    "devcontainer-broad": "filename:devcontainer.json postCreateCommand",
+    "devcontainer-mounts": 'filename:devcontainer.json mounts ".ssh"',
+    "devcontainer-privileged": 'filename:devcontainer.json "privileged": true',
+    "codex": "path:.codex filename:config.toml",
+    "codex-hooks": "path:.codex filename:hooks.json",
+    "codex-sandbox": 'path:.codex filename:config.toml "danger-full-access"',
+    "cursor-hooks": "path:.cursor filename:hooks.json",
+    "cursor-mcp": "path:.cursor filename:mcp.json mcpServers",
+    "gemini": "path:.gemini filename:settings.json mcpServers",
+    "gemini-trust": 'path:.gemini filename:settings.json "trust": true',
+    "agents-md": "filename:AGENTS.md",
+    "instructions-import-home": 'filename:CLAUDE.md "@~/"',
+    "instructions-import-abs": 'filename:AGENTS.md "@/"',
+    "instructions-piped": 'filename:AGENTS.md "curl -" "| bash"',
+    "instructions-piped-sh": 'filename:CLAUDE.md "curl" "| sh"',
+    "instructions-script": 'filename:CLAUDE.md "@scripts/" ".sh"',
+    "instructions-script-agents": 'filename:AGENTS.md "@scripts/"',
+    "instructions-script-bin": 'filename:CLAUDE.md "@bin/"',
+    # Added when the capability-coverage invariant (D-292) turned up two
+    # capabilities this tree emitted and no rule named.
+    "claude-mcp-tool-hook": 'path:.claude filename:settings.json "mcp_tool"',
+    "gemini-approval": "path:.gemini filename:settings.json defaultApprovalMode",
+    "gemini-tool-command": "path:.gemini filename:settings.json toolDiscoveryCommand",
 }
+
+# Which vendor each query is collecting for, so `--report` can count by vendor
+# and the promotion can keep a balance rather than twenty files of one kind.
+VENDOR_OF = {
+    "broad": "claude-code", "mcp": "claude-code", "bypass": "claude-code",
+    "http-hook": "claude-code", "bash-allow": "claude-code", "sandbox": "claude-code",
+    "sandbox-off": "claude-code",
+    "vscode-tasks": "vscode", "vscode-tasks-broad": "vscode",
+    "devcontainer": "devcontainer", "devcontainer-broad": "devcontainer",
+    "devcontainer-mounts": "devcontainer", "devcontainer-privileged": "devcontainer",
+    "codex": "codex", "codex-hooks": "codex", "codex-sandbox": "codex",
+    "cursor-hooks": "cursor", "cursor-mcp": "cursor",
+    "gemini": "gemini-cli", "gemini-trust": "gemini-cli",
+    "agents-md": "instructions",
+    "instructions-import-home": "instructions", "instructions-import-abs": "instructions",
+    "instructions-piped": "instructions", "instructions-piped-sh": "instructions",
+    "instructions-script": "instructions",
+    "instructions-script-agents": "instructions", "instructions-script-bin": "instructions",
+}
+
+# The file suffixes a search result has to end in to be kept. A code search for
+# `mcpServers` matches prose in a README, and a corpus with a README in it is a
+# corpus that proves nothing about a reader of configuration.
+WANTED = (
+    ".claude/settings.json", ".mcp.json",
+    ".vscode/tasks.json", ".vscode/settings.json",
+    "devcontainer.json",
+    ".codex/config.toml", ".codex/hooks.json",
+    ".cursor/hooks.json", ".cursor/mcp.json",
+    ".gemini/settings.json",
+    "AGENTS.md", "CLAUDE.md", "GEMINI.md",
+)
 
 
 def search(auth: str, limit: int, query: str) -> list[dict[str, Any]]:
@@ -127,7 +190,7 @@ def search(auth: str, limit: int, query: str) -> list[dict[str, Any]]:
             break
         for item in items:
             key = "{}:{}".format(item["repository"]["full_name"], item["path"])
-            if item["path"].endswith((".claude/settings.json", ".mcp.json")):
+            if item["path"].endswith(WANTED):
                 found.setdefault(key, item)
             if len(found) >= limit:
                 return list(found.values())
@@ -197,19 +260,116 @@ def collect(limit: int, which: tuple[str, ...]) -> dict[str, int]:
     return counts
 
 
+def vendors_present(root: Path) -> set[str]:
+    """Which vendors a downloaded root has files for, by the paths it contains.
+
+    By file layout and not by the query that found it: one repository is often
+    returned by several queries, and the honest answer to "which vendor is this
+    a fixture for" is "the ones whose files are in it".
+    """
+    found: set[str] = set()
+    for relative in (
+        ".claude/settings.json", ".mcp.json", ".vscode/tasks.json",
+        ".vscode/settings.json", ".devcontainer/devcontainer.json",
+        ".devcontainer.json", ".codex/config.toml", ".codex/hooks.json",
+        ".cursor/hooks.json", ".cursor/mcp.json", ".gemini/settings.json",
+        "AGENTS.md", "CLAUDE.md", "GEMINI.md",
+    ):
+        if not (root / relative).is_file():
+            continue
+        if relative.startswith(".claude") or relative == ".mcp.json":
+            found.add("claude-code")
+        elif relative.startswith(".vscode"):
+            found.add("vscode")
+        elif "devcontainer" in relative:
+            found.add("devcontainer")
+        elif relative.startswith(".codex"):
+            found.add("codex")
+        elif relative.startswith(".cursor"):
+            found.add("cursor")
+        elif relative.startswith(".gemini"):
+            found.add("gemini-cli")
+        else:
+            found.add("instructions")
+    return found
+
+
 def promote(count: int) -> int:
-    """Copy the downloaded snapshot into the tracked fixture directory."""
+    """Copy up to `count` downloaded roots PER VENDOR into the fixture directory.
+
+    Per vendor rather than the first N alphabetically, which is what this did
+    when there was one vendor and would now produce twenty Claude Code files and
+    nothing else. A corpus that is unbalanced by accident measures whichever
+    vendor happened to sort first.
+
+    Within a vendor, roots that resolve to at least one capability come first: a
+    fixture that produces nothing exercises the reader and not the resolver, and
+    both are wanted, so the empty ones fill the remaining places rather than
+    taking the first.
+    """
     if not DOWNLOAD.is_dir():
         print("nothing downloaded; run without --promote first", file=sys.stderr)
         return 1
+    sys.path.insert(0, str(ROOT / "src"))
+    from actaira.surface import resolve as resolve_mod
+    from actaira.surface import rules as rules_mod
+
+    catalogue = rules_mod.load()
+    registry = {vendor: (mod, res) for vendor, mod, res in resolve_mod.vendor_registry()}
+    roots = [path for path in sorted(DOWNLOAD.iterdir()) if (path / "provenance.json").is_file()]
+
+    # Rank 0 fires a rule nothing else in this vendor's selection has fired yet,
+    # rank 1 fires a rule already covered, rank 2 resolves to a capability and
+    # fires nothing, rank 3 is empty. The first rank is what makes the corpus a
+    # test of the RULES rather than of the reader: without it a vendor's five
+    # places go to whichever repositories sort first, and a rule with a real
+    # violating case in the download can end up with none in the fixtures.
+    scored: dict[str, list[tuple[Path, frozenset[str], bool]]] = {}
+    for root in roots:
+        for vendor in vendors_present(root):
+            mod, res = registry[vendor]
+            try:
+                surface = res(mod.read(root))
+                found, _gaps = rules_mod.evaluate(surface, catalogue)
+            except Exception as exc:  # noqa: BLE001 - a bad fixture must not stop the sweep
+                print(f"{root.name} [{vendor}]: {exc}", file=sys.stderr)
+                continue
+            scored.setdefault(vendor, []).append(
+                (root, frozenset(item.rule_id for item in found), bool(surface.capabilities))
+            )
+
+    by_vendor: dict[str, list[tuple[int, Path]]] = {}
+    for vendor, entries in scored.items():
+        covered: set[str] = set()
+        ordered: list[tuple[int, Path]] = []
+        remaining = sorted(entries, key=lambda item: item[0].name)
+        while remaining:
+            best = min(
+                range(len(remaining)),
+                key=lambda index: (
+                    -len(remaining[index][1] - covered),
+                    0 if remaining[index][2] else 1,
+                    remaining[index][0].name,
+                ),
+            )
+            root, fired, had = remaining.pop(best)
+            rank = 0 if fired - covered else (1 if fired else (2 if had else 3))
+            covered |= fired
+            ordered.append((rank, root))
+        by_vendor[vendor] = ordered
+
+    chosen: dict[Path, set[str]] = {}
+    for vendor, entries in by_vendor.items():
+        taken = 0
+        for _rank, root in entries:
+            if taken >= count:
+                break
+            chosen.setdefault(root, set()).add(vendor)
+            taken += 1
+
     PROMOTED.mkdir(parents=True, exist_ok=True)
-    taken = 0
-    for source in sorted(DOWNLOAD.iterdir()):
-        if taken >= count:
-            break
+    for source in sorted(chosen):
         record = source / "provenance.json"
-        if not record.is_file():
-            continue
         target = PROMOTED / source.name
         target.mkdir(parents=True, exist_ok=True)
         for relative in json.loads(record.read_text(encoding="utf-8")).get("files", {}):
@@ -220,8 +380,51 @@ def promote(count: int) -> int:
             landing.parent.mkdir(parents=True, exist_ok=True)
             landing.write_bytes(origin.read_bytes())
         (target / "provenance.json").write_bytes(record.read_bytes())
-        taken += 1
-    print(f"promoted {taken} configurations into {PROMOTED.relative_to(ROOT)}")
+    print(f"promoted {len(chosen)} configurations into {PROMOTED.relative_to(ROOT)}")
+    for vendor in sorted(by_vendor):
+        held = sum(1 for names in chosen.values() if vendor in names)
+        print(f"  {vendor:14s} {held} of {len(by_vendor[vendor])} downloaded")
+    return 0
+
+
+def goldens() -> int:
+    """Write `expected.json` beside every promoted configuration, per vendor.
+
+    The golden records the CLAIMS a person then reviews - which rules fire, each
+    capability name and its resolution, the counts - rather than a dump of the
+    output compared against itself, which is the shape D-15 warns about. This
+    writes the claims; reading them is a person's job, and the phase report is
+    where that reading is recorded.
+    """
+    sys.path.insert(0, str(ROOT / "src"))
+    from actaira.surface import resolve as resolve_mod
+    from actaira.surface import rules as rules_mod
+
+    catalogue = rules_mod.load()
+    registry = {vendor: (mod, res) for vendor, mod, res in resolve_mod.vendor_registry()}
+    written = 0
+    for root in sorted(PROMOTED.iterdir()):
+        if not (root / "provenance.json").is_file():
+            continue
+        record: dict[str, Any] = {}
+        for vendor in sorted(vendors_present(root)):
+            mod, res = registry[vendor]
+            surface = res(mod.read(root))
+            found, gaps = rules_mod.evaluate(surface, catalogue)
+            record[vendor] = {
+                "rules_that_fire": sorted({item.rule_id for item in found}),
+                "capabilities": {
+                    item.name: item.resolution.value for item in surface.capabilities
+                },
+                "capability_count": len(surface.capabilities),
+                "unresolved_count": len(surface.unresolved) + len(gaps),
+                "not_read": sorted(entry.path for entry in surface.not_read),
+            }
+        (root / "expected.json").write_text(
+            json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        written += 1
+    print(f"wrote {written} expected.json files")
     return 0
 
 
@@ -234,19 +437,27 @@ def report() -> int:
     message is where the number goes.
     """
     sys.path.insert(0, str(ROOT / "src"))
-    from actaira.surface import claude_code, resolve, rules
+    from actaira.surface import resolve as resolve_mod
+    from actaira.surface import rules as rules_mod
 
-    catalogue = rules.load()
+    catalogue = rules_mod.load()
+    registry = {vendor: (mod, res) for vendor, mod, res in resolve_mod.vendor_registry()}
     counts: dict[str, int] = {rule.id: 0 for rule in catalogue}
+    per_vendor: dict[str, int] = {}
     gaps = 0
     roots = [path for path in sorted(PROMOTED.glob("*")) if (path / "provenance.json").is_file()]
     for root in roots:
-        surface = resolve.resolve(claude_code.read(root))
-        found, unresolved = rules.evaluate(surface, catalogue)
-        gaps += len(unresolved) + len(surface.unresolved)
-        for rule_id in {item.rule_id for item in found}:
-            counts[rule_id] += 1
+        for vendor in sorted(vendors_present(root)):
+            per_vendor[vendor] = per_vendor.get(vendor, 0) + 1
+            mod, res = registry[vendor]
+            surface = res(mod.read(root))
+            found, unresolved = rules_mod.evaluate(surface, catalogue)
+            gaps += len(unresolved) + len(surface.unresolved)
+            for rule_id in {item.rule_id for item in found}:
+                counts[rule_id] += 1
     print(f"{len(roots)} configurations in the tracked corpus")
+    for vendor in sorted(per_vendor):
+        print(f"  {vendor:14s} {per_vendor[vendor]}")
     for rule_id in sorted(counts):
         print(f"  {rule_id}  {counts[rule_id]}")
     print(f"  unresolved entries across the corpus: {gaps}")
@@ -259,10 +470,15 @@ def main() -> int:
     parser.add_argument("--queries", default="broad",
                         help="comma-separated names from QUERIES, or `all`")
     parser.add_argument("--promote", type=int, metavar="N",
-                        help="copy N downloaded configurations into tests/fixtures")
+                        help="copy up to N downloaded configurations PER VENDOR into "
+                             "tests/fixtures")
     parser.add_argument("--report", action="store_true",
                         help="count which rules fire on the tracked corpus")
+    parser.add_argument("--goldens", action="store_true",
+                        help="write expected.json beside every promoted configuration")
     args = parser.parse_args()
+    if args.goldens:
+        return goldens()
     if args.report:
         return report()
     if args.promote:

@@ -1,20 +1,22 @@
 {
-  "capabilities": {
-    "helper.command": "effective",
-    "hook.command": "effective",
-    "permissions.allow": "declared",
-    "permissions.default_mode": "declared"
-  },
-  "capability_count": 108,
-  "not_read": [
-    "~/.claude/settings.json and the managed policy"
-  ],
-  "rules_that_fire": [
-    "ACT-S003",
-    "ACT-S004",
-    "ACT-S005",
-    "ACT-S006",
-    "ACT-S007"
-  ],
-  "unresolved_count": 11
+  "claude-code": {
+    "capabilities": {
+      "helper.command": "effective",
+      "hook.command": "effective",
+      "permissions.allow": "declared",
+      "permissions.default_mode": "declared"
+    },
+    "capability_count": 108,
+    "not_read": [
+      "~/.claude/settings.json and the managed policy"
+    ],
+    "rules_that_fire": [
+      "ACT-S003",
+      "ACT-S004",
+      "ACT-S005",
+      "ACT-S006",
+      "ACT-S007"
+    ],
+    "unresolved_count": 11
+  }
 }

@@ -62,6 +62,9 @@ class Kind(StrEnum):
     NOT_FROM_REPOSITORY = "a repository file cannot set it"
     TRUST_GATED = "a repository file sets it, and it waits for workspace trust"
     NOT_TRUST_GATED = "a repository file sets it and it applies before any trust step"
+    HOST_SIDE = "a repository file sets it and it runs on the host, outside the container"
+    APPROVAL_GATED = "a repository file sets it, and it waits for a one-time approval dialog"
+    NO_DOCUMENTED_ORDER = "the vendor documents both scopes and no precedence between them"
 
 
 @dataclass(frozen=True)
@@ -122,7 +125,7 @@ D_MANAGED = "da3cf2184feaba41349980bac68ce19f7df6fe7e01d11d9569c6f5bb05a8591d"
 D_MCP = "67dccd0f48a35655d560f921f3974ed2a8c50fb999a9859439d3748dd8a48221"
 
 
-MERGE_TABLE: tuple[MergeRow, ...] = (
+CLAUDE_CODE_ROWS: tuple[MergeRow, ...] = (
     MergeRow(
         keys=("*",),
         kind=Kind.PRECEDENCE,
@@ -300,19 +303,449 @@ MERGE_TABLE: tuple[MergeRow, ...] = (
 )
 
 
-def row_for(key: str) -> MergeRow:
-    """The row that governs one key, falling back to the precedence ladder.
+# ---------------------------------------------------------------------------
+# The other vendors, each with its own ladder and its own citations
+# ---------------------------------------------------------------------------
+#
+# Design note D-288. Phase S2's central claim is that a repository's surface is
+# the UNION of per-vendor surfaces, never a merge of them. Each vendor below
+# carries its own precedence row, because the ladders genuinely disagree:
+# Claude Code puts user above project, Gemini CLI puts project above user, VS
+# Code puts workspace above user, and Cursor puts an enterprise file above a
+# dashboard above both. A single table would have to pick one, and picking one
+# is inventing a rule three vendors do not document.
+#
+# Every row below was read on CONSULTED_S2 and its `doc_sha256` is the sha256 of
+# the bytes that URL served on that date, which anybody can recompute with
+# `curl -sL <url> | sha256sum`. That is published limit 14 turned on our own
+# sources: an approval over a page NAME is an approval over whatever is at that
+# name tomorrow.
 
-    Exact match before the fallback, and the fallback is a real documented row
-    rather than a default: every capability names a rule that exists on a page.
+CONSULTED_S2 = "2026-09-18"
+
+VSCODE_TASKS = "https://code.visualstudio.com/docs/debugtest/tasks"
+VSCODE_SETTINGS = "https://code.visualstudio.com/docs/configure/settings"
+VSCODE_TRUST = "https://code.visualstudio.com/docs/editing/workspaces/workspace-trust"
+VSCODE_SOURCE = (
+    "https://raw.githubusercontent.com/microsoft/vscode/main/src/vs/workbench/contrib/"
+    "tasks/browser/task.contribution.ts"
+)
+DEVCONTAINER_REF = "https://containers.dev/implementors/json_reference/"
+DEVCONTAINER_SPEC = "https://containers.dev/implementors/spec/"
+CODEX_REF = "https://learn.chatgpt.com/docs/config-file/config-reference"
+CODEX_ADVANCED = "https://learn.chatgpt.com/docs/config-file/config-advanced"
+CODEX_MANAGED = "https://learn.chatgpt.com/docs/enterprise/managed-configuration"
+CURSOR_HOOKS = "https://cursor.com/docs/agent/hooks"
+CURSOR_MCP = "https://cursor.com/docs/context/mcp"
+CURSOR_RULES = "https://cursor.com/docs/context/rules"
+GEMINI_CONFIG = "https://geminicli.com/docs/reference/configuration/"
+GEMINI_ENTERPRISE = "https://geminicli.com/docs/cli/enterprise/"
+GEMINI_MEMPORT = "https://geminicli.com/docs/reference/memport/"
+CLAUDE_MEMORY = "https://code.claude.com/docs/en/memory"
+
+D_VSCODE_TASKS = "1020b0628b70503ef6cf5860cd49c97fbb7c78e6e0fe360fe3df385cd8665102"
+D_VSCODE_SETTINGS = "353c5af42d6ee80792cc96a30f2ce6d36ae80743f0081e71504021d4a7209a19"
+D_VSCODE_TRUST = "bcd9e47304715feaaf56d96205f2625bd4749c08d582c9f5d5853c5f6694d12f"
+D_VSCODE_SOURCE = "7b4f89f3a3b7d70ac49248df62e344d94df0b0116fd7aed08834c7c62570b060"
+D_DEVCONTAINER_REF = "94eb9c3e26e5b99eb8142d187e2e48a4f104e17118cbfe51f447edaadc7a251a"
+D_DEVCONTAINER_SPEC = "74351741fb3e7f601d457c1dc1cc6c791ee465f93348165b26a0fc3c0e0c9046"
+D_CODEX_REF = "bfd241aa018f5a354a8b0956017d5b0874681e95f61774676de5f00970b547b2"
+D_CODEX_ADVANCED = "87862a4bd2bcb9369725819f6c0268d4585182704121222ec473f712862f89cb"
+D_CODEX_MANAGED = "af41107dd76caa243d4fb7db5b9f204a5f53dd29e3b94f939521b2c2400d9a03"
+D_CURSOR_HOOKS = "af842fc1a466027cad13c41aed62625aae2c24a525de3e751674463541e1289c"
+D_CURSOR_MCP = "9e95980c0e55bcf6da608d1217db8bdaf1d39fbf24482cf118acd77617472748"
+D_CURSOR_RULES = "b1d9b9d19418ded59f6d8eb3f9f685ff300f187d880af6e4624fcbd1576d560f"
+D_GEMINI_CONFIG = "e520589f601e2e4923a1eee5e0e1381ff15fd120cf644e2bf47530461284c423"
+D_GEMINI_ENTERPRISE = "e3adac9b08d593efc59e87f649da239bb90377b0e6039b20c4eb8476655b815a"
+D_GEMINI_MEMPORT = "63844d36a8a8c9af4813896b105f95022aaf09a6ef909b57825afe8dcb017f60"
+D_CLAUDE_MEMORY = "258410ca479aa9cf914848ff143ab9ef6056a1e7d8f22f587aa6f15d7134d144"
+
+
+VSCODE_ROWS: tuple[MergeRow, ...] = (
+    MergeRow(
+        keys=("*",),
+        kind=Kind.PRECEDENCE,
+        url=VSCODE_SETTINGS,
+        doc_sha256=D_VSCODE_SETTINGS,
+        consulted=CONSULTED_S2,
+        quote=(
+            "In the following list, later scopes override earlier scopes: Default settings "
+            "[...] User settings [...] Remote settings [...] Workspace settings [...] "
+            "Workspace Folder settings."
+        ),
+    ),
+    MergeRow(
+        keys=("tasks",),
+        kind=Kind.NOT_TRUST_GATED,
+        url=VSCODE_TASKS,
+        doc_sha256=D_VSCODE_TASKS,
+        consulted=CONSULTED_S2,
+        quote=(
+            "Workspace or folder specific tasks are configured from the `tasks.json` file "
+            "in the `.vscode` folder for a workspace. [...] `folderOpen`: The task will be "
+            "run when the containing folder is opened."
+        ),
+    ),
+    MergeRow(
+        keys=("task.allowAutomaticTasks",),
+        kind=Kind.NOT_FROM_REPOSITORY,
+        url=VSCODE_SOURCE,
+        doc_sha256=D_VSCODE_SOURCE,
+        consulted=CONSULTED_S2,
+        quote=(
+            "description: nls.localize('task.allowAutomaticTasks', \"Enable automatic "
+            "tasks - note that tasks won't run in an untrusted workspace.\"), "
+            "default: 'off', scope: ConfigurationScope.APPLICATION, restricted: true"
+        ),
+    ),
+    MergeRow(
+        keys=("settings.application-scope",),
+        kind=Kind.NOT_FROM_REPOSITORY,
+        url=VSCODE_SETTINGS,
+        doc_sha256=D_VSCODE_SETTINGS,
+        consulted=CONSULTED_S2,
+        quote=(
+            "Not all user settings are available as workspace settings. For example, "
+            "application-wide settings related to updates and security can not be "
+            "overridden by Workspace settings."
+        ),
+    ),
+    MergeRow(
+        keys=("runOptions.runOn",),
+        kind=Kind.TRUST_GATED,
+        url=VSCODE_TRUST,
+        doc_sha256=D_VSCODE_TRUST,
+        consulted=CONSULTED_S2,
+        quote=(
+            "Restricted Mode tries to prevent automatic code execution by disabling or "
+            "limiting the operation of several VS Code features: AI agents, terminal, "
+            "tasks, debugging, workspace settings, and extensions."
+        ),
+    ),
+)
+
+
+DEVCONTAINER_ROWS: tuple[MergeRow, ...] = (
+    MergeRow(
+        keys=("*",),
+        kind=Kind.PRECEDENCE,
+        url=DEVCONTAINER_SPEC,
+        doc_sha256=D_DEVCONTAINER_SPEC,
+        consulted=CONSULTED_S2,
+        quote=(
+            "`.devcontainer/devcontainer.json`, `.devcontainer.json`, "
+            "`.devcontainer/<folder>/devcontainer.json` [...] It is valid that these files "
+            "may exist in more than one location, so consider providing a mechanism for "
+            "users to select one when appropriate."
+        ),
+    ),
+    MergeRow(
+        keys=("initializeCommand",),
+        kind=Kind.HOST_SIDE,
+        url=DEVCONTAINER_REF,
+        doc_sha256=D_DEVCONTAINER_REF,
+        consulted=CONSULTED_S2,
+        quote=(
+            "A command string or list of command arguments to run on the host machine "
+            "during initialization, including during container creation and on subsequent "
+            "starts."
+        ),
+    ),
+    MergeRow(
+        keys=("onCreateCommand", "updateContentCommand", "postCreateCommand",
+              "postStartCommand", "postAttachCommand"),
+        kind=Kind.NOT_TRUST_GATED,
+        url=DEVCONTAINER_REF,
+        doc_sha256=D_DEVCONTAINER_REF,
+        consulted=CONSULTED_S2,
+        quote=(
+            "This command [...] executes inside the container immediately after it has "
+            "started for the first time."
+        ),
+    ),
+    MergeRow(
+        keys=("mounts",),
+        kind=Kind.NOT_TRUST_GATED,
+        url=DEVCONTAINER_REF,
+        doc_sha256=D_DEVCONTAINER_REF,
+        consulted=CONSULTED_S2,
+        quote=(
+            "Cross-orchestrator way to add additional mounts to a container. Each value is "
+            "a string that accepts the same values as the Docker CLI `--mount` flag."
+        ),
+    ),
+    MergeRow(
+        keys=("privileged", "capAdd", "securityOpt", "runArgs"),
+        kind=Kind.NOT_TRUST_GATED,
+        url=DEVCONTAINER_REF,
+        doc_sha256=D_DEVCONTAINER_REF,
+        consulted=CONSULTED_S2,
+        quote=(
+            "Cross-orchestrator way to cause the container to run in privileged mode "
+            "(`--privileged`). [...] Cross-orchestrator way to add capabilities typically "
+            "disabled for a container. [...] Cross-orchestrator way to set container "
+            "security options."
+        ),
+    ),
+)
+
+
+CODEX_ROWS: tuple[MergeRow, ...] = (
+    MergeRow(
+        keys=("*",),
+        kind=Kind.PRECEDENCE,
+        url=CODEX_ADVANCED,
+        doc_sha256=D_CODEX_ADVANCED,
+        consulted=CONSULTED_S2,
+        quote=(
+            "Base user config (`~/.codex/config.toml`), profile overlay "
+            "(`~/.codex/profile-name.config.toml`), project-scoped config "
+            "(`.codex/config.toml` from root to working directory), CLI overrides "
+            "(`--config`, `--profile`, dedicated flags)."
+        ),
+    ),
+    MergeRow(
+        keys=("hooks",),
+        kind=Kind.TRUST_GATED,
+        url=CODEX_ADVANCED,
+        doc_sha256=D_CODEX_ADVANCED,
+        consulted=CONSULTED_S2,
+        quote="Project-local hooks load only when the project `.codex/` layer is trusted.",
+    ),
+    MergeRow(
+        keys=("projects.trust_level",),
+        kind=Kind.NOT_FROM_REPOSITORY,
+        url=CODEX_REF,
+        doc_sha256=D_CODEX_REF,
+        consulted=CONSULTED_S2,
+        quote=(
+            "Mark a project or worktree as trusted or untrusted (\"trusted\" | "
+            "\"untrusted\"). Untrusted projects skip project-scoped `.codex/` layers."
+        ),
+    ),
+    MergeRow(
+        keys=("notify", "model_providers", "profile", "otel"),
+        kind=Kind.NOT_FROM_REPOSITORY,
+        url=CODEX_REF,
+        doc_sha256=D_CODEX_REF,
+        consulted=CONSULTED_S2,
+        quote=(
+            "Project-scoped config can't override machine-local provider, auth, host-owned "
+            "app request metadata, notification, configuration profile selection, or "
+            "telemetry routing keys."
+        ),
+    ),
+    MergeRow(
+        keys=("allow_managed_hooks_only",),
+        kind=Kind.MANAGED_ONLY,
+        url=CODEX_MANAGED,
+        doc_sha256=D_CODEX_MANAGED,
+        consulted=CONSULTED_S2,
+        quote=(
+            "`allow_managed_hooks_only` [...] skips hooks from user, project, session, and "
+            "plugin sources, but still loads hooks from `requirements.toml`. Requirements "
+            "(`requirements.toml`): Unix: `/etc/codex/requirements.toml`; Windows: "
+            "`%ProgramData%\\OpenAI\\Codex\\requirements.toml`."
+        ),
+    ),
+    MergeRow(
+        keys=("sandbox_mode", "approval_policy"),
+        kind=Kind.PRECEDENCE,
+        url=CODEX_REF,
+        doc_sha256=D_CODEX_REF,
+        consulted=CONSULTED_S2,
+        quote=(
+            "`sandbox_mode`: `read-only`, `workspace-write`, `danger-full-access`. "
+            "`approval_policy`: `on-request`, `never` [...] use `on-request` for "
+            "interactive runs or `never` for non-interactive runs."
+        ),
+    ),
+    MergeRow(
+        keys=("mcp_servers",),
+        kind=Kind.PRECEDENCE,
+        url=CODEX_REF,
+        doc_sha256=D_CODEX_REF,
+        consulted=CONSULTED_S2,
+        quote=(
+            "`mcp_servers.<id>.command`: Launcher command for an MCP stdio server. "
+            "`mcp_servers.<id>.args`: Arguments passed to the MCP stdio server command."
+        ),
+    ),
+)
+
+
+CURSOR_ROWS: tuple[MergeRow, ...] = (
+    MergeRow(
+        keys=("*", "hooks"),
+        kind=Kind.PRECEDENCE,
+        url=CURSOR_HOOKS,
+        doc_sha256=D_CURSOR_HOOKS,
+        consulted=CONSULTED_S2,
+        quote=(
+            "Priority order (highest to lowest): Enterprise -> Team -> Project -> User. "
+            "Project: `<project-root>/.cursor/hooks.json`. User: `~/.cursor/hooks.json`."
+        ),
+    ),
+    MergeRow(
+        keys=("hooks.team",),
+        kind=Kind.MANAGED_ONLY,
+        url=CURSOR_HOOKS,
+        doc_sha256=D_CURSOR_HOOKS,
+        consulted=CONSULTED_S2,
+        quote=(
+            "Team (Enterprise): Configured in the web dashboard and synced to all team "
+            "members automatically."
+        ),
+    ),
+    MergeRow(
+        keys=("mcpServers",),
+        kind=Kind.NO_DOCUMENTED_ORDER,
+        url=CURSOR_MCP,
+        doc_sha256=D_CURSOR_MCP,
+        consulted=CONSULTED_S2,
+        quote=(
+            "Create `.cursor/mcp.json` in your project for project-specific tools. [...] "
+            "Create `~/.cursor/mcp.json` in your home directory for tools available "
+            "everywhere."
+        ),
+    ),
+    MergeRow(
+        keys=("rules",),
+        kind=Kind.PRECEDENCE,
+        url=CURSOR_RULES,
+        doc_sha256=D_CURSOR_RULES,
+        consulted=CONSULTED_S2,
+        quote="Team Rules -> Project Rules -> User Rules",
+    ),
+)
+
+
+GEMINI_ROWS: tuple[MergeRow, ...] = (
+    MergeRow(
+        keys=("*",),
+        kind=Kind.PRECEDENCE,
+        url=GEMINI_CONFIG,
+        doc_sha256=D_GEMINI_CONFIG,
+        consulted=CONSULTED_S2,
+        quote=(
+            "Configuration is applied in the following order of precedence (lower numbers "
+            "are overridden by higher numbers): 1. Default values, 2. System defaults file, "
+            "3. User settings file, 4. Project settings file, 5. System settings file, "
+            "6. Environment variables, 7. Command-line arguments."
+        ),
+    ),
+    MergeRow(
+        keys=("mcpServers",),
+        kind=Kind.LIST_UNION,
+        url=GEMINI_ENTERPRISE,
+        doc_sha256=D_GEMINI_ENTERPRISE,
+        consulted=CONSULTED_S2,
+        quote=(
+            "The lists of servers from all three levels are combined into a single list. "
+            "[...] If a server with the same name is defined at multiple levels [...] the "
+            "definition from the highest-precedence level is used."
+        ),
+    ),
+    MergeRow(
+        keys=("mcpServers.trust",),
+        kind=Kind.PRECEDENCE,
+        url=GEMINI_CONFIG,
+        doc_sha256=D_GEMINI_CONFIG,
+        consulted=CONSULTED_S2,
+        quote="Trust this server and bypass all tool call confirmations.",
+    ),
+    MergeRow(
+        keys=("tools.discoveryCommand", "tools.callCommand"),
+        kind=Kind.PRECEDENCE,
+        url=GEMINI_CONFIG,
+        doc_sha256=D_GEMINI_CONFIG,
+        consulted=CONSULTED_S2,
+        quote=(
+            "`tools.discoveryCommand`: Command to run for tool discovery. "
+            "`tools.callCommand`: Custom shell command for invoking discovered tools."
+        ),
+    ),
+)
+
+
+INSTRUCTIONS_ROWS: tuple[MergeRow, ...] = (
+    MergeRow(
+        keys=("*", "import"),
+        kind=Kind.APPROVAL_GATED,
+        url=CLAUDE_MEMORY,
+        doc_sha256=D_CLAUDE_MEMORY,
+        consulted=CONSULTED_S2,
+        quote=(
+            "An import in a project-level memory file is external when its path resolves "
+            "outside your working directory [...] The first time Claude Code encounters "
+            "external imports in a project, it shows an approval dialog listing the files. "
+            "If you decline, the imports stay disabled and the dialog doesn't appear again."
+        ),
+    ),
+    MergeRow(
+        keys=("import.syntax",),
+        kind=Kind.NOT_TRUST_GATED,
+        url=CLAUDE_MEMORY,
+        doc_sha256=D_CLAUDE_MEMORY,
+        consulted=CONSULTED_S2,
+        quote=(
+            "CLAUDE.md files can import additional files using `@path/to/import` syntax. "
+            "[...] Both relative and absolute paths are allowed. [...] Import parsing skips "
+            "Markdown code spans and fenced code blocks."
+        ),
+    ),
+    MergeRow(
+        keys=("import.gemini",),
+        kind=Kind.NOT_TRUST_GATED,
+        url=GEMINI_MEMPORT,
+        doc_sha256=D_GEMINI_MEMPORT,
+        consulted=CONSULTED_S2,
+        quote=(
+            "You can modularize your context files by importing other Markdown files using "
+            "the `@path/to/file.md` syntax. The import processor supports both relative and "
+            "absolute paths."
+        ),
+    ),
+)
+
+
+# Every vendor's table, by the vendor string its reader stamps on a capability.
+MERGE_TABLES: dict[str, tuple[MergeRow, ...]] = {
+    "claude-code": CLAUDE_CODE_ROWS,
+    "vscode": VSCODE_ROWS,
+    "devcontainer": DEVCONTAINER_ROWS,
+    "codex": CODEX_ROWS,
+    "cursor": CURSOR_ROWS,
+    "gemini-cli": GEMINI_ROWS,
+    "instructions": INSTRUCTIONS_ROWS,
+}
+
+# What the report publishes: every row of every table, in a stable order so two
+# runs over one tree produce the same bytes.
+MERGE_TABLE: tuple[MergeRow, ...] = tuple(
+    row for vendor in sorted(MERGE_TABLES) for row in MERGE_TABLES[vendor]
+)
+
+
+def row_for(key: str, vendor: str = VENDOR) -> MergeRow:
+    """The row that governs one key FOR ONE VENDOR, falling back to its ladder.
+
+    The vendor is an argument and not a default lookup across one flat table,
+    which is D-286's point made structural: `permissions` means one thing to
+    Claude Code and `hooks` means a different thing to Cursor, and a single
+    table keyed on the spelling alone would let one vendor's documented rule
+    resolve another vendor's capability. Each vendor's fallback is that
+    vendor's own published precedence row, so every capability names a rule
+    that exists on one of ITS pages.
     """
-    for row in MERGE_TABLE:
+    table = MERGE_TABLES.get(vendor) or CLAUDE_CODE_ROWS
+    for row in table:
         if key in row.keys and row.kind is not Kind.PRECEDENCE:
             return row
-    for row in MERGE_TABLE:
+    for row in table:
         if key in row.keys:
             return row
-    return MERGE_TABLE[0]
+    return table[0]
 
 
 def rule_name(row: MergeRow) -> str:
@@ -421,12 +854,13 @@ def _emit(
     resolution: Resolution,
     condition: str | None = None,
     facts: dict[str, Any] | None = None,
+    vendor: str = VENDOR,
 ) -> None:
-    row = row_for(key)
+    row = row_for(key, vendor)
     found.append(
         Capability(
             name=name,
-            vendor=VENDOR,
+            vendor=vendor,
             scope=scope,
             source=source,
             resolution=resolution,
@@ -437,10 +871,34 @@ def _emit(
     )
 
 
-def _hooks(reading: Reading, handle: Any, found: list[Capability], with_content: bool) -> None:
+def _hooks(
+    reading: Reading,
+    handle: Any,
+    found: list[Capability],
+    with_content: bool,
+    unresolved: list[Unresolved] | None = None,
+) -> None:
+    from .claude_code import HANDLER_TYPES
+
     for event, handler in hook_handlers(handle.data):
         kind = handler.get("type")
         if not isinstance(kind, str):
+            continue
+        if kind not in HANDLER_TYPES:
+            # D-290. The capability name is ours, never the file's. A handler
+            # type this release does not know is a gap with the type named, not
+            # a capability spelled by whoever wrote the settings file.
+            if unresolved is not None:
+                unresolved.append(
+                    Unresolved(
+                        subject=f"{event} hook in {handle.display}",
+                        cause=(
+                            f"handler type {kind!r} is not one this release reads; the "
+                            "documented types are " + ", ".join(HANDLER_TYPES)
+                        ),
+                        source=handle.display,
+                    )
+                )
             continue
         facts: dict[str, Any] = {
             "event": event,
@@ -476,7 +934,8 @@ def _hooks(reading: Reading, handle: Any, found: list[Capability], with_content:
             condition = "applies before any workspace trust step"
         _emit(
             found,
-            name=f"hook.{kind}",
+            name={"command": "hook.command", "http": "hook.http",
+                  "mcp_tool": "hook.mcp_tool"}[kind],
             scope=handle.scope,
             source=handle.display,
             key="hooks",
@@ -785,7 +1244,7 @@ def resolve(
     for handle in reading.settings:
         if not handle.ok:
             continue
-        _hooks(reading, handle, found, with_content)
+        _hooks(reading, handle, found, with_content, unresolved)
         _permissions(handle, reading, found, version)
         _helpers(handle, found, with_content)
         _sandbox(handle, found, managed)
@@ -795,7 +1254,7 @@ def resolve(
     for handle in reading.mcp_files:
         if handle.ok:
             _mcp(handle, reading, found, with_content)
-            _hooks(reading, handle, found, with_content)
+            _hooks(reading, handle, found, with_content, unresolved)
 
     if version is None and any(
         item.resolution is Resolution.INDETERMINATE for item in found
@@ -821,15 +1280,743 @@ def resolve(
     )
 
 
+# ---------------------------------------------------------------------------
+# One resolver per vendor, and the union that is the repository's surface
+# ---------------------------------------------------------------------------
+#
+# Each of these is a pure function of what its reader read, exactly like
+# `resolve` above. None of them touches disk, a clock or a socket, which is what
+# lets a fixture replay the whole decision path.
+#
+# Nothing here ever fuses two vendors' capabilities. If Cursor and Claude Code
+# configure the same MCP server, that is TWO capabilities with the same
+# `args_sha256`, each naming its own vendor, its own file and its own merge
+# rule - and the report says so rather than collapsing them into one row that
+# belongs to neither. Two vendors running the same command is two things that
+# can be removed independently and two approvals that expire independently.
+
+
+def _vscode(reading: Any, *, agent_version: str | None = None,
+        with_content: bool = False) -> Surface:
+    """VS Code: the tasks, and the setting that decides whether they run.
+
+    The three answers of D-282 are produced here and nowhere else. `allowed` is
+    the value a scope we actually READ supplies, so `None` means no scope we
+    opened said either way - which is INDETERMINATE, not the documented default.
+    """
+    from .vscode import (
+        ALLOWED,
+        AUTOMATIC_TASKS,
+        BLOCKED,
+        automatic_tasks_setting,
+        runs_on,
+        task_command,
+        tasks_in,
+        workspace_claims_automatic_tasks,
+    )
+
+    found: list[Capability] = []
+    unresolved: list[Unresolved] = list(reading.unresolved)
+    allowed, decided_by = automatic_tasks_setting(reading)
+
+    for handle in reading.settings:
+        if not handle.ok:
+            continue
+        for entry in tasks_in(handle.data):
+            command = task_command(entry)
+            if command is None:
+                continue
+            when = runs_on(entry)
+            automatic = when == "folderOpen"
+            facts: dict[str, Any] = {
+                "label": entry.get("label") if isinstance(entry.get("label"), str) else None,
+                "task_type": entry.get("type") if isinstance(entry.get("type"), str) else None,
+                "run_on": when,
+                "at_startup": automatic,
+                "command_sha256": digest_of(command),
+            }
+            if with_content:
+                facts["command"] = command
+            spoken = referenced_target(command)
+            facts["target"] = spoken
+            facts.update(_target_facts(reading, spoken))
+
+            resolution, condition = Resolution.EFFECTIVE, None
+            if automatic:
+                if allowed == ALLOWED:
+                    facts["automatic_allowed"] = True
+                    resolution = Resolution.EFFECTIVE
+                    condition = (
+                        f"`{AUTOMATIC_TASKS}` is `{ALLOWED}` in {decided_by}, and automatic "
+                        "tasks still never run in an untrusted workspace"
+                    )
+                elif allowed == BLOCKED:
+                    facts["automatic_allowed"] = False
+                    resolution = Resolution.DECLARED
+                    condition = f"`{AUTOMATIC_TASKS}` is `{BLOCKED}` in {decided_by}"
+                else:
+                    # No `automatic_allowed` fact at all, which is the point:
+                    # a rule that needs it comes back INDETERMINATE on its own
+                    # rather than being told to (D-275).
+                    resolution = Resolution.INDETERMINATE
+                    condition = (
+                        f"`{AUTOMATIC_TASKS}` decides whether this runs; it is "
+                        "APPLICATION-scoped, so only the user's own settings file can set "
+                        "it, and no scope this run read says either way (run with --machine)"
+                    )
+            _emit(
+                found,
+                name="task.command",
+                scope=handle.scope,
+                source=handle.display,
+                key="tasks",
+                resolution=resolution,
+                condition=condition,
+                facts=facts,
+                vendor=reading.vendor,
+            )
+
+    # A repository that writes the application-scoped key into `.vscode/`. VS
+    # Code does not honour it there, so the capability it declared is not one -
+    # and saying nothing would lose the fact that somebody tried.
+    for handle in workspace_claims_automatic_tasks(reading):
+        _emit(
+            found,
+            name="settings.ignored_key",
+            scope=handle.scope,
+            source=handle.display,
+            key="task.allowAutomaticTasks",
+            resolution=Resolution.DECLARED,
+            condition=(
+                "the key is APPLICATION-scoped, so VS Code does not take it from a "
+                "workspace file; the value in the user's settings is what decides"
+            ),
+            facts={
+                "key": AUTOMATIC_TASKS,
+                "value": handle.data.get(AUTOMATIC_TASKS),
+                "honoured_here": False,
+            },
+            vendor=reading.vendor,
+        )
+
+    return Surface(
+        vendor=reading.vendor,
+        agent_version=None,
+        capabilities=tuple(found),
+        unresolved=tuple(unresolved),
+        not_read=tuple(reading.not_read),
+    )
+
+
+def _devcontainer(reading: Any, *, agent_version: str | None = None,
+        with_content: bool = False) -> Surface:
+    """A dev container's lifecycle commands, its mounts and its isolation flags."""
+    from .devcontainer import LIFECYCLE, commands_of, mount_source, names_a_credential
+
+    found: list[Capability] = []
+
+    for handle in reading.settings:
+        if not handle.ok:
+            continue
+        data = handle.data
+        for key, on_host in LIFECYCLE.items():
+            for command in commands_of(data.get(key)):
+                facts: dict[str, Any] = {
+                    "key": key,
+                    "on_host": on_host,
+                    "command_sha256": digest_of(command),
+                }
+                if with_content:
+                    facts["command"] = command
+                spoken = referenced_target(command)
+                facts["target"] = spoken
+                facts.update(_target_facts(reading, spoken))
+                _emit(
+                    found,
+                    name="lifecycle.command",
+                    scope=handle.scope,
+                    source=handle.display,
+                    key=key,
+                    resolution=Resolution.EFFECTIVE,
+                    condition=(
+                        "runs on the host during initialization, before any container exists"
+                        if on_host
+                        else "runs inside the container"
+                    ),
+                    facts=facts,
+                    vendor=reading.vendor,
+                )
+
+        mounts = data.get("mounts")
+        for entry in mounts if isinstance(mounts, list) else []:
+            source = mount_source(entry)
+            if source is None:
+                continue
+            credential = names_a_credential(source)
+            _emit(
+                found,
+                name="container.mount",
+                scope=handle.scope,
+                source=handle.display,
+                key="mounts",
+                resolution=Resolution.EFFECTIVE,
+                facts={
+                    "source": source,
+                    "credential": credential,
+                    "names_credential": credential is not None,
+                },
+                vendor=reading.vendor,
+            )
+
+        for key in ("privileged",):
+            if data.get(key) is True:
+                _emit(
+                    found, name="container.isolation", scope=handle.scope,
+                    source=handle.display, key=key, resolution=Resolution.EFFECTIVE,
+                    facts={"key": key, "value": True, "isolation_weakened": True},
+                    vendor=reading.vendor,
+                )
+        for key in ("capAdd", "securityOpt"):
+            entries = data.get(key)
+            for entry in entries if isinstance(entries, list) else []:
+                if not isinstance(entry, str):
+                    continue
+                _emit(
+                    found, name="container.isolation", scope=handle.scope,
+                    source=handle.display, key=key, resolution=Resolution.EFFECTIVE,
+                    facts={"key": key, "value": entry, "isolation_weakened": True},
+                    vendor=reading.vendor,
+                )
+
+        features = data.get("features")
+        for name in sorted(features) if isinstance(features, dict) else []:
+            # `pinned` follows the same reading as an npx launch: the `@` after
+            # the first character is the version. A feature is fetched at build
+            # time, so an unpinned one resolves to whatever is published then.
+            spelled = str(name)
+            _emit(
+                found, name="container.feature", scope=handle.scope,
+                source=handle.display, key="features", resolution=Resolution.EFFECTIVE,
+                facts={"feature": spelled, "pinned": "@" in spelled[1:]},
+                vendor=reading.vendor,
+            )
+
+    return Surface(
+        vendor=reading.vendor,
+        agent_version=None,
+        capabilities=tuple(found),
+        unresolved=tuple(reading.unresolved),
+        not_read=tuple(reading.not_read),
+    )
+
+
+def _codex_trust(reading: Any, scope: Scope) -> tuple[Resolution, str | None]:
+    """Codex's project layer waits on `projects.<path>.trust_level`.
+
+    Same shape as Claude Code's workspace trust and a different mechanism, so it
+    is written out rather than shared: the trust state lives in the user's own
+    config file, and a run that did not open it says so instead of assuming.
+    """
+    if scope not in REPOSITORY_SCOPES:
+        return Resolution.EFFECTIVE, None
+    if reading.trusted is True:
+        return Resolution.EFFECTIVE, None
+    if reading.trusted is False:
+        return Resolution.DECLARED, "this project's trust_level is `untrusted`, so the .codex/ layer is skipped"
+    return (
+        Resolution.DECLARED,
+        "the project .codex/ layer loads only when trusted, and no trust_level was read "
+        "(run with --machine to read ~/.codex/config.toml)",
+    )
+
+
+def _codex(reading: Any, *, agent_version: str | None = None,
+        with_content: bool = False) -> Surface:
+    """Codex CLI: hooks, MCP servers, `notify`, and the sandbox pair."""
+    from .codex import FULL_ACCESS, NEVER_ASKS, hook_command
+    from .codex import STARTUP_EVENTS as CODEX_STARTUP
+    from .codex import hook_handlers as codex_hooks
+
+    found: list[Capability] = []
+
+    for handle in reading.settings:
+        if not handle.ok:
+            continue
+        data = handle.data
+        resolution, condition = _codex_trust(reading, handle.scope)
+
+        for event, handler in codex_hooks(data):
+            command = hook_command(handler)
+            if command is None:
+                continue
+            facts: dict[str, Any] = {
+                "event": event,
+                "at_startup": event in CODEX_STARTUP,
+                "command_sha256": digest_of(command),
+            }
+            if isinstance(handler.get("matcher"), str):
+                facts["matcher"] = handler["matcher"]
+            if with_content:
+                facts["command"] = command
+            spoken = referenced_target(command)
+            facts["target"] = spoken
+            facts.update(_target_facts(reading, spoken))
+            _emit(
+                found, name="hook.command", scope=handle.scope, source=handle.display,
+                key="hooks", resolution=resolution, condition=condition, facts=facts,
+                vendor=reading.vendor,
+            )
+
+        notify = data.get("notify")
+        command = None
+        if isinstance(notify, list):
+            parts = [item for item in notify if isinstance(item, str)]
+            command = " ".join(parts) if parts else None
+        elif isinstance(notify, str):
+            command = notify
+        if command is not None:
+            facts = {"key": "notify", "command_sha256": digest_of(command)}
+            if with_content:
+                facts["command"] = command
+            _emit(
+                found, name="helper.command", scope=handle.scope, source=handle.display,
+                key="notify",
+                # `notify` is on the list of keys a project file cannot set, so a
+                # repository that sets one has declared something Codex ignores.
+                resolution=(
+                    Resolution.DECLARED if handle.scope in REPOSITORY_SCOPES
+                    else Resolution.EFFECTIVE
+                ),
+                condition=(
+                    "project-scoped config cannot override notification keys"
+                    if handle.scope in REPOSITORY_SCOPES else None
+                ),
+                facts=facts, vendor=reading.vendor,
+            )
+
+        mode = data.get("sandbox_mode")
+        if isinstance(mode, str):
+            _emit(
+                found, name="sandbox.mode", scope=handle.scope, source=handle.display,
+                key="sandbox_mode", resolution=Resolution.EFFECTIVE,
+                facts={"mode": mode, "guardrail_removed": mode == FULL_ACCESS},
+                vendor=reading.vendor,
+            )
+        policy = data.get("approval_policy")
+        if isinstance(policy, str):
+            _emit(
+                found, name="approval.policy", scope=handle.scope, source=handle.display,
+                key="approval_policy", resolution=Resolution.EFFECTIVE,
+                facts={"policy": policy, "guardrail_removed": policy == NEVER_ASKS},
+                vendor=reading.vendor,
+            )
+
+        servers = data.get("mcp_servers")
+        for name in sorted(servers) if isinstance(servers, dict) else []:
+            entry = servers[name]
+            if not isinstance(entry, dict):
+                continue
+            _emit(
+                found, name="mcp.server", scope=handle.scope, source=handle.display,
+                key="mcp_servers", resolution=resolution, condition=condition,
+                facts=_server_facts(name, entry, with_content=with_content),
+                vendor=reading.vendor,
+            )
+
+        if data.get("allow_managed_hooks_only") is True and handle.scope is Scope.MANAGED:
+            _emit(
+                found, name="policy.managed_hooks_only", scope=handle.scope,
+                source=handle.display, key="allow_managed_hooks_only",
+                resolution=Resolution.EFFECTIVE,
+                facts={"key": "allow_managed_hooks_only", "value": True},
+                vendor=reading.vendor,
+            )
+
+    return Surface(
+        vendor=reading.vendor,
+        agent_version=None,
+        capabilities=tuple(found),
+        unresolved=tuple(reading.unresolved),
+        not_read=tuple(reading.not_read),
+    )
+
+
+def _cursor(reading: Any, *, agent_version: str | None = None,
+        with_content: bool = False) -> Surface:
+    """Cursor: the hooks that are files, and the MCP servers beside them."""
+    from .cursor import STARTUP_EVENTS as CURSOR_STARTUP
+    from .cursor import hook_command, hook_entries
+
+    found: list[Capability] = []
+
+    for handle in reading.settings:
+        if not handle.ok:
+            continue
+        for event, entry in hook_entries(handle.data):
+            command = hook_command(entry)
+            if command is None:
+                continue
+            facts: dict[str, Any] = {
+                "event": event,
+                "at_startup": event in CURSOR_STARTUP,
+                "command_sha256": digest_of(command),
+            }
+            if with_content:
+                facts["command"] = command
+            spoken = referenced_target(command)
+            facts["target"] = spoken
+            facts.update(_target_facts(reading, spoken))
+            _emit(
+                found, name="hook.command", scope=handle.scope, source=handle.display,
+                key="hooks", resolution=Resolution.EFFECTIVE,
+                condition=(
+                    "an enterprise or team hook outranks this one, and the team level is "
+                    "not a file"
+                    if handle.scope in REPOSITORY_SCOPES else None
+                ),
+                facts=facts, vendor=reading.vendor,
+            )
+
+    for handle in reading.mcp_files:
+        if not handle.ok:
+            continue
+        servers = handle.data.get("mcpServers")
+        for name in sorted(servers) if isinstance(servers, dict) else []:
+            entry = servers[name]
+            if not isinstance(entry, dict):
+                continue
+            _emit(
+                found, name="mcp.server", scope=handle.scope, source=handle.display,
+                key="mcpServers", resolution=Resolution.EFFECTIVE,
+                facts=_server_facts(name, entry, with_content=with_content),
+                vendor=reading.vendor,
+            )
+
+    return Surface(
+        vendor=reading.vendor,
+        agent_version=None,
+        capabilities=tuple(found),
+        unresolved=tuple(reading.unresolved),
+        not_read=tuple(reading.not_read),
+    )
+
+
+def _gemini(reading: Any, *, agent_version: str | None = None,
+        with_content: bool = False) -> Surface:
+    """Gemini CLI: MCP servers with their `trust` flag, and the two tool commands."""
+    from .gemini import AUTO_EDIT, dig
+    from .gemini import COMMAND_KEYS as GEMINI_KEYS
+    from .gemini import LEGACY_COMMAND_KEYS as LEGACY_KEYS
+
+    found: list[Capability] = []
+
+    for handle in reading.settings:
+        if not handle.ok:
+            continue
+        data = handle.data
+        servers = dig(data, "mcpServers")
+        for name in sorted(servers) if isinstance(servers, dict) else []:
+            entry = servers[name]
+            if not isinstance(entry, dict):
+                continue
+            facts = _server_facts(name, entry, with_content=with_content)
+            # Gemini's own key, and the reason this vendor's servers are worth
+            # reading separately: one boolean removes every confirmation for
+            # one server's tools.
+            facts["trusted_by_config"] = entry.get("trust") is True
+            if isinstance(entry.get("httpUrl"), str):
+                facts["remote"] = True
+                facts["host"] = _host(entry["httpUrl"])
+                facts["loopback"] = _is_loopback(facts["host"])
+                facts["url_sha256"] = digest_of(entry["httpUrl"])
+            _emit(
+                found, name="mcp.server", scope=handle.scope, source=handle.display,
+                key="mcpServers", resolution=Resolution.EFFECTIVE, facts=facts,
+                vendor=reading.vendor,
+            )
+
+        for key in (*GEMINI_KEYS, *LEGACY_KEYS):
+            command = dig(data, key)
+            if not isinstance(command, str):
+                continue
+            legacy = key in LEGACY_KEYS
+            facts = {
+                "key": key,
+                "command_sha256": digest_of(command),
+                "spelling": "v1" if legacy else "current",
+            }
+            if with_content:
+                facts["command"] = command
+            spoken = referenced_target(command)
+            facts["target"] = spoken
+            facts.update(_target_facts(reading, spoken))
+            _emit(
+                found, name="helper.command", scope=handle.scope, source=handle.display,
+                key=LEGACY_KEYS.get(key, key),
+                # D-291. The v1 spelling is read and NOT resolved: the current
+                # schema publishes only the nested name, and whether this
+                # release still migrates the flat one is not something the
+                # vendor publishes. Answering either way would invent it.
+                resolution=Resolution.INDETERMINATE if legacy else Resolution.EFFECTIVE,
+                condition=(
+                    f"`{key}` is the v1 spelling of `{LEGACY_KEYS[key]}`; the current "
+                    "settings schema publishes only the nested name, and whether this "
+                    "agent version still reads the flat one is unknown "
+                    "(published limit 13)"
+                    if legacy else None
+                ),
+                facts=facts,
+                vendor=reading.vendor,
+            )
+
+        mode = dig(data, "general.defaultApprovalMode")
+        if isinstance(mode, str):
+            _emit(
+                found, name="approval.policy", scope=handle.scope, source=handle.display,
+                key="*", resolution=Resolution.EFFECTIVE,
+                # `guardrail_removed`, the same fact name Codex's two keys carry,
+                # because it is the same statement. `plan` is read-only and so is
+                # a tightening; only `auto_edit` stops the agent asking.
+                facts={"policy": mode, "guardrail_removed": mode == AUTO_EDIT},
+                vendor=reading.vendor,
+            )
+
+    return Surface(
+        vendor=reading.vendor,
+        agent_version=None,
+        capabilities=tuple(found),
+        unresolved=tuple(reading.unresolved),
+        not_read=tuple(reading.not_read),
+    )
+
+
+def _instructions(reading: Any, *, agent_version: str | None = None,
+        with_content: bool = False) -> Surface:
+    """The three structural facts about an instructions file, and no fourth.
+
+    Nothing here looks at what the file MEANS. An import is a path, a piped
+    download is a literal string, and a referenced script gets the same four
+    facts a hook's target gets. `test_surface_instructions` asserts that a
+    document telling the agent to ignore its instructions produces nothing,
+    because classifying that sentence is the second negative.
+    """
+    from .instructions import outside_tree
+
+    found: list[Capability] = []
+
+    for handle in reading.settings:
+        if not handle.ok:
+            continue
+        data = handle.data
+        name = data["file"]
+        for spoken in data["imports"]:
+            outside = outside_tree(reading.root, spoken)
+            facts: dict[str, Any] = {
+                "file": name,
+                "documented_by": data["documented_by"],
+                "path": spoken,
+                "outside_tree": outside,
+                "is_script": _looks_like_a_script(spoken),
+            }
+            facts.update(_target_facts(reading, spoken))
+            _emit(
+                found,
+                name="instructions.import",
+                scope=handle.scope,
+                source=handle.display,
+                key="import",
+                resolution=Resolution.DECLARED if outside else Resolution.EFFECTIVE,
+                condition=(
+                    "an import that resolves outside the working directory waits for a "
+                    "one-time approval dialog the first time it is met"
+                    if outside else None
+                ),
+                facts=facts,
+                vendor=reading.vendor,
+            )
+        for line in data["piped_download_lines"]:
+            _emit(
+                found,
+                name="instructions.remote_execution",
+                scope=handle.scope,
+                source=handle.display,
+                key="import.syntax",
+                resolution=Resolution.DECLARED,
+                condition=(
+                    "the file declares it; whether anybody runs it is not something a "
+                    "configuration reader can see (published limit 11)"
+                ),
+                facts={
+                    "file": name,
+                    "documented_by": data["documented_by"],
+                    "line": line,
+                    "literal_remote_execution": True,
+                },
+                vendor=reading.vendor,
+            )
+
+    return Surface(
+        vendor=reading.vendor,
+        agent_version=None,
+        capabilities=tuple(found),
+        unresolved=tuple(reading.unresolved),
+        not_read=tuple(reading.not_read),
+    )
+
+
+def _looks_like_a_script(spoken: str) -> bool:
+    from .claude_code import SCRIPT_SUFFIXES
+
+    return spoken.lower().endswith(SCRIPT_SUFFIXES)
+
+
+def _server_facts(name: str, entry: dict[str, Any], *, with_content: bool) -> dict[str, Any]:
+    """The facts every vendor's MCP server entry carries, in one place.
+
+    One function and not five copies, because "unpinned" and "remote" mean the
+    same thing in every vendor's file even though the surrounding key names
+    differ - and five copies is five places for the reading to drift. What does
+    NOT move here is the merge rule or the scope: those are per vendor, and they
+    are supplied by the caller.
+    """
+    transport = entry.get("type") or ("http" if entry.get("url") or entry.get("httpUrl") else "stdio")
+    facts: dict[str, Any] = {
+        "server": name,
+        "transport": str(transport),
+        "pinned": None,
+        "loopback": None,
+    }
+    if isinstance(entry.get("command"), str):
+        launcher = entry["command"].replace("\\", "/").rsplit("/", 1)[-1]
+        arguments = [item for item in (entry.get("args") or []) if isinstance(item, str)]
+        facts["launcher"] = launcher
+        facts["pinned"] = _pinned(launcher, arguments)
+        facts["args_sha256"] = digest_of(" ".join(arguments))
+        if with_content:
+            facts["args"] = arguments
+    url = entry.get("url") if isinstance(entry.get("url"), str) else entry.get("httpUrl")
+    if isinstance(url, str):
+        facts["host"] = _host(url)
+        facts["loopback"] = _is_loopback(facts["host"])
+        facts["url_sha256"] = digest_of(url)
+        if with_content:
+            facts["url"] = url
+    facts["remote"] = str(transport).lower() in REMOTE_TRANSPORTS
+    return facts
+
+
+# The capabilities this package emits ON PURPOSE with no rule naming them, and
+# why each one.
+#
+# Design note D-292. `tests/test_capability_coverage.py` fails on any (vendor,
+# capability) pair the resolvers can emit that no rule names and that is not
+# here with a reason. The invariant it enforces is not "there are thirty-two
+# rules" - the rule count is a budget, and fifteen or thirty-one would serve
+# equally - it is that this tree must not EMIT something nobody names. A
+# capability in a report that no rule can ever fire on is a line a reader cannot
+# act on and cannot appeal, which is the shape of a tool that publishes noise.
+#
+# This is a list of exceptions, and CLAUDE.md is right that a list satisfied by
+# adding a line is kept by whoever declines to add one. Three things make this
+# one cost something instead. A reason is required and is prose, so writing one
+# means arguing it. A stale entry FAILS - an entry naming a capability nothing
+# emits any more is a defect, not a leftover - so the list cannot silently
+# outlive what it excuses. And the test plants a capability with no rule and
+# requires the failure, so the guard cannot rot into a no-op.
+#
+# What is NOT an acceptable reason, stated so the next person has to look at it:
+# "no rule yet". That is a rule somebody has not written, and it belongs in
+# `docs/BACKLOG.md` with a phase, not here. Every entry below says why naming
+# the capability would be wrong, not why it has not happened.
+EMITTED_WITHOUT_A_RULE: dict[tuple[str, str], str] = {
+    ("vscode", "settings.ignored_key"): (
+        "This capability exists BECAUSE the vendor ignores the key. VS Code does not "
+        "take an APPLICATION-scoped setting from a workspace file, so the repository "
+        "has granted nothing and there is nothing for a rule to name. It is reported "
+        "so a reader sees that somebody tried, which is a fact about intent that "
+        "belongs in the surface and not in a finding."
+    ),
+    ("codex", "helper.command"): (
+        "`notify` is on the list of keys the reference says a project-scoped config "
+        "cannot override, so a repository that sets one has not set it - the "
+        "capability is emitted DECLARED with that condition. In the user scope it is "
+        "the operator's own command on their own machine. There is no scope in which "
+        "a REPOSITORY grants this, which is the only thing a rule here could report."
+    ),
+    ("codex", "policy.managed_hooks_only"): (
+        "A hardening, and the only one this tree reads. An administrator setting "
+        "`allow_managed_hooks_only` in `requirements.toml` makes Codex skip user, "
+        "project, session and plugin hooks. Naming it would be reporting somebody for "
+        "locking their fleet down; it is emitted so the surface shows WHY a "
+        "repository's hooks may not apply."
+    ),
+    ("gemini-cli", "helper.command"): (
+        "No real violating configuration exists to test a rule against. `tools."
+        "discoveryCommand` and `tools.callCommand` do run a command from a project "
+        "file that overrides the user's, so a rule would be justified in principle - "
+        "but five recorded searches on 2026-09-18 parsed 56 distinct public "
+        "`.gemini/settings.json` files and not one set either key in the spelling the "
+        "current schema publishes. CLAUDE.md's standard is that a rule arrives with a "
+        "real violating case; writing one against a fixture we wrote ourselves would "
+        "prove only that we can write the fixture. The capability is emitted, so "
+        "nothing is hidden, and the rule waits for a case. The two repositories that "
+        "DO set a tool command use the v1 flat spelling and come back INDETERMINATE "
+        "(D-291), so they would not have exercised a rule either."
+    ),
+}
+
+
+def vendor_registry() -> tuple[tuple[str, Any, Any], ...]:
+    """(vendor, reader module, resolver), built on demand rather than at import.
+
+    On demand because `cli.py` imports this module for `MERGE_TABLE` alone in
+    some paths, and importing six readers to print a table is work nobody asked
+    for. The tuple is rebuilt each call and is small; the cost is nothing beside
+    the disk reads that follow it.
+    """
+    from . import claude_code as claude_code_mod
+    from . import codex as codex_mod
+    from . import cursor as cursor_mod
+    from . import devcontainer as devcontainer_mod
+    from . import gemini as gemini_mod
+    from . import instructions as instructions_mod
+    from . import vscode as vscode_mod
+
+    return (
+        (claude_code_mod.VENDOR, claude_code_mod, _claude_code_surface),
+        (codex_mod.VENDOR, codex_mod, _codex),
+        (cursor_mod.VENDOR, cursor_mod, _cursor),
+        (devcontainer_mod.VENDOR, devcontainer_mod, _devcontainer),
+        (gemini_mod.VENDOR, gemini_mod, _gemini),
+        (instructions_mod.VENDOR, instructions_mod, _instructions),
+        (vscode_mod.VENDOR, vscode_mod, _vscode),
+    )
+
+
+def _claude_code_surface(reading: Any, *, agent_version: str | None = None,
+                         with_content: bool = False) -> Surface:
+    """`resolve` under the signature every other resolver has.
+
+    An adapter and not a rename: `resolve` is phase S1's published entry point,
+    `tests/test_surface.py` calls it by that name, and a registry that needed
+    one vendor spelled differently from the other six is a registry with an
+    exception in it.
+    """
+    return resolve(reading, agent_version=agent_version, with_content=with_content)
+
+
 __all__ = [
     "BYPASS_NEEDS_USER_SCOPE_FROM",
+    "EMITTED_WITHOUT_A_RULE",
     "CONSULTED",
     "Kind",
     "MERGE_TABLE",
+    "MERGE_TABLES",
     "MergeRow",
     "NotRead",
     "parse_version",
     "resolve",
     "row_for",
     "rule_name",
+    "vendor_registry",
 ]

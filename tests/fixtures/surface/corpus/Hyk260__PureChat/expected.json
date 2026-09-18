@@ -1,0 +1,14 @@
+{
+  "cursor": {
+    "capabilities": {
+      "mcp.server": "effective"
+    },
+    "capability_count": 1,
+    "not_read": [
+      "Cursor team hooks",
+      "~/.cursor/hooks.json, ~/.cursor/mcp.json and the enterprise hooks.json"
+    ],
+    "rules_that_fire": [],
+    "unresolved_count": 1
+  }
+}

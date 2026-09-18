@@ -1,0 +1,8 @@
+{
+  "commit": "a7c898548b980ac5cd68f952e235294fe308c79a",
+  "files": {
+    ".codex/hooks.json": "8c1482ec95738cb82dab6c67ab1b94ff706ca2f0"
+  },
+  "licence": "apache-2.0",
+  "repo": "https://github.com/clidey/whodb"
+}

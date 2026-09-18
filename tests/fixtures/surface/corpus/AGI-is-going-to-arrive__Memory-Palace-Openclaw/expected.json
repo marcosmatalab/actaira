@@ -1,0 +1,18 @@
+{
+  "claude-code": {
+    "capabilities": {
+      "hook.command": "effective",
+      "hook.mcp_tool": "effective"
+    },
+    "capability_count": 4,
+    "not_read": [
+      "~/.claude/settings.json and the managed policy"
+    ],
+    "rules_that_fire": [
+      "ACT-S003",
+      "ACT-S005",
+      "ACT-S032"
+    ],
+    "unresolved_count": 0
+  }
+}

@@ -1,0 +1,260 @@
+"""Read Codex CLI's TOML configuration, its hooks and its managed layers.
+
+TOML, with `tomllib` from the standard library, the same reader the rule packs
+use. Nothing is added to `pyproject.toml` for this.
+
+Design note D-284. Codex is the vendor whose project scope has a documented
+switch attached: "Project-local hooks load only when the project `.codex/` layer
+is trusted", and `projects.<path>.trust_level` is what says whether it is.
+So a hook committed to `.codex/` is DECLARED until that trust level is read, and
+the trust level lives in the USER's config file - which `check` does not open
+without `--machine`. That is the same shape as Claude Code's workspace trust and
+it resolves the same way: a repository scope with no readable trust state is
+declared, never effective, and never dismissed as absent.
+
+The managed layer is where this vendor earns published limit 12 twice over. A
+requirement can arrive as `/etc/codex/requirements.toml`, as a macOS MDM
+preference under `com.openai.codex`, or "delivered in the cloud config bundle".
+The first is a file. The second and third leave nothing on disk, so they are
+reported as INDETERMINATE with the cause named rather than as absence - which
+matters because `allow_managed_hooks_only` is exactly the kind of key an
+administrator sets through one of them, and reporting "no managed policy" about
+a machine that has one through MDM would be a wrong answer with no warning.
+"""
+from __future__ import annotations
+
+import os
+import tomllib
+from pathlib import Path
+from typing import Any
+
+from . import NotRead, Scope, Unresolved
+from .claude_code import (
+    Reading,
+    SettingsFile,
+    git_tracked,
+    read_text,
+    referenced_path,
+    script_facts,
+)
+from .jsonc import JsoncError
+from .jsonc import loads as jsonc_loads
+
+VENDOR = "codex"
+
+# Hook events that fire without the operator asking for anything. Same argument
+# as `claude_code.STARTUP_EVENTS`: opening a session is not a decision to run
+# code, and a detector written for one event is a detector for one attack.
+STARTUP_EVENTS = ("SessionStart", "SessionEnd")
+
+# Keys whose value is a command Codex runs. Each confirmed against the
+# configuration reference's own description of the key, never by its name.
+COMMAND_KEYS = ("notify",)
+
+# The sandbox mode that turns the sandbox off, spelled as the reference spells
+# it, and the approval policy that stops asking.
+FULL_ACCESS = "danger-full-access"
+NEVER_ASKS = "never"
+
+
+def read_toml(scope: Scope, path: Path, display: str) -> SettingsFile:
+    """One TOML file, or a stated cause. Never an empty table."""
+    if not path.is_file():
+        return SettingsFile(scope, path, display, problem="absent")
+    text, problem = read_text(path)
+    if text is None:
+        return SettingsFile(scope, path, display, problem=problem)
+    try:
+        parsed = tomllib.loads(text)
+    except tomllib.TOMLDecodeError as exc:
+        return SettingsFile(scope, path, display, problem=f"invalid TOML: {exc}")
+    return SettingsFile(scope, path, display, data=parsed)
+
+
+def managed_paths() -> tuple[Path, ...]:
+    """`managed_config.toml` and `requirements.toml`, per operating system."""
+    if os.name == "nt":
+        program_data = Path(os.environ.get("ProgramData", "C:/ProgramData"))
+        return (_codex_home() / "managed_config.toml", program_data / "OpenAI" / "Codex" / "requirements.toml")
+    return (Path("/etc/codex/managed_config.toml"), Path("/etc/codex/requirements.toml"))
+
+
+def _codex_home(home: Path | None = None) -> Path:
+    configured = os.environ.get("CODEX_HOME")
+    if configured:
+        return Path(configured)
+    base = home if home is not None else _home()
+    return base / ".codex"
+
+
+def _home() -> Path:
+    try:
+        return Path.home()
+    except (RuntimeError, OSError):
+        return Path(".")
+
+
+def hook_handlers(data: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
+    """(event, handler) for every hook in a `[hooks]` table or a `hooks.json`.
+
+    Both spellings, because the documentation offers both: "Codex can also load
+    lifecycle hooks from either `hooks.json` files or inline `[hooks]` tables in
+    `config.toml` files." The two produce the same shape once parsed, so they
+    are walked by one function and the finding does not depend on which file the
+    author chose.
+
+    Shape-tolerant at every level, for the reason `claude_code.hook_handlers`
+    is: this document came from whoever opened the pull request.
+    """
+    found: list[tuple[str, dict[str, Any]]] = []
+    hooks = data.get("hooks")
+    if not isinstance(hooks, dict):
+        return found
+    for event, matchers in hooks.items():
+        if not isinstance(matchers, list):
+            continue
+        for matcher in matchers:
+            if not isinstance(matcher, dict):
+                continue
+            handlers = matcher.get("hooks")
+            if not isinstance(handlers, list):
+                continue
+            for handler in handlers:
+                if isinstance(handler, dict):
+                    found.append((str(event), handler))
+    return found
+
+
+def hook_command(handler: dict[str, Any]) -> str | None:
+    """The command a Codex hook runs, with its `args` kept out of the digest."""
+    if handler.get("type") != "command":
+        return None
+    command = handler.get("command")
+    return command if isinstance(command, str) else None
+
+
+def trust_level(data: dict[str, Any], root: Path) -> str | None:
+    """`projects.<path>.trust_level` for this root, or None if nothing says.
+
+    Both the path as given and its resolved form are looked up, because a
+    config file written on the machine names the directory the way the person
+    typed it and `check` may have been handed either.
+    """
+    projects = data.get("projects")
+    if not isinstance(projects, dict):
+        return None
+    for candidate in (str(root), str(root.resolve())):
+        entry = projects.get(candidate)
+        if isinstance(entry, dict) and isinstance(entry.get("trust_level"), str):
+            return entry["trust_level"]
+    return None
+
+
+def read(root: Path, *, machine: bool = False, home: Path | None = None) -> Reading:
+    """`.codex/` here, plus the user and managed layers when `--machine` says so."""
+    root = Path(root)
+    tracked, tracked_problem = git_tracked(root)
+    settings: list[SettingsFile] = []
+    unresolved: list[Unresolved] = []
+    not_read: list[NotRead] = []
+
+    settings.append(read_toml(Scope.PROJECT, root / ".codex" / "config.toml", ".codex/config.toml"))
+    hooks_file = root / ".codex" / "hooks.json"
+    if hooks_file.is_file():
+        text, problem = read_text(hooks_file)
+        if text is None:
+            unresolved.append(Unresolved(".codex/hooks.json", problem or "unreadable", ".codex/hooks.json"))
+        else:
+            try:
+                parsed = jsonc_loads(text)
+            except JsoncError as exc:
+                unresolved.append(
+                    Unresolved(".codex/hooks.json", f"invalid JSON: {exc}", ".codex/hooks.json")
+                )
+            else:
+                if isinstance(parsed, dict):
+                    settings.append(
+                        SettingsFile(
+                            Scope.PROJECT, hooks_file, ".codex/hooks.json",
+                            data={"hooks": parsed.get("hooks", parsed)},
+                        )
+                    )
+
+    trusted: bool | None = None
+    if machine:
+        base = _codex_home(home)
+        user = read_toml(Scope.USER, base / "config.toml", "~/.codex/config.toml")
+        settings.append(user)
+        if user.ok:
+            assert user.data is not None
+            level = trust_level(user.data, root)
+            if level is not None:
+                trusted = level == "trusted"
+        for path in managed_paths():
+            settings.append(read_toml(Scope.MANAGED, path, str(path)))
+        not_read.append(
+            NotRead(
+                "the macOS MDM preference domain com.openai.codex and the cloud config bundle",
+                "a managed requirement delivered by MDM or in the cloud bundle leaves no file, "
+                "so a reader of files cannot see it (published limit 12)",
+            )
+        )
+    else:
+        not_read.append(
+            NotRead(
+                "~/.codex/config.toml and the managed layers",
+                "not read without --machine, and the project trust_level that decides whether "
+                "the .codex/ layer loads is in the first of them",
+            )
+        )
+
+    for handle in settings:
+        if handle.problem and handle.problem != "absent":
+            unresolved.append(Unresolved(handle.display, handle.problem, handle.display))
+
+    scripts: dict[str, dict[str, Any]] = {}
+    for handle in settings:
+        if not handle.ok:
+            continue
+        assert handle.data is not None
+        commands = [
+            command
+            for _event, handler in hook_handlers(handle.data)
+            if (command := hook_command(handler)) is not None
+        ]
+        notify = handle.data.get("notify")
+        if isinstance(notify, list):
+            parts = [item for item in notify if isinstance(item, str)]
+            if parts:
+                commands.append(" ".join(parts))
+        elif isinstance(notify, str):
+            commands.append(notify)
+        for command in commands:
+            spoken = referenced_path(command)
+            if spoken is not None and spoken not in scripts:
+                scripts[spoken] = script_facts(root, spoken, tracked, tracked_problem)
+
+    return Reading(
+        vendor=VENDOR,
+        root=root,
+        settings=tuple(settings),
+        unresolved=tuple(unresolved),
+        not_read=tuple(not_read),
+        trusted=trusted,
+        scripts=scripts,
+    )
+
+
+__all__ = [
+    "COMMAND_KEYS",
+    "FULL_ACCESS",
+    "NEVER_ASKS",
+    "STARTUP_EVENTS",
+    "VENDOR",
+    "hook_command",
+    "hook_handlers",
+    "managed_paths",
+    "read",
+    "read_toml",
+    "trust_level",
+]

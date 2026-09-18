@@ -1,0 +1,13 @@
+{
+  "vscode": {
+    "capabilities": {
+      "task.command": "indeterminate"
+    },
+    "capability_count": 7,
+    "not_read": [
+      "the user's own VS Code settings.json"
+    ],
+    "rules_that_fire": [],
+    "unresolved_count": 7
+  }
+}

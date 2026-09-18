@@ -33,21 +33,22 @@ not block.
 Actaira claims exactly three things and nothing else. Anything outside those
 three is a product defect, even when it is true.
 
-**None of the three is built.** They are stated here anyway, in the place a
-finished product would be described, because the alternative is a page that
-describes an intention in the present tense - which is the defect this project
-spent phase A.1 removing rather than a habit it kept. What the tree can do
-today is further down, under [the four commands](#the-four-commands).
+**The first of the three is built; the other two are not.** Each block below
+says which, because the alternative is a page that describes an intention in
+the present tense - the defect this project spent phase A.1 removing rather
+than a habit it kept. What the tree can do today is further down, under
+[the four commands](#the-four-commands).
 
 **1. Surface** - what an agent can do in this repository or on this machine,
 resolved across scopes and vendors. Every capability cites the file it came
 from, the documented merge rule that resolved it, with the URL and version of
 the vendor documentation that states it, and the Actaira rule that names it.
 
-> **Does not exist.** No reader, no resolver and no rule package in this tree.
-> `actaira check` arrives in phase S1, for Claude Code and its four scopes;
-> phase S2 adds Codex, Cursor, Gemini CLI, the VS Code task file, the
-> devcontainer and AGENTS.md.
+> **Built.** `actaira check` reads Claude Code, Codex CLI, Cursor, Gemini CLI,
+> the VS Code task and settings files, `devcontainer.json`, and the AGENTS.md /
+> CLAUDE.md / GEMINI.md instruction files. Each vendor is resolved against its
+> own documented precedence, and the repository's surface is the union of the
+> seven - never a merge of them.
 
 **2. Change** - which capability appears, disappears, widens or narrows between
 two moments.
@@ -133,9 +134,22 @@ exists in the parser nor says when it will.
 ### `actaira check` - what an agent can do here
 
 `check` reads the agent configuration in this repository, resolves what it
-actually permits across scopes, and applies the rule packs. It reads Claude Code
-today; the other vendors arrive in phase S2 and until then every one of their
-files that is on disk is printed in the report's "not read" list.
+actually permits across scopes and across vendors, and applies the rule packs.
+It reads Claude Code, Codex CLI, Cursor, Gemini CLI, `.vscode/tasks.json` and
+`.vscode/settings.json`, `devcontainer.json`, and the AGENTS.md, CLAUDE.md and
+GEMINI.md instruction files.
+
+Each vendor is resolved against the precedence its own documentation publishes,
+because those ladders disagree: Claude Code puts the user's file above the
+project's, Gemini CLI puts the project's above the user's, and VS Code puts the
+workspace above both. A repository's surface is therefore the UNION of the seven
+per-vendor surfaces, and two vendors configuring the same MCP server are two
+capabilities with the same digest rather than one row belonging to neither.
+
+What still is not read is printed, not skipped - including the two scopes that
+never leave a file at all: Cursor's team hooks, configured in a dashboard and
+synced to members, and Codex's MDM and cloud-delivered requirements. Those are
+INDETERMINATE with the cause named, never reported as absent.
 
 ```
 actaira check                                   # this repository
@@ -382,7 +396,7 @@ that drifted from what the code measures, a design note pointing at a line that
 does not argue it, a schema version written in two places, a document naming a
 test that no longer exists.
 
-1,819 tests over 28,056 lines of Python run on every commit, and both figures are
+2,216 tests over 33,038 lines of Python run on every commit, and both figures are
 measured by `make figures` rather than typed: the gate refuses a tree where a
 number in this file disagrees with what the code reports.
 

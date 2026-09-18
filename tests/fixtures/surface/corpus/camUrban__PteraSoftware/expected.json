@@ -1,12 +1,14 @@
 {
-  "capabilities": {
-    "permissions.allow": "declared",
-    "sandbox.network_domain": "effective"
-  },
-  "capability_count": 39,
-  "not_read": [
-    "~/.claude/settings.json and the managed policy"
-  ],
-  "rules_that_fire": [],
-  "unresolved_count": 5
+  "claude-code": {
+    "capabilities": {
+      "permissions.allow": "declared",
+      "sandbox.network_domain": "effective"
+    },
+    "capability_count": 39,
+    "not_read": [
+      "~/.claude/settings.json and the managed policy"
+    ],
+    "rules_that_fire": [],
+    "unresolved_count": 5
+  }
 }

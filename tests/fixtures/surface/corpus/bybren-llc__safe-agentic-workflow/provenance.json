@@ -1,0 +1,9 @@
+{
+  "commit": "26ca58bbf16bd050cebcecb541712e09cf7aa992",
+  "files": {
+    ".cursor/mcp.json": "1977475166ca871b70be829c6343f11a08ef41a1",
+    ".gemini/settings.json": "92cee465537d5d944788076e61d4016105ac99a9"
+  },
+  "licence": "mit",
+  "repo": "https://github.com/bybren-llc/safe-agentic-workflow"
+}

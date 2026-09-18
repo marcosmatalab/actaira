@@ -1,0 +1,18 @@
+{
+  "codex": {
+    "capabilities": {
+      "approval.policy": "effective",
+      "helper.command": "declared",
+      "mcp.server": "declared",
+      "sandbox.mode": "effective"
+    },
+    "capability_count": 9,
+    "not_read": [
+      "~/.codex/config.toml and the managed layers"
+    ],
+    "rules_that_fire": [
+      "ACT-S023"
+    ],
+    "unresolved_count": 0
+  }
+}

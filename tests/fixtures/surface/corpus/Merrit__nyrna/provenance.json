@@ -1,0 +1,9 @@
+{
+  "commit": "c395aae61d61da3ffefc9fc27f50f87a38b07913",
+  "files": {
+    ".devcontainer/devcontainer.json": "bb3745147916123e673fa38beac8baefda0a5ea2",
+    ".vscode/tasks.json": "e14eaa7804b913ab14f02897d7707171a5fdd3c8"
+  },
+  "licence": "gpl-3.0",
+  "repo": "https://github.com/Merrit/nyrna"
+}

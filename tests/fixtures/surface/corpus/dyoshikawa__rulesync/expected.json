@@ -1,0 +1,31 @@
+{
+  "claude-code": {
+    "capabilities": {
+      "helper.command": "effective",
+      "hook.command": "effective",
+      "permissions.default_mode": "declared",
+      "sandbox.excluded_command": "effective"
+    },
+    "capability_count": 5,
+    "not_read": [
+      "~/.claude/settings.json and the managed policy"
+    ],
+    "rules_that_fire": [
+      "ACT-S001",
+      "ACT-S006",
+      "ACT-S007"
+    ],
+    "unresolved_count": 5
+  },
+  "codex": {
+    "capabilities": {
+      "approval.policy": "effective"
+    },
+    "capability_count": 1,
+    "not_read": [
+      "~/.codex/config.toml and the managed layers"
+    ],
+    "rules_that_fire": [],
+    "unresolved_count": 0
+  }
+}

@@ -32,7 +32,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from . import NotRead, Scope, Unresolved
+from . import NotRead, Scope, Unresolved, miniyaml
 
 # Ceilings, applied before a read rather than after. The numbers are generous
 # for a real settings file and cheap for a hostile one; each is a deliberate
@@ -50,19 +50,22 @@ PROJECT_SETTINGS = (
     (Scope.PROJECT, ".claude/settings.json"),
 )
 
-# Seen and not read by THIS release, each with the phase that reads it. A file
-# in this list is reported, never skipped: silence about `.vscode/tasks.json`
-# would read as absence, and the second half of both 2026 worms lives there.
-NOT_READ_IN_S1 = (
-    (".vscode/tasks.json", "vscode-tasks"),
-    (".vscode/settings.json", "vscode-settings"),
-    (".codex", "codex"),
-    (".cursor", "cursor"),
-    (".cursorrules", "cursor"),
-    (".gemini", "gemini-cli"),
-    (".devcontainer", "devcontainer"),
-    ("AGENTS.md", "agents-md"),
-    ("CLAUDE.md", "claude-md"),
+# Seen and not read, each with a live reason. Phase S1's entries were the six
+# vendors it deferred; phase S2 reads all of them, so what is left is what is
+# still genuinely unread by ANY reader in this tree. A file in this list is
+# reported, never skipped: silence reads as absence, and absence is the one
+# thing a configuration reader must not imply.
+#
+# `.cursorrules` is the legacy spelling of Cursor's rules file. The rules pages
+# document `.cursor/rules/*.mdc` and `AGENTS.md` and do not describe
+# `.cursorrules`, so this release names it rather than guessing at a format the
+# vendor no longer publishes.
+NOT_READ_IN_S2 = (
+    (".cursorrules", "the legacy Cursor rules file; the current documentation describes "
+                     ".cursor/rules/ and AGENTS.md instead, so its format is not read here"),
+    (".cursor/rules", "Cursor project rules carry instructions rather than capabilities; "
+                      "the structural rules of this release read AGENTS.md and CLAUDE.md"),
+    (".github/copilot-instructions.md", "no vendor read by this release documents loading it"),
 )
 
 # Settings keys that run a command, confirmed one by one against the "executes a
@@ -83,6 +86,20 @@ COMMAND_KEYS = (
 # used; the others are here because the same argument covers them, and a
 # detector written for one event is a detector for one attack.
 STARTUP_EVENTS = ("SessionStart", "Setup", "InstructionsLoaded", "ConfigChange")
+
+# The handler types the hooks reference documents, and the only ones that may
+# become a capability name.
+#
+# Design note D-290. `hook.{type}` used to be built from the `type` string in the
+# file, so a settings file containing `"type": "totally-made-up"` produced the
+# capability `hook.totally-made-up` - the audited repository choosing a name in
+# Actaira's own vocabulary. Two things were wrong with that. A document's
+# vocabulary has to be ours or it is not a contract, and no rule can ever name a
+# capability whose spelling the input invents, so such a hook was reported and
+# unrulable at the same time. An unknown type is now INDETERMINATE with the type
+# it carried as its cause, which is the honest answer: something is configured
+# there and this release does not know what it is.
+HANDLER_TYPES = ("command", "http", "mcp_tool")
 
 
 # ---------------------------------------------------------------------------
@@ -483,6 +500,24 @@ def frontmatter_files(root: Path) -> tuple[list[Path], list[NotRead]]:
     return found, capped
 
 
+def frontmatter_block(text: str) -> str | None:
+    """The YAML between the opening `---` and the next one, or None.
+
+    None when the file has no frontmatter at all, which is the ordinary case for
+    a skill that is prose. A document that opens a block and never closes it is
+    also None rather than an error: an unterminated `---` is not frontmatter, and
+    reporting a gap about every markdown file that starts with a horizontal rule
+    would bury the gaps that matter.
+    """
+    if not text.startswith("---"):
+        return None
+    rest = text[3:]
+    if rest[:1] not in ("\n", "\r"):
+        return None
+    end = rest.find("\n---")
+    return rest[:end] if end != -1 else None
+
+
 def read(
     root: Path, *, machine: bool = False, home: Path | None = None
 ) -> Reading:
@@ -538,21 +573,31 @@ def read(
             )
 
     # The four facts about every script any of those files points at.
+    #
+    # Both lists, which is the phase S1 defect this closes. A downloaded
+    # plugin's `hooks/hooks.json` was appended to `mcp_files`, and this walk
+    # only visited `settings` - so ACT-S003, ACT-S004 and ACT-S005 answered
+    # INDETERMINATE about a plugin hook whose target was on disk all along.
+    # Honest and incomplete is still incomplete.
     scripts: dict[str, dict[str, Any]] = {}
-    for handle in settings:
-        if not handle.ok:
-            continue
-        assert handle.data is not None
-        for command in command_strings(handle.data):
-            spoken = referenced_path(command)
-            if spoken is None:
+
+    def note_scripts(handles: list[SettingsFile]) -> None:
+        for handle in handles:
+            if not handle.ok:
                 continue
-            if spoken not in scripts:
+            assert handle.data is not None
+            for command in command_strings(handle.data):
+                spoken = referenced_path(command)
+                if spoken is None or spoken in scripts:
+                    continue
                 scripts[spoken] = script_facts(root, spoken, tracked, tracked_problem)
 
-    # Frontmatter. There is no YAML reader in this tree - `miniyaml` left in
-    # phase A and no dependency is being added for it - so a definition whose
-    # frontmatter carries a `hooks` key is named as a gap rather than parsed.
+    note_scripts(settings)
+
+    # Frontmatter. Phase S1 had no YAML reader and named every definition as a
+    # gap; `miniyaml` reads the subset these files use, so a `hooks` block is
+    # now PARSED and a document outside that subset is the only thing still
+    # INDETERMINATE - with the construct that put it there as its cause.
     definitions, capped = frontmatter_files(root)
     not_read.extend(capped)
     for path in definitions:
@@ -561,13 +606,24 @@ def read(
         if text is None:
             unresolved.append(Unresolved(display, problem or "unreadable", display))
             continue
-        head = text.split("---", 2)
-        if len(head) >= 3 and "hooks:" in head[1]:
+        block = frontmatter_block(text)
+        if block is None:
+            continue
+        try:
+            parsed = miniyaml.loads(block)
+        except miniyaml.YamlError as exc:
             unresolved.append(
                 Unresolved(
-                    subject=f"{display} frontmatter `hooks`",
-                    cause="frontmatter has no reader in this release",
+                    subject=f"{display} frontmatter",
+                    cause=f"frontmatter is outside the subset this release reads: {exc}",
                     source=display,
+                )
+            )
+            continue
+        if isinstance(parsed.get("hooks"), dict):
+            settings.append(
+                SettingsFile(
+                    Scope.PROJECT, path, display, data={"hooks": parsed["hooks"]}
                 )
             )
 
@@ -596,11 +652,15 @@ def read(
                     )
                 )
 
-    for relative, vendor in NOT_READ_IN_S1:
+    # Plugin hook files and any frontmatter block were appended above, after the
+    # first pass, so they get a pass of their own rather than an ordering rule
+    # somebody has to remember.
+    note_scripts(settings)
+    note_scripts(mcp_files)
+
+    for relative, vendor in NOT_READ_IN_S2:
         if (root / relative).exists():
-            not_read.append(
-                NotRead(relative, f"{vendor} is read in phase S2, not in this release")
-            )
+            not_read.append(NotRead(relative, vendor))
 
     trusted: bool | None = None
     if machine:

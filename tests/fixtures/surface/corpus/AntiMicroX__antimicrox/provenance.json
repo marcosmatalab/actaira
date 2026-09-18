@@ -1,0 +1,8 @@
+{
+  "commit": "dbb6349603e6ee2426d300eee9570e1ed44fb9f5",
+  "files": {
+    ".devcontainer/devcontainer.json": "463691db776c82caf16b436b66ffbb960116dfb1"
+  },
+  "licence": "gpl-3.0",
+  "repo": "https://github.com/AntiMicroX/antimicrox"
+}
