@@ -224,7 +224,7 @@ jobs:
 
   action:
     name: the published Action, used the way a stranger would
-    # The Action, used the way a stranger would use it: `uses: ./`, against two
+    # The Action, used the way a stranger would use it: `uses:` against two
     # directories of fixtures, asserting the exit code each one is supposed to
     # produce. `from-dir` and `to-dir` exist for this - the two sides of a diff
     # are two commits, and a job that had to build a repository to test the
@@ -235,20 +235,14 @@ jobs:
     # passes through, so the test has to be able to observe a non-zero one
     # without the job dying before it can.
     #
-    # ON `uses: ./` AND THE ONE ZIZMOR FINDING IT LEAVES. zizmor asks for
-    # `uses: $/`, GitHub's self-repository syntax, which is stricter: it cannot
-    # load an action a previous step cloned at runtime, and it counts as pinning
-    # for policy enforcement. It is also two months old and nothing on a laptop
-    # can run a GitHub Actions runner, so the first evidence that it resolves
-    # would be this job going green - in the same commit that introduces the
-    # Action, which nobody has ever run either. Two unverified things in one
-    # commit, and a red build that cannot say which of them failed.
-    #
-    # So the variable is isolated: `./` is the spelling that works everywhere,
-    # this job proves the Action works with it, and `$/` is a one-line commit
-    # afterwards where a failure costs ten seconds to revert and drags nothing
-    # with it. `docs/BACKLOG.md` carries the line. The finding zizmor reports
-    # about these two lines is informational, and this paragraph is its reason.
+    # `uses: $/` is GitHub's self-repository syntax, and it is stricter than
+    # `uses: ./`: it cannot load an action a previous step cloned at runtime, and
+    # it counts as pinning for policy enforcement, which is why zizmor asks for
+    # it. It arrives in a commit of its own, after this job had already been
+    # green twice with `./`, so a red build here can only be about this one line.
+    # That sequencing was the point - the Action and this syntax were both
+    # unverified at once, and a build that failed would not have said which.
+    # See run 35382239038 for the first green with `./`.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -260,7 +254,7 @@ jobs:
       - name: a tree with nothing configured, against itself
         id: clean
         continue-on-error: true
-        uses: ./  # zizmor: ignore[self-repository]
+        uses: $/
         with:
           from-dir: tests/fixtures/action/clean
           to-dir: tests/fixtures/action/clean
@@ -271,7 +265,7 @@ jobs:
       - name: the keyv wave arriving on top of it
         id: keyv
         continue-on-error: true
-        uses: ./  # zizmor: ignore[self-repository]
+        uses: $/
         with:
           from-dir: tests/fixtures/action/clean
           to-dir: tests/fixtures/surface/keyv-august
