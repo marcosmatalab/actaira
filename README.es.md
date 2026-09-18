@@ -33,12 +33,11 @@ herramienta de cumplimiento. No es un EDR: no vigila en ejecución y no bloquea.
 Actaira afirma exactamente tres cosas y nada más. Cualquier cosa fuera de esas
 tres es un defecto de producto, aunque sea verdad.
 
-**Ninguna de las tres está construida.** Se enuncian aquí igualmente, en el
-sitio donde se describiría un producto terminado, porque la alternativa es una
-página que describe en presente una intención, que es justo el defecto que este
-proyecto se pasó la fase A.1 quitando y no una costumbre que conservó. Lo que el
-árbol sí sabe hacer hoy está más abajo, en [los cuatro
-comandos](#los-cinco-comandos).
+**La primera de las tres está construida; las otras dos no.** Cada bloque de
+abajo dice cuál, porque la alternativa es una página que describe en presente
+una intención, que es justo el defecto que este proyecto se pasó la fase A.1
+quitando y no una costumbre que conservó. Lo que el árbol sí sabe hacer hoy
+está más abajo, en [los cuatro comandos](#los-cinco-comandos).
 
 **1. Superficie** - lo que un agente puede hacer en este repositorio o en esta
 máquina, resuelto entre ámbitos y fabricantes. Cada capacidad cita el fichero
@@ -46,10 +45,11 @@ del que sale, la regla de mezcla documentada que la resolvió, con la URL y la
 versión de la documentación del fabricante que la enuncia, y la regla de Actaira
 que la nombra.
 
-> **No existe.** En este árbol no hay lector, ni resolución de ámbitos, ni
-> paquete de reglas. `actaira check` llega en la fase S1, para Claude Code y sus
-> cuatro ámbitos; la fase S2 añade Codex, Cursor, Gemini CLI, el fichero de
-> tareas de VS Code, el devcontainer y AGENTS.md.
+> **Construida.** `actaira check` lee Claude Code, Codex CLI, Cursor, Gemini
+> CLI, los ficheros de tareas y ajustes de VS Code, `devcontainer.json` y los
+> ficheros de instrucciones AGENTS.md / CLAUDE.md / GEMINI.md. Cada fabricante
+> se resuelve contra su propia precedencia documentada, y la superficie del
+> repositorio es la unión de los siete, nunca una mezcla de ellos.
 
 **2. Cambio** - qué capacidad aparece, desaparece, se ensancha o se estrecha
 entre dos momentos.
@@ -136,9 +136,23 @@ un nombre de esa lista que ni existe en el parser ni dice cuándo llegará.
 ### `actaira check` - qué puede hacer un agente aquí
 
 `check` lee la configuración de agentes de este repositorio, resuelve qué
-permite de verdad entre ámbitos y aplica los paquetes de reglas. Hoy lee Claude
-Code; los demás fabricantes llegan en la fase S2 y hasta entonces cada fichero
-suyo que esté en disco sale en la lista de «no leído» del informe.
+permite de verdad entre ámbitos y entre fabricantes, y aplica los paquetes de
+reglas. Lee Claude Code, Codex CLI, Cursor, Gemini CLI, `.vscode/tasks.json` y
+`.vscode/settings.json`, `devcontainer.json`, y los ficheros de instrucciones
+AGENTS.md, CLAUDE.md y GEMINI.md.
+
+Cada fabricante se resuelve contra la precedencia que publica su propia
+documentación, porque esas escaleras no coinciden: Claude Code pone el fichero
+del usuario por encima del del proyecto, Gemini CLI pone el del proyecto por
+encima del del usuario, y VS Code pone el del espacio de trabajo por encima de
+los dos. La superficie de un repositorio es por tanto la UNIÓN de las siete
+superficies por fabricante, y dos fabricantes que configuran el mismo servidor
+MCP son dos capacidades con el mismo digest, no una fila que no es de ninguno.
+
+Lo que sigue sin leerse se imprime, no se salta - incluidos los dos ámbitos que
+no dejan fichero alguno: los hooks de equipo de Cursor, configurados en un panel
+y sincronizados a los miembros, y los requisitos de Codex que llegan por MDM o
+desde la nube. Esos salen INDETERMINADOS con su causa, nunca como ausencia.
 
 ```
 actaira check                                   # este repositorio
@@ -392,7 +406,7 @@ cifra que se desvió de lo que el código mide, una nota de diseño que apunta a
 línea que no la argumenta, una versión de esquema escrita en dos sitios, un
 documento que nombra un test que ya no existe.
 
-1.819 tests sobre 28.056 líneas de Python corren en cada commit, y las dos cifras las
+2.216 tests sobre 33.038 líneas de Python corren en cada commit, y las dos cifras las
 mide `make figures` en vez de escribirlas a mano: la puerta rechaza un árbol
 donde un número de este fichero no coincide con lo que el código reporta.
 

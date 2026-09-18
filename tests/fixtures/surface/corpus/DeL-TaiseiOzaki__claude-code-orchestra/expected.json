@@ -1,0 +1,16 @@
+{
+  "codex": {
+    "capabilities": {
+      "approval.policy": "effective",
+      "sandbox.mode": "effective"
+    },
+    "capability_count": 2,
+    "not_read": [
+      "~/.codex/config.toml and the managed layers"
+    ],
+    "rules_that_fire": [
+      "ACT-S022"
+    ],
+    "unresolved_count": 0
+  }
+}

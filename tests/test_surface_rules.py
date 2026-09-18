@@ -8,16 +8,17 @@ write the fixture."
 
 So the cases here are not written here. They are found:
 
-* `tests/fixtures/surface/corpus/` holds twenty `.claude/settings.json` and
-  `.mcp.json` files from public repositories, each with a `provenance.json`
-  naming the repository, the commit, the licence and the blob sha git computed
-  over those bytes. `scripts/surface_corpus.py` fetched them; the network never
-  enters this suite.
+* `tests/fixtures/surface/corpus/` holds real configuration files from public
+  repositories - at least five per vendor, across Claude Code, Codex, Cursor,
+  Gemini CLI, VS Code, dev containers and the instruction files - each with a
+  `provenance.json` naming the repository, the commit, the licence and the blob
+  sha git computed over those bytes. `scripts/surface_corpus.py` fetched them;
+  the network never enters this suite.
 * `tests/fixtures/surface/mini-shai-hulud/` and `keyv-august/` reconstruct the
   two 2026 npm worms from the published incident reports, cited fragment by
   fragment in `tests/fixtures/surface/PROVENANCE.md`.
 
-Three of the fifteen have no real violating case, and the reason is stated
+Three of the thirty have no real violating case, and the reason is stated
 rather than worked around - `PROVENANCE.md` carries the detail and
 `docs/BACKLOG.md` carries the line. ACT-S013 and ACT-S014 compare a repository
 against a MANAGED policy, which lives at an operating-system path outside every
@@ -27,7 +28,9 @@ repository half taken from the corpus. ACT-S002 found no public `http` hook in
 any search this phase ran, and its violating case is the shape the hooks page
 publishes. Both are deviations from the letter of the rule, they are the two
 places where evidence ran out, and they are marked here so that nobody reads
-this file as fifteen real violations.
+this file as thirty real violations.
+
+Every rule phase S2 added has a real violating case; none of them is marked.
 """
 from __future__ import annotations
 
@@ -45,20 +48,50 @@ CATALOGUE = rules.load()
 IDS = [rule.id for rule in CATALOGUE]
 
 
+# A user scope for the one thing a repository cannot contain.
+#
+# `task.allowAutomaticTasks` is APPLICATION-scoped: VS Code takes it from the
+# user's own settings file and from nowhere else, so no public repository can
+# ever supply ACT-S016's deciding value and no corpus of repositories will ever
+# resolve it. The violating CONFIGURATION is real and is in the corpus - a
+# committed `folderOpen` task; what the fixture below adds is the one line that
+# says whether the machine runs it.
+#
+# This is not an exemption from "the violating case must be real". It is the
+# scope the vendor documents, supplied so that a real violating configuration
+# can be resolved at all. The fixture holds that single key and nothing else,
+# and every other vendor reads an empty home from it.
+MACHINE = FIXTURES / "machine"
+
+
 def roots() -> list[Path]:
     return [path for path in sorted(CORPUS.iterdir()) if (path / "provenance.json").is_file()]
 
 
+def surfaces(root: Path):
+    """Every vendor's surface for one root, resolved the way `check` resolves it."""
+    for vendor, reader, resolver in resolve.vendor_registry():
+        yield vendor, resolver(reader.read(root, machine=True, home=MACHINE))
+
+
 def fired(root: Path) -> set[str]:
-    surface = resolve.resolve(claude_code.read(root))
-    found, _gaps = rules.evaluate(surface, CATALOGUE)
-    return {item.rule_id for item in found}
+    """Which rules fire on one root, across all seven vendors.
+
+    Across all seven since phase S2: a corpus sweep that ran one vendor would
+    report that fourteen of the thirty rules have no violating case, and the
+    conclusion would be about the sweep rather than about the corpus.
+    """
+    found: set[str] = set()
+    for _vendor, surface in surfaces(root):
+        hits, _gaps = rules.evaluate(surface, CATALOGUE)
+        found |= {item.rule_id for item in hits}
+    return found
 
 
 # Computed once: which corpus configuration violates each rule, and which does
-# not. Both directions come from the same twenty files, so a rule whose
-# conforming case is "a repository that happens not to do this" is a real
-# repository that happens not to do it.
+# not. Both directions come from the same files, so a rule whose conforming case
+# is "a repository that happens not to do this" is a real repository that
+# happens not to do it.
 BY_RULE: dict[str, list[Path]] = {rule_id: [] for rule_id in IDS}
 CLEAN: dict[str, list[Path]] = {rule_id: [] for rule_id in IDS}
 for _root in roots():
@@ -192,10 +225,10 @@ def test_searches_without_a_mark_are_refused(tmp_path):
 
 def test_the_corpus_is_there_and_carries_its_provenance():
     """The non-vacuity guard. Every parametrised test below draws from these
-    twenty; an empty directory would make the whole file pass over nothing,
-    which is the failure this repository has now hit four times."""
+    configurations; an empty directory would make the whole file pass over
+    nothing, which is the failure this repository has now hit four times."""
     found = roots()
-    assert len(found) == 20, f"expected 20 corpus configurations, found {len(found)}"
+    assert len(found) >= 50, f"expected at least 50 corpus configurations, found {len(found)}"
     for root in found:
         record = json.loads((root / "provenance.json").read_text(encoding="utf-8"))
         assert record["repo"].startswith("https://github.com/"), root.name
@@ -235,9 +268,12 @@ def test_the_violating_case_is_a_real_configuration(rule_id):
     root = offenders[0]
     record = json.loads((root / "provenance.json").read_text(encoding="utf-8"))
 
-    surface = resolve.resolve(claude_code.read(root))
-    found, _gaps = rules.evaluate(surface, CATALOGUE)
-    hit = [item for item in found if item.rule_id == rule_id]
+    hit = [
+        item
+        for _vendor, surface in surfaces(root)
+        for item in rules.evaluate(surface, CATALOGUE)[0]
+        if item.rule_id == rule_id
+    ]
 
     assert hit, "{} does not fire on {} ({})".format(rule_id, root.name, record["repo"])
     # Every finding names its author, its pack and its rule's version. A finding
@@ -392,21 +428,28 @@ def test_the_widening_rules_need_a_managed_policy_to_compare_against(
 
 @pytest.mark.parametrize("root", WORMS, ids=lambda path: path.name)
 def test_the_2026_npm_worms_are_caught(root):
-    """The phase gate, first point. Both reconstructions, both caught.
+    """The phase gate, first point. Both reconstructions, caught in BOTH files.
 
-    And the half that is not: `.vscode/tasks.json` is in both fixtures and this
-    release does not read it, so it must appear in `not_read`. A tool that
-    silently ignored the second half of the attack it is demonstrating against
-    would be making the claim this project exists to refuse.
+    Phase S1 caught the Claude Code half and could only NAME the VS Code half,
+    which is why `.vscode/tasks.json` used to have to appear in `not_read`. It
+    is read now, so the assertion inverts: the file must be out of that list and
+    its `folderOpen` task must be a finding of its own. Either half alone was
+    enough for the attack, so a release that caught one of them was a release
+    that caught half an attack and said so.
     """
+    hit = {
+        item.rule_id
+        for _vendor, seen in surfaces(root)
+        for item in rules.evaluate(seen, CATALOGUE)[0]
+    }
     surface = resolve.resolve(claude_code.read(root))
-    found, _gaps = rules.evaluate(surface, CATALOGUE)
-    hit = {item.rule_id for item in found}
 
     assert "ACT-S001" in hit, "the SessionStart hook was not caught"
     assert "ACT-S003" in hit, "the script inside the tree was not named"
-    assert any(entry.path == ".vscode/tasks.json" for entry in surface.not_read), (
-        "the tasks.json half of the attack is neither read nor reported"
+    assert "ACT-S016" in hit, "the folderOpen task half of the attack was not caught"
+    assert not any(entry.path == ".vscode/tasks.json" for entry in surface.not_read), (
+        "tasks.json is read in this release, so naming it as unread would be a "
+        "gap that has been closed still being reported as open"
     )
 
     hook = next(item for item in surface.capabilities if item.name == "hook.command")

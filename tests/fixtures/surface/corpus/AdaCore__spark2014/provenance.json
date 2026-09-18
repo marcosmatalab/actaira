@@ -1,0 +1,8 @@
+{
+  "commit": "3f7ca580f21e7bd8eba31dfaea747880e847a612",
+  "files": {
+    ".codex/config.toml": "b3c06cacbd182b42e12d121408465d720c492000"
+  },
+  "licence": "gpl-3.0",
+  "repo": "https://github.com/AdaCore/spark2014"
+}

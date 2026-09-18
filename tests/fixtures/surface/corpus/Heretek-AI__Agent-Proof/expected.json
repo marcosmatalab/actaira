@@ -1,0 +1,15 @@
+{
+  "instructions": {
+    "capabilities": {
+      "instructions.remote_execution": "declared"
+    },
+    "capability_count": 1,
+    "not_read": [
+      "instruction files above and below the repository root"
+    ],
+    "rules_that_fire": [
+      "ACT-S029"
+    ],
+    "unresolved_count": 0
+  }
+}

@@ -65,13 +65,20 @@ def test_the_merge_table_is_not_empty():
 
 
 @pytest.mark.parametrize(
-    "row", resolve.MERGE_TABLE, ids=lambda row: "{}:{}".format(row.url.rsplit("/", 1)[-1], row.keys[0])
+    "row",
+    resolve.CLAUDE_CODE_ROWS,
+    ids=lambda row: "{}:{}".format(row.url.rsplit("/", 1)[-1], row.keys[0]),
 )
-def test_every_merge_row_cites_its_source(row):
+def test_every_claude_code_merge_row_cites_its_source(row):
     """The rule, the URL, the page digest, the date, and the sentence.
 
     A row that cannot say where it came from is an opinion about somebody else's
     software, and CLAUDE.md's second negative forbids Actaira having one.
+
+    This file keeps the Claude Code half, where the host and the consultation
+    date are one value each. The other six vendors publish on their own hosts
+    and were read on their own date; `test_surface_vendors` asserts the same
+    five properties over every row of every table.
     """
     assert row.cited, f"{row.keys} is missing part of its citation"
     assert row.url.startswith("https://code.claude.com/docs/"), row.url
@@ -79,6 +86,22 @@ def test_every_merge_row_cites_its_source(row):
     assert row.consulted == resolve.CONSULTED
     assert len(row.quote) > 40, "the quote must be the sentence, not a gesture at it"
     assert row.kind in resolve.Kind
+
+
+def test_every_row_of_every_vendor_is_cited_and_dated():
+    """No vendor's table may be the one nobody checked.
+
+    A per-vendor table makes it possible to add a vendor and forget the
+    citation, so the property is asserted over the whole set here as well as
+    per row in `test_surface_vendors`.
+    """
+    dates = {resolve.CONSULTED, resolve.CONSULTED_S2}
+    for vendor, rows in resolve.MERGE_TABLES.items():
+        assert rows, f"{vendor} has an empty merge table"
+        for row in rows:
+            assert row.cited, f"{vendor} {row.keys} is missing part of its citation"
+            assert row.consulted in dates, f"{vendor} {row.keys} was read on {row.consulted}"
+            assert row.url.startswith("https://"), row.url
 
 
 def test_the_citation_check_would_notice_an_uncited_row():
@@ -89,7 +112,7 @@ def test_the_citation_check_would_notice_an_uncited_row():
     must be refused. Without this, `cited` could be returning True for
     everything and the parametrised test above would pass over an empty promise.
     """
-    good = resolve.MERGE_TABLE[0]
+    good = resolve.CLAUDE_CODE_ROWS[0]
     assert good.cited, "the fixture row is not itself cited; this test proves nothing"
 
     from dataclasses import replace
@@ -107,8 +130,13 @@ def test_the_citation_check_would_notice_an_uncited_row():
 
 
 def test_every_capability_names_a_row_that_exists():
-    """A capability's `merge_rule` is a promise that the row is in the table."""
-    names = {resolve.rule_name(row) for row in resolve.MERGE_TABLE}
+    """A capability's `merge_rule` is a promise that the row is in ITS table.
+
+    Its own vendor's table, not the union of all seven: a Claude Code
+    capability citing a rule that only Gemini publishes would be a capability
+    resolved by somebody else's documentation.
+    """
+    names = {resolve.rule_name(row) for row in resolve.MERGE_TABLES["claude-code"]}
     surface = resolve.resolve(claude_code.read(FIXTURES / "mini-shai-hulud"))
 
     assert surface.capabilities
@@ -209,20 +237,27 @@ def test_an_unknown_agent_version_is_indeterminate(repo):
     assert any("version" in gap.cause for gap in surface.unresolved)
 
 
-def test_frontmatter_with_hooks_is_indeterminate_because_there_is_no_yaml_reader(tmp_path):
-    """`miniyaml` left in phase A and no dependency is being added for it, so a
-    skill that declares hooks in its frontmatter is a stated gap rather than a
-    guess at what the frontmatter said."""
+def test_frontmatter_outside_the_yaml_subset_is_indeterminate(tmp_path):
+    """Phase S2 gave frontmatter a reader, so the gap moved rather than closing.
+
+    What used to be INDETERMINATE was every definition carrying a `hooks:` key;
+    `miniyaml` reads those now. What is INDETERMINATE today is a block using a
+    construct outside the stated subset, and the cause names the construct - so
+    the gap is one somebody can act on rather than one they have to guess at.
+    `test_surface_vendors` holds the other direction: a `hooks` block INSIDE the
+    subset becomes a capability instead of a gap.
+    """
     skill = tmp_path / ".claude" / "skills" / "deploy" / "SKILL.md"
     skill.parent.mkdir(parents=True, exist_ok=True)
     skill.write_text(
-        "---\nname: deploy\nhooks:\n  SessionStart:\n    - type: command\n---\n\nbody\n",
+        "---\nname: deploy\nsteps: |\n  a block scalar\n---\n\nbody\n",
         encoding="utf-8",
     )
 
     surface = resolve.resolve(claude_code.read(tmp_path))
 
     assert any("frontmatter" in gap.cause for gap in surface.unresolved)
+    assert any("block scalar" in gap.cause for gap in surface.unresolved)
 
 
 def test_a_plugin_from_a_marketplace_that_is_not_on_disk_is_indeterminate(repo):
@@ -597,7 +632,18 @@ def test_the_console_refuses_to_call_an_empty_result_safety(repo, capsys):
 
 
 def _corpus_roots():
-    return [path for path in sorted(CORPUS.iterdir()) if (path / "expected.json").is_file()]
+    """The corpus roots that carry a Claude Code configuration.
+
+    Phase S2's corpus holds seven vendors, and this file's golden is about one
+    of them. A root with no `.claude/` and no `.mcp.json` is a fixture for
+    another vendor and belongs to `test_surface_vendors`.
+    """
+    return [
+        path
+        for path in sorted(CORPUS.iterdir())
+        if (path / "expected.json").is_file()
+        and "claude-code" in json.loads((path / "expected.json").read_text(encoding="utf-8"))
+    ]
 
 
 @pytest.mark.parametrize("root", _corpus_roots(), ids=lambda path: path.name)
@@ -610,7 +656,7 @@ def test_the_resolved_surface_matches_the_reviewed_golden(root):
     behind it, which is the shape D-15 warns about at the top of
     `attest/verify.py`.
     """
-    expected = json.loads((root / "expected.json").read_text(encoding="utf-8"))
+    expected = json.loads((root / "expected.json").read_text(encoding="utf-8"))["claude-code"]
     surface = resolve.resolve(claude_code.read(root))
     found, gaps = rules.evaluate(surface, rules.load())
 
@@ -624,7 +670,7 @@ def test_the_resolved_surface_matches_the_reviewed_golden(root):
 def test_the_golden_comparison_would_notice_a_change():
     """The guard on the guard: the comparison above has to be able to fail."""
     root = _corpus_roots()[0]
-    expected = json.loads((root / "expected.json").read_text(encoding="utf-8"))
+    expected = json.loads((root / "expected.json").read_text(encoding="utf-8"))["claude-code"]
     planted = dict(expected, capability_count=expected["capability_count"] + 1)
     surface = resolve.resolve(claude_code.read(root))
 
@@ -636,10 +682,20 @@ def test_the_golden_comparison_would_notice_a_change():
 # ---------------------------------------------------------------------------
 
 
-def test_the_core_pack_has_fifteen_rules_each_fully_attributed():
+def test_every_rule_in_every_core_pack_is_fully_attributed():
+    """Every field a finding has to publish about whose rule it is.
+
+    No count is asserted here, and that is deliberate. The number of rules is a
+    budget, not a property of the tree: it moved from 15 to 30 to 32 inside one
+    phase, and a test that pinned it would have failed each time while nothing
+    was wrong. What must hold is that no rule can exist without an author, a
+    pack, a version, a vendor, a severity, a capability, a condition and a
+    remediation - and, separately, that nothing this tree EMITS goes unnamed,
+    which is `tests/test_capability_coverage.py`.
+    """
     catalogue = rules.load()
 
-    assert len(catalogue) == 15
+    assert len(catalogue) >= 30, "the catalogue emptied out; everything below is vacuous"
     for rule in catalogue:
         assert rule.author and rule.pack and rule.version and rule.vendor
         assert rule.severity and rule.capability and rule.when and rule.remediation

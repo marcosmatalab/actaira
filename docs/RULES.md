@@ -50,6 +50,23 @@ searches that came back empty.
 | [`ACT-S013`](#act-s013) | `sandbox.network_domain` | DECLARED | high | Actaira core | core | 1 | **NO REAL VIOLATION** |
 | [`ACT-S014`](#act-s014) | `sandbox.excluded_command` | DECLARED | high | Actaira core | core | 1 | **NO REAL VIOLATION** |
 | [`ACT-S015`](#act-s015) | `sandbox.disabled`, `sandbox.unsandboxed_allowed` | DECLARED | high | Actaira core | core | 1 | real |
+| [`ACT-S016`](#act-s016) | `task.command` | DECLARED | high | Actaira core | core | 1 | real |
+| [`ACT-S017`](#act-s017) | `lifecycle.command` | DECLARED | high | Actaira core | core | 1 | real |
+| [`ACT-S018`](#act-s018) | `container.mount` | DECLARED | critical | Actaira core | core | 1 | real |
+| [`ACT-S019`](#act-s019) | `container.isolation` | DECLARED | high | Actaira core | core | 1 | real |
+| [`ACT-S020`](#act-s020) | `container.feature` | DECLARED | medium | Actaira core | core | 1 | real |
+| [`ACT-S021`](#act-s021) | `hook.command` | DECLARED | high | Actaira core | core | 1 | real |
+| [`ACT-S022`](#act-s022) | `sandbox.mode`, `approval.policy` | DECLARED | critical | Actaira core | core | 1 | real |
+| [`ACT-S023`](#act-s023) | `mcp.server` | DECLARED | high | Actaira core | core | 1 | real |
+| [`ACT-S024`](#act-s024) | `hook.command` | DECLARED | high | Actaira core | core | 1 | real |
+| [`ACT-S025`](#act-s025) | `mcp.server` | DECLARED | high | Actaira core | core | 1 | real |
+| [`ACT-S026`](#act-s026) | `mcp.server` | DECLARED | high | Actaira core | core | 1 | real |
+| [`ACT-S027`](#act-s027) | `mcp.server` | DECLARED | high | Actaira core | core | 1 | real |
+| [`ACT-S028`](#act-s028) | `instructions.import` | DECLARED | medium | Actaira core | core | 1 | real |
+| [`ACT-S029`](#act-s029) | `instructions.remote_execution` | DECLARED | medium | Actaira core | core | 1 | real |
+| [`ACT-S030`](#act-s030) | `instructions.import` | DECLARED | medium | Actaira core | core | 1 | real |
+| [`ACT-S031`](#act-s031) | `approval.policy` | DECLARED | high | Actaira core | core | 1 | real |
+| [`ACT-S032`](#act-s032) | `hook.mcp_tool` | DECLARED | medium | Actaira core | core | 1 | real |
 
 ## Each rule
 
@@ -85,7 +102,7 @@ An HTTP hook posts the event's JSON input to a host that is not the loopback int
 - **Author**: Actaira core, pack `core`, rule version 1
 - **Facts it needs**: `loopback`
 - **Remediation it suggests**: Point the hook at a loopback address, or remove it. The event's JSON input is posted to this host on every matching event.
-- **NO REAL VIOLATION**: seven recorded searches over 67 public configurations found no `http` hook. The violating test runs on the configuration the vendor publishes, not on a repository that does this.
+- **NO REAL VIOLATION**: ten recorded searches across three vendors, over 145 public configurations, found no `http` hook. The violating test runs on the configuration the vendor publishes, not on a repository that does this.
   - Case taken from <https://code.claude.com/docs/en/hooks>, sha256 `e19530ebc7709e76ace04022835e8dc55c46247152f1e4b3449e84c6ebdcb5a4`, read 2026-09-17
   - Searched `path:.claude filename:settings.json "type": "http"` on 2026-09-17: 20 result(s), 0 violating
   - Searched `path:.claude filename:settings.json "type":"http"` on 2026-09-17: 1 result(s), 0 violating
@@ -94,6 +111,9 @@ An HTTP hook posts the event's JSON input to a host that is not the loopback int
   - Searched `path:.claude filename:settings.json httpHookAllowedEnvVars` on 2026-09-17: 3 result(s), 0 violating
   - Searched `path:.claude filename:settings.json hooks "url": "https` on 2026-09-17: 0 result(s), 0 violating
   - Searched `path:.claude filename:settings.json "mcp_tool"` on 2026-09-17: 20 result(s), 0 violating
+  - Searched `path:.claude filename:settings.json "type": "http"` on 2026-09-18: 25 result(s), 0 violating
+  - Searched `path:.cursor filename:hooks.json "type": "http"` on 2026-09-18: 23 result(s), 0 violating
+  - Searched `path:.codex filename:hooks.json "type": "http"` on 2026-09-18: 30 result(s), 0 violating
 - **References**:
   - <https://code.claude.com/docs/en/hooks>
 
@@ -312,6 +332,293 @@ The sandbox is switched off, or a command may retry outside it.
 - **References**:
   - <https://code.claude.com/docs/en/sandboxing#the-unsandboxed-retry-escape-hatch>
   - <https://code.claude.com/docs/en/sandboxing#sandbox-modes>
+
+### ACT-S016
+
+A VS Code task runs when the folder is opened, so cloning the repository and opening it runs the task.
+
+*Español:* Una tarea de VS Code se ejecuta al abrir la carpeta, así que clonar el repositorio y abrirlo ejecuta la tarea.
+
+- **Vendor**: `vscode`
+- **Capability**: `task.command`
+- **Requires**: DECLARED
+- **Severity**: high — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `at_startup`
+- **Remediation it suggests**: Remove `runOptions.runOn: folderOpen`, or move the work into a task somebody runs on purpose. Opening the folder is not a decision to run this.
+- **Agent Threat Rules**: ATR-T1546
+- **References**:
+  - <https://code.visualstudio.com/docs/debugtest/tasks>
+  - <https://www.stepsecurity.io/blog/a-mini-shai-hulud-has-appeared>
+  - <https://snyk.io/blog/inside-keyv-npm-compromise-preinstall-malware-trusted-provenance-ide-hooks/>
+
+### ACT-S017
+
+A dev container lifecycle command runs on the host machine, outside the container, before any container exists.
+
+*Español:* Un comando de ciclo de vida del devcontainer se ejecuta en la máquina anfitriona, fuera del contenedor y antes de que exista contenedor alguno.
+
+- **Vendor**: `devcontainer`
+- **Capability**: `lifecycle.command`
+- **Requires**: DECLARED
+- **Severity**: high — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `on_host`
+- **Remediation it suggests**: This command runs on the host, not in the container. If it only needs to happen inside, move it to onCreateCommand or postCreateCommand.
+- **References**:
+  - <https://containers.dev/implementors/json_reference/>
+
+### ACT-S018
+
+A dev container mounts a directory that holds credentials, so what is inside it is available to whatever runs in the container.
+
+*Español:* Un devcontainer monta un directorio que guarda credenciales, así que su contenido queda disponible para lo que se ejecute dentro del contenedor.
+
+- **Vendor**: `devcontainer`
+- **Capability**: `container.mount`
+- **Requires**: DECLARED
+- **Severity**: critical — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `names_credential`
+- **Remediation it suggests**: This mount gives the container the developer's credentials. Mount a narrower path, or use a credential helper that does not put the private key inside the container.
+- **Agent Threat Rules**: ATR-T1552
+- **References**:
+  - <https://containers.dev/implementors/json_reference/>
+
+### ACT-S019
+
+A dev container is configured with privileged mode, an added capability or a security option, each of which widens what the container may do.
+
+*Español:* Un devcontainer se configura con modo privilegiado, una capacidad añadida o una opción de seguridad, y cada una ensancha lo que el contenedor puede hacer.
+
+- **Vendor**: `devcontainer`
+- **Capability**: `container.isolation`
+- **Requires**: DECLARED
+- **Severity**: high — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `isolation_weakened`
+- **Remediation it suggests**: This weakens the container boundary. Drop privileged, capAdd or securityOpt unless the container genuinely needs it, and say in the file why if it does.
+- **References**:
+  - <https://containers.dev/implementors/json_reference/>
+
+### ACT-S020
+
+A dev container Feature is named without a version, so the build fetches whatever the registry serves at the moment it runs.
+
+*Español:* Un Feature del devcontainer se nombra sin versión, así que la construcción descarga lo que el registro sirva en ese momento.
+
+- **Vendor**: `devcontainer`
+- **Capability**: `container.feature`
+- **Requires**: DECLARED
+- **Severity**: medium — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `pinned`
+- **Remediation it suggests**: Pin the Feature to a version. Without one, the build fetches whatever the registry serves at the moment it runs.
+- **Agent Threat Rules**: ATR-T1195
+- **References**:
+  - <https://containers.dev/implementors/json_reference/>
+
+### ACT-S021
+
+A Codex hook runs a command on a session event, so starting a session runs it before anybody has read anything.
+
+*Español:* Un hook de Codex ejecuta un comando en un evento de sesión, así que iniciar una sesión lo ejecuta antes de que nadie haya leído nada.
+
+- **Vendor**: `codex`
+- **Capability**: `hook.command`
+- **Requires**: DECLARED
+- **Severity**: high — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `at_startup`
+- **Remediation it suggests**: Remove the hook, or move it to ~/.codex/config.toml where it is yours rather than the repository's. A hook on a session event runs without anybody asking for it.
+- **Agent Threat Rules**: ATR-T1546
+- **References**:
+  - <https://learn.chatgpt.com/docs/config-file/config-advanced>
+
+### ACT-S022
+
+A Codex setting turns off the sandbox or stops the agent asking before it acts.
+
+*Español:* Un ajuste de Codex apaga el sandbox o deja de preguntar antes de actuar.
+
+- **Vendor**: `codex`
+- **Capability**: `sandbox.mode`, `approval.policy`
+- **Requires**: DECLARED
+- **Severity**: critical — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `guardrail_removed`
+- **Remediation it suggests**: A repository file turns off the sandbox or stops Codex asking. Use read-only or workspace-write, and on-request, and set the exception where you can see it rather than in the repository.
+- **Agent Threat Rules**: ATR-T1562
+- **References**:
+  - <https://learn.chatgpt.com/docs/config-file/config-reference>
+
+### ACT-S023
+
+A Codex MCP server is launched without a pinned version, so it resolves to whatever the registry serves when the server starts.
+
+*Español:* Un servidor MCP de Codex se lanza sin versión fijada, así que se resuelve a lo que el registro sirva cuando el servidor arranca.
+
+- **Vendor**: `codex`
+- **Capability**: `mcp.server`
+- **Requires**: DECLARED
+- **Severity**: high — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `pinned`
+- **Remediation it suggests**: Pin the version. An unpinned npx or uvx launch fetches whatever the registry serves at the moment the server starts.
+- **Agent Threat Rules**: ATR-T1195
+- **References**:
+  - <https://learn.chatgpt.com/docs/config-file/config-reference>
+
+### ACT-S024
+
+A Cursor hook runs a command when a session starts or a workspace opens, so it runs before anybody has read the repository.
+
+*Español:* Un hook de Cursor ejecuta un comando al iniciar una sesión o al abrir el espacio de trabajo, así que corre antes de que nadie haya leído el repositorio.
+
+- **Vendor**: `cursor`
+- **Capability**: `hook.command`
+- **Requires**: DECLARED
+- **Severity**: high — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `at_startup`
+- **Remediation it suggests**: Remove the hook, or move it to ~/.cursor/hooks.json. A hook on sessionStart or workspaceOpen runs before anybody has read the repository.
+- **Agent Threat Rules**: ATR-T1546
+- **References**:
+  - <https://cursor.com/docs/agent/hooks>
+
+### ACT-S025
+
+A Cursor MCP server is launched without a pinned version, so it resolves to whatever the registry serves when the server starts.
+
+*Español:* Un servidor MCP de Cursor se lanza sin versión fijada, así que se resuelve a lo que el registro sirva cuando el servidor arranca.
+
+- **Vendor**: `cursor`
+- **Capability**: `mcp.server`
+- **Requires**: DECLARED
+- **Severity**: high — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `pinned`
+- **Remediation it suggests**: Pin the version in .cursor/mcp.json. An unpinned launch fetches whatever the registry serves when the server starts.
+- **Agent Threat Rules**: ATR-T1195
+- **References**:
+  - <https://cursor.com/docs/context/mcp>
+
+### ACT-S026
+
+A Gemini CLI MCP server is launched without a pinned version, so it resolves to whatever the registry serves when the server starts.
+
+*Español:* Un servidor MCP de Gemini CLI se lanza sin versión fijada, así que se resuelve a lo que el registro sirva cuando el servidor arranca.
+
+- **Vendor**: `gemini-cli`
+- **Capability**: `mcp.server`
+- **Requires**: DECLARED
+- **Severity**: high — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `pinned`
+- **Remediation it suggests**: Pin the version in .gemini/settings.json. An unpinned launch fetches whatever the registry serves when the server starts.
+- **Agent Threat Rules**: ATR-T1195
+- **References**:
+  - <https://geminicli.com/docs/reference/configuration/>
+
+### ACT-S027
+
+A Gemini CLI MCP server is marked trusted in the configuration, which bypasses every tool call confirmation for that server.
+
+*Español:* Un servidor MCP de Gemini CLI está marcado como de confianza en la configuración, lo que salta todas las confirmaciones de llamada a herramienta de ese servidor.
+
+- **Vendor**: `gemini-cli`
+- **Capability**: `mcp.server`
+- **Requires**: DECLARED
+- **Severity**: high — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `trusted_by_config`
+- **Remediation it suggests**: Remove `trust: true` from this server, or set it in your own ~/.gemini/settings.json. It bypasses every tool call confirmation for that server.
+- **Agent Threat Rules**: ATR-T1562
+- **References**:
+  - <https://geminicli.com/docs/reference/configuration/>
+
+### ACT-S028
+
+An instructions file imports a path that resolves outside the repository, so what it loads is not in the tree that was reviewed.
+
+*Español:* Un fichero de instrucciones importa una ruta que se resuelve fuera del repositorio, así que lo que carga no está en el árbol que se revisó.
+
+- **Vendor**: `instructions`
+- **Capability**: `instructions.import`
+- **Requires**: DECLARED
+- **Severity**: medium — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `outside_tree`
+- **Remediation it suggests**: This import resolves outside the repository, so what it loads is not in the tree you reviewed. Move the file into the repository, or keep the instruction in your own user-scope memory file.
+- **References**:
+  - <https://code.claude.com/docs/en/memory>
+
+### ACT-S029
+
+An instructions file contains a literal command that downloads a remote script and pipes it into an interpreter.
+
+*Español:* Un fichero de instrucciones contiene literalmente un comando que descarga un script remoto y lo canaliza a un intérprete.
+
+- **Vendor**: `instructions`
+- **Capability**: `instructions.remote_execution`
+- **Requires**: DECLARED
+- **Severity**: medium — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `literal_remote_execution`
+- **Remediation it suggests**: This line tells whoever reads it - a person or a model - to fetch a remote script and run it unread. Pin the artifact and verify it before running, or install from a package the repository already depends on.
+- **Agent Threat Rules**: ATR-T1105
+- **References**:
+  - <https://code.claude.com/docs/en/memory>
+
+### ACT-S030
+
+An instructions file names a script by path, so what runs is whatever is at that path when it is read.
+
+*Español:* Un fichero de instrucciones nombra un script por su ruta, así que lo que se ejecuta es lo que haya en esa ruta cuando se lea.
+
+- **Vendor**: `instructions`
+- **Capability**: `instructions.import`
+- **Requires**: DECLARED
+- **Severity**: medium — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `is_script`
+- **Remediation it suggests**: The instructions name a script by path. Tie your approval to its sha256 rather than its path: the file at that path can change after you read it.
+- **References**:
+  - <https://code.claude.com/docs/en/memory>
+
+### ACT-S031
+
+A Gemini CLI settings file in this repository sets an approval mode that auto-approves edit tools, and a project file overrides the user's.
+
+*Español:* Un fichero de ajustes de Gemini CLI de este repositorio fija un modo de aprobación que auto-aprueba las herramientas de edición, y el fichero de proyecto se impone sobre el del usuario.
+
+- **Vendor**: `gemini-cli`
+- **Capability**: `approval.policy`
+- **Requires**: DECLARED
+- **Severity**: high — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `guardrail_removed`
+- **Remediation it suggests**: Remove the approval mode from the repository file, or set it in your own ~/.gemini/settings.json. In Gemini CLI a project settings file overrides the user's, so this chooses for everyone who clones the repository.
+- **Agent Threat Rules**: ATR-T1562
+- **References**:
+  - <https://geminicli.com/docs/reference/configuration/>
+
+### ACT-S032
+
+A hook invokes an MCP tool on a session-start event, so opening a session makes the tool call before anybody has read anything.
+
+*Español:* Un hook invoca una herramienta MCP en un evento de inicio de sesión, así que abrir una sesión hace la llamada antes de que nadie haya leído nada.
+
+- **Vendor**: `claude-code`
+- **Capability**: `hook.mcp_tool`
+- **Requires**: DECLARED
+- **Severity**: medium — the label written by Actaira core, never combined with another
+- **Author**: Actaira core, pack `core`, rule version 1
+- **Facts it needs**: `at_startup`
+- **Remediation it suggests**: A hook invokes an MCP tool on a session event. Confirm the server that provides the tool is one you meant to connect, and that the tool call is one you want made before anybody has read the repository.
+- **Agent Threat Rules**: ATR-T1546
+- **References**:
+  - <https://code.claude.com/docs/en/hooks>
 
 ---
 

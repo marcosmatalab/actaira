@@ -1,0 +1,17 @@
+{
+  "claude-code": {
+    "capabilities": {
+      "permissions.allow": "declared",
+      "sandbox.disabled": "effective",
+      "sandbox.network_domain": "effective"
+    },
+    "capability_count": 16,
+    "not_read": [
+      "~/.claude/settings.json and the managed policy"
+    ],
+    "rules_that_fire": [
+      "ACT-S015"
+    ],
+    "unresolved_count": 5
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "mcpServers": {
+    "october-bus": {
+      "httpUrl": "http://127.0.0.1:${OCTOBER_BUS_PORT}/mcp",
+      "headers": {
+        "X-October-Canvas": "${OCTOBER_BUS_CANVAS}",
+        "X-October-Node": "${OCTOBER_BUS_NODE}"
+      },
+      "trust": true
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/dhravya/.october/bus-hook.mjs\" session-start gemini",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "BeforeAgent": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/dhravya/.october/bus-hook.mjs\" pre-prompt gemini",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/dhravya/.october/bus-hook.mjs\" stop gemini",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/dhravya/.october/bus-hook.mjs\" notify gemini",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

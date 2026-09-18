@@ -1,0 +1,27 @@
+{
+  "cursor": {
+    "capabilities": {
+      "mcp.server": "effective"
+    },
+    "capability_count": 2,
+    "not_read": [
+      "Cursor team hooks",
+      "~/.cursor/hooks.json, ~/.cursor/mcp.json and the enterprise hooks.json"
+    ],
+    "rules_that_fire": [
+      "ACT-S025"
+    ],
+    "unresolved_count": 1
+  },
+  "gemini-cli": {
+    "capabilities": {
+      "approval.policy": "effective"
+    },
+    "capability_count": 1,
+    "not_read": [
+      "~/.gemini/settings.json and the two system settings files"
+    ],
+    "rules_that_fire": [],
+    "unresolved_count": 0
+  }
+}

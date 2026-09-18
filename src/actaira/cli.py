@@ -39,6 +39,7 @@ from . import __version__
 from .attest import keyring
 from .attest import verify as verify_mod
 from .i18n.catalog import Catalog
+from .surface import Resolution
 from .trace import reader_for
 from .trace.model import trace_digest
 
@@ -347,18 +348,35 @@ def _print_check(document: dict[str, Any], catalog: Catalog) -> None:
     show each finding six times. Caught by the single adversarial pass of this
     phase, before the second vendor existed to make it visible.
     """
+    spoke = False
     for surface in document["surfaces"]:
-        version = surface["agent_version"] or catalog.line("surface.version_unknown")
-        print(catalog.line("surface.vendor", vendor=surface["vendor"], version=version))
         mine = [
             finding
             for finding in document["findings"]
             if finding["evidence"].get("vendor", surface["vendor"]) == surface["vendor"]
         ]
+        # A vendor nobody configured here prints nothing. Seven headings on a
+        # repository with one settings file is noise, and "nothing fired" said
+        # seven times reads as seven clean results rather than six absences.
+        if not mine and not surface["capabilities"]:
+            continue
+        spoke = True
+        version = surface["agent_version"] or catalog.line("surface.version_unknown")
+        print(catalog.line("surface.vendor", vendor=surface["vendor"], version=version))
         by_rule: dict[str, list[dict[str, Any]]] = {}
         for finding in mine:
             by_rule.setdefault(finding["rule_id"], []).append(finding)
-        if not mine:
+        stuck = sum(
+            1
+            for item in surface["capabilities"]
+            if item["resolution"] == Resolution.INDETERMINATE.value
+        )
+        if not mine and stuck:
+            # NOT "nothing fired". A vendor with an unresolved capability has
+            # not come back clean, and the one sentence a reader takes as a
+            # clean result must not appear beside it.
+            print("  " + catalog.line("surface.vendor_unresolved", count=stuck))
+        elif not mine:
             print("  " + catalog.line("surface.nothing_fired"))
         for rule_id in sorted(by_rule):
             for finding in by_rule[rule_id]:
@@ -387,6 +405,14 @@ def _print_check(document: dict[str, Any], catalog: Catalog) -> None:
                     print("      " + catalog.line("surface.condition", text=evidence["condition"]))
                 print("      " + catalog.line("surface.remediation", text=evidence["remediation"]))
 
+    if not spoke:
+        # No vendor is configured here at all. The line still has to be said
+        # once: published limit 9 is that a clean report is not safety, and a
+        # report that simply prints nothing is the reassurance that limit
+        # exists to refuse. Once, not once per vendor - six absences printed as
+        # six clean results is the same defect from the other side.
+        print(catalog.line("surface.nothing_fired"))
+
     print()
     print(catalog.line("surface.unresolved", count=len(document["unresolved"])))
     for gap in document["unresolved"]:
@@ -401,12 +427,60 @@ def _print_check(document: dict[str, Any], catalog: Catalog) -> None:
     print(catalog.line("surface.declares"))
 
 
-def run_check(args: argparse.Namespace, catalog: Catalog) -> int:
-    from .surface import document as build_document
-    from .surface.claude_code import read
-    from .surface.resolve import MERGE_TABLE, resolve
-    from .surface.rules import evaluate
+def check_document(
+    repo: Path,
+    *,
+    machine: bool = False,
+    with_content: bool = False,
+    versions: dict[str, str] | None = None,
+    home: Path | None = None,
+) -> dict[str, Any]:
+    """The `surface/v1` document for one root, across every vendor.
 
+    Extracted from `run_check` in phase S2 so that `mcp.py` can answer with the
+    same bytes the command prints. A second implementation behind the MCP tool
+    would be a second place the answer is computed, and the one that goes stale
+    without anybody noticing - which is the argument this repository makes about
+    every generated page.
+
+    The union, never a merge (D-288). Each vendor is read and resolved on its
+    own and contributes its own `Surface`; nothing here reconciles two vendors'
+    capabilities, because two vendors configuring the same server are two things
+    that can be removed independently.
+    """
+    from .surface import document as build_document
+    from .surface.resolve import MERGE_TABLE, vendor_registry
+    from .surface.rules import evaluate, load
+
+    versions = versions or {}
+    catalogue = load()
+    surfaces = []
+    findings: list[Any] = []
+    gaps: list[Any] = []
+    for vendor, reader, resolver in vendor_registry():
+        reading = reader.read(repo, machine=machine, home=home)
+        surface = resolver(
+            reading,
+            agent_version=versions.get(vendor),
+            with_content=with_content,
+        )
+        surfaces.append(surface)
+        found, unresolved = evaluate(surface, catalogue)
+        findings.extend(found)
+        gaps.extend(surface.unresolved)
+        gaps.extend(unresolved)
+
+    return build_document(
+        root=str(repo),
+        surfaces=tuple(surfaces),
+        findings=tuple(findings),
+        gaps=tuple(gaps),
+        machine=machine,
+        merge_rules=MERGE_TABLE,
+    )
+
+
+def run_check(args: argparse.Namespace, catalog: Catalog) -> int:
     versions, problem = _agent_versions(args.agent_version)
     if problem:
         print(problem, file=sys.stderr)
@@ -416,20 +490,11 @@ def run_check(args: argparse.Namespace, catalog: Catalog) -> int:
         print(f"{repo} is not a directory", file=sys.stderr)
         return EXIT_USAGE
 
-    reading = read(repo, machine=args.machine)
-    surface = resolve(
-        reading,
-        agent_version=versions.get("claude-code"),
-        with_content=args.with_content,
-    )
-    findings, gaps = evaluate(surface)
-    payload = build_document(
-        root=str(repo),
-        surfaces=(surface,),
-        findings=findings,
-        gaps=tuple([*surface.unresolved, *gaps]),
+    payload = check_document(
+        repo,
         machine=args.machine,
-        merge_rules=MERGE_TABLE,
+        with_content=args.with_content,
+        versions=versions,
     )
 
     if args.json:

@@ -476,12 +476,18 @@ cogió, y esa parte sigue siendo verdad.
 
 ### Abiertas, con su fase
 
-- **`check` no está expuesto por el servidor MCP.** Es la decisión que la fase
-  traía: cabe en `mcp.py` con una entrada en `TOOLS` y una función como
-  `_verify`, pero el fichero 17 del presupuesto era `SECURITY.md` y exponerlo
-  habría sido el 18. No es alcance descubierto: el comando funciona entero por
-  CLI y nadie pierde una capacidad. **Fase S2**, junto con los lectores nuevos,
-  para exponer una herramienta que ya cubra más de un fabricante.
+- ~~**`check` no está expuesto por el servidor MCP.**~~ **Cerrada en la S2.**
+  `actaira_check` está en `TOOLS` y llama a `cli.check_document`, que es la
+  misma función que imprime el comando: una segunda implementación detrás de la
+  herramienta sería un segundo sitio donde se calcula la respuesta y el que se
+  queda viejo sin que nadie lo note. No expone `--with-content` ni `--machine`,
+  y el porqué está escrito en `_check` (D-289): el primero mete literales en un
+  documento que lee el agente de otro, y el segundo lee el directorio personal
+  del desarrollador. Llega ahora y no en la S1 por la razón que la línea decía:
+  una herramienta que leyera un solo fabricante habría anunciado «la superficie
+  de configuración» y devuelto un sexto de ella, y `tools/list` es la única
+  superficie donde una lectura que ya ocurrió no se corrige más abajo.
+  Reproducción: `test_check_over_mcp_answers_with_the_same_document_the_command_builds`.
 - **Tres de las quince reglas no tienen caso violador REAL. Cerrada como
   desviación, no como deuda.** CLAUDE.md tiene desde esta fase una tercera rama
   estrecha que la admite, y las tres la cumplen: ACT-S013 y ACT-S014 comparan
@@ -506,10 +512,16 @@ cogió, y esa parte sigue siendo verdad.
   `sh -c "$(curl ...)"` no nombra ninguna ruta y por tanto no produce hechos
   sobre un objetivo. **Sin fase**: arreglarlo bien es escribir un shell, que es
   exactamente lo que D-272 rechaza.
-- **El frontmatter de skills y subagentes no se lee.** Se detecta que hay una
-  clave `hooks` y sale INDETERMINADO con causa. No hay lector YAML en el árbol y
-  no se añade dependencia. **Fase S2**, que es donde ya hay que decidir qué
-  hacer con AGENTS.md.
+- ~~**El frontmatter de skills y subagentes no se lee.**~~ **Cerrada en la S2.**
+  `surface/miniyaml.py` lee el subconjunto que usan esos ficheros - mapas,
+  listas, flujos en línea, escalares planos y entrecomillados, comentarios - y
+  RECHAZA POR SU NOMBRE todo lo demás: anclas, alias, etiquetas, escalares de
+  bloque, claves complejas y flujos multidocumento. Sin dependencia nueva. El
+  hueco no se cierra, se estrecha y cambia de causa: lo INDETERMINADO ya no es
+  «no hay lector» sino «este bloque usa una construcción fuera del subconjunto»,
+  con la construcción nombrada, que es una causa sobre la que alguien puede
+  actuar. No lee los booleanos de YAML 1.1 a propósito (`NO` es la cadena `NO`,
+  no `False`), y el porqué está en D-281.
 - **`enabledPlugins` solo se resuelve si el plugin está descargado en el árbol.**
   Lo que viene de un marketplace remoto sale INDETERMINADO. Es correcto y es la
   causa de gap más frecuente del corpus (8 de 20 configuraciones). Puede que
@@ -517,6 +529,85 @@ cogió, y esa parte sigue siendo verdad.
   plugin. **Sin fase.**
 - **`MANIFEST.in` excluye `.pre-commit-hooks.yaml`, que ya no existe.** Sigue
   abierta desde la A.1, sin tocar. **Fase S3.**
+
+### Abiertas de la fase S2
+
+- **Los README publicaban «No existe» de una afirmación que S1 ya había
+  construido, y ninguna comprobación lo vio.** Arreglado en la S2, que es la
+  fase que lo destapó, y con eso la deriva concreta está cerrada. Lo que queda
+  abierto es el HUECO DE LA PUERTA que la permitió: `release_check` comprueba
+  que los comandos del CLI estén nombrados en los README, y no que el estado que
+  los README publican de cada una de las tres afirmaciones sea cierto. Hace
+  falta una comprobación de release que compare lo que cada bloque de afirmación
+  declara - construida, o no existe y con qué fase - contra lo que el árbol sabe
+  hacer, para que esto no pueda volver a pasar en silencio. **Fase S3 si cabe en
+  su presupuesto; si no cabe, se dice en su informe y se vuelve a nombrar aquí.**
+- **`docs/RULES.md` no dice qué capacidad emite cada regla ni en qué fichero
+  vive.** Publica el nombre de la capacidad, que es nuestro vocabulario; un
+  lector que quiera saber qué fichero suyo la produce tiene que leer el lector.
+  **Sin fase.**
+- ~~**Gemini CLI publica `mcpServers.<nombre>.trust` y también
+  `general.defaultApprovalMode`, y solo la primera tiene regla.**~~ **Cerrada en
+  la S2**, autorizada en conversación. Es **ACT-S031**, con caso violador real:
+  65 `.gemini/settings.json` públicos analizados el 18-sep-2026, 43 con un modo
+  de aprobación distinto del por defecto. El hecho cambió de nombre y de
+  significado al escribirla: era `stops_asking = mode != "default"`, que contaba
+  `plan` como un relajamiento cuando la referencia lo llama modo de solo
+  lectura, o sea un ENDURECIMIENTO. Ahora es `guardrail_removed = mode ==
+  "auto_edit"`, el mismo nombre de hecho que llevan las dos claves de Codex de
+  ACT-S022, porque es el mismo enunciado.
+- **Los primitivos de disco acotados viven en `surface/claude_code.py` y los
+  importan los otros seis lectores.** `read_text`, `read_json`, `script_facts`,
+  `git_tracked`, `inside_tree`, `digest_of` y los tres techos no son de Claude
+  Code: son de cualquier lector que toque el árbol de otro. Están ahí porque
+  fueron lo primero que se escribió, y moverlos a un módulo propio costaba un
+  fichero que el presupuesto de la S2 no tenía. Un lector nuevo importa hoy de
+  un módulo que lleva el nombre de un fabricante que no es el suyo. **Fase S3.**
+- **Las filas de la tabla de mezcla de la S1 no se pueden reproducir con ningún
+  comando del árbol.** Las de la S2 sí: su `doc_sha256` es
+  `curl -sL <url> | sha256sum` sobre los bytes que sirvió esa URL el
+  2026-09-18, y está escrito al lado de la tabla. Las ocho de la S1 se tomaron
+  con otro método que no quedó registrado, y recalcularlas hoy no las
+  reproduce - lo que es esperable, porque una página cambia, pero significa que
+  nadie puede distinguir «la página cambió» de «lo medimos de otra forma». No se
+  tocan: reescribirlas con la fecha de hoy sería fechar de nuevo una lectura que
+  no se hizo hoy. Se vuelven a tomar, con el método escrito, la próxima vez que
+  se revise esa documentación. **Sin fase.**
+- **`vendors_present` en `scripts/surface_corpus.py` lista las rutas de cada
+  fabricante por segunda vez.** La primera está en cada lector. Un fabricante
+  nuevo hay que añadirlo en los dos sitios y nada avisa si se olvida el segundo:
+  el corpus simplemente no lo promociona. Es un guion y no el paquete, así que
+  no rompe ninguna negativa. **Sin fase.**
+
+### De la invariante de cobertura de capacidades (S2, tras la revisión)
+
+- ~~**`hook.mcp_tool` se emitía desde la S1 y ninguna regla lo nombraba.**~~
+  **Cerrada**: es **ACT-S032**, con caso violador real y abundante. No lo
+  encontró nadie leyendo: lo encontró `test_capability_coverage`, que es
+  exactamente para lo que se escribió.
+- ~~**El nombre de una capacidad se construía con `f"hook.{kind}"`.**~~
+  **Cerrada (D-290).** Un `.claude/settings.json` con `"type": "inventado"`
+  producía la capacidad `hook.inventado`: el repositorio auditado eligiendo un
+  nombre en el vocabulario de Actaira, y encima imposible de nombrar por
+  ninguna regla. Ahora solo los tres tipos documentados dan capacidad y
+  cualquier otro sale INDETERMINADO con el tipo escrito en la causa.
+- ~~**El lector de Gemini no veía `toolDiscoveryCommand` ni `toolCallCommand`.**~~
+  **Cerrada (D-291).** Son la grafía v1 de `tools.discoveryCommand` y
+  `tools.callCommand`. Dos repositorios públicos las usan y el informe no decía
+  nada de ellas, que es el único fallo que un lector de configuración no puede
+  tener. Se leen, y salen INDETERMINADAS: el esquema actual publica solo la
+  grafía anidada, y si esta versión de Gemini sigue migrando la plana no está
+  publicado en ningún sitio que hayamos encontrado. Afirmar que se ejecuta
+  inventa la migración; afirmar que no, inventa su retirada.
+- **`gemini-cli helper.command` no tiene regla, y está en
+  `EMITTED_WITHOUT_A_RULE` con su motivo.** `tools.discoveryCommand` y
+  `tools.callCommand` sí ejecutan un comando desde un fichero de proyecto que se
+  impone sobre el del usuario, así que la regla estaría justificada. No existe
+  caso violador real: cinco búsquedas registradas del 18-sep-2026 analizaron 56
+  ficheros públicos distintos y ninguno fija ninguna de las dos en la grafía
+  vigente. Escribir la regla contra un fixture nuestro probaría que sabemos
+  escribir el fixture. **Sin fase**: la regla llega el día que aparezca un caso,
+  y el guion de corpus ya sabe buscarlo.
 
 ### De la pasada adversarial de la S1
 
@@ -529,13 +620,46 @@ cogió, y esa parte sigue siendo verdad.
   exige convertir cada condición en una clave con parámetros, lo que toca
   `resolve.py` entero. **Sin fase**, y no es alcance de la S1: la pasada
   adversarial solo puede producir un arreglo o una línea aquí.
-- **Los hechos de un script al que apunta el hook de un PLUGIN no se calculan.**
-  `Reading.scripts` se rellena recorriendo `settings`, no los `hooks/hooks.json`
-  de los plugins descargados, así que ACT-S003, ACT-S004 y ACT-S005 salen
-  INDETERMINADAS sobre un hook de plugin en vez de responder. Es honesto y es
-  incompleto. **Fase S2**, que ya vuelve a tocar el lector.
+- ~~**Los hechos de un script al que apunta el hook de un PLUGIN no se
+  calculan.**~~ **Cerrada en la S2.** El recorrido que rellena `Reading.scripts`
+  pasa ahora por `settings` Y por `mcp_files`, que es donde acababa el
+  `hooks/hooks.json` de un plugin descargado, y se corre otra vez después de que
+  se hayan añadido los ficheros de plugin y los bloques de frontmatter - un
+  segundo paso explícito en vez de una regla de orden que alguien tiene que
+  recordar. ACT-S003, ACT-S004 y ACT-S005 responden sobre un hook de plugin en
+  vez de salir INDETERMINADAS sobre un objetivo que llevaba todo el rato en
+  disco. Reproducción:
+  `test_a_plugin_hooks_script_gets_the_same_four_facts_as_any_other`.
 
 ### Para el estudio del lanzamiento
+
+- **`task.allowAutomaticTasks` es de ámbito de APLICACIÓN, y eso tiene dos caras
+  que el estudio tiene que dar juntas.** Material de la fase de lanzamiento,
+  sección 7 del plan maestro, junto al hallazgo de la S1 sobre los hooks y la
+  confianza en la carpeta.
+
+  A FAVOR, y es un hallazgo de verdad: el valor que decide si una tarea
+  `folderOpen` se ejecuta NO puede vivir en ningún ámbito que controle el
+  repositorio. La clave es `ConfigurationScope.APPLICATION` en el propio código
+  de VS Code, así que un `.vscode/settings.json` commiteado no la fija, y el
+  valor sale del fichero de ajustes del usuario. De ahí se sigue que
+  INDETERMINADO es la respuesta CORRECTA por defecto en cualquier pull request,
+  no un hueco de la herramienta: quien revisa un PR no puede saber, desde el
+  repositorio, si la máquina que lo abra ejecutará la tarea. Un producto que
+  respondiera «se ejecuta» o «no se ejecuta» ahí estaría inventando.
+
+  EN CONTRA, Y ESTO VA ESCRITO PARA NO INFLAR EL TITULAR: la tarea que plantó
+  keyv solo se ejecuta si el usuario YA tenía la ejecución automática activada.
+  El valor por defecto documentado es `off`, y además las tareas automáticas no
+  corren nunca en un espacio de trabajo sin confiar, sea cual sea el ajuste. Así
+  que el titular del estudio NO puede decir que la mitad de VS Code del gusano
+  se ejecuta siempre, ni que se ejecuta en una máquina recién instalada. Lo que
+  puede decir es lo que es: que se ejecuta sin preguntar en las máquinas que
+  tienen la ejecución automática activada y la carpeta confiada, que el
+  repositorio no puede saber cuáles son, y que la otra mitad del mismo gusano
+  -el hook de Claude Code- no espera a nada de eso. Las dos mitades no son
+  equivalentes y el estudio que las presente como una sola estará vendiendo.
+
 
 - **Que los hooks y `env` NO esperen a la confianza en la carpeta es el
   mecanismo por el que los dos gusanos de 2026 funcionan, y es material del

@@ -48,9 +48,16 @@ def _listed():
 
 
 def test_the_server_announces_only_the_tools_it_has():
+    """Two now, and the second arrived only once it could answer honestly.
+
+    `actaira_check` was buildable in phase S1 and was not built, because it
+    would have announced "the configuration surface" and returned one vendor's
+    sixth of it - and `tools/list` is the one surface where a reading that has
+    already happened cannot be corrected further down (D-256, D-289).
+    """
     names = _listed()
 
-    assert names == ["actaira_verify"]
+    assert names == ["actaira_check", "actaira_verify"]
     assert set(names) == set(TOOLS), "tools/list and TOOLS disagree"
 
 

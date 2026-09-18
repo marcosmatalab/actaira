@@ -277,8 +277,10 @@ un noveno exige quitar otro.
     actaira scan                 analiza sesiones que el agente ya grabó (L0)
     actaira watch -- <comando>   graba una ejecución desde el borde (L1 o más)
 
-`check` llegó en la S1 y lee Claude Code; los fabricantes que le faltan están en
-la lista de «no leído» de su propio informe, no en silencio. `diff` y `seal` no
+`check` llegó en la S1 leyendo Claude Code y en la S2 lee además Codex CLI,
+Cursor, Gemini CLI, los ficheros de VS Code, el devcontainer y los ficheros de
+instrucciones; lo que siga sin leerse está en la lista de «no leído» de su
+propio informe, no en silencio. `diff` y `seal` no
 están construidos, y cada uno lleva escrita la fase en la que llega. `tests/test_cli.py` lo comprueba: un comando de esta lista que ni
 exista en el parser ni lleve su fase marcada rompe la puerta. Un nombre en esta
 lista sin fase es una promesa publicada.

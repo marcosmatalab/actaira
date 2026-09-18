@@ -1,0 +1,17 @@
+{
+  "instructions": {
+    "capabilities": {
+      "instructions.import": "declared",
+      "instructions.remote_execution": "declared"
+    },
+    "capability_count": 2,
+    "not_read": [
+      "instruction files above and below the repository root"
+    ],
+    "rules_that_fire": [
+      "ACT-S028",
+      "ACT-S029"
+    ],
+    "unresolved_count": 0
+  }
+}

@@ -1,12 +1,14 @@
 {
-  "capabilities": {
-    "permissions.default_mode": "effective",
-    "sandbox.excluded_command": "effective"
-  },
-  "capability_count": 22,
-  "not_read": [
-    "~/.claude/settings.json and the managed policy"
-  ],
-  "rules_that_fire": [],
-  "unresolved_count": 21
+  "claude-code": {
+    "capabilities": {
+      "permissions.default_mode": "effective",
+      "sandbox.excluded_command": "effective"
+    },
+    "capability_count": 22,
+    "not_read": [
+      "~/.claude/settings.json and the managed policy"
+    ],
+    "rules_that_fire": [],
+    "unresolved_count": 21
+  }
 }
