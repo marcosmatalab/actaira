@@ -242,12 +242,12 @@
     },
     "total_lines": 849
   },
-  "generated_at": "2026-09-18T17:56:46+00:00",
+  "generated_at": "2026-09-18T18:41:20+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 23,
-    "head": "4d91d27",
+    "commits": 24,
+    "head": "20fa90d",
     "head_date": "2026-09-18"
   },
   "package": {

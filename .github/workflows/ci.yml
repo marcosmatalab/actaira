@@ -209,8 +209,18 @@ jobs:
       - name: zizmor over action.yml and the workflows
         run: |
           set -euo pipefail
-          python -m pip install --quiet zizmor
-          python -m zizmor --persona=auditor --format plain action.yml .github/workflows/
+          # `zizmor`, not `python -m zizmor`: it is a Rust binary distributed
+          # through PyPI, so it installs an executable and no importable module.
+          # The first push found that, because it is the one thing about this job
+          # that no local run had ever exercised - locally the binary was called
+          # by path.
+          #
+          # Pinned. An unpinned linter turns this gate red for a reason that is
+          # not a change to this repository, and a gate that goes red on somebody
+          # else's release is a gate people learn to ignore. 1.30.1 is the
+          # version whose clean run is quoted in the phase S3 commit.
+          python -m pip install --quiet zizmor==1.30.1
+          zizmor --persona=auditor --format plain action.yml .github/workflows/
 
   action:
     name: the published Action, used the way a stranger would
@@ -255,6 +265,9 @@ jobs:
           from-dir: tests/fixtures/action/clean
           to-dir: tests/fixtures/action/clean
           sarif: clean.sarif
+      - name: keep the clean run's exit code before the second run overwrites it
+        if: ${{ always() }}
+        run: mv actaira-exit-code.txt clean-exit-code.txt
       - name: the keyv wave arriving on top of it
         id: keyv
         continue-on-error: true
@@ -263,12 +276,18 @@ jobs:
           from-dir: tests/fixtures/action/clean
           to-dir: tests/fixtures/surface/keyv-august
           sarif: keyv.sarif
+      - name: keep the keyv run's exit code
+        if: ${{ always() }}
+        run: mv actaira-exit-code.txt keyv-exit-code.txt
       - name: the exit codes are the ones the contract publishes
-        env:
-          CLEAN: ${{ steps.clean.outputs.exit-code }}
-          KEYV: ${{ steps.keyv.outputs.exit-code }}
+        # Read from the files the Action writes, not from its outputs. A
+        # composite action that failed does not map its outputs, so
+        # `steps.keyv.outputs.exit-code` is an empty string in exactly the case
+        # this job exists to check. The first push found that too.
         run: |
           set -euo pipefail
+          CLEAN="$(cat clean-exit-code.txt)"
+          KEYV="$(cat keyv-exit-code.txt)"
           echo "clean=$CLEAN keyv=$KEYV"
           test "$CLEAN" = "0"
           test "$KEYV" = "1"

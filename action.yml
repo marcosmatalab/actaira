@@ -90,6 +90,13 @@ outputs:
       What `actaira diff` exited with: 0 nothing fired and nothing was
       unresolved, 1 a rule fired on something added or widened, 3 nothing fired
       and something could not be resolved. Passed through, never swallowed.
+
+      READ IT FROM `actaira-exit-code.txt` IF YOU NEED IT WHEN IT IS NON-ZERO.
+      A composite action whose step failed does not map its outputs, so this
+      value is empty in exactly the case a caller cares about most. That is
+      GitHub's behaviour and not something this file can fix; what it can do is
+      write the number to a file before failing, and say so here rather than
+      letting somebody discover an empty string in a condition.
     value: ${{ steps.diff.outputs.exit-code }}
   sarif:
     description: The path the SARIF file was written to.
@@ -164,7 +171,23 @@ runs:
 
         echo "exit-code=$code" >> "$GITHUB_OUTPUT"
         echo "sarif=$ACTAIRA_SARIF" >> "$GITHUB_OUTPUT"
+        # And to a file, because the output above is unreadable in the one case
+        # that matters. A composite action that fails does not map its outputs,
+        # so a caller branching on `exit-code` gets an empty string precisely
+        # when a rule fired. The file is written before anything can fail and is
+        # what this repository's own CI job reads.
+        echo "$code" > actaira-exit-code.txt
         cat actaira-diff.txt
+
+    - name: pass the tool's exit code through
+      # Separate from the step above so that step SUCCEEDS and its outputs are
+      # recorded. The contract is that the exit code reaches the job untouched -
+      # there is no `|| true` anywhere in this file - and this is where that
+      # happens, after everything that had to be written has been written.
+      shell: bash
+      run: |
+        set -euo pipefail
+        code="$(cat actaira-exit-code.txt)"
         exit "$code"
 
     - name: comment on the pull request
