@@ -67,10 +67,16 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   ```
 
 - `CONTRIBUTING.md` y `docs/ENGINEERING.md` nombran `make diagrams`, `make
-  screenshots` y `docs/img/`, que ya no existen. Sigue abierto y recomprobado en
-  la S0: `grep -n 'make diagrams' CONTRIBUTING.md docs/ENGINEERING.md` devuelve
-  dos líneas y el `Makefile` no tiene ninguno de los dos objetivos. **Fase S3**,
-  que es cuando vuelve a haber una imagen que generar: el informe HTML.
+  screenshots` y `docs/img/`, que ya no existen. **Recomprobado en la S3 y
+  reasignado con motivo**: `grep -n 'make diagrams\|make screenshots'
+  CONTRIBUTING.md docs/ENGINEERING.md` devuelve dos líneas, las dos en
+  `docs/ENGINEERING.md:23-24`, y el `Makefile` no tiene ninguno de los dos
+  objetivos. La premisa de la reasignación a la S3 resultó falsa: el informe HTML
+  no es una imagen de `docs/img/`, es un fichero que el usuario pide con `--html`
+  y que no se genera en el repositorio ni se commitea, así que la S3 no devuelve
+  ninguna imagen que generar y no hay objetivo que restaurar. Lo que hay que
+  hacer es borrar las dos líneas, y eso es un fichero de documentación que esta
+  fase no abre. **Sin fase**, hasta que algo vuelva a dibujar.
 - `docs/GOVERNANCE.md`, `docs/FORMATS.md`, `docs/EVALUATION.md` y
   `docs/CONCEPTS*.md` documentan módulos archivados. `docs/COMPATIBILITY.md`
   promete que un contrato publicado sigue publicado, y 3.0.0 retira diez.
@@ -91,13 +97,15 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
 - Tres tests de `test_state_graph.py` que cubrían esa función se borraron con
   ella, y con ellos la única cobertura de las aristas de pertenencia grabadas
   desde un manifiesto. Vuelven con `state/` o no vuelven. **Fase P1.**
-- DEF-115 (un recibo emitido desde un espacio de trabajo no referenciaba
-  evidencia) perdió su test: pasaba por `actaira receipt issue --state`. El
-  defecto está arreglado en `state/` y el registro lo apunta contra la etiqueta
-  `v2.3.0`. `actaira receipt` no vuelve: el documento firmado del plan nuevo es
-  el sello de superficie. La forma del defecto sí vuelve, porque es la misma, un
-  documento firmado que no referencia aquello sobre lo que se firmó.
-  **Fase S3**, con `seal`.
+- ~~DEF-115 (un recibo emitido desde un espacio de trabajo no referenciaba
+  evidencia) perdió su test.~~ **Cerrada en la S3.** La forma del defecto es «un
+  documento firmado que no referencia aquello sobre lo que se firmó», y
+  `seal/v1` la hace imposible por construcción: `surface_sha256` es obligatorio
+  en el esquema y es el digest canónico del documento `surface/v1` sellado, de
+  forma que un sello sin sujeto no valida.
+  `test_a_changed_surface_changes_the_digest_an_approval_is_keyed_on` lo
+  ejercita por el lado que importa, que es que el digest se mueva cuando la
+  superficie se mueve.
 - `i18n` conserva 41 ids de regla del escáner, que son los que siguen citados en
   `coverage.py` y en `conformance/`. **Medio cerrado**: el catálogo está vacío
   desde la fase A, y `release_check.rules_are_documented` lo exige vacío en vez
@@ -148,11 +156,16 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   **Sin fase.**
 - `scripts/build_package.py` sigue exigiendo `actaira/web/static/index.html`,
   `actaira/agents/cassettes/judged-gold.json` y `actaira/schemas/report-v1.json`,
-  que se fueron a `archive/model-scanner` en la 3.0.0. `make package` no está en
-  `make all`, así que la puerta no lo ve. Encontrado leyendo el fichero para
-  saber si el fixture del `--demo` viajaba en la rueda. **Fase S3**: es la
-  primera que publica algo que instala un tercero, y ese día un `make package`
-  roto deja de ser un problema interno.
+  que se fueron a `archive/model-scanner` en la 3.0.0. **Recomprobado en la S3 y
+  NO cerrado, con motivo.** La premisa de la reasignación era que la S3 sería la
+  primera fase que publica algo que instala un tercero, y lo es; lo que resultó
+  no ser cierto es que ese algo pase por aquí. La acción de GitHub instala con
+  `pip install <action_path>`, el trabajo `package` de CI construye con
+  `python -m build`, y `make package` no está en `make all` ni en CI, así que
+  nada de lo que la S3 publica depende de este fichero. Arreglarlo son cinco
+  líneas y es un fichero de diseño que el presupuesto de esta fase no nombra, y
+  gastarlo aquí a cambio de nada habría sido alcance por comodidad.
+  Reproducción: `grep -n 'web/static' scripts/build_package.py`. **Fase S4.**
 
 ## Fase 1.1b — la sesión que el protocolo ya no tiene
 
@@ -221,11 +234,16 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
 - Nada en el arbol DICE que `<--out>/records/` no se publica. Ahora contiene,
   ademas de los argumentos en claro cuando se usa `--with-content`, los mapas
   `<servidor>.refs.json` que deshacen todas las referencias de la D-268. Un
-  operador que empaquete `--out` entero publica lo que la sal protegia. El acta
-  de la fase 3 empaqueta la traza firmada y no `records/`, asi que el camino
-  correcto ya existe; lo que falta es que el directorio lo diga y que el
-  empaquetador se niegue si lo encuentra dentro. El empaquetador es `seal`.
-  **Fase S3.**
+  operador que empaquete `--out` entero publica lo que la sal protegia.
+  **Reasignada en la S3, con motivo.** La línea daba por hecho que el
+  empaquetador sería `seal` y que `seal` empaquetaría una traza. No lo hace:
+  `seal` sella una SUPERFICIE, nunca lee `records/` y nunca podría encontrarlo
+  dentro, así que la negativa que esta línea pedía no tiene sujeto. Lo que sí
+  hizo la S3 es la mitad que sí le corresponde, en su propio terreno:
+  `<--out>/index.json` de `seal` lleva una nota escrita que dice que ese fichero
+  no viaja y que publicarlo deshace la redacción del paquete. La mitad de `watch`
+  sigue abierta y es suya: el que tiene que decirlo es `records/`. **Sin fase**,
+  hasta que haya un comando que empaquete una traza.
 - El guardian de red tapa seis puertas de `socket` y su meta-test las ejercita
   una a una. Sigue sin tapar un subproceso, que es como sale el agente de prueba
   de `test_proxy_http_interposition.py`. Va a loopback y se puede leer, pero la
@@ -302,7 +320,17 @@ un lector de artefactos debería poder leer por qué este se hizo así.
 
 ## Fase A.1 — lo que la medición de alcanzabilidad no mide
 
-- **`test_reachability` mide módulos, no si la cadena del producto se cierra.**
+- ~~**`test_reachability` mide módulos, no si la cadena del producto se cierra.**~~
+  **Cerrada en la S3.** `actaira seal` es el productor: escribe un paquete con un
+  documento `seal/v1` dentro, y `verify` lo verifica y además NOMBRA el contrato
+  que acaba de verificar en vez de comprobar bytes y no decir nada de ellos. La
+  comprobación que la línea pedía - «para cada formato que este árbol verifica,
+  existe un comando que lo produce» - ya no es retórica y la sostiene
+  `tests/test_seal_and_report.py::test_a_seal_verifies_offline_and_names_the_contract_it_carries`.
+  Reproducción del cierre: `grep -rn 'write_package' src/ | grep -v 'def '`
+  devuelve ahora la llamada de `attest/seal.py`. El texto original queda debajo.
+
+  ORIGINAL:
   Pregunta si todo módulo es alcanzable desde un comando. `attest/` lo es:
   `verify` entra en `package.py`, `merkle.py`, `chain.py`, `trust.py`,
   `timestamp.py` y `keyring.py`. Lo que no pregunta es si algo que esta
@@ -527,21 +555,40 @@ cogió, y esa parte sigue siendo verdad.
   causa de gap más frecuente del corpus (8 de 20 configuraciones). Puede que
   merezca agruparse por marketplace en la consola en vez de una línea por
   plugin. **Sin fase.**
-- **`MANIFEST.in` excluye `.pre-commit-hooks.yaml`, que ya no existe.** Sigue
-  abierta desde la A.1, sin tocar. **Fase S3.**
+- ~~**`MANIFEST.in` excluye `.pre-commit-hooks.yaml`, que ya no existe.**~~
+  **Cerrada en la S3**, y cerrada por los dos lados: el fichero existe otra vez,
+  así que la línea vuelve a ser verdad en vez de ser solo silenciosa, y al lado
+  se excluye `action.yml` por el mismo motivo. Los dos son manifiestos de
+  integración que se leen de un checkout de git: ni `pre-commit` ni GitHub
+  Actions miran nunca dentro de una rueda. Reproducción: `python -m build` no
+  avisa de ninguna exclusión sin fichero.
 
 ### Abiertas de la fase S2
 
-- **Los README publicaban «No existe» de una afirmación que S1 ya había
-  construido, y ninguna comprobación lo vio.** Arreglado en la S2, que es la
-  fase que lo destapó, y con eso la deriva concreta está cerrada. Lo que queda
-  abierto es el HUECO DE LA PUERTA que la permitió: `release_check` comprueba
-  que los comandos del CLI estén nombrados en los README, y no que el estado que
-  los README publican de cada una de las tres afirmaciones sea cierto. Hace
-  falta una comprobación de release que compare lo que cada bloque de afirmación
-  declara - construida, o no existe y con qué fase - contra lo que el árbol sabe
-  hacer, para que esto no pueda volver a pasar en silencio. **Fase S3 si cabe en
-  su presupuesto; si no cabe, se dice en su informe y se vuelve a nombrar aquí.**
+- ~~**Los README publicaban «No existe» de una afirmación que S1 ya había
+  construido, y ninguna comprobación lo vio.**~~ **Cerrada en la S3**, y cerrada
+  por el hueco y no por la instancia. `readme_claims_resolve_against_the_tree`
+  lee la línea `Commands:` de cada bloque de afirmación y la resuelve contra el
+  parser EN LOS DOS SENTIDOS: un bloque que dice «construido» nombrando un
+  comando que nadie escribió rompe la puerta, y un comando que existe sin que
+  ningún bloque lo reclame la rompe igual. El criterio que lo hace posible es el
+  que pedía la línea: lo que no se puede comprobar mecánicamente no se afirma,
+  así que un bloque sin `Commands:` se rechaza por no ser resoluble en vez de
+  aceptarse por ser prosa bonita.
+
+  Con ella llegaron tres más, que son las otras dos cosas que un README afirma:
+  `documented_flags_exist` (todo flag que la documentación enseña al lado de un
+  comando es una opción que ese comando tiene, leído también de
+  `.pre-commit-hooks.yaml`), `exit_codes_are_the_published_ones` (la tabla de
+  `COMPATIBILITY.md` es exactamente el conjunto que el CLI define, con el 141
+  obligatoriamente FUERA de la tabla y nombrado en la prosa) y
+  `package_metadata_names_real_commands` (la descripción de `pyproject.toml`,
+  que llevaba dos fases nombrando cuatro comandos sobre un árbol de cinco).
+
+  Seis defectos plantados en `tests/test_release_check.py` exigen que cada forma
+  se rechace. Reproducción del cierre: cambiar en `README.md` el bloque
+  `> **Built.** Commands: \`actaira diff\`, \`actaira seal\`.` por
+  `> **Does not exist.** Commands: none.` y correr `make release-check`.
 - **`docs/RULES.md` no dice qué capacidad emite cada regla ni en qué fichero
   vive.** Publica el nombre de la capacidad, que es nuestro vocabulario; un
   lector que quiera saber qué fichero suyo la produce tiene que leer el lector.
@@ -556,13 +603,18 @@ cogió, y esa parte sigue siendo verdad.
   lectura, o sea un ENDURECIMIENTO. Ahora es `guardrail_removed = mode ==
   "auto_edit"`, el mismo nombre de hecho que llevan las dos claves de Codex de
   ACT-S022, porque es el mismo enunciado.
-- **Los primitivos de disco acotados viven en `surface/claude_code.py` y los
-  importan los otros seis lectores.** `read_text`, `read_json`, `script_facts`,
-  `git_tracked`, `inside_tree`, `digest_of` y los tres techos no son de Claude
-  Code: son de cualquier lector que toque el árbol de otro. Están ahí porque
-  fueron lo primero que se escribió, y moverlos a un módulo propio costaba un
-  fichero que el presupuesto de la S2 no tenía. Un lector nuevo importa hoy de
-  un módulo que lleva el nombre de un fabricante que no es el suyo. **Fase S3.**
+- ~~**Los primitivos de disco acotados viven en `surface/claude_code.py` y los
+  importan los otros seis lectores.**~~ **Cerrada en la S3.** Están en
+  `surface/disk.py`, junto con `SettingsFile` y `Reading`, que tuvieron que ir
+  con ellos porque `read_json` devuelve el primero y ningún lector produce algo
+  que no sea el segundo. Renombrado mecánico: ni una firma cambió, ni un nombre,
+  ni un comportamiento. La nota de diseño D-271 se fue con el código que la
+  implementa y ahora es D-300; las filas D-272 y D-279 apuntan al fichero nuevo.
+  Se hizo en la S3 y no en la S4 porque en la S4 los lectores de ámbito de
+  máquina importan lo mismo y entonces son diez y no seis. Reproducción del
+  cierre: `grep -rn 'from .claude_code import' src/actaira/surface/` devuelve
+  solo `STARTUP_EVENTS, VENDOR, hook_handlers` y los tres imports diferidos de
+  `HANDLER_TYPES`, `COMMAND_KEYS` y `SCRIPT_SUFFIXES`, que sí son de Claude Code.
 - **Las filas de la tabla de mezcla de la S1 no se pueden reproducir con ningún
   comando del árbol.** Las de la S2 sí: su `doc_sha256` es
   `curl -sL <url> | sha256sum` sobre los bytes que sirvió esa URL el
@@ -675,3 +727,57 @@ cogió, y esa parte sigue siendo verdad.
   página y la fecha, y la condición sale escrita en cada capacidad afectada del
   informe. **Fase de lanzamiento**, sección 7 del plan maestro: es uno de los
   «lo habría cazado», y el punto que explica por qué.
+
+### Abiertas de la fase S3
+
+- **`uses: $/` está sin probar y se deja para después, a propósito.** `zizmor`
+  pide la sintaxis de auto-repositorio en vez de `uses: ./`, y tiene razón: no
+  puede cargar una acción que un paso anterior clonó en tiempo de ejecución, y
+  cuenta como fijación para las políticas de GitHub. Tiene dos meses y nada en
+  un portátil puede correr un runner, así que la primera evidencia de que
+  resuelve sería el trabajo `action` poniéndose verde - en el mismo commit que
+  estrena la acción, que tampoco ha corrido nunca nadie. Dos cosas sin verificar
+  en un commit, y un build rojo que no puede decir cuál de las dos falló.
+  **Autorizado en conversación (regla 8)**: la variable se aísla. `./` es la
+  grafía que funciona en todas partes, el trabajo demuestra que la acción
+  funciona con ella, y los dos hallazgos `self-repository` se silencian EN LA
+  PROPIA LÍNEA con `# zizmor: ignore[self-repository]`, con el argumento escrito
+  encima del trabajo en `ci.yml`. **Fase S3.1, o el commit de una línea que
+  venga después**: cambiar las dos líneas a `$/` y quitar los dos silencios,
+  UNA VEZ que el trabajo `action` haya salido verde al menos una vez. Si falla,
+  revertir cuesta diez segundos y no arrastra nada.
+- **El informe HTML no tiene una comprobación de que se lea.** Se afirma que no
+  carga nada de la red, que sale igual dos veces y que escapa lo que viene de
+  otro; no se afirma nada de que el resultado sea legible, y eso no es
+  comprobable por una máquina sin una captura, que es exactamente la clase de
+  fichero que la A.1 quitó. **Sin fase**: es una limitación conocida, no trabajo
+  pendiente.
+- **`diff` materializa el árbol entero de cada ref.** Es correcto - filtrar por
+  las rutas que los lectores conocen sería una segunda copia de la lista de
+  rutas de cada lector, y `diff` respondería sobre un subconjunto mientras
+  `check` responde sobre todo - y es caro en un monorepo. Los techos
+  (`MAX_TREE_FILES` 50 000, `MAX_TREE_BYTES` 256 MiB) se comprueban contra el
+  listado antes de escribir un byte, así que un árbol que no cabe se rechaza con
+  el número dicho en vez de extraerse a medias. Lo que no hay es una medida de
+  cuánto tarda sobre un repositorio grande de verdad. **Sin fase** hasta que
+  alguien lo note; la lista de `.launch/` pide el dato de las cuatro
+  ejecuciones.
+- **`git_tracked` no sabe responder sobre un árbol materializado de una ref.**
+  Un directorio extraído con `cat-file` no tiene `.git/index`, así que el hecho
+  sale `null` con su causa escrita, en los DOS lados del diff. Ninguna regla lee
+  ese hecho, así que ningún hallazgo cambia, y como es simétrico tampoco produce
+  un cambio falso. Rechazado: fabricar un `.git/index` para que el hecho leyera
+  `true`, que sería Actaira escribiendo un artefacto de git para que su propia
+  respuesta pareciera más completa, y además el hecho no es «estaba en el índice
+  de esa ref» sino «estaba en el índice del árbol que se leyó». **Sin fase.**
+- **El informe de `diff` no publica lo que no se materializó.** `Extraction`
+  lleva un campo `refused` con los submódulos y las rutas que no habrían quedado
+  dentro de la extracción, y `to_dict` no lo saca al documento: un submódulo es
+  un id de commit y no un fichero, y hoy eso no llega a `not_read`. Es la
+  tercera negativa en pequeño y el arreglo es una entrada de `not_read` por cada
+  uno. Encontrado en la pasada adversarial de la fase. **Sin fase.**
+- **`report/html.py` imprime `facts` enteros y `check` por consola no.** La
+  página es más completa que la consola para el mismo documento, que es una
+  diferencia entre dos salidas del mismo comando sin nadie que la arbitre. La
+  página es la que está bien: un revisor quiere ver el hecho y no solo la frase
+  sobre el hecho. **Sin fase.**

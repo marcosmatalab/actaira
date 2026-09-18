@@ -67,9 +67,12 @@ def no_network(monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-SHIPPED = {"check", "verify", "keygen", "scan", "watch"}
-# The two CLAUDE.md names that this release still cannot mean anything by,
-# the four that phase S0 removed from the list, and `serve`.
+SHIPPED = {"check", "diff", "seal", "verify", "keygen", "scan", "watch"}
+# The four names that phase S0 removed from the list, and `serve`. There is no
+# unbuilt name left: `diff` and `seal` arrived in phase S3, so `NOT_BUILT_YET`
+# is empty and stays here rather than being deleted - the next command that is
+# planned before it works goes in it, and a name that has to be re-invented is a
+# name somebody will forget to assert about.
 #
 # The retired four stay here rather than being deleted with the doctrine that
 # named them, and the reason is that this test asserts a usage error, not an
@@ -78,18 +81,17 @@ SHIPPED = {"check", "verify", "keygen", "scan", "watch"}
 # `serve` is in the list and is not one of the seven: the MCP server is a
 # separate entry point, `actaira-mcp`, precisely so that it is not another
 # command, and this is where that stays true.
-NOT_BUILT_YET = ["diff", "seal"]
+NOT_BUILT_YET: list[str] = []
 RETIRED = ["contract", "verdict", "receipt", "fix"]
 UNSHIPPED = [*NOT_BUILT_YET, *RETIRED, "serve"]
 
 
 def test_the_cli_publishes_exactly_the_commands_that_work():
-    """CLAUDE.md lists seven, caps the set at eight, and this release ships five.
+    """CLAUDE.md lists seven, caps the set at eight, and this release ships seven.
 
-    Phase S1 built the configuration reader, so `check` moved from the promised
-    list to this one. `diff` and `seal` are the two still outstanding; both need
-    a sealed baseline, which is phase S3. A parser that accepted them and
-    printed "not implemented" would be advertising them.
+    Phase S1 built the configuration reader and phase S3 built the two that were
+    left, so the promised list is empty for the first time. The cap is still the
+    cap: an eighth command is a decision and a ninth costs one of these.
     """
     subparsers = [
         action

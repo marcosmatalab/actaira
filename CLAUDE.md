@@ -269,9 +269,9 @@ un noveno exige quitar otro.
                                  repo y de esta máquina, resuelve la superficie
                                  efectiva y aplica las reglas
     actaira diff A B             qué capacidad aparece, desaparece, se ensancha
-                                 o se estrecha entre dos momentos   (fase S3)
+                                 o se estrecha entre dos momentos
     actaira seal                 sella una línea base firmada de la superficie,
-                                 que es lo que `verify` verifica    (fase S3)
+                                 que es lo que `verify` verifica
     actaira verify <sello.zip>   verifica un sello sin red
     actaira keygen               crea, rota o revoca una clave
     actaira scan                 analiza sesiones que el agente ya grabó (L0)
@@ -280,10 +280,13 @@ un noveno exige quitar otro.
 `check` llegó en la S1 leyendo Claude Code y en la S2 lee además Codex CLI,
 Cursor, Gemini CLI, los ficheros de VS Code, el devcontainer y los ficheros de
 instrucciones; lo que siga sin leerse está en la lista de «no leído» de su
-propio informe, no en silencio. `diff` y `seal` no
-están construidos, y cada uno lleva escrita la fase en la que llega. `tests/test_cli.py` lo comprueba: un comando de esta lista que ni
-exista en el parser ni lleve su fase marcada rompe la puerta. Un nombre en esta
-lista sin fase es una promesa publicada.
+propio informe, no en silencio. `diff` y `seal` llegaron en la S3, y con ellos
+la lista se queda sin ningún nombre pendiente: los siete existen.
+`tests/test_cli.py` lo comprueba en los dos sentidos: un comando de esta lista
+que ni exista en el parser ni lleve su fase marcada rompe la puerta, y uno que
+exista y siga marcado con una fase la rompe igual. Un nombre en esta lista sin
+fase es una promesa publicada; una fase sobre un comando construido es la misma
+mentira del otro lado.
 
 Salieron de la lista `contract`, `verdict`, `receipt` y `fix`. Los tres
 primeros eran el producto de conformidad, que el plan retira; `fix` imprimía

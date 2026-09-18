@@ -641,6 +641,277 @@ def readme_documents_the_commands() -> str:
     return f"{len(commands)} commands, each named on all {len(pages)} pages that list them"
 
 
+
+# --------------------------------------------------------------------------
+# What the pages CLAIM, against what the parser can do
+# --------------------------------------------------------------------------
+#
+# Design note D-301. `readme_documents_the_commands` above asks one direction and
+# one direction only: is every command that exists NAMED somewhere on the page.
+# It cannot ask whether what the page SAYS about it is true, and that gap let a
+# real defect stand for a whole phase: after phase S1 built `actaira check`, both
+# READMEs went on publishing "Does not exist. No reader, no resolver and no rule
+# package in this tree" under the claim that command implements. `check` was
+# named further down, so the check above was green while the page said the thing
+# did not exist. Phase S2 found it by reading, which is exactly the mechanism
+# this project does not accept as a gate.
+#
+# The criterion, and it is the whole of it: every claim a page makes about a
+# command, a flag or an exit code has to resolve against the TREE. What cannot be
+# resolved mechanically is not asserted. So each of the three claim blocks
+# carries a `Commands:` line naming the commands it rests on, and this check
+# reads it in both directions - a block may not name a command that contradicts
+# its own status, and a command may not exist without appearing in a block whose
+# status says it works.
+#
+# Rejected: inferring which claim a command belongs to from prose. That is the
+# reading the defect survived, performed by a program instead of a person.
+
+# The status words each page is allowed to use, and what they mean here. Per
+# language, because a Spanish page that had to write "Built" to satisfy a checker
+# is a page bent around its gate.
+CLAIM_STATUS = {
+    "README.md": {
+        "Built": "works",
+        "Partly built": "works",
+        "Does not exist": "absent",
+        "Outside the three claims": "outside",
+    },
+    "README.es.md": {
+        "Construido": "works",
+        "Construido en parte": "works",
+        "No existe": "absent",
+        "Fuera de las tres afirmaciones": "outside",
+    },
+}
+COMMANDS_LABEL = ("Commands:", "Comandos:")
+NO_COMMANDS = ("none", "ninguno")
+
+
+def _claim_blocks(page: str, text: str) -> list[tuple[str, str, list[str]]]:
+    """(status, block, commands named on its `Commands:` line) for every claim block."""
+    found: list[tuple[str, str, list[str]]] = []
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        opened = re.match(r"^> \*\*([^*]+?)\.?\*\*", line)
+        if not opened:
+            continue
+        word = opened.group(1).strip().rstrip(".")
+        if word not in CLAIM_STATUS[page]:
+            continue
+        block = [line]
+        for following in lines[index + 1:]:
+            if not following.startswith(">"):
+                break
+            block.append(following)
+        body = "\n".join(block)
+        named: list[str] = ["<no Commands: line>"]
+        for label in COMMANDS_LABEL:
+            if label not in body:
+                continue
+            # Up to the first full stop, not up to the first newline: the list
+            # wraps like every other line of these pages, and cutting at the
+            # newline silently dropped whatever came after it - which then read
+            # as a command nothing on the page accounts for.
+            tail = body.split(label, 1)[1].split(".", 1)[0]
+            if any(spelling in tail.lower() for spelling in NO_COMMANDS):
+                named = []
+            else:
+                named = re.findall(r"`actaira (\w+)`", tail)
+            break
+        found.append((CLAIM_STATUS[page][word], body, named))
+    return found
+
+
+@check("every claim the READMEs make resolves against what the tree can do")
+def readme_claims_resolve_against_the_tree() -> str:
+    from actaira.cli import build_parser
+
+    parser = build_parser()
+    subparsers = parser._subparsers._group_actions[0]  # noqa: SLF001 - argparse has no public API
+    commands = set(subparsers.choices)
+
+    claimed_to_work: dict[str, set[str]] = {}
+    blocks_seen = 0
+    for page in CLAIM_STATUS:
+        text = (ROOT / page).read_text(encoding="utf-8")
+        blocks = _claim_blocks(page, text)
+        claims = [row for row in blocks if row[0] != "outside"]
+        outside = [row for row in blocks if row[0] == "outside"]
+        if len(claims) != 3 or len(outside) != 1:
+            raise DriftError(
+                f"{page}: parsed {len(claims)} claim blocks and {len(outside)} "
+                "outside-the-claims blocks; there are three claims and one block for "
+                "the commands that implement none of them. Either a block lost its "
+                "status word, or the vocabulary in CLAIM_STATUS is stale. A check "
+                "that parses nothing reports success."
+            )
+        blocks_seen += len(blocks)
+        works: set[str] = set()
+        for status, body, named in blocks:
+            if named == ["<no Commands: line>"]:
+                raise DriftError(
+                    f"{page}: a claim block carries no `Commands:` line, so what it "
+                    "claims cannot be resolved against the tree. Name the commands it "
+                    "rests on, or `Commands: none`. What cannot be checked is not asserted."
+                )
+            if status in ("works", "outside"):
+                missing = sorted(set(named) - commands)
+                if not named or missing:
+                    raise DriftError(
+                        f"{page}: a claim block says it is built and names "
+                        f"{named or 'no command'}; the parser has no "
+                        f"{', '.join(missing) or 'command at all there'}."
+                    )
+                works.update(named)
+            else:
+                present = sorted(set(named) & commands)
+                if present:
+                    raise DriftError(
+                        f"{page}: a claim block says it does not exist and names "
+                        f"{', '.join(present)}, which the parser has."
+                    )
+                spelt = re.search(r"`actaira (" + "|".join(sorted(commands)) + r")`", body)
+                if spelt:
+                    raise DriftError(
+                        f"{page}: a claim block says it does not exist and its prose "
+                        f"names `actaira {spelt.group(1)}`, which does. That is the "
+                        "phase S1 defect exactly."
+                    )
+        claimed_to_work[page] = works
+
+    for page, works in claimed_to_work.items():
+        orphans = sorted(commands - works)
+        if orphans:
+            raise DriftError(
+                f"{page}: {', '.join(orphans)} exist and no block names them - neither a "
+                "claim that says it is built nor the block for the commands that "
+                "implement none of the three. A command that works while the page says "
+                "its claim is unbuilt is the drift this check exists for, and a command "
+                "nothing on the page accounts for is the same hole one step along."
+            )
+    return (
+        f"{blocks_seen} claim blocks across {len(CLAIM_STATUS)} pages, "
+        f"each resolved against the parser, and all {len(commands)} commands accounted for"
+    )
+
+
+@check("every flag the documentation shows is a flag the command has")
+def documented_flags_exist() -> str:
+    """The other half of D-301, and the half with the longest history here.
+
+    `.pre-commit-hooks.yaml` published `actaira scan --fail-on high` for a
+    release in which neither `--fail-on` nor the artefact scanning existed, and
+    the README advertised `--dsse` for a flag that had never been implemented in
+    any commit. Both were prose nothing compared with anything.
+    """
+    from actaira.cli import build_parser
+
+    parser = build_parser()
+    subparsers = parser._subparsers._group_actions[0]  # noqa: SLF001
+    options = {
+        name: {
+            string
+            for action in sub._actions  # noqa: SLF001
+            for string in action.option_strings
+        }
+        for name, sub in subparsers.choices.items()
+    }
+
+    pages = ("README.md", "README.es.md", "docs/COMPATIBILITY.md", ".pre-commit-hooks.yaml")
+    checked = 0
+    for page in pages:
+        path = ROOT / page
+        if not path.is_file():
+            raise DriftError(f"{page} is missing, and this check reads it")
+        for command, tail in re.findall(
+            r"actaira (\w+)([^\n`]*)", path.read_text(encoding="utf-8")
+        ):
+            if command not in options:
+                continue
+            for flag in re.findall(r"(?<![\w-])(--[a-z][a-z0-9-]*)", tail):
+                checked += 1
+                if flag not in options[command]:
+                    raise DriftError(
+                        f"{page} shows `actaira {command} {flag}` and that command has "
+                        f"no such option. Known: {', '.join(sorted(options[command]))}"
+                    )
+    if checked < 10:
+        raise DriftError(
+            f"only {checked} flag mentions were found across {len(pages)} pages, which "
+            "is fewer than this documentation has. The extraction is broken, and a "
+            "check that finds nothing reports success."
+        )
+    return f"{checked} flag mentions across {len(pages)} pages, each an option the command has"
+
+
+@check("the exit codes the contract publishes are the ones the CLI defines")
+def exit_codes_are_the_published_ones() -> str:
+    """The third thing D-301 names. A pipeline branches on these.
+
+    `EXIT_SIGPIPE` is deliberately not in the table and the document says why, so
+    it is required to be ABSENT from the table and PRESENT in the prose: a code
+    left out by accident and one left out on purpose look identical otherwise.
+    """
+    from actaira import cli
+
+    published = {
+        value
+        for name, value in vars(cli).items()
+        if name.startswith("EXIT_") and name != "EXIT_SIGPIPE"
+    }
+    page = (ROOT / "docs" / "COMPATIBILITY.md").read_text(encoding="utf-8")
+    table = page.split("## Exit codes", 1)[-1].split("\n## ", 1)[0]
+    rows = {int(match) for match in re.findall(r"^\| (\d+) \|", table, re.M)}
+    if rows != published:
+        raise DriftError(
+            f"docs/COMPATIBILITY.md publishes exit codes {sorted(rows)} and the CLI "
+            f"defines {sorted(published)}."
+        )
+    if f"| {cli.EXIT_SIGPIPE} |" in table:
+        raise DriftError(
+            f"{cli.EXIT_SIGPIPE} is in the exit-code table, and the document states it "
+            "is not part of the contract."
+        )
+    if str(cli.EXIT_SIGPIPE) not in table:
+        raise DriftError(
+            f"{cli.EXIT_SIGPIPE} is neither in the table nor named in the prose beside "
+            "it, so a reader cannot tell a deliberate omission from a forgotten one."
+        )
+    return (
+        f"{len(rows)} exit codes, the set the CLI defines, plus "
+        f"{cli.EXIT_SIGPIPE} named as outside it"
+    )
+
+
+@check("the package description names only commands that exist")
+def package_metadata_names_real_commands() -> str:
+    """`pyproject.toml`'s description is published to every index that reads metadata.
+
+    It said "the commands this release ships are scan, watch, verify and keygen"
+    for two phases after `check` shipped. Nothing compared it with anything, and
+    it is the one sentence a stranger reads before they install.
+    """
+    from actaira.cli import build_parser
+
+    commands = set(build_parser()._subparsers._group_actions[0].choices)  # noqa: SLF001
+    text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    description = re.search(r'^description = "(.*)"$', text, re.M)
+    if not description:
+        raise DriftError("pyproject.toml has no single-line `description`, and this check reads it")
+    named = {
+        word
+        for word in re.findall(r"\b([a-z]+)\b", description.group(1))
+        if word in commands
+    }
+    missing = sorted(commands - named)
+    if missing:
+        raise DriftError(
+            f"pyproject.toml's description lists the commands this release ships and "
+            f"leaves out {', '.join(missing)}. A partial list reads as a complete one."
+        )
+    return f"{len(named)} commands named in the package description, all of them real"
+
 @check("the published contract index is the one the package ships")
 def contracts_index_is_current() -> str:
     """`docs/CONTRACTS.md` is generated, so the only question is whether the

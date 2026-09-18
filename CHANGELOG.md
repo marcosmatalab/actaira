@@ -71,6 +71,50 @@ repository.
 
 ### Added
 
+- **`actaira diff`, and with it the second of the three product claims.** Two
+  git refs, or two directories, compared without checking either of them out:
+  the trees are materialised with `git ls-tree` and `git cat-file`, which run no
+  hook, apply no filter and no textconv driver, into a temporary directory the
+  command removes on its way out. Five kinds of change - appeared, disappeared,
+  widened, narrowed, changed - and a sixth list for what could not be resolved on
+  one side or the other, which is never folded into the five. Widened and
+  narrowed exist only where a fact's own name states which value is the wider
+  one; everywhere else the answer is CHANGED with both digests.
+- **`actaira seal`**, a signed baseline of a surface that carries no content:
+  paths and the names a third party chose travel as salted references whose salt
+  stays with the operator, and everything a capability observed travels as one
+  sha256 over its facts. `attest/package.py::write_package` had been reachable
+  only from the test suite since 3.0.0, so this tree verified a format nothing in
+  it produced; that is closed.
+- **`surface-diff/v1` and `seal/v1`**, both registered in `schemas.VERSIONS`,
+  both with their required fields frozen in `tests/test_schemas.py`, and both
+  documented in `docs/COMPATIBILITY.md` before anybody can have written a
+  consumer - which is the only moment a first version costs nothing.
+- **`--html` on `check` and on `diff`.** One self-contained file with the
+  stylesheet inline, no script of any kind, and no attribute that fetches
+  anything: it opens on a machine with no network. Links to the vendor
+  documentation a merge rule cites are `<a>` elements and are the point of citing
+  it.
+- **`--sarif` on `diff`**, writing SARIF 2.1.0 for the rules that fired on
+  something added or widened. Each result's `level` is a transliteration of the
+  severity that rule's author wrote, one result at a time. No run-level,
+  file-level or rule-level severity anywhere, and no `rank`.
+- **A GitHub Action (`action.yml`) and a pre-commit hook
+  (`.pre-commit-hooks.yaml`).** The Action runs `diff` between a pull request's
+  base and head, writes the report into the job summary and the SARIF file, and
+  passes the exit code through with no `|| true` anywhere. Every input reaches
+  the shell through `env` rather than being pasted into a script by `${{ }}`;
+  `zizmor` runs over it and over `.github/workflows/` in CI, and every
+  third-party action in this repository's workflows is now pinned by commit SHA.
+- **`scripts/demo_keyv.py`**, which builds a throwaway repository with two
+  commits - clean, then the 4 August 2026 keyv wave reconstructed from the
+  published reports - and diffs them. Its output is the block both READMEs show,
+  compared against the command by `tests/test_readme_parity.py`.
+- **Four release checks that compare what the pages CLAIM with what the parser
+  can do**: every claim block resolves against the commands it names in both
+  directions, every flag the documentation shows is an option the command has,
+  the published exit codes are the ones the CLI defines, and the package
+  description names every command and no others.
 - `docs/DESIGN.md` section 11, design note D-269, with the three products that
   were tried against this question first and dropped, each for a fact about
   somebody else's shipped code: cross-vendor session forensics, sandbox
@@ -91,6 +135,9 @@ repository.
   not its call. It is the same decision A.1 made about
   `.github/actions/actaira-scan`, applied to the sibling that was left. The
   pre-commit integration returns when there is something to hook a commit to.
+  **It returned in phase S3**, with `actaira check` and one hook rather than
+  two, and this entry stays in the past tense it was written in: what was
+  removed is still what was removed.
 - `actaira_contract` and `actaira_verdict` from the MCP server's `tools/list`.
   Both were inert, returning a constant that named a phase which no longer
   exists. **Design note D-256 changes its answer with them**: it used to decide
@@ -103,6 +150,37 @@ repository.
   every name the server lists.
 
 ### Fixed
+
+- **The gate could not tell a true claim from a false one.** After phase S1
+  shipped `actaira check`, both READMEs went on publishing "Does not exist"
+  under the claim that command implements, for a whole phase, and
+  `release_check.readme_documents_the_commands` was green throughout: it asked
+  only whether the command was NAMED on the page. Phase S2 found it by reading,
+  which is not a gate. Phase S3 closes the hole rather than the instance:
+  `readme_claims_resolve_against_the_tree` reads each claim block's `Commands:`
+  line and resolves it against the parser in both directions, and six planted
+  defects in `tests/test_release_check.py` require it to refuse each shape.
+- **`pyproject.toml`'s description named four commands and the tree had five.**
+  It is package metadata, published to every index that reads metadata, and
+  nothing compared it with anything. `package_metadata_names_real_commands` does
+  now.
+- **The bounded disk primitives lived under a manufacturer's name.**
+  `read_text`, `read_json`, `git_tracked`, `script_facts`, `inside_tree`,
+  `digest_of` and the three ceilings were in `surface/claude_code.py`, imported
+  from there by six readers for other vendors. They are in `surface/disk.py`,
+  moved with no change of behaviour and no change of name, before phase S4's
+  machine-scope readers made the miscount ten rather than six.
+- **`MANIFEST.in` excluded a file that had not existed since phase A.1.**
+  `.pre-commit-hooks.yaml` exists again, so the line is true rather than merely
+  quiet, and `action.yml` is excluded beside it for the same reason: both are
+  integration manifests a git checkout is read for, and neither is ever looked
+  for inside a wheel.
+- **`tests/test_readme_parity.py` decoded the tool's output with the locale's
+  encoding.** `cli._settle_output_encoding` writes UTF-8 whenever stdout is
+  redirected, which is always under that harness, and `text=True` alone decodes
+  with cp1252 on a default Windows install. Every console block was ASCII until
+  the Spanish keyv demo arrived, so the page and the tool agreed byte for byte
+  and the harness reported that they did not - on one platform only.
 
 Seven published documents that described a product this tree does not have.
 None was caught by a gate, and each says something about why:

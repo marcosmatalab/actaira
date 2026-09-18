@@ -63,13 +63,23 @@ current and which are superseded and kept.
 
 ## What is in this tree
 
-Five commands, and the scope of a report is what they do.
+Seven commands, and the scope of a report is what they do.
 
 - **`actaira check`** reads agent configuration files out of a repository, and
   with `--machine` out of the user and managed scopes too. It executes nothing
   it reads and opens no socket. Its input is the one nobody on your side wrote,
   so it has a threat model of its own
   [below](#threat-model-reading-somebody-elses-repository).
+- **`actaira diff`** reads TWO such inputs and compares them. It is the only
+  command here that runs another program, and the programs are `git ls-tree` and
+  `git cat-file`: it materialises each ref's tree into a temporary directory it
+  made, and it never checks either ref out. It shares the threat model below and
+  widens it, because the attacker now also chooses what `git` is asked about and
+  what lands in that directory; the rows that are its own say so.
+- **`actaira seal`** writes a signed baseline of a surface. It carries no
+  content: a path and the names a third party chose travel as
+  `H(salt || domain || value)` and the salt stays in the output directory,
+  beside the package and never inside it.
 - **`actaira scan`** reads session transcripts an agent already wrote to disk.
   The input is somebody's conversation, so arguments and results travel as
   salted digests unless `--with-content` is passed.
@@ -100,6 +110,19 @@ a colleague sent you a link to. Every byte it reads - the settings files, the
 paths inside them, the skill definitions, the git index - is chosen by whoever
 opened that pull request.
 
+**`actaira diff` runs on the same input twice over, and adds two things to it.**
+It asks `git` about a repository the attacker contributed to, and it writes that
+repository's blobs into a directory. Neither is in the paragraph above and both
+are in the table below, because a threat model that stopped at the command it
+was first written for is a threat model about the previous release.
+
+The whole argument for how `diff` obtains those trees is in
+`src/actaira/surface/diff.py`, design notes D-293 and D-294, and is not repeated
+here: only `ls-tree` and `cat-file`, argv as a list and never a shell, `--`
+before every ref, `--no-pager --no-optional-locks -c core.fsmonitor=false -c
+core.hooksPath=<nonexistent>`, and no checkout of any kind. What follows is what
+an attacker gets to try against that, and what stops each one.
+
 That inverts the usual reading of this project's refusals. "Actaira never runs
 what it reads" is not only a claim about honesty; it is the control that stops
 this command being the delivery mechanism for the thing it was pointed at.
@@ -108,7 +131,10 @@ this command being the delivery mechanism for the thing it was pointed at.
 
 Somebody who can put a file in a repository you will read. They are not
 assumed to have anything else: no account on your machine, no network position,
-no ability to make you type a command other than `actaira check`.
+no ability to make you type a command other than `actaira check` or
+`actaira diff`. In the `diff` case they additionally choose the CONTENT OF THE
+TREE at one of the two refs, and - where you pass a ref from the pull request
+itself, which is what the GitHub Action does - part of the argument list.
 
 What they want, in the order the defences below are argued:
 
@@ -137,6 +163,17 @@ What they want, in the order the defences below are argued:
 | A malformed settings file, hoping it is read as empty and reported as "no hooks" | An unparsed file never reaches a consumer as a mapping; it is INDETERMINATE with the cause | `test_invalid_json_is_indeterminate_and_never_an_empty_configuration` |
 | Configuration this release does not read, hoping silence is taken for absence | Every file seen and not read is printed in the report's "not read" list | `test_the_2026_npm_worms_are_caught` asserts `.vscode/tasks.json` appears there |
 
+Four more belong to `diff`, and each one is a thing the attacker can only try
+because that command asks `git` about their tree and writes what it answers.
+
+| What they try, against `diff` | What stops it | Test |
+|---|---|---|
+| A path in their tree that would write outside the extraction: `../escaped`, `/etc/shadow`, `a/../../b` | Every listed path is checked component by component and then resolved against the destination before anything is written. Git's own tree format forbids these, and that is a statement about a producer rather than about this input | `test_diff.py::test_a_listed_path_that_would_escape_the_extraction_is_not_written`, over five spellings, with a legitimate path asserted to survive so the check is not a ban on writing |
+| A symlink in their tree pointing at `/etc`, so the next write under it lands outside | A symlink's blob is materialised as an ORDINARY FILE holding the target text. No link is ever created, so there is no link for a later write to follow | `test_diff.py::test_a_diff_runs_no_git_hook_and_leaves_the_tree_byte_for_byte` digests the whole tree before and after; nothing outside the temporary directory is written at all |
+| A branch or tag named `--upload-pack=...` or `--exec=sh`, so the ref becomes a git option | A ref beginning with `-` is refused before git is invoked, and `--` is passed on every command line as well. Two layers, because the separator is one edit away from being dropped by somebody adding an argument | `test_diff.py::test_a_ref_that_starts_with_a_dash_is_refused`, over three spellings, asserting both the module's refusal and exit code `2` from the command line |
+| A tree with a million files, or a gigabyte of them, so the command exhausts the disk or the memory of the runner | A file-count ceiling and a byte ceiling, both read off `git ls-tree -l` BEFORE a byte is written, so a tree that is refused costs one command and leaves no half-written directory. Each round of `cat-file` is bounded by bytes rather than by object count, because the answer is buffered whole | `test_diff.py::test_a_tree_over_the_file_ceiling_is_refused_and_nothing_is_written`, which also asserts nothing was written |
+| A `post-checkout`, `pre-commit` or fsmonitor hook in their repository, hoping the comparison checks a ref out | Neither ref is checked out and no git subcommand that runs a hook is ever invoked. `tests/test_diff.py::test_only_two_git_subcommands_are_ever_run` reads the module's own source and fails on a third | `test_diff.py::test_a_diff_runs_no_git_hook_and_leaves_the_tree_byte_for_byte` plants five hooks that would each leave a sentinel, and a second test gives the same plant a real `git checkout` so a plant that could never fire cannot make the first one vacuous |
+
 ### What this model does not cover
 
 - **`--with-content` is your decision.** It exists because an operator
@@ -151,7 +188,14 @@ What they want, in the order the defences below are argued:
   from a server, and they are limits rather than gaps to be closed.
 - **A clean report is not safety.** Published limit 9: no rule fired means no
   rule named it, and a repository can be badly configured for a reason none of
-  the fifteen rules describes.
+  the rules describes.
+- **`diff` trusts `git` to be `git`.** It runs whatever `git` is on the PATH of
+  the machine it runs on. Nothing here verifies that binary, and nothing could
+  without a trust anchor this tool does not ship. If your PATH is under an
+  attacker's control you have lost already, and that is outside this model.
+- **A sealed baseline says nothing about who approved it.** `seal` signs what
+  the surface WAS; binding that digest to a person and expiring their approval
+  when it moves is the register phase P1 is about, and it does not exist.
 - **The corpus script reaches the network, and it is not the tool.**
   `scripts/surface_corpus.py` is run by a person, outside the package and
   outside the suite. `tests/netguard.py` is armed and a release check asserts it

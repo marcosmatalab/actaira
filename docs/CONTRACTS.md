@@ -22,7 +22,9 @@ actaira schema report-v1       # print one
 
 | Contract | What it is | Produced by |
 |---|---|---|
+| `seal/v1` | A signed baseline of one surface, carrying no content: paths and the names somebody else chose are salted references whose salt stays with the operator, and everything a capability observed is one digest of its facts. An approval keyed on the surface digest expires by itself when the surface changes. | `actaira seal` |
 | `surface/v1` | What an agent CAN do in one root: every capability resolved across scopes, naming the file it came from, the documented merge rule that settled it and how far it resolved. Three lists that are never merged - what resolved, what could not, and what this release does not read. | `actaira check` |
+| `surface-diff/v1` | Which capability appears, disappears, widens, narrows or changes between two surfaces, each entry carrying both sides' digests and the rules that fired on what arrived. Five lists, plus a sixth for what could not be resolved on one side or the other, which is never folded into the five. | `actaira diff` |
 | `trace/v3` | What an agent did, in one shape whatever observed it: an ordered list of tool calls with the digest of each call's arguments and result, the capture level that produced every one, and the holes that level did not cover. | `actaira scan, actaira watch` |
 
 ## Superseded
@@ -40,6 +42,8 @@ Each contract's required fields are frozen in the test suite, so dropping one fa
 
 | Contract | Required |
 |---|---|
+| `seal-v1` | `schema_version`, `surface_sha256`, `surface_schema_version`, `machine`, `root_ref`, `surfaces`, `findings`, `unresolved`, `not_read`, `salt_travels` |
+| `surface-diff-v1` | `schema_version`, `before`, `after`, `added`, `removed`, `widened`, `narrowed`, `changed`, `indeterminate`, `unchanged` |
 | `surface-v1` | `schema_version`, `root`, `machine`, `surfaces`, `findings`, `unresolved`, `not_read` |
 | `trace-v1` | `schema_version`, `session_id`, `source`, `capture_level`, `authenticity`, `complete`, `events`, `gaps` |
 | `trace-v2` | `schema_version`, `session_id`, `source`, `capture_level`, `authenticity`, `complete`, `events`, `gaps` |
