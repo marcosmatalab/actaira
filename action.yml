@@ -150,8 +150,16 @@ runs:
         # Written to a file and then read back, rather than piped: the exit code
         # is the product of this step and `cmd | tee` reports tee's. No
         # `|| true` anywhere - a step that cannot fail is not a check.
-        actaira --lang "$ACTAIRA_LANG" diff "$@" --sarif "$ACTAIRA_SARIF" > actaira-diff.txt
-        code=$?
+        #
+        # `|| code=$?` AND NOT A BARE CALL FOLLOWED BY `code=$?`. GitHub runs a
+        # composite `run` step under `/usr/bin/bash -e`, which this script never
+        # sees and cannot turn off by omitting `-e` from its own `set` line. So a
+        # non-zero exit killed the step AT THIS LINE - before the summary, before
+        # the outputs, before the file below - and the whole point of this step is
+        # what it does when the tool exits non-zero. `|| code=$?` handles the
+        # failure, which is what stops `-e` acting on it.
+        code=0
+        actaira --lang "$ACTAIRA_LANG" diff "$@" --sarif "$ACTAIRA_SARIF" > actaira-diff.txt || code=$?
 
         # The heading is the tool's name and nothing else. Everything under it is
         # what `actaira diff` printed, in the language the caller asked for; a
