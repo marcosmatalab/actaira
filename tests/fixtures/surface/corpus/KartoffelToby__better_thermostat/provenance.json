@@ -1,0 +1,8 @@
+{
+  "commit": "b86561f61e5ba1259fc63e590f4847e9ac743d7f",
+  "files": {
+    ".devcontainer/devcontainer.json": "bfbda9fb6e864b634ee811263c9ea34fa1a6190f"
+  },
+  "licence": "agpl-3.0",
+  "repo": "https://github.com/KartoffelToby/better_thermostat"
+}

@@ -1,20 +1,22 @@
 {
-  "capabilities": {
-    "hook.command": "effective",
-    "permissions.allow": "declared",
-    "sandbox.excluded_command": "effective",
-    "sandbox.network_domain": "effective",
-    "sandbox.unsandboxed_allowed": "effective"
-  },
-  "capability_count": 85,
-  "not_read": [
-    "~/.claude/settings.json and the managed policy"
-  ],
-  "rules_that_fire": [
-    "ACT-S001",
-    "ACT-S003",
-    "ACT-S005",
-    "ACT-S015"
-  ],
-  "unresolved_count": 18
+  "claude-code": {
+    "capabilities": {
+      "hook.command": "effective",
+      "permissions.allow": "declared",
+      "sandbox.excluded_command": "effective",
+      "sandbox.network_domain": "effective",
+      "sandbox.unsandboxed_allowed": "effective"
+    },
+    "capability_count": 85,
+    "not_read": [
+      "~/.claude/settings.json and the managed policy"
+    ],
+    "rules_that_fire": [
+      "ACT-S001",
+      "ACT-S003",
+      "ACT-S005",
+      "ACT-S015"
+    ],
+    "unresolved_count": 18
+  }
 }

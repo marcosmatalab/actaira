@@ -1,0 +1,14 @@
+{
+  "devcontainer": {
+    "capabilities": {
+      "container.feature": "effective",
+      "lifecycle.command": "effective"
+    },
+    "capability_count": 2,
+    "not_read": [],
+    "rules_that_fire": [
+      "ACT-S020"
+    ],
+    "unresolved_count": 0
+  }
+}

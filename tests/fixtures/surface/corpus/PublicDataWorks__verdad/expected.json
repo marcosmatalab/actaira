@@ -1,0 +1,16 @@
+{
+  "gemini-cli": {
+    "capabilities": {
+      "mcp.server": "effective"
+    },
+    "capability_count": 1,
+    "not_read": [
+      "~/.gemini/settings.json and the two system settings files"
+    ],
+    "rules_that_fire": [
+      "ACT-S026",
+      "ACT-S027"
+    ],
+    "unresolved_count": 0
+  }
+}

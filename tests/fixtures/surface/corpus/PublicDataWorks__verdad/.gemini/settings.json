@@ -1,0 +1,22 @@
+{
+  "context": {
+    "fileFiltering": {
+      "respectGitIgnore": false
+    }
+  },
+  "mcp": {
+    "allowed": ["searxng"]
+  },
+  "mcpServers": {
+    "searxng": {
+      "command": "npx",
+      "args": ["-y", "mcp-searxng"],
+      "env": {
+        "SEARXNG_URL": "$SEARXNG_URL"
+      },
+      "includeTools": ["searxng_web_search", "web_url_read"],
+      "trust": true,
+      "timeout": 60000
+    }
+  }
+}

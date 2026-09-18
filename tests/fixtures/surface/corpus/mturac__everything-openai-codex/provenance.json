@@ -1,0 +1,8 @@
+{
+  "commit": "b5057da5f42ed6b12cd3a59e89af0ccd12cff7c2",
+  "files": {
+    ".codex/config.toml": "f3eb889ada9dd13112112055d028074c98fb6d18"
+  },
+  "licence": "mit",
+  "repo": "https://github.com/mturac/everything-openai-codex"
+}

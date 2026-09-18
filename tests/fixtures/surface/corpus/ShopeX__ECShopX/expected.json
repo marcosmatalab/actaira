@@ -1,0 +1,16 @@
+{
+  "cursor": {
+    "capabilities": {
+      "hook.command": "effective"
+    },
+    "capability_count": 3,
+    "not_read": [
+      "Cursor team hooks",
+      "~/.cursor/hooks.json, ~/.cursor/mcp.json and the enterprise hooks.json"
+    ],
+    "rules_that_fire": [
+      "ACT-S024"
+    ],
+    "unresolved_count": 1
+  }
+}

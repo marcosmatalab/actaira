@@ -1,0 +1,15 @@
+{
+  "instructions": {
+    "capabilities": {
+      "instructions.import": "effective"
+    },
+    "capability_count": 58,
+    "not_read": [
+      "instruction files above and below the repository root"
+    ],
+    "rules_that_fire": [
+      "ACT-S030"
+    ],
+    "unresolved_count": 0
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "commit": "8313cecf5be9d7b1b3c0c253053861da68b2cadc",
+  "files": {
+    ".claude/settings.json": "1d503036eb9c1032702c53d1d9d566c3b7e8ed8d",
+    ".codex/config.toml": "4135b364030c673335e1dd36a96df48547ed2f07"
+  },
+  "licence": "mit",
+  "repo": "https://github.com/dyoshikawa/rulesync"
+}

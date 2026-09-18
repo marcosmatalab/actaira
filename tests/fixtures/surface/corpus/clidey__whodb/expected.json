@@ -1,0 +1,15 @@
+{
+  "codex": {
+    "capabilities": {
+      "hook.command": "declared"
+    },
+    "capability_count": 7,
+    "not_read": [
+      "~/.codex/config.toml and the managed layers"
+    ],
+    "rules_that_fire": [
+      "ACT-S021"
+    ],
+    "unresolved_count": 0
+  }
+}

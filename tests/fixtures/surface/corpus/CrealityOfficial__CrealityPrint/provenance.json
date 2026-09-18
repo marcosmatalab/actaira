@@ -1,0 +1,8 @@
+{
+  "commit": "24b9395c131a9849724c5bf098cba140a207e877",
+  "files": {
+    ".devcontainer/devcontainer.json": "0357f9a836059898bc7da761627e88c5138e3e82"
+  },
+  "licence": "agpl-3.0",
+  "repo": "https://github.com/CrealityOfficial/CrealityPrint"
+}

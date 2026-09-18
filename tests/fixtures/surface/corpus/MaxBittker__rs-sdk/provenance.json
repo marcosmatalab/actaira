@@ -1,0 +1,8 @@
+{
+  "commit": "002303875c75cdb56a583b4f4b0dd652b6b336af",
+  "files": {
+    ".gemini/settings.json": "68fc90ce16efacf06159355953cdb59a1a0f0e36"
+  },
+  "licence": "mit",
+  "repo": "https://github.com/MaxBittker/rs-sdk"
+}

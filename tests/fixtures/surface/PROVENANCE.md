@@ -22,6 +22,9 @@ two below are the ones phase S1's gate is written against. The ones under
 `corpus/` are real files from public repositories and carry their own
 `provenance.json` with repo, commit, licence and blob sha.
 
+`machine/` is neither. It is a user scope rather than a configuration under
+test, it carries one setting, and it is documented in its own `README.md`.
+
 ## `mini-shai-hulud/`
 
 The npm wave of **29 April 2026**. The `.claude/settings.json` below is
@@ -69,10 +72,12 @@ StepSecurity additionally publishes the `.vscode/tasks.json` half:
 }
 ```
 
-That second file is in the fixture and **phase S1 does not read it**. It appears
-in the report's "not read in this release" list, which is the point: the half of
-the attack this release cannot see is named rather than omitted. Phase S2 reads
-it.
+That second file is in the fixture and **phase S2 reads it**. Phase S1 could
+only name it, in the report's "not read in this release" list, which was the
+point at the time: the half of the attack that release could not see was named
+rather than omitted. It is now a finding of its own - ACT-S016 - and
+`test_the_2026_npm_worms_are_caught` asserts both halves, because either one
+alone was enough for the attack.
 
 The paths both articles name are `.claude/settings.json`, `.claude/execution.js`,
 `.claude/setup.mjs`, `.vscode/tasks.json` and `.vscode/setup.mjs`. The fixture
@@ -114,6 +119,40 @@ the August wave are not published anywhere we found, so this fixture is not
 evidence of those. It is evidence that a configuration of this *shape* is caught,
 which is the argument of the product: a detector written against one published
 command string is a detector for one attack.
+
+## `corpus/`, after phase S2
+
+Phase S1 promoted twenty `.claude/settings.json` and `.mcp.json` files. Phase S2
+added five more per vendor, for VS Code, dev containers, Codex CLI, Cursor,
+Gemini CLI and the instruction files, fetched by the same script through the
+per-vendor queries in `scripts/surface_corpus.py` and promoted by the same rule:
+an OSI licence, or it is skipped and counted.
+
+Two things about that selection are worth stating, because neither is obvious
+from the directory listing.
+
+**The twenty from phase S1 were not re-reviewed; they were re-checked.** Their
+`expected.json` files changed shape - the claims are now nested under the vendor
+they are about, because one repository can hold configuration for several - and
+every one of the twenty was compared before and after to confirm the Claude Code
+claims inside are byte-identical. A reshape that changed an answer would have
+been a re-review, and it was not one.
+
+**The selection is ranked by which rules a configuration violates**, not by name
+order. Without that, a vendor's five places went to whichever repositories sorted
+first and four rules with real violating configurations in the download ended up
+with none in the fixtures - which would have read as four rules nobody could find
+a violator for. The rule is in `promote()` and the reason is beside it.
+
+## `machine/`
+
+Not a configuration under test. `task.allowAutomaticTasks` is APPLICATION-scoped:
+VS Code reads it from the user's own settings file and nowhere else, so no public
+repository can ever supply the value that decides whether a committed
+`folderOpen` task actually runs. This directory is that one missing scope, in the
+three per-operating-system layouts the settings documentation publishes, holding
+one key. Its own `README.md` says so, and says which real repositories are the
+violating configurations it resolves.
 
 ## The stubs
 

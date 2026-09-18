@@ -1,12 +1,14 @@
 {
-  "capabilities": {
-    "permissions.allow": "declared",
-    "permissions.default_mode": "indeterminate"
-  },
-  "capability_count": 14,
-  "not_read": [
-    "~/.claude/settings.json and the managed policy"
-  ],
-  "rules_that_fire": [],
-  "unresolved_count": 7
+  "claude-code": {
+    "capabilities": {
+      "permissions.allow": "declared",
+      "permissions.default_mode": "indeterminate"
+    },
+    "capability_count": 14,
+    "not_read": [
+      "~/.claude/settings.json and the managed policy"
+    ],
+    "rules_that_fire": [],
+    "unresolved_count": 7
+  }
 }

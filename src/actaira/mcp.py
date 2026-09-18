@@ -74,7 +74,71 @@ def _verify(arguments: dict[str, Any]) -> dict[str, Any]:
     return _text(payload, is_error=not result.ok)
 
 
+def _check(arguments: dict[str, Any]) -> dict[str, Any]:
+    """`actaira check` over MCP, answering with the bytes the command prints.
+
+    Design note D-289. Phase S1 left this open with a reason - the budget was
+    17 files and exposing it would have been the 18th - and reassigned it here.
+    It arrives now rather than then because a tool that read one vendor would
+    have announced "the configuration surface" and returned a sixth of it, and
+    `tools/list` is the one surface where a reading that already happened cannot
+    be corrected further down (D-256).
+
+    `cli.check_document` is called rather than reimplemented. A second
+    implementation behind this tool would be a second place the answer is
+    computed and the one that goes stale unnoticed.
+
+    `--with-content` is NOT exposed, deliberately. The flag puts command
+    strings, URLs and header values back into the document, and the caller here
+    is somebody else's agent: a literal that travels by default is a secret in
+    a transcript. An operator who wants literals runs the command, where the
+    decision is theirs and visible.
+
+    `--machine` is not exposed either. It reads the developer's home directory,
+    and a tool another agent can call should not be the way that happens.
+    """
+    from .cli import check_document
+
+    spoken = arguments.get("repo")
+    if not isinstance(spoken, str) or not spoken:
+        return _text(
+            {"state": "usage_error", "detail": "actaira_check needs a `repo` directory"},
+            is_error=True,
+        )
+    repo = Path(spoken)
+    if not repo.is_dir():
+        return _text(
+            {"state": "usage_error", "detail": f"{spoken} is not a directory"},
+            is_error=True,
+        )
+    payload = check_document(repo)
+    # Three counts and no fourth, and never a total: a caller that could add
+    # them up would be computing the number CLAUDE.md's first negative forbids,
+    # and an INDETERMINATE quietly counted as a rule that did not fire is the
+    # exact confusion `surface.document` keeps three lists to prevent.
+    payload["state"] = "read"
+    return _text(payload, is_error=False)
+
+
 TOOLS: dict[str, dict[str, Any]] = {
+    "actaira_check": {
+        "description": (
+            "Read the agent configuration in a repository - Claude Code, Codex, Cursor, "
+            "Gemini CLI, VS Code, devcontainer and the instruction files - resolve what it "
+            "permits across scopes, and apply the rule packs. Executes nothing it reads. "
+            "Returns capabilities, findings, what could not be resolved and what was not "
+            "read, each citing its file and the documented merge rule. Nothing is scored."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "repo": {"type": "string", "description": "path to the repository to read"}
+            },
+            "required": ["repo"],
+            "additionalProperties": True,
+        },
+        "run": _check,
+    },
     "actaira_verify": {
         "description": (
             "Verify an Actaira attestation package offline and report its state. "

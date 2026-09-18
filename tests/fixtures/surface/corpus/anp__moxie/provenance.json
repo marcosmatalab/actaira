@@ -1,0 +1,8 @@
+{
+  "commit": "9f7c4c2d20edfda00bf44c9bc9a809288069eb8f",
+  "files": {
+    ".vscode/tasks.json": "2db8805c814f47213fdd93cd7e944d566e784c3d"
+  },
+  "licence": "apache-2.0",
+  "repo": "https://github.com/anp/moxie"
+}

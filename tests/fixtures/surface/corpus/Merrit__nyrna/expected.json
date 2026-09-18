@@ -1,0 +1,26 @@
+{
+  "devcontainer": {
+    "capabilities": {
+      "container.feature": "effective",
+      "container.isolation": "effective"
+    },
+    "capability_count": 2,
+    "not_read": [],
+    "rules_that_fire": [
+      "ACT-S019",
+      "ACT-S020"
+    ],
+    "unresolved_count": 0
+  },
+  "vscode": {
+    "capabilities": {
+      "task.command": "effective"
+    },
+    "capability_count": 2,
+    "not_read": [
+      "the user's own VS Code settings.json"
+    ],
+    "rules_that_fire": [],
+    "unresolved_count": 1
+  }
+}
