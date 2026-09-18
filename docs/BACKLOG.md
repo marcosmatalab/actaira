@@ -773,3 +773,27 @@ cogió, y esa parte sigue siendo verdad.
   diferencia entre dos salidas del mismo comando sin nadie que la arbitre. La
   página es la que está bien: un revisor quiere ver el hecho y no solo la frase
   sobre el hecho. **Sin fase.**
+- **No está comprobado a qué resuelve `uses: $/` en un evento `pull_request`.**
+  En push a `main` sí: el log del run 35384556901 dice
+  `Download action repository 'marcosmatalab/actaira@bba5403...' (SHA:bba5403...)`,
+  o sea el commit que se está probando. En un pull request no se ha mirado, y
+  hay una razón concreta para sospechar: el fichero de workflow de un
+  `pull_request` se toma de la BASE, así que si `$/` se resolviera también a la
+  base, un PR que cambie `action.yml` se estaría autoprobando contra la versión
+  VIEJA de la acción y el trabajo `action` saldría verde sin haber ejecutado ni
+  una línea de lo que el PR propone. Con `uses: ./` no pasaba: leía el workspace,
+  que en un `pull_request` es el merge del PR. O sea que la sintaxis que es más
+  estricta para seguridad puede ser más floja para autoprobarse, y las dos cosas
+  pueden ser verdad a la vez.
+
+  Método, para que no haya que inventarlo el día que toque: abrir un PR que
+  cambie UNA LÍNEA COMENTADA de `action.yml` - una que no altere ningún
+  comportamiento - y leer en el log del trabajo `action` qué SHA descarga en
+  `Download action repository`. Si es el del PR, no hay nada que hacer. Si es el
+  de la base, el trabajo de autoprueba tiene que volver a `uses: ./` (y con él
+  los dos `# zizmor: ignore[self-repository]`), quedándose `$/` para los
+  workflows que no se prueban a sí mismos.
+
+  **No es bloqueante hoy**, porque todo lo que ha entrado ha entrado por push a
+  `main`. **Lo es el día que haya pull requests de fuera**, que es exactamente el
+  día en que un PR puede cambiar `action.yml`.
