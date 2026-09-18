@@ -41,7 +41,7 @@ from pathlib import Path
 from typing import Any
 
 from . import NotRead, Scope, Unresolved
-from .claude_code import (
+from .disk import (
     MAX_FILES,
     Reading,
     SettingsFile,

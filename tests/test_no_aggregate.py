@@ -109,17 +109,17 @@ def test_the_enumeration_is_not_empty(emitted):
 
 def test_the_enumeration_names_every_emitter_this_tree_has(emitted):
     """A document written by a command nobody added here is a document nothing
-    in this file ever checks. Four commands; two of them emit."""
+    in this file ever checks. Seven commands; four of them emit."""
     from actaira.cli import build_parser
 
     parser = build_parser()
     commands = set(parser._subparsers._group_actions[0].choices)
 
-    assert commands == {"check", "scan", "watch", "verify", "keygen"}, (
+    assert commands == {"check", "diff", "seal", "scan", "watch", "verify", "keygen"}, (
         "a command was added or removed; decide whether it emits a document and "
         f"whether `emitted_documents` has to name it. Now: {sorted(commands)}"
     )
-    assert {name.split()[0] for name, _ in emitted} == {"check", "scan", "watch"}
+    assert {name.split()[0] for name, _ in emitted} == {"check", "diff", "seal", "scan", "watch"}
 
 
 def test_these_properties_would_catch_the_defects_they_replaced():

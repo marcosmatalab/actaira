@@ -202,15 +202,37 @@ DIAGRAMS = (
 VOLATILE = ((re.compile('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'), "<session-id>"),)
 
 
-def console_blocks(page: str) -> list[tuple[str, str]]:
-    """(command, expected output) for every ```console block on a page."""
+# What a console block's command line may be. `actaira ...` is the product;
+# `python3 scripts/<name>.py ...` is a script in this repository, and phase S3
+# added one - the keyv demo, which needs two COMMITS and so cannot be a fixture
+# directory the way every other block's subject is.
+#
+# The two forms run in different places on purpose. An `actaira` block runs in an
+# empty directory, because that is what a stranger has; a script block runs at
+# the root of this repository, because that is what its own first line tells the
+# reader to do and it reads `tests/fixtures/` on the way.
+RUNNABLE = ("actaira ", "python3 scripts/")
+
+# `# exits N` on the command line. Written for the reader first - the keyv demo
+# exits 1 and somebody copying it into CI has to know that - and read by this
+# harness second. Without it, a block whose command exits non-zero could only be
+# checked by dropping the exit-code assertion for every block, and that
+# assertion is the one that caught a `--fail-on` the tool did not have.
+EXPECTED_EXIT = re.compile(r"#\s*exits (\d+)\b")
+
+
+def console_blocks(page: str) -> list[tuple[str, str, int]]:
+    """(command, expected output, expected exit code) for every ```console block."""
     found = []
     for body in re.findall(r"```console\n(.*?)```", page, re.S):
         lines = body.splitlines()
         assert lines and lines[0].startswith("$ "), (
             "a console block does not open with a `$ ` command line: " + body[:80]
         )
-        found.append((lines[0][2:].strip(), "\n".join(lines[1:])))
+        spoken = lines[0][2:].strip()
+        expected = EXPECTED_EXIT.search(spoken)
+        command = spoken.split("#", 1)[0].strip() if expected else spoken
+        found.append((command, "\n".join(lines[1:]), int(expected.group(1)) if expected else 0))
     return found
 
 
@@ -226,7 +248,7 @@ def normalise(text: str) -> str:
     return " ".join(text.split())
 
 
-def run_command(command: str, cwd: Path) -> str:
+def run_command(command: str, cwd: Path, expected_exit: int = 0) -> str:
     """Run one `actaira ...` command in `cwd` and return everything it printed.
 
     A subprocess rather than `cli.main` under `redirect_stdout`, and the
@@ -239,8 +261,9 @@ def run_command(command: str, cwd: Path) -> str:
     What a reader sees is the thing under test, so the test looks where the
     reader looks: one process, both streams, real ordering.
     """
-    assert command.startswith("actaira "), f"not an actaira command: {command!r}"
-    argv = shlex.split(command)[1:]
+    assert command.startswith(RUNNABLE), f"not a command this harness runs: {command!r}"
+    spoken = shlex.split(command)
+    argv = spoken[1:]
 
     # The reader's environment, not the harness's. The Quickstart says to make a
     # venv and activate it, and `watch -- python -c ...` is a command that works
@@ -257,12 +280,22 @@ def run_command(command: str, cwd: Path) -> str:
     environment["PATH"] = os.pathsep.join(
         [str(Path(sys.executable).parent), environment.get("PATH", "")]
     )
+    head = [sys.executable, "-m", "actaira"] if spoken[0] == "actaira" else [sys.executable]
+    # `encoding="utf-8"`, not `text=True` alone. `cli._settle_output_encoding`
+    # reconfigures stdout to UTF-8 whenever it is redirected, which is always
+    # here, and `text=True` on its own decodes with the LOCALE's encoding - cp1252
+    # on a default Windows install. Every console block was ASCII until the
+    # Spanish keyv demo arrived, so the mismatch had nothing to show itself on:
+    # the page and the tool agreed byte for byte and this harness reported that
+    # they did not, on one platform only.
     result = subprocess.run(  # noqa: S603 - argv comes from a file in this repository
-        [sys.executable, "-m", "actaira", *argv],
-        cwd=cwd, capture_output=True, text=True, timeout=120, env=environment,
+        [*head, *argv],
+        cwd=cwd, capture_output=True, text=True, encoding="utf-8",
+        timeout=300, env=environment,
     )
-    assert result.returncode == 0, (
-        f"`{command}` exited {result.returncode}\n{result.stdout}\n{result.stderr}"
+    assert result.returncode == expected_exit, (
+        f"`{command}` exited {result.returncode} and the page says {expected_exit}"
+        f"\n{result.stdout}\n{result.stderr}"
     )
     return result.stdout
 
@@ -273,9 +306,17 @@ def test_the_readmes_carry_console_blocks_to_check():
     for name, page in BOTH.items():
         blocks = console_blocks(page)
         assert blocks, f"{name} has no console block; the extraction is broken"
-        for command, expected in blocks:
-            assert command.startswith("actaira "), f"{name}: {command!r}"
+        for command, expected, _code in blocks:
+            assert command.startswith(RUNNABLE), f"{name}: {command!r}"
             assert expected.strip(), f"{name}: `{command}` shows no output"
+    # The guard on the guard. A block whose command exits non-zero has to be READ
+    # as exiting non-zero, or the harness has quietly gone back to asserting
+    # zero everywhere and the demo's exit code is unchecked.
+    codes = {code for page in BOTH.values() for _c, _o, code in console_blocks(page)}
+    assert codes - {0}, (
+        "no console block declares a non-zero exit, so the `# exits N` reading is "
+        "never exercised and could have stopped working"
+    )
 
 
 @pytest.mark.parametrize("name", sorted(BOTH))
@@ -285,10 +326,12 @@ def test_every_console_block_is_what_the_tool_actually_prints(name, tmp_path):
     The Quickstart is the first thing a stranger runs and the single worst place
     in the repository for a line of invented output to sit.
     """
-    for index, (command, expected) in enumerate(console_blocks(BOTH[name])):
+    for index, (command, expected, code) in enumerate(console_blocks(BOTH[name])):
         workspace = tmp_path / f"{name.replace('.', '-')}-{index}"
         workspace.mkdir()
-        printed = run_command(command, workspace)
+        # A script block runs where its own first line says to run it.
+        where = Path(REPO_ROOT) if command.startswith("python3 ") else workspace
+        printed = run_command(command, where, code)
         assert printed.strip(), f"{name}: `{command}` printed nothing"
 
         assert normalise(expected) == normalise(printed), (

@@ -362,3 +362,163 @@ def test_a_dropped_ignore_rule_for_another_tool_s_run_log_fails(working_tree, tm
     assert result.returncode == 1
     assert "safety_results.json" in result.stdout
     assert "no longer in .gitignore" in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# The claim blocks, the flags and the exit codes, each planted with its defect
+# ---------------------------------------------------------------------------
+#
+# These four are the check phase S2 asked for by name, and the reason it asked
+# is worth keeping in front of whoever reads this file: after phase S1 shipped
+# `actaira check`, both READMEs went on publishing "Does not exist" under the
+# claim that command implements, for a whole phase, and the gate was green the
+# entire time. `readme_documents_the_commands` asked only whether the command was
+# NAMED somewhere on the page. What it could not ask is whether what the page
+# SAID about it was true.
+#
+# Each test below reproduces one of the shapes that defect can take, in a copy of
+# the tree, and requires the check to refuse it. A check that cannot be made to
+# fail is a green tick with nothing behind it, which is what D-180 is about.
+#
+# The FIRST one runs the whole gate as a subprocess, because it is the one that
+# also has to show the check is registered in it: a check nothing calls refuses
+# nothing. The rest load the gate module out of the broken copy and call one
+# function, and that is a deliberate trade rather than a shortcut. A gate run
+# takes about a minute; six of them would put six minutes on every `make test`,
+# and what those five are about is whether the PREDICATE bites, which is
+# answerable in a tenth of a second. `test_the_gate_passes_on_this_repository`
+# and `test_the_gate_names_what_it_compared_on_every_check` keep the
+# registration half honest between them.
+
+
+def gate_of(tree: Path, edits: list[tuple[str, str, str]]):
+    """Apply each (file, before, after) edit to `tree` and load its gate module.
+
+    Every plant asserts that it APPLIED. A replacement whose left-hand side has
+    moved silently changes nothing, and the test that follows it then passes over
+    an unbroken tree - which is the failure mode this whole section exists to
+    make unreachable.
+    """
+    import importlib.util
+
+    for name, before, after in edits:
+        page = tree / name
+        text = page.read_text(encoding="utf-8")
+        assert before in text, f"the plant did not apply to {name}; the text moved"
+        page.write_text(text.replace(before, after, 1), encoding="utf-8")
+
+    specification = importlib.util.spec_from_file_location(
+        f"gate_under_test_{tree.name}", tree / "scripts" / "release_check.py"
+    )
+    module = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(module)
+    return module
+
+
+def test_a_claim_block_that_says_a_built_command_does_not_exist_fails(working_tree, tmp_path):
+    """The phase S1 defect, planted. The Change claim is flipped back to "Does
+    not exist" while `actaira diff` is in the parser."""
+    broken = tmp_path / "false-claim"
+    shutil.copytree(working_tree, broken)
+    page = broken / "README.md"
+    page.write_text(
+        page.read_text(encoding="utf-8").replace(
+            "> **Built.** Commands: `actaira diff`, `actaira seal`.",
+            "> **Does not exist.** Commands: none.",
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    result = run(broken)
+
+    assert result.returncode == 1, result.stdout
+    assert "claim" in result.stdout.lower()
+    assert "diff" in result.stdout or "seal" in result.stdout
+
+
+def test_a_claim_block_with_no_commands_line_fails(working_tree, tmp_path):
+    """"If it cannot be checked mechanically, it is not asserted." A block that
+    names no command is a claim nothing can resolve against the tree, which is
+    exactly the shape the phase S1 sentence had."""
+    broken = tmp_path / "unresolvable-claim"
+    shutil.copytree(working_tree, broken)
+    gate = gate_of(broken, [(
+        "README.md",
+        "> **Built.** Commands: `actaira check`.",
+        "> **Built.** It reads everything worth reading.",
+    )])
+
+    with pytest.raises(gate.DriftError) as raised:
+        gate.readme_claims_resolve_against_the_tree()
+
+    assert "Commands:" in str(raised.value)
+
+
+def test_a_command_no_claim_block_accounts_for_fails(working_tree, tmp_path):
+    """The other direction, and the one that closes the hole. A command that
+    works while no block on the page says its claim is built - or says the
+    command implements none of the three - is the drift the gate missed."""
+    broken = tmp_path / "unclaimed-command"
+    shutil.copytree(working_tree, broken)
+    gate = gate_of(broken, [(
+        "README.md",
+        "> **Built.** Commands: `actaira check`.",
+        "> **Built.** Commands: `actaira seal`.",
+    )])
+
+    with pytest.raises(gate.DriftError) as raised:
+        gate.readme_claims_resolve_against_the_tree()
+
+    assert "check" in str(raised.value)
+
+
+def test_a_flag_the_command_does_not_have_fails(working_tree, tmp_path):
+    """`.pre-commit-hooks.yaml` published `--fail-on high` for two releases in
+    which it did not parse. This is that, planted."""
+    broken = tmp_path / "invented-flag"
+    shutil.copytree(working_tree, broken)
+    gate = gate_of(broken, [(
+        "README.md", "actaira check --json", "actaira check --fail-on high",
+    )])
+
+    with pytest.raises(gate.DriftError) as raised:
+        gate.documented_flags_exist()
+
+    assert "--fail-on" in str(raised.value)
+
+
+def test_an_exit_code_the_cli_does_not_define_fails(working_tree, tmp_path):
+    """A pipeline branches on these. A table that publishes a code the CLI never
+    returns is a branch nobody will ever take, written down as a promise."""
+    broken = tmp_path / "invented-exit-code"
+    shutil.copytree(working_tree, broken)
+    gate = gate_of(broken, [(
+        "docs/COMPATIBILITY.md",
+        "| 3 | Nothing objected, and something could not be resolved |",
+        "| 3 | Nothing objected, and something could not be resolved |\n"
+        "| 7 | Something else entirely |",
+    )])
+
+    with pytest.raises(gate.DriftError) as raised:
+        gate.exit_codes_are_the_published_ones()
+
+    assert "7" in str(raised.value)
+
+
+def test_a_package_description_missing_a_command_fails(working_tree, tmp_path):
+    """The one sentence a stranger reads before they install. It said "the
+    commands this release ships are scan, watch, verify and keygen" for two
+    phases after `check` shipped, and nothing compared it with anything."""
+    broken = tmp_path / "stale-description"
+    shutil.copytree(working_tree, broken)
+    gate = gate_of(broken, [(
+        "pyproject.toml",
+        "Seven commands: check, diff, seal, verify, keygen, scan and watch.",
+        "Five commands: check, verify, keygen, scan and watch.",
+    )])
+
+    with pytest.raises(gate.DriftError) as raised:
+        gate.package_metadata_names_real_commands()
+
+    assert "diff" in str(raised.value) and "seal" in str(raised.value)

@@ -64,9 +64,29 @@ outside the registry.
 
 | Schema | Version | Emitted by |
 |---|---|---|
+| `surface` | `surface/v1` | `actaira check` |
+| `surface-diff` | `surface-diff/v1` | `actaira diff` |
+| `seal` | `seal/v1` | `actaira seal` |
 | `trace` | `trace/v3` | `actaira scan`, `actaira watch` |
 
-One family, one live revision, and it is the only document this tree writes.
+Four families, one live revision each.
+
+Two of them arrived in phase S3 and are stated here before anybody can have
+written a consumer, which is the only moment a first version costs nothing.
+
+`surface-diff/v1` keeps **five change lists and a sixth for what could not be
+resolved**, and they are six fields rather than one list with a `kind`. The
+reason is the same one `surface/v1` gives for keeping three: a consumer that
+could add them up would be reporting "I could not tell" as one of the answers
+that were given. `unchanged` is a count and is required, because "nothing moved"
+and "nothing was compared" have to be tellable apart.
+
+`seal/v1` carries **no content, by construction**. A path and a name somebody
+else chose travel as `H(salt || domain || value)` and the salt never enters the
+package; everything a capability observed travels as one sha256 over its whole
+`facts` mapping, unsalted, because that digest exists to be compared between two
+seals and two machines. `salt_travels` is required and is `const: false`: a
+reader must not have to assume the redaction held.
 
 **`trace/v3` is the last revision before publication.** Three revisions in three
 days was the versioning rule working correctly while nothing consumed the
@@ -119,30 +139,58 @@ cannot honour, and reads to a consumer as still supported.
 
 ## Commands
 
-Five, and `actaira --help` prints the same five.
+Seven, and `actaira --help` prints the same seven.
 
 | Command | What it does |
 |---|---|
 | `actaira check` | Read this repository's (and with `--machine`, this machine's) agent configuration, resolve what it permits across scopes, and apply the rule packs |
+| `actaira diff <A> <B>` | Say what capability appears, disappears, widens, narrows or changes between two refs, or between two directories with `--from-dir` and `--to-dir` |
+| `actaira seal` | Sign a baseline of this repository's surface, carrying no content |
 | `actaira scan` | Read the sessions an agent already recorded on this machine (L0) |
 | `actaira watch -- <command>` | Record a run from outside the agent, through an MCP proxy (L1) |
-| `actaira verify <package>` | Verify an attestation package offline |
+| `actaira verify <package>` | Verify a signed package offline |
 | `actaira keygen` | Create, rotate or revoke a signing key |
 
 `tests/test_no_aggregate.py::test_the_enumeration_names_every_emitter_this_tree_has`
 and `release_check.py` both fail when this list and the parser disagree.
 
-CLAUDE.md lists seven commands, caps the list at eight, and this tree
-implements five. `diff` and `seal` are named there with the phase each arrives
-in, and are not built; they are not documented here, because a command that does
-not parse is not a compatibility surface. `check` was one of those three until
-phase S1 built it.
+CLAUDE.md lists seven commands, caps the list at eight, and this tree now
+implements all seven: `diff` and `seal` were the last two and arrived in phase
+S3. There is no name on that list carrying a phase any more, and
+`tests/test_cli.py` fails in both directions - on a name that neither parses nor
+says when it will, and on one that parses and still says it is coming.
 
-`check` reads Claude Code. The other vendors CLAUDE.md names - Codex, Cursor,
-Gemini CLI, VS Code, the devcontainer - arrive in phase S2, and until they do
-every one of their files that is on disk appears in the report's "not read"
-list. That is a promise about the report, not only about the command: a
-configuration this release does not read is named, never silently skipped.
+`check` reads Claude Code, Codex CLI, Cursor, Gemini CLI, the VS Code task and
+settings files, `devcontainer.json`, and the AGENTS.md / CLAUDE.md / GEMINI.md
+instruction files. Whatever is on disk and is still not read appears in the
+report's "not read" list. That is a promise about the report, not only about the
+command: a configuration this release does not read is named, never silently
+skipped.
+
+### Flags
+
+Every flag either README or this page shows beside a command is checked against
+that command's parser by `release_check.documented_flags_exist`. It exists
+because `.pre-commit-hooks.yaml` published a `scan` hook carrying `--fail-on
+high` for a release in which that option did not parse, and the README
+advertised `--dsse` for a flag no commit ever implemented. The combination is
+spelled apart from the command's name here on purpose: this page must not show a
+command line a reader could copy and have fail. Both were prose nothing compared with
+anything.
+
+`--html` is a flag on `check` and on `diff` and not a command of its own,
+deliberately: the list is capped at eight and a report is a rendering of a
+document those two already produce. The page it writes loads nothing over the
+network - no script, no stylesheet, no font, no image - so it opens on a machine
+that has none, and `<a>` links to the vendor documentation a merge rule cites
+are the exception and are the point of citing it.
+
+`--sarif` on `diff` writes SARIF 2.1.0 for the rules that fired on something
+added or widened. Each result's `level` is a transliteration of the `severity`
+that rule's author wrote, one result at a time. There is no run-level or
+file-level severity anywhere in that output, and there is no `rank`: SARIF
+offers three convenient places to commit the fold this tool's first negative
+forbids, and none of them is used.
 
 `contract`, `verdict`, `receipt` and `fix` were on that list until phase S0 and
 are not coming. They are named here once, in the past tense, for the only reason
@@ -164,7 +212,15 @@ line of anyone's configuration.
 | 2 | Usage: bad arguments, or a key operation this tool refuses to perform |
 | 3 | Nothing objected, and something could not be resolved |
 
-Code `3` is back, on `check`, exactly as the previous release said it would be.
+Code `3` is back, on `check`, exactly as the previous release said it would be,
+and `diff` uses the same four.
+
+**What `diff` exits on, precisely.** `1` when a rule fired on something that was
+ADDED or WIDENED. Not on everything in the repository: this command answers what
+changed, and a finding that was already there and is still there is `check`'s to
+report. `3` when no rule fired that way and at least one change could not be
+resolved on one side or the other. `0` otherwise. `2` for a usage error,
+including a ref that starts with a dash, which is refused before git is asked.
 
 `--fail-on` is not, and is not coming. A threshold over severities is a fold
 over labels two different authors wrote, which is CLAUDE.md's first negative;
@@ -200,10 +256,10 @@ The shape is `ACT-` plus one category letter plus three digits: `ACT-S001`.
 `surface/rules.py` refuses a pack that spells one any other way, at load, with a
 message.
 
-**This tree emits fifteen**, the `core` pack's, listed with their authors,
+**This tree emits thirty-two**, the `core` pack's, listed with their authors,
 versions and the facts each needs in [`RULES.md`](RULES.md) — a generated page,
 written by `make rules` and compared against the packs by the release gate.
-Until phase S1 there were none: the forty-one the message catalogue carried
+Phase S1 wrote fifteen and phase S2 the rest. Until phase S1 there were none: the forty-one the message catalogue carried
 belonged to the model scanner and to the conformance package, both of which left
 in phase A. `tests/test_i18n.py` asserts both directions: a rule the packs define
 with no catalogue entry fails, and a catalogue entry no pack defines fails.

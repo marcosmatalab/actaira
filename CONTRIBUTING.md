@@ -37,6 +37,42 @@ not, with the reason beside each.
 (`tests/test_release_check.py`), which runs it against a copy of the tree and
 also against copies broken on purpose.
 
+### Where you run the suite changes how long it takes, by a lot
+
+Run it on a Linux filesystem. Not on a Windows drive, and not in WSL over
+`/mnt/c`. The suite is serial - there is no `pytest-xdist` and adding one is a
+dependency - so what you are watching is filesystem latency, and the spread is
+wide enough that somebody meeting it for the first time assumes the run has
+hung. It has not.
+
+`tests/test_release_check.py` is where it shows worst, because those tests copy
+the whole tree and run the gate over the copy. The same 18 tests, on one laptop
+on 2026-09-18:
+
+```
+/tmp/actaira-gate      (WSL, Linux filesystem)      14s
+/mnt/c/...             (WSL, over the Windows mount) 78s
+C:\...                 (Windows Python, on C:)      332s
+```
+
+And the whole suite, on the same laptop the same day: **89s** on the Linux
+filesystem, **504s** run natively on Windows.
+
+These are the one kind of number this page's own rule about hand-written figures
+does not cover, and it is worth saying why rather than leaving it to look like
+an exception somebody took. A runtime *does* have a command that measures it -
+`pytest` prints it at the end of every run, which is where all five of the above
+came from. What it cannot have is a gate that compares it, because it is a fact
+about the machine rather than about the tree, and pinning it would fail on
+somebody else's laptop for a reason that is not a defect. So the numbers are
+dated, attributed to one machine, and nothing in the repository checks them: run
+it yourself and you will get your own.
+
+Work rule 7 in [`CLAUDE.md`](CLAUDE.md) already sends the gate to a clean clone
+under `/tmp` for a different and more important reason - a working directory has
+ignored and untracked files that nobody who clones the repository will ever
+receive. This is a second, smaller reason to be there anyway.
+
 What each one is actually for:
 
 * **types** is `mypy` over `src/`, run as a ratchet (D-242). The modules it

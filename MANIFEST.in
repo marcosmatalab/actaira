@@ -19,5 +19,15 @@ prune .github
 exclude Makefile
 exclude Dockerfile
 exclude .dockerignore
+# `.pre-commit-hooks.yaml` and `action.yml` are integration manifests for a git
+# checkout: `pre-commit` and GitHub Actions both read them out of a cloned
+# repository, and neither ever looks inside a wheel. Shipping them would put two
+# files in the sdist that nothing installed from it can use.
+#
+# The first line had been excluding a file that did not exist since phase A.1,
+# which setuptools reports as a warning rather than an error and `make package`
+# is not in `make all`, so nothing said so. The file exists again as of phase
+# S3, so the line is true again rather than merely quiet.
 exclude .pre-commit-hooks.yaml
+exclude action.yml
 exclude figures.json

@@ -9,7 +9,7 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-18T10:20:12+00:00 for actaira 3.0.0, at commit 3f66eed.
+Generated 2026-09-18T17:56:46+00:00 for actaira 3.0.0, at commit 4d91d27.
 
 ## The package
 
@@ -20,7 +20,7 @@ Generated 2026-09-18T10:20:12+00:00 for actaira 3.0.0, at commit 3f66eed.
 
 ## Tests
 
-**2216** tests collected by pytest across 37 files.
+**2296** tests collected by pytest across 39 files.
 
 | file | tests |
 |---|---:|
@@ -28,13 +28,14 @@ Generated 2026-09-18T10:20:12+00:00 for actaira 3.0.0, at commit 3f66eed.
 | `tests/test_capability_coverage.py` | 12 |
 | `tests/test_chain_and_signing.py` | 17 |
 | `tests/test_chain_domain_separation.py` | 14 |
-| `tests/test_cli.py` | 34 |
+| `tests/test_cli.py` | 32 |
 | `tests/test_consistency.py` | 285 |
 | `tests/test_defect_ledger.py` | 348 |
-| `tests/test_design_notes.py` | 77 |
+| `tests/test_design_notes.py` | 86 |
+| `tests/test_diff.py` | 25 |
 | `tests/test_dsse.py` | 25 |
-| `tests/test_fixtures_are_published.py` | 191 |
-| `tests/test_i18n.py` | 127 |
+| `tests/test_fixtures_are_published.py` | 194 |
+| `tests/test_i18n.py` | 135 |
 | `tests/test_keyring.py` | 33 |
 | `tests/test_mcp.py` | 15 |
 | `tests/test_merkle.py` | 146 |
@@ -45,11 +46,12 @@ Generated 2026-09-18T10:20:12+00:00 for actaira 3.0.0, at commit 3f66eed.
 | `tests/test_proxy_http_interposition.py` | 15 |
 | `tests/test_proxy_protocol.py` | 17 |
 | `tests/test_proxy_transports.py` | 28 |
-| `tests/test_reachability.py` | 42 |
+| `tests/test_reachability.py` | 48 |
 | `tests/test_readme_parity.py` | 25 |
-| `tests/test_release_check.py` | 12 |
+| `tests/test_release_check.py` | 18 |
 | `tests/test_scan_claude_code.py` | 33 |
-| `tests/test_schemas.py` | 20 |
+| `tests/test_schemas.py` | 24 |
+| `tests/test_seal_and_report.py` | 21 |
 | `tests/test_signing_domain_separation.py` | 4 |
 | `tests/test_surface.py` | 97 |
 | `tests/test_surface_instructions.py` | 34 |
@@ -61,7 +63,7 @@ Generated 2026-09-18T10:20:12+00:00 for actaira 3.0.0, at commit 3f66eed.
 | `tests/test_trace_provenance.py` | 21 |
 | `tests/test_trust.py` | 13 |
 | `tests/test_verify_strictness.py` | 23 |
-| **total** | **2216** |
+| **total** | **2296** |
 
 ## Defects found in this repository
 
@@ -98,21 +100,21 @@ and the modules are the source of truth.
 
 | area | files | lines | code | docstrings | comments | blank |
 |---|---:|---:|---:|---:|---:|---:|
-| attest | 10 | 4018 | 2496 | 700 | 290 | 532 |
+| attest | 11 | 4302 | 2649 | 764 | 316 | 573 |
 | trace | 5 | 1706 | 939 | 383 | 161 | 223 |
 | proxy | 5 | 1929 | 1232 | 343 | 164 | 190 |
-| core | 4 | 904 | 524 | 190 | 66 | 124 |
-| schemas | 1 | 121 | 22 | 36 | 43 | 20 |
+| core | 4 | 1182 | 732 | 208 | 83 | 159 |
+| schemas | 1 | 126 | 27 | 36 | 43 | 20 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
-| rest | 13 | 5273 | 3540 | 767 | 314 | 652 |
-| tests | 42 | 15454 | 8725 | 2422 | 915 | 3392 |
-| scripts | 11 | 3578 | 2292 | 542 | 272 | 472 |
-| **total** | 93 | 33038 | 19800 | 5390 | 2232 | 5616 |
+| rest | 18 | 6455 | 4254 | 969 | 412 | 820 |
+| tests | 44 | 16701 | 9447 | 2589 | 1020 | 3645 |
+| scripts | 12 | 3987 | 2571 | 581 | 321 | 514 |
+| **total** | 102 | 36443 | 21881 | 5880 | 2527 | 6155 |
 
 Documentation, in lines of Markdown:
 
-- `docs/DESIGN.md`: 840
-- total: 840
+- `docs/DESIGN.md`: 849
+- total: 849
 
 ## Rules
 

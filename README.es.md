@@ -6,7 +6,7 @@ Actaira lee la configuración que cargan tus agentes de código, resuelve lo que
 
 **Actaira 3.0.0** · Python 3.11 · 3.12 · 3.13 · Apache-2.0 · una dependencia en tiempo de ejecución · sin conexión, sin telemetría, sin cuenta
 
-**[English](README.md)** · [Quickstart](#quickstart) · [Los cinco comandos](#los-cinco-comandos) · [Niveles de captura](#niveles-de-captura) · [Lo que Actaira se niega a hacer](#lo-que-actaira-se-niega-a-hacer) · [Límites](#límites-publicados) · [Docs](#el-resto-de-la-documentación)
+**[English](README.md)** · [Quickstart](#quickstart) · [Los siete comandos](#los-siete-comandos) · [Niveles de captura](#niveles-de-captura) · [Lo que Actaira se niega a hacer](#lo-que-actaira-se-niega-a-hacer) · [Límites](#límites-publicados) · [Docs](#el-resto-de-la-documentación)
 
 </div>
 
@@ -33,11 +33,15 @@ herramienta de cumplimiento. No es un EDR: no vigila en ejecución y no bloquea.
 Actaira afirma exactamente tres cosas y nada más. Cualquier cosa fuera de esas
 tres es un defecto de producto, aunque sea verdad.
 
-**La primera de las tres está construida; las otras dos no.** Cada bloque de
-abajo dice cuál, porque la alternativa es una página que describe en presente
-una intención, que es justo el defecto que este proyecto se pasó la fase A.1
-quitando y no una costumbre que conservó. Lo que el árbol sí sabe hacer hoy
-está más abajo, en [los cuatro comandos](#los-cinco-comandos).
+Cada bloque de abajo dice qué existe, y cada uno nombra los comandos sobre los
+que se sostiene su afirmación. Eso no es una costumbre de formato:
+`scripts/release_check.py` lee esos nombres y los resuelve contra el parser, en
+los dos sentidos. Un bloque que dice «construido» nombrando un comando que nadie
+escribió rompe la puerta, y un comando que funciona sin que ningún bloque lo
+reclame la rompe igual. Esta página publicó «No existe» sobre `actaira check`
+durante una fase entera después de que ese comando llegara, porque la única
+comprobación que había preguntaba si el comando estaba mencionado en algún sitio,
+no si era cierto lo que la página decía de él.
 
 **1. Superficie** - lo que un agente puede hacer en este repositorio o en esta
 máquina, resuelto entre ámbitos y fabricantes. Cada capacidad cita el fichero
@@ -45,24 +49,34 @@ del que sale, la regla de mezcla documentada que la resolvió, con la URL y la
 versión de la documentación del fabricante que la enuncia, y la regla de Actaira
 que la nombra.
 
-> **Construida.** `actaira check` lee Claude Code, Codex CLI, Cursor, Gemini
-> CLI, los ficheros de tareas y ajustes de VS Code, `devcontainer.json` y los
-> ficheros de instrucciones AGENTS.md / CLAUDE.md / GEMINI.md. Cada fabricante
-> se resuelve contra su propia precedencia documentada, y la superficie del
-> repositorio es la unión de los siete, nunca una mezcla de ellos.
+> **Construido.** Comandos: `actaira check`.
+> Lee Claude Code, Codex CLI, Cursor, Gemini CLI, los ficheros de tareas y
+> ajustes de VS Code, `devcontainer.json` y los ficheros de instrucciones
+> AGENTS.md / CLAUDE.md / GEMINI.md. Cada fabricante se resuelve contra su propia
+> precedencia documentada, y la superficie del repositorio es la unión de los
+> siete, nunca una mezcla de ellos.
 
 **2. Cambio** - qué capacidad aparece, desaparece, se ensancha o se estrecha
 entre dos momentos.
 
-> **No existe.** `actaira diff`, la línea base firmada que escribe `actaira
-> seal`, el informe y la acción de GitHub llegan en la fase S3. La fase S4 añade
-> la línea base de máquina, que es donde un hook plantado en el ámbito de
-> usuario y no en un repositorio se vuelve visible siquiera.
+> **Construido.** Comandos: `actaira diff`, `actaira seal`.
+> Dos refs de git, o dos directorios, se comparan sin hacer checkout de ninguna
+> de las dos. Qué aparece, qué desaparece, qué se ensancha, qué se estrecha, qué
+> cambia con los dos digests, y aparte lo que no se pudo resolver en uno de los
+> dos lados. La acción de GitHub y el hook de pre-commit de este repositorio son
+> el mismo comando puesto donde entra el cambio. La fase S4 añade la línea base
+> de máquina, que es donde un hook plantado en el ámbito de usuario y no en un
+> repositorio se vuelve visible siquiera.
 
 **3. Vigencia** - si una aprobación o una evidencia sigue describiendo lo que
 hay. Ligada a digests, nunca a nombres y nunca a fechas.
 
-> **No existe**, y es la única de las tres que ya tiene su argumento escrito:
+> **Construido en parte.** Comandos: `actaira seal`, `actaira verify`.
+> `seal` firma una línea base de una superficie que no lleva contenido, ligada al
+> digest de esa superficie, y `verify` la comprueba sin conexión y sin fiarse de
+> quien la produjo. O sea que hoy SÍ se puede atar una aprobación a un digest y
+> SÍ se puede demostrar que dejó de describir el árbol. Lo que no existe es el
+> registro que guarda esas aprobaciones y las caduca por ti:
 > [`docs/DESIGN.md`](docs/DESIGN.md) §10 conserva el razonamiento de los cinco
 > estados de evidencia y de la sustitución ligada a un digest en vez de al
 > nombre del sujeto, del paquete `state/` que la fase A quitó por inalcanzable.
@@ -74,11 +88,19 @@ escrito no es un hook que se ejecutó, y un hook ausente no prueba que no se
 ejecutara nada. Lo que no se pudo resolver es INDETERMINADO, se cuenta aparte, y
 nunca se reparte entre las respuestas que sí se pudieron dar.
 
-Lo que este árbol hace hoy no es ninguna de las dos: lee lo que un agente grabó
-sobre una ejecución, y graba una desde fuera del agente donde puede. Esa es la
-[escalera de captura](#niveles-de-captura) de abajo, y se conserva porque un
-cambio en una configuración y las sesiones que corrieron después son la misma
-pregunta hecha dos veces.
+**Fuera de las tres afirmaciones**, y dicho aquí en vez de dejarlo sin cuadrar.
+Dos comandos leen lo que un agente HIZO y no lo que puede hacer, y uno gestiona
+una clave. No implementan ninguna de las tres afirmaciones de arriba, y una
+página que simplemente no los mencionara sería una página cuyo silencio tiene
+que interpretar quien la lee.
+
+> **Fuera de las tres afirmaciones.** Comandos: `actaira scan`, `actaira watch`,
+> `actaira keygen`.
+> `scan` y `watch` son la [escalera de captura](#niveles-de-captura), que va de
+> una ejecución y no de una configuración; `keygen` gestiona la clave con la que
+> firma `seal`. Se conservan porque un cambio en una configuración y las
+> sesiones que corrieron después son la misma pregunta hecha dos veces.
+
 
 ---
 
@@ -93,7 +115,51 @@ python -m venv .venv && . .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e .
 ```
 
-Una dependencia en tiempo de ejecución (`cryptography`). Después:
+Una dependencia en tiempo de ejecución (`cryptography`). Después, para qué sirve
+el producto, sobre la oleada de keyv del 4 de agosto de 2026 reconstruida desde
+los informes publicados. El guion construye un repositorio desechable con dos
+commits (limpio, y después comprometido) y los diferencia:
+
+```console
+$ python3 scripts/demo_keyv.py --lang es    # exits 1: una regla disparó sobre algo que llegó
+
+Que ha cambiado entre HEAD~1 y HEAD
+
+APARECE: 1
+  + claude-code  hook.command  .claude/settings.json  [project]
+      despues  effective  63a9a33e2cd93139
+      ! ACT-S001  Un hook ejecuta un comando en un evento de arranque de sesión, así que abrir una sesión lo ejecuta antes de que nadie haya leído nada.
+        regla escrita por  Actaira core core / high
+        sugerido por la regla: Remove the hook, or move it to ~/.claude/settings.json where it is yours rather than the repository's. A hook on a session-start event runs before you have read anything.
+      ! ACT-S003  Un hook ejecuta un script de este repositorio, así que quien pueda meter un commit decide qué se ejecuta.
+        regla escrita por  Actaira core core / medium
+        sugerido por la regla: Tie your approval to the script's sha256 rather than its path: the file at that path can change after you read it, and the hook will run whatever is there.
+
+No se pudo resolver en uno de los dos lados: 2
+  ? ACT-S016 on task.command
+      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's own settings file can set it, and no scope this run read says either way (run with --machine)
+  ? a change to vscode task.command
+      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's own settings file can set it, and no scope this run read says either way (run with --machine)
+
+Identicas en los dos lados: 0
+Visto y no leído en esta versión: 7
+
+La configuración DECLARA; no demuestra comportamiento. Un hook escrito no es un hook que se ejecutó, y uno ausente no prueba que no se ejecutara nada (límite publicado 11).
+```
+
+Lee la mitad sin resolver, porque es el diseño. El gusano planta dos cosas y
+esto dice algo de las dos: el hook de Claude Code sale EFECTIVO y lo nombran dos
+reglas, y la tarea de `.vscode/tasks.json` sale INDETERMINADA, porque si se
+ejecuta o no lo decide un ajuste que solo puede tener la máquina del usuario, así
+que un repositorio no puede responderlo y esto se niega a adivinarlo. Contado
+aparte, nunca mezclado.
+
+La reconstrucción está en `tests/fixtures/surface/keyv-august/`, su fichero de
+procedencia cita la frase de la que sale cada fragmento, y el `setup.mjs` al que
+apunta el hook es un stub inerte. Un repositorio de seguridad que repartiera la
+carga del gusano para demostrar que caza al gusano sería el gusano.
+
+Y sin ningún agente instalado y sin nada configurado:
 
 ```console
 $ actaira scan --demo
@@ -109,29 +175,29 @@ watch` to record a run from outside the agent.
 ```
 
 Ese bloque es el estilo de la casa en miniatura. Leyó una sesión, dijo lo que
-vio, y a continuación dijo - sin que nadie se lo pidiera - que lo que acababa de
-leer no puede sostener la afirmación que un lector le atribuiría.
-
-Con `--lang es` la salida sale en español. Si tienes Claude Code, Cursor o Cline
-en esta máquina, quita el `--demo` y `actaira scan` lee las sesiones que ya
-escribieron en disco.
+vio, y a continuación dijo, sin que nadie se lo pidiera, que lo que acababa de
+leer no puede sostener la afirmación que un lector le atribuiría. Con `--lang es`
+la salida sale en español.
 
 ---
 
-## Los cinco comandos
+## Los siete comandos
 
 ```
 actaira check     lee la configuración de agentes de este repo y resuelve qué permite
+actaira diff      dice qué capacidad cambió entre dos momentos
+actaira seal      firma una línea base de la superficie, sin llevar contenido
+actaira verify    verifica un paquete firmado sin conexión
+actaira keygen    crea, rota o revoca una clave de firma
 actaira scan      lee las sesiones que un agente ya grabó en esta máquina (L0)
 actaira watch     graba una ejecución desde fuera del agente, por un proxy MCP (L1)
-actaira verify    verifica un paquete de atestación sin conexión
-actaira keygen    crea, rota o revoca una clave de firma
 ```
 
-Esa es la lista completa de lo que funciona, y `actaira --help` imprime los
-mismos cinco. [`CLAUDE.md`](CLAUDE.md) enumera siete, y cada uno que no está
-construido lleva escrita la fase en la que llega; `tests/test_cli.py` falla con
-un nombre de esa lista que ni existe en el parser ni dice cuándo llegará.
+Esa es la lista completa de lo que funciona: 7 comandos de CLI, y `actaira
+--help` imprime los mismos siete. [`CLAUDE.md`](CLAUDE.md) enumera siete y topa
+la lista en ocho, así que por primera vez no queda ningún nombre prometido en
+ella; `tests/test_cli.py` falla con un nombre de esa lista que ni existe en el
+parser ni dice cuándo llegará, y con uno que existe y sigue llevando una fase.
 
 ### `actaira check` - qué puede hacer un agente aquí
 
@@ -139,7 +205,7 @@ un nombre de esa lista que ni existe en el parser ni dice cuándo llegará.
 permite de verdad entre ámbitos y entre fabricantes, y aplica los paquetes de
 reglas. Lee Claude Code, Codex CLI, Cursor, Gemini CLI, `.vscode/tasks.json` y
 `.vscode/settings.json`, `devcontainer.json`, y los ficheros de instrucciones
-AGENTS.md, CLAUDE.md y GEMINI.md.
+AGENTS.md, CLAUDE.md y GEMINI.md, contra 32 reglas documentadas.
 
 Cada fabricante se resuelve contra la precedencia que publica su propia
 documentación, porque esas escaleras no coinciden: Claude Code pone el fichero
@@ -149,7 +215,7 @@ los dos. La superficie de un repositorio es por tanto la UNIÓN de las siete
 superficies por fabricante, y dos fabricantes que configuran el mismo servidor
 MCP son dos capacidades con el mismo digest, no una fila que no es de ninguno.
 
-Lo que sigue sin leerse se imprime, no se salta - incluidos los dos ámbitos que
+Lo que sigue sin leerse se imprime, no se salta, incluidos los dos ámbitos que
 no dejan fichero alguno: los hooks de equipo de Cursor, configurados en un panel
 y sincronizados a los miembros, y los requisitos de Codex que llegan por MDM o
 desde la nube. Esos salen INDETERMINADOS con su causa, nunca como ausencia.
@@ -159,11 +225,12 @@ actaira check                                   # este repositorio
 actaira check --machine                         # y los ámbitos de usuario y gestionado
 actaira check --agent-version claude-code=2.1.257
 actaira check --json                            # un documento surface/v1
+actaira check --html informe.html               # un solo fichero, sin red
 ```
 
 Tres cosas que no hará. Nunca ejecuta lo que lee: de un script al que apunta un
-hook registra cuatro hechos - si existe, si está dentro del árbol, si lo controla
-git y su sha256 - y jamás un quinto. No imprime literales de comandos, URLs ni
+hook registra cuatro hechos (si existe, si está dentro del árbol, si lo controla
+git y su sha256) y jamás un quinto. No imprime literales de comandos, URLs ni
 cabeceras sin `--with-content`, porque un fichero de configuración puede llevar
 un secreto y este informe se pega en un log de CI. Y nunca adivina: una
 capacidad cuya respuesta dependa de una versión del agente que nadie declaró
@@ -171,6 +238,120 @@ sale INDETERMINADA con el umbral nombrado, y se cuenta aparte de todo lo demás.
 
 Códigos de salida: `0` no disparó nada y no quedó nada sin resolver, `1` disparó
 una regla, `3` no disparó nada y algo no se pudo resolver.
+
+### `actaira diff` - qué ha cambiado
+
+```
+actaira diff main HEAD                          # dos refs de este repositorio
+actaira diff --repo ../otro main feature        # de otro sitio
+actaira diff --from-dir a --to-dir b            # dos árboles, sin git
+actaira diff main HEAD --html informe.html      # y el mismo informe como página
+actaira diff main HEAD --sarif actaira.sarif    # SARIF 2.1.0 para un host de código
+```
+
+De ninguna de las dos refs se hace checkout. Los dos árboles se leen con
+`git ls-tree` y `git cat-file`, que no ejecutan ningún hook, no aplican ningún
+filtro ni ningún driver de textconv, y se escriben en un directorio temporal que
+se borra al salir. Tu árbol de trabajo no se toca, tu HEAD no se mueve, y a un
+hook `post-checkout` del repositorio que se está examinando no se le da nunca la
+ocasión de ejecutarse, que sería ejecutar código de otro para responder una
+pregunta sobre código de otro. Una ref que empieza por guion se rechaza con
+código de salida `2`.
+
+Cinco tipos de cambio, y una sexta cosa que no es uno de ellos. Una capacidad
+APARECE, DESAPARECE, SE ENSANCHA, SE ESTRECHA o CAMBIA; y si uno de los dos lados
+no se pudo resolver, el cambio es INDETERMINADO, va en su propia lista con su
+causa y nunca se cuenta con los cinco. Ensancharse y estrecharse solo existen
+donde el nombre del propio hecho dice cuál de los dos valores es el más ancho,
+como `guardrail_removed` pasando de false a true. En todo lo demás la respuesta
+es CAMBIA, con los dos digests, para que quien revisa decida por su cuenta en vez
+de que le digan qué pensar de los ajustes de un fabricante.
+
+Códigos de salida: `1` una regla disparó sobre algo añadido o ensanchado, `3`
+ninguna regla disparó y algo no se pudo resolver, `0` en el resto, `2` error de
+uso. Un hallazgo que ya estaba y sigue estando no es ninguno de estos: para eso
+está `check`, y un comando que responde «qué ha cambiado» no debe objetar a lo
+que no cambió.
+
+### En un pull request: la acción y el hook de pre-commit
+
+La acción es este repositorio. `uses: marcosmatalab/actaira@<sha>` instala la
+herramienta desde el ref que fijaste y ejecuta `diff` entre la base y la cabeza
+del pull request:
+
+```yaml
+name: actaira
+on: pull_request
+permissions:
+  contents: read
+jobs:
+  surface:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0       # diff necesita los dos lados, o sea la historia entera
+      - uses: marcosmatalab/actaira@main
+```
+
+Escribe el informe en el resumen del trabajo y SARIF 2.1.0 en `actaira.sarif`;
+subirlo a code scanning es cosa tuya, con `github/codeql-action/upload-sarif` y
+`security-events: write`. El código de salida pasa tal cual (no hay ningún
+`|| true` en ninguna parte), así que una regla que disparó sobre algo nuevo hace
+fallar el trabajo, y si eso bloquea el merge lo decide tu protección de rama, que
+es tuya.
+
+`comment: true` publica el mismo resumen como comentario del pull request y
+necesita `pull-requests: write`. Está apagado por defecto, porque la mayoría de
+los flujos no deberían tener ese permiso y el resumen del trabajo no necesita
+ninguno.
+
+**Úsala con `pull_request`. No con `pull_request_target` haciendo checkout de la
+cabeza.** Esa combinación le da al código de un fork un token con escritura y tus
+secretos, y ningún cuidado tomado dentro de la acción lo cambia. Cada entrada
+llega al shell por `env` en vez de pegarse dentro de un script con `${{ }}`, cada
+acción de terceros de los flujos de este repositorio está fijada por SHA de
+commit, y `zizmor` corre sobre `action.yml` y `.github/workflows/` en cada build.
+
+Para un hook local, este repositorio publica uno:
+
+```yaml
+repos:
+  - repo: https://github.com/marcosmatalab/actaira
+    rev: main
+    hooks:
+      - id: actaira-check
+```
+
+`check` y no `diff`, porque `pre-commit` tiene un árbol delante y un diff
+necesita dos momentos. El sitio donde existen dos momentos es el pull request.
+
+### `actaira seal` - una línea base firmada sin contenido dentro
+
+```bash
+actaira keygen                                  # una vez
+actaira seal --repo . --key ~/.actaira/signing-key.pem --out baseline/
+actaira verify baseline/surface-seal.zip
+```
+
+`seal` escribe un paquete firmado con un documento `seal/v1` dentro: de cada
+capacidad, su fabricante, su nombre, su ámbito, su resolución y su regla de
+mezcla, una referencia con sal al fichero del que salió, y un sha256 sobre todo
+lo que observó. Más las reglas que dispararon, cada una con su autor y su
+paquete. Más recuentos de lo que no se pudo resolver y de lo que no se leyó. Eso
+es todo.
+
+**Ni rutas, ni comandos, ni URLs, ni nombres de servidores.** Una ruta se vuelve
+`H(sal || dominio || ruta)`, y la sal se queda contigo en el directorio de
+salida, al lado del paquete y nunca dentro de él; el paquete lo dice con sus
+propias palabras. Todo lo que una capacidad observó se vuelve un digest del mapa
+de hechos entero en vez de un digest por hecho, porque `sha256(".env")` son los
+mismos dieciséis caracteres en todas las máquinas que han existido.
+
+De lo que va todo esto es del digest de superficie de arriba. Aprueba ese, y la
+aprobación caduca sola el día que la superficie cambie, que es el límite
+publicado 14 con el signo cambiado, y la razón de que aquí nada esté ligado a un
+nombre de fichero ni a una fecha.
 
 ### `actaira watch` - grabar desde fuera
 
@@ -219,26 +400,9 @@ filtro de secretos sí.
 
 ### `actaira verify` - comprobar sin confiar en nadie
 
-> **Lee esto antes de probarlo: ningún comando de Actaira 3.0 produce un
-> paquete.** `verify` lee paquetes de atestación escritos por el escáner de
-> modelos 2.x, y el comando que los escribía (`actaira attest`) se fue a
-> `archive/model-scanner`. El escritor sigue en el árbol -
-> `attest/package.py::write_package` - y no lo llama nada fuera de los tests.
-> Así que `verify` es un lector sin escritor en esta release: útil si tienes un
-> paquete 2.x en la mano, inútil si no, y se conserva porque el día que este
-> árbol firme algo propio, que es la línea base de superficie que escribe
-> `actaira seal` en la fase S3, el verificador es la mitad que ya tiene que
-> estar bien.
->
-> `tests/test_reachability.py` no coge esto. Pregunta si todo módulo es
-> alcanzable desde un comando, y `attest/` lo es: `verify` llega a todo él. No
-> pregunta si la cadena del producto se cierra, es decir si algo que esta
-> herramienta escribe es algo que esta herramienta puede verificar.
-> `docs/BACKLOG.md` lleva la línea.
-
 ```bash
-actaira verify attestation.zip
-actaira verify attestation.zip --trusted-keyring keys.json --require-trust
+actaira verify baseline/surface-seal.zip
+actaira verify baseline/surface-seal.zip --trusted-keyring keys.json --require-trust
 ```
 
 Sin conexión, siempre. Integridad e identidad son respuestas separadas: un
@@ -246,6 +410,13 @@ paquete siempre lleva su propia clave, así que la integridad siempre se puede
 responder, y «nadie ha avalado esta clave» se informa como exactamente eso y no
 como un fallo. Pasa `--trusted-keyring` o `--pubkey` para atarlo a una clave en
 la que ya confías.
+
+Además nombra qué ha verificado. Un paquete cuyas entradas declaran `seal/v1` se
+comprueba contra los campos que ese contrato exige y la versión se informa; uno
+que declara una versión que esta release no publica falla, en vez de darse por
+bueno con su significado adivinado. Los paquetes que escribió el escáner de
+modelos 2.x siguen verificando, y no declaran contrato alguno, que no es un
+defecto suyo.
 
 ### `actaira keygen` - la clave de firma
 
@@ -255,10 +426,9 @@ actaira keygen --rotate             # retirar la clave actual, seguir verificand
 actaira keygen --revoke <key-id>    # nada de lo que firmó se acepta nunca más
 ```
 
-Ed25519. El llavero vive al lado de la clave. Mismo matiz que en `verify`: esto
-gestiona la clave que firma un paquete, y en la 3.0 no hay nada que escriba uno.
-La rotación y la revocación las ejercita la suite de punta a punta, contra
-paquetes que construye ella misma.
+Ed25519. El llavero vive al lado de la clave. Esta es la clave con la que firma
+`actaira seal`; la rotación y la revocación las ejercita la suite de punta a
+punta.
 
 ---
 
@@ -315,18 +485,15 @@ pull request se bloquea o no lo decide la protección de rama del usuario, que e
 suya. Salir con código distinto de cero no es actuar; escribir en el árbol del
 usuario sí.
 
-> **Tres de estas cuatro son restricciones sobre código que aún no está
-> escrito.** En este árbol no hay reglas, ni predicados, ni remediaciones: la
-> segunda negativa no tiene regla que citar, la tercera no tiene predicado que
-> devuelva INDETERMINADO, y la cuarta no tiene remediación que negarse a
-> aplicar. Están escritas ahora, antes de que exista el código, porque una
-> restricción que se adopta después se discute; y la tercera ya sostiene peso en
-> lo que sí existe: `scan --demo` declara que a nivel L0 la autenticidad no se
-> puede evaluar, y `watch` declara los huecos por los que no pudo ver en vez de
-> informar de una ejecución limpia.
->
-> La primera negativa sí se aplica hoy, sobre todos los documentos que este
-> árbol emite, en `tests/test_no_aggregate.py`.
+> **Las cuatro se aplican hoy sobre código que existe.** No era así, y la nota
+> que había aquí lo decía: hasta que llegaron los paquetes de reglas no había
+> reglas, ni predicados, ni remediaciones, así que tres de las cuatro no tenían
+> nada que restringir. Ahora sí, y cada una tiene su propiedad afirmada encima:
+> la primera en `tests/test_no_aggregate.py` sobre todos los documentos que este
+> árbol emite, la segunda en cada hallazgo llevando el autor y el paquete de su
+> regla, la tercera en `Clause.holds` devolviendo None ante un hecho que nadie
+> escribió, y la cuarta en `diff` leyendo dos árboles sin hacer checkout de
+> ninguno.
 
 ---
 
@@ -371,10 +538,14 @@ que es `scan` y `watch`; los cuatro últimos son de lo que leer una
 
 ## Los contratos publicados
 
-4 documentos de esquema viajan en el paquete: una familia, un emisor vivo.
+El paquete lleva 6 documentos de esquema: 4 contratos versionados vivos,
+y 2 versiones sustituidas que se leen y no se escriben nunca.
 
 | Contrato | Estado | Lo emite |
 |---|---|---|
+| `surface/v1` | **vivo** | `actaira check` |
+| `surface-diff/v1` | **vivo** | `actaira diff` |
+| `seal/v1` | **vivo** | `actaira seal` |
 | `trace/v3` | **vivo** | `actaira scan`, `actaira watch` |
 | `trace/v2` | historia congelada - se lee, no se escribe | nada |
 | `trace/v1` | historia congelada - se lee, no se escribe | nada |
@@ -404,17 +575,18 @@ make all      # lint, test, figures, release-check
 La puerta de release rechaza un árbol cuyas partes se contradicen entre sí: una
 cifra que se desvió de lo que el código mide, una nota de diseño que apunta a una
 línea que no la argumenta, una versión de esquema escrita en dos sitios, un
-documento que nombra un test que ya no existe.
+documento que nombra un test que ya no existe, un flag que la documentación
+enseña y el comando no tiene, y una afirmación de esta página que el parser
+contradice.
 
-2.216 tests sobre 33.038 líneas de Python corren en cada commit, y las dos cifras las
+2.296 tests sobre 36.443 líneas de Python corren en cada commit, y las dos cifras las
 mide `make figures` en vez de escribirlas a mano: la puerta rechaza un árbol
 donde un número de este fichero no coincide con lo que el código reporta.
 
-Una comprobación merece nombre propio porque es nueva y es el tema de esta
-release. **Todo módulo del paquete tiene que ser alcanzable desde la CLI o desde
-el servidor MCP, y `tests/test_reachability.py` falla con uno que no lo sea.**
-Antes de que ese test existiera, casi la mitad de este árbol no se alcanzaba
-desde ningún comando.
+Una comprobación merece nombre propio porque es el tema de esta release. **Todo
+módulo del paquete tiene que ser alcanzable desde la CLI o desde el servidor MCP,
+y `tests/test_reachability.py` falla con uno que no lo sea.** Antes de que ese
+test existiera, casi la mitad de este árbol no se alcanzaba desde ningún comando.
 
 ---
 
@@ -424,6 +596,7 @@ desde ningún comando.
 |---|---|
 | [`CLAUDE.md`](CLAUDE.md) | Qué es Actaira, las invariantes, y las reglas que sigue el trabajo. El único documento de gobierno. |
 | [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) | Qué se promete entre versiones, y qué no. |
+| [`docs/RULES.md`](docs/RULES.md) | Cada regla, con su autor, su versión, los hechos que necesita y su configuración violadora. Generada desde los paquetes. |
 | [`docs/GOVERNANCE.md`](docs/GOVERNANCE.md) | La frontera entre este núcleo abierto y la plataforma alojada. |
 | [`docs/DESIGN.md`](docs/DESIGN.md) | Cada decisión de diseño con su alternativa rechazada, cada una nombrando el fichero y la línea que la implementa. |
 | [`docs/archive/`](docs/archive/) | La documentación del escáner de modelos, archivada sin editar en la fase A.1: formatos, evaluación, arquitectura, modelo de amenazas, las dos páginas de conceptos y las secciones de diseño que las argumentan. Nada de eso describe este árbol. |

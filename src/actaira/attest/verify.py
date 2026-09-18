@@ -73,6 +73,7 @@ REQUIRED_CHECKS = (
 # `test_the_timestamp_check_is_recorded_whenever_it_applies`.
 CONDITIONAL_CHECKS = (
     "dsse_envelope_valid",
+    "sealed_document_is_a_contract_this_tool_knows",
     "signing_key_in_validity",
     "timestamp_matches_manifest",
     "tsa_trust_store_loaded",
@@ -155,6 +156,13 @@ class VerifyResult:
     # from: a keyring the verifier supplied, or the one the package carries.
     key_state: str = "unknown"
     key_status_source: str = "none"          # trusted_keyring | package | none
+    # Which published contracts the entries in this package declare, in the
+    # order they appear. Empty for a 2.x package, whose entries carry a payload
+    # with no `schema_version` at all - which is not a defect in it and does not
+    # make it fail. `actaira seal` is the first writer in this tree that puts a
+    # versioned document into a chain, and a verifier that could not say WHAT it
+    # had just verified would be checking bytes and reporting nothing about them.
+    documents: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -169,6 +177,7 @@ class VerifyResult:
             "timestamp": self.timestamp,
             "key_state": self.key_state,
             "key_status_source": self.key_status_source,
+            "documents": self.documents,
             "manifest": self.manifest,
         }
 
@@ -494,6 +503,14 @@ def verify_package(
         if DSSE_NAME in names:
             _check_envelope(archive, result, signing_public)
 
+        # 4c. what the entries actually say. A package whose payload declares a
+        # contract this tool publishes is checked against that contract's
+        # required fields; one that declares a version this tool does not know
+        # is a failure, not a shrug, because the alternative is reporting OK
+        # about a document whose meaning we guessed. A payload that declares no
+        # version at all is a 2.x entry and records nothing.
+        _check_documents(entries, result)
+
         # 5. the time anchor, if the manifest claims one
         stamp = _check_timestamp(archive, names, manifest, result, tsa_trust_store)
         moment, result.time_evidence = _signing_moment(manifest, entries, stamp)
@@ -549,6 +566,50 @@ def verify_package(
         result.ok = False
         result.problems.append("--require-trust was set and the signing key is not trusted")
     return result
+
+
+def _check_documents(entries: list[dict[str, Any]], result: VerifyResult) -> None:
+    """Name every published contract this package's entries declare, and check it.
+
+    The check is deliberately narrow: the version is one this release publishes,
+    and the document carries the fields that version says are required. It is
+    not a full schema validation - `jsonschema` is a test dependency and this
+    tool installs with `cryptography` alone - and saying so here is better than
+    a reader assuming the stricter thing from the name.
+    """
+    from ..schemas import VERSIONS, load, stem
+
+    declared = {version for version in VERSIONS.values()}
+    ok = True
+    for index, entry in enumerate(entries):
+        payload = entry.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        version = payload.get("schema_version")
+        if not isinstance(version, str):
+            continue
+        result.documents.append(version)
+        if version not in declared:
+            result.problems.append(
+                f"entry {index} declares {version}, which this release does not publish, "
+                "so what its fields mean here is a guess"
+            )
+            ok = False
+            continue
+        try:
+            schema = load(stem(version))
+        except KeyError:  # pragma: no cover - VERSIONS and the files agree, by test
+            continue
+        missing = [
+            name for name in schema.get("required", []) if name not in payload
+        ]
+        if missing:
+            result.problems.append(
+                f"entry {index} declares {version} and is missing {', '.join(missing)}"
+            )
+            ok = False
+    if result.documents:
+        result.checks["sealed_document_is_a_contract_this_tool_knows"] = ok
 
 
 @dataclass

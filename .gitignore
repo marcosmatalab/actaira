@@ -88,3 +88,9 @@ Claude Code — Actaira Graph + Impact.md
 Actaira — Evidence + Change Assurance Increment.md
 ACTAIRA-PLAN-MAESTRO.md
 .corpus/
+
+# Launch material: the Marketplace listing text and the checklist for running
+# the Action against real repositories. Both are about publishing the product
+# rather than part of it, so they live on disk and never in the tree - the same
+# argument the planning documents above are kept out on.
+.launch/

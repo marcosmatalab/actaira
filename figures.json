@@ -7,25 +7,25 @@
     "rules_by_family": {
       "ACT": 32
     },
-    "ui_messages": 193
+    "ui_messages": 230
   },
   "code": {
     "attest": {
-      "blank": 532,
-      "code": 2496,
-      "comment": 290,
-      "docstring": 700,
-      "files": 10,
-      "lines": 4018,
+      "blank": 573,
+      "code": 2649,
+      "comment": 316,
+      "docstring": 764,
+      "files": 11,
+      "lines": 4302,
       "note": "Merkle tree, chain, signing, keyring, RFC 3161, verification"
     },
     "core": {
-      "blank": 124,
-      "code": 524,
-      "comment": 66,
-      "docstring": 190,
+      "blank": 159,
+      "code": 732,
+      "comment": 83,
+      "docstring": 208,
       "files": 4,
-      "lines": 904,
+      "lines": 1182,
       "note": "the model and the CLI"
     },
     "i18n": {
@@ -47,48 +47,48 @@
       "note": "the MCP proxy, its two transports and the watch session"
     },
     "rest": {
-      "blank": 652,
-      "code": 3540,
-      "comment": 314,
-      "docstring": 767,
-      "files": 13,
-      "lines": 5273,
+      "blank": 820,
+      "code": 4254,
+      "comment": 412,
+      "docstring": 969,
+      "files": 18,
+      "lines": 6455,
       "note": "everything in src/ the areas above do not claim"
     },
     "schemas": {
       "blank": 20,
-      "code": 22,
+      "code": 27,
       "comment": 43,
       "docstring": 36,
       "files": 1,
-      "lines": 121,
+      "lines": 126,
       "note": "the published contracts"
     },
     "scripts": {
-      "blank": 472,
-      "code": 2292,
-      "comment": 272,
-      "docstring": 542,
-      "files": 11,
-      "lines": 3578,
+      "blank": 514,
+      "code": 2571,
+      "comment": 321,
+      "docstring": 581,
+      "files": 12,
+      "lines": 3987,
       "note": "this script"
     },
     "tests": {
-      "blank": 3392,
-      "code": 8725,
-      "comment": 915,
-      "docstring": 2422,
-      "files": 42,
-      "lines": 15454,
+      "blank": 3645,
+      "code": 9447,
+      "comment": 1020,
+      "docstring": 2589,
+      "files": 44,
+      "lines": 16701,
       "note": "the test suite"
     },
     "total": {
-      "blank": 5616,
-      "code": 19800,
-      "comment": 2232,
-      "docstring": 5390,
-      "files": 93,
-      "lines": 33038,
+      "blank": 6155,
+      "code": 21881,
+      "comment": 2527,
+      "docstring": 5880,
+      "files": 102,
+      "lines": 36443,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -238,16 +238,16 @@
   },
   "docs": {
     "docs/DESIGN.md": {
-      "lines": 840
+      "lines": 849
     },
-    "total_lines": 840
+    "total_lines": 849
   },
-  "generated_at": "2026-09-18T10:20:12+00:00",
+  "generated_at": "2026-09-18T17:56:46+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
     "commits": 23,
-    "head": "3f66eed",
+    "head": "4d91d27",
     "head_date": "2026-09-18"
   },
   "package": {
@@ -267,20 +267,21 @@
   },
   "tests": {
     "available": true,
-    "collected": 2216,
-    "files": 37,
+    "collected": 2296,
+    "files": 39,
     "per_file": {
       "tests/test_attest_anchor.py": 25,
       "tests/test_capability_coverage.py": 12,
       "tests/test_chain_and_signing.py": 17,
       "tests/test_chain_domain_separation.py": 14,
-      "tests/test_cli.py": 34,
+      "tests/test_cli.py": 32,
       "tests/test_consistency.py": 285,
       "tests/test_defect_ledger.py": 348,
-      "tests/test_design_notes.py": 77,
+      "tests/test_design_notes.py": 86,
+      "tests/test_diff.py": 25,
       "tests/test_dsse.py": 25,
-      "tests/test_fixtures_are_published.py": 191,
-      "tests/test_i18n.py": 127,
+      "tests/test_fixtures_are_published.py": 194,
+      "tests/test_i18n.py": 135,
       "tests/test_keyring.py": 33,
       "tests/test_mcp.py": 15,
       "tests/test_merkle.py": 146,
@@ -291,11 +292,12 @@
       "tests/test_proxy_http_interposition.py": 15,
       "tests/test_proxy_protocol.py": 17,
       "tests/test_proxy_transports.py": 28,
-      "tests/test_reachability.py": 42,
+      "tests/test_reachability.py": 48,
       "tests/test_readme_parity.py": 25,
-      "tests/test_release_check.py": 12,
+      "tests/test_release_check.py": 18,
       "tests/test_scan_claude_code.py": 33,
-      "tests/test_schemas.py": 20,
+      "tests/test_schemas.py": 24,
+      "tests/test_seal_and_report.py": 21,
       "tests/test_signing_domain_separation.py": 4,
       "tests/test_surface.py": 97,
       "tests/test_surface_instructions.py": 34,

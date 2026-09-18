@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 from actaira import cli
-from actaira.surface import Resolution, claude_code, resolve, rules
+from actaira.surface import Resolution, claude_code, disk, resolve, rules
 from conftest import REPO_ROOT
 
 FIXTURES = Path(REPO_ROOT) / "tests" / "fixtures" / "surface"
@@ -325,7 +325,7 @@ def test_no_literal_reaches_the_report_without_with_content(repo, secret, capsys
     cli.main(["check", "--repo", str(root), "--json"])
     printed = capsys.readouterr().out
     assert secret not in printed, "a literal reached the JSON document"
-    assert claude_code.digest_of(f"echo {secret}") in printed, (
+    assert disk.digest_of(f"echo {secret}") in printed, (
         "the digest has to be there, or nothing identifies what was seen"
     )
 
@@ -439,7 +439,7 @@ def test_a_path_absolute_on_another_platform_is_outside_here_too(tmp_path, spoke
     backslashes: a backslash is legal in a POSIX filename, and a path containing
     one is still inside the tree.
     """
-    assert claude_code.inside_tree(tmp_path, spoken) is not outside
+    assert disk.inside_tree(tmp_path, spoken) is not outside
 
 
 @pytest.mark.skipif(os.name == "nt", reason="creating a symlink on Windows needs a privilege")
@@ -474,7 +474,7 @@ def test_a_symlink_out_of_the_tree_is_outside_it(tmp_path):
 def test_a_settings_file_over_the_ceiling_is_a_cause_and_not_a_read(repo):
     """The ceiling is checked before the bytes are asked for, so a hostile file
     costs a stat rather than its own size in memory."""
-    root = repo("x" * (claude_code.MAX_BYTES + 1))
+    root = repo("x" * (disk.MAX_BYTES + 1))
     surface = resolve.resolve(claude_code.read(root))
 
     assert any("ceiling" in gap.cause for gap in surface.unresolved)
@@ -522,14 +522,14 @@ def test_the_git_index_is_read_rather_than_git_being_run(monkeypatch, tmp_path):
     one question is one question away from shelling out to answer a harder one.
     A version this parser does not read is a stated cause, never a False.
     """
-    tracked, problem = claude_code.git_tracked(Path(REPO_ROOT))
+    tracked, problem = disk.git_tracked(Path(REPO_ROOT))
     assert problem is None, problem
     assert "pyproject.toml" in tracked
 
     index = tmp_path / ".git" / "index"
     index.parent.mkdir(parents=True)
     index.write_bytes(b"DIRC" + (4).to_bytes(4, "big") + (1).to_bytes(4, "big"))
-    _paths, cause = claude_code.git_tracked(tmp_path)
+    _paths, cause = disk.git_tracked(tmp_path)
     assert cause is not None and "version 4" in cause
 
 
