@@ -146,6 +146,24 @@ FROZEN_REQUIRED = {
         "findings", "machine", "not_read", "root", "schema_version", "surfaces",
         "unresolved",
     ],
+    # Five change lists and a sixth for what could not be resolved, and all six
+    # required for the same reason `surface/v1` requires three: a consumer that
+    # found `indeterminate` missing would read a diff with no unresolved changes
+    # in it, which is the one thing this document must not be able to imply.
+    # `unchanged` is required too, because "nothing moved" and "nothing was
+    # compared" are the two answers a reader must be able to tell apart.
+    "surface-diff-v1": [
+        "added", "after", "before", "changed", "indeterminate", "narrowed",
+        "removed", "schema_version", "unchanged", "widened",
+    ],
+    # `salt_travels` is required and is a `const: false`. A seal that could omit
+    # it is a seal whose reader has to assume the redaction held, and the whole
+    # document is built on the salt having stayed behind.
+    "seal-v1": [
+        "findings", "machine", "not_read", "root_ref", "salt_travels",
+        "schema_version", "surface_schema_version", "surface_sha256", "surfaces",
+        "unresolved",
+    ],
 }
 
 
@@ -369,7 +387,10 @@ def test_no_document_this_tree_emits_declares_a_superseded_revision(tmp_path):
     # Which family each emitter writes. Named rather than inferred from the
     # string: an emitter that wrote the wrong family's version would otherwise
     # be checked against its own mistake.
-    families = {"scan": "trace", "watch": "trace", "check": "surface"}
+    families = {
+        "scan": "trace", "watch": "trace", "check": "surface",
+        "diff": "surface-diff", "seal": "seal",
+    }
 
     for name, document in emitted:
         family = families.get(name.split()[0])

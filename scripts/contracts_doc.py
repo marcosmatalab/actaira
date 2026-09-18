@@ -38,6 +38,20 @@ FAMILIES: dict[str, tuple[str, str]] = {
         "could not, and what this release does not read.",
         "actaira check",
     ),
+    "surface-diff": (
+        "Which capability appears, disappears, widens, narrows or changes between two "
+        "surfaces, each entry carrying both sides' digests and the rules that fired on "
+        "what arrived. Five lists, plus a sixth for what could not be resolved on one "
+        "side or the other, which is never folded into the five.",
+        "actaira diff",
+    ),
+    "seal": (
+        "A signed baseline of one surface, carrying no content: paths and the names "
+        "somebody else chose are salted references whose salt stays with the operator, "
+        "and everything a capability observed is one digest of its facts. An approval "
+        "keyed on the surface digest expires by itself when the surface changes.",
+        "actaira seal",
+    ),
     "trace": (
         "What an agent did, in one shape whatever observed it: an ordered list of tool "
         "calls with the digest of each call's arguments and result, the capture level "

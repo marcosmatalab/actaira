@@ -1,24 +1,32 @@
-"""The command line: five of the eight commands CLAUDE.md caps the set at.
+"""The command line: seven of the eight commands CLAUDE.md caps the set at.
 
 `check` reads the agent configuration of a repository or a machine, resolves
-what it permits across scopes, and applies the rule packs. `verify` reads an
-attestation package and says whether it holds together; `keygen` creates,
-rotates and revokes the key that signs one. `scan` reads the transcripts an
-agent already wrote and turns them into canonical traces, and `watch` records a
-run from outside the agent. `diff` and `seal` arrive in phase S3, which is what
-gives them a sealed baseline to mean something about.
+what it permits across scopes, and applies the rule packs. `diff` says what
+changed between two moments, and `seal` signs a baseline of a surface that
+`verify` can then check without a network and without trusting the operator;
+`keygen` creates, rotates and revokes the key that signs one. `scan` reads the
+transcripts an agent already wrote and turns them into canonical traces, and
+`watch` records a run from outside the agent.
+
+Seven of seven, so CLAUDE.md's list now has no unbuilt name on it. The cap of
+eight is still the cap: an eighth is a decision and a ninth costs one of these.
 
 Rejected: keeping the previous 2 458-line parser with the dead subcommands
 hidden or stubbed. A command that parses and then says "not implemented" is a
 promise in the help text, and the help text is the contract COMPATIBILITY.md
 publishes.
 
-Four of the five never reach the network. `scan` and `check` are the strictest
+Six of the seven never reach the network. `scan` and `check` are the strictest
 and for the same reason: one reads files full of somebody's conversation and the
 other files somebody else wrote, so neither opens a socket at all and a test
 enforces that rather than trusting it. `watch` is the exception and says so - it
 binds a loopback port when a server speaks HTTP, which is the whole mechanism by
 which it interposes.
+
+`diff` runs two programs and they are `git ls-tree` and `git cat-file`, with
+argv as a list, never a shell, and never a checkout - the argument is in
+`surface/diff.py`. It is the only command here that runs anything at all, and
+what it runs cannot execute a hook, a filter or a textconv driver.
 
 Nothing here ever runs what it reads. `check` records four facts about a script
 a hook names - existence, whether it is inside the tree, whether git tracks it,
@@ -90,8 +98,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="actaira",
         description=(
-            "Verify an Actaira attestation without trusting the operator, and manage "
-            "the key that signs one. Both commands are offline. Nothing is scored."
+            "Read what your coding agents can do here, say what changed between two "
+            "moments, and sign a baseline anybody can verify without trusting you. "
+            "Offline, except that diff asks git for two trees. Nothing is scored."
         ),
     )
     parser.add_argument("--version", action="version", version=f"actaira {__version__}")
@@ -134,6 +143,53 @@ def build_parser() -> argparse.ArgumentParser:
                             "these files can carry secrets and this report is pasted into CI "
                             "logs, so what travels is a sha256 and the shape")
     check.add_argument("--json", action="store_true")
+    check.add_argument("--html", type=Path, metavar="PATH",
+                       help="also write the report as one self-contained HTML file. No "
+                            "script and no resource loaded from the network, so it opens "
+                            "on a machine that has none")
+
+    diff = sub.add_parser(
+        "diff", help="say what capability changed between two moments"
+    )
+    # Positional and `nargs="*"` rather than two required arguments, because the
+    # directory form takes none. The count is checked in `run_diff`, where the
+    # message can say which of the two forms was half-given.
+    diff.add_argument("refs", nargs="*", metavar="REF",
+                      help="two git refs, oldest first. Use `--` before one that starts "
+                           "with a dash; it is refused either way")
+    diff.add_argument("--repo", type=Path, default=Path("."),
+                      help="the repository the two refs live in; the working directory "
+                           "otherwise. Never checked out: the trees are read with "
+                           "`git ls-tree` and `git cat-file`, which run no hook and "
+                           "apply no filter, and are written to a temporary directory")
+    diff.add_argument("--from-dir", type=Path, metavar="PATH",
+                      help="compare two directories instead of two refs, for a tree that "
+                           "is not in git")
+    diff.add_argument("--to-dir", type=Path, metavar="PATH")
+    diff.add_argument("--agent-version", action="append", default=[], metavar="VENDOR=X.Y.Z",
+                      help="as in check, and applied to both sides")
+    diff.add_argument("--with-content", action="store_true",
+                      help="as in check. Off by default")
+    diff.add_argument("--json", action="store_true")
+    diff.add_argument("--html", type=Path, metavar="PATH",
+                      help="also write the report as one self-contained HTML file")
+    diff.add_argument("--sarif", type=Path, metavar="PATH",
+                      help="also write SARIF 2.1.0 for the rules that fired on something "
+                           "added or widened, which is the set the exit code is from")
+
+    seal = sub.add_parser(
+        "seal", help="sign a baseline of this repository's surface, carrying no content"
+    )
+    seal.add_argument("--repo", type=Path, default=Path("."))
+    seal.add_argument("--key", type=Path, default=default_key_path(),
+                      help="the Ed25519 key `actaira keygen` wrote")
+    seal.add_argument("--out", type=Path, required=True, metavar="DIR",
+                      help="where the package goes, and where the reference map that "
+                           "resolves it stays. The map does not travel with the package")
+    seal.add_argument("--machine", action="store_true",
+                      help="also seal the user and managed scopes")
+    seal.add_argument("--agent-version", action="append", default=[], metavar="VENDOR=X.Y.Z")
+    seal.add_argument("--json", action="store_true")
 
     scan = sub.add_parser(
         "scan", help="read the sessions an agent already recorded on this machine (L0)"
@@ -502,10 +558,228 @@ def run_check(args: argparse.Namespace, catalog: Catalog) -> int:
     else:
         _print_check(payload, catalog)
 
+    _write_html(args.html, payload, catalog)
+
     if payload["findings"]:
         return EXIT_FAIL
     if payload["unresolved"]:
         return EXIT_INDETERMINATE
+    return EXIT_OK
+
+
+def _write_html(where: Path | None, payload: dict[str, Any], catalog: Catalog) -> None:
+    """One file, written where the operator asked, and nowhere else.
+
+    Not a default output path: `check` writes nothing in the user's tree unless
+    they name the file, which is the fourth negative applied to the one part of
+    this tool that produces an artifact a reader keeps.
+    """
+    if where is None:
+        return
+    from .report.html import render
+
+    where.parent.mkdir(parents=True, exist_ok=True)
+    where.write_text(render(payload, catalog), encoding="utf-8", newline="\n")
+    print(catalog.line("report.wrote", path=str(where)))
+
+
+# ---------------------------------------------------------------------------
+# diff: what changed between two moments
+# ---------------------------------------------------------------------------
+
+
+def _documents_for_dirs(
+    before: Path, after: Path, **options: Any
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
+    return (
+        check_document(before, **options),
+        check_document(after, **options),
+        {"label": str(before), "kind": "directory"},
+        {"label": str(after), "kind": "directory"},
+    )
+
+
+def _print_diff(document: dict[str, Any], catalog: Catalog) -> None:
+    """Five lists, then what could not be resolved, then what was not read.
+
+    Never totalled and never merged, for the reason `_print_check` gives about
+    its three: a reader who could add them up would be computing the thing the
+    first negative forbids, and one who could not see the sixth would be reading
+    a clean answer about a comparison nobody finished making.
+    """
+    from .surface.diff import Change
+
+    print(catalog.line(
+        "diff.header",
+        before=document["before"]["label"],
+        after=document["after"]["label"],
+    ))
+    marks = {
+        Change.ADDED.value: "+",
+        Change.REMOVED.value: "-",
+        Change.WIDENED.value: ">",
+        Change.NARROWED.value: "<",
+        Change.CHANGED.value: "~",
+    }
+    for kind, mark in marks.items():
+        entries = document[kind]
+        if not entries:
+            continue
+        print()
+        print(catalog.line(f"diff.{kind}", count=len(entries)))
+        for entry in entries:
+            print("  {mark} {vendor}  {capability}  {source}  [{scope}]".format(
+                mark=mark, **{key: entry[key] for key in
+                              ("vendor", "capability", "source", "scope")}))
+            for side in ("before", "after"):
+                state = entry[side]
+                if state is None:
+                    continue
+                print("      {}  {}  {}".format(
+                    catalog.line(f"report.{side}"), state["resolution"], state["digest"][:16]))
+            for finding in (entry["after"] or {}).get("findings", []):
+                print("      ! {}  {}".format(finding["rule_id"], catalog.rule(finding["rule_id"])))
+                print("        {}  {} {} / {}".format(
+                    catalog.line("surface.attributed"), finding["author"],
+                    finding["pack"], finding["severity"]))
+                print("        " + catalog.line(
+                    "surface.remediation", text=finding["evidence"]["remediation"]))
+
+    print()
+    print(catalog.line("diff.indeterminate", count=len(document["indeterminate"])))
+    for gap in document["indeterminate"]:
+        print("  ? {}\n      {}".format(gap["subject"], gap["cause"]))
+
+    print()
+    print(catalog.line("diff.unchanged", count=document["unchanged"]))
+    print(catalog.line("surface.not_read", count=len(document["not_read"])))
+    print()
+    print(catalog.line("surface.declares"))
+
+
+def run_diff(args: argparse.Namespace, catalog: Catalog) -> int:
+    """Two surfaces, compared. Nothing of the operator's is written or checked out."""
+    import tempfile
+
+    from .surface.diff import GitError, fired_on_new_capability, materialise, surface_diff
+
+    versions, problem = _agent_versions(args.agent_version)
+    if problem:
+        print(problem, file=sys.stderr)
+        return EXIT_USAGE
+    options: dict[str, Any] = {"with_content": args.with_content, "versions": versions}
+
+    named_dirs = args.from_dir is not None or args.to_dir is not None
+    if named_dirs and args.refs:
+        print(catalog.line("diff.both_forms"), file=sys.stderr)
+        return EXIT_USAGE
+    if named_dirs:
+        if args.from_dir is None or args.to_dir is None:
+            print(catalog.line("diff.half_a_form"), file=sys.stderr)
+            return EXIT_USAGE
+        for where in (args.from_dir, args.to_dir):
+            if not where.is_dir():
+                print(f"{where} is not a directory", file=sys.stderr)
+                return EXIT_USAGE
+        before, after, before_side, after_side = _documents_for_dirs(
+            args.from_dir, args.to_dir, **options
+        )
+        payload = surface_diff(before, after, before_label=before_side, after_label=after_side)
+    else:
+        if len(args.refs) != 2:
+            print(catalog.line("diff.two_refs"), file=sys.stderr)
+            return EXIT_USAGE
+        if not (args.repo / ".git").exists():
+            print(f"{args.repo} is not a git repository", file=sys.stderr)
+            return EXIT_USAGE
+        with tempfile.TemporaryDirectory(prefix="actaira-diff-") as scratch:
+            try:
+                sides = [
+                    materialise(args.repo, ref, Path(scratch) / name)
+                    for ref, name in zip(args.refs, ("before", "after"), strict=True)
+                ]
+            except GitError as exc:
+                print(str(exc), file=sys.stderr)
+                return EXIT_USAGE
+            payload = surface_diff(
+                check_document(sides[0].root, **options),
+                check_document(sides[1].root, **options),
+                before_label=sides[0].to_dict(),
+                after_label=sides[1].to_dict(),
+            )
+
+    if args.json:
+        print(json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False))
+    else:
+        _print_diff(payload, catalog)
+
+    _write_html(args.html, payload, catalog)
+    if args.sarif is not None:
+        from .report.sarif import from_diff
+
+        args.sarif.parent.mkdir(parents=True, exist_ok=True)
+        args.sarif.write_text(
+            json.dumps(from_diff(payload, catalog, tool_version=__version__),
+                       indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+            encoding="utf-8", newline="\n",
+        )
+        print(catalog.line("diff.wrote_sarif", path=str(args.sarif)))
+
+    # A rule that fired on something that ARRIVED. Not on everything in the
+    # repository: this command answers what changed, and a finding that was
+    # already there and is still there is `check`'s to report.
+    if fired_on_new_capability(payload):
+        return EXIT_FAIL
+    if payload["indeterminate"]:
+        return EXIT_INDETERMINATE
+    return EXIT_OK
+
+
+# ---------------------------------------------------------------------------
+# seal: a signed baseline, with no content in it
+# ---------------------------------------------------------------------------
+
+
+def run_seal(args: argparse.Namespace, catalog: Catalog) -> int:
+    from .attest import keyring
+    from .attest.seal import write_seal
+
+    versions, problem = _agent_versions(args.agent_version)
+    if problem:
+        print(problem, file=sys.stderr)
+        return EXIT_USAGE
+    if not args.repo.is_dir():
+        print(f"{args.repo} is not a directory", file=sys.stderr)
+        return EXIT_USAGE
+
+    surface = check_document(
+        args.repo, machine=args.machine, with_content=False, versions=versions
+    )
+    local = keyring.load_local(args.key)
+    if local.created_key:
+        # Said, not silent. `load_local` mints a key where there is none, which
+        # is convenient and is also the operator acquiring a signing identity
+        # they did not ask for: a seal signed by a key nobody knows about is a
+        # seal nobody can bind to anything. `keygen` is the command that means
+        # to do this; here it is reported.
+        print(catalog.line("key.created", path=str(args.key)))
+    package_path, document = write_seal(surface, args.out, local.keypair)
+
+    if args.json:
+        print(json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False))
+    else:
+        print(catalog.line("seal.written", path=str(package_path)))
+        print(catalog.line("seal.surface", digest=document["surface_sha256"]))
+        print(catalog.line("seal.key", key_id=local.keypair.key_id))
+        print(catalog.line(
+            "seal.counts",
+            capabilities=sum(len(item["capabilities"]) for item in document["surfaces"]),
+            findings=len(document["findings"]),
+            unresolved=document["unresolved"],
+        ))
+        print()
+        print(catalog.line("seal.no_content"))
+        print(catalog.line("seal.salt", path=str(args.out / "index.json")))
     return EXIT_OK
 
 
@@ -739,6 +1013,10 @@ def _main(argv: list[str] | None = None) -> int:
     catalog = Catalog(args.lang)
     if args.command == "check":
         return run_check(args, catalog)
+    if args.command == "diff":
+        return run_diff(args, catalog)
+    if args.command == "seal":
+        return run_seal(args, catalog)
     if args.command == "keygen":
         return run_keygen(args, catalog)
     if args.command == "scan":

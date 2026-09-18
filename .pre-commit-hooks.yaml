@@ -1,0 +1,38 @@
+# The hook this repository publishes for `pre-commit`. One, not a family.
+#
+# It was two, and they were a defect that outlived the product they belonged to:
+# both called `scan` with `--fail-on high` over `.pkl`, `.onnx` and `.h5`, for a
+# release in which that option did not parse, exit code 3 did not exist, and
+# `scan` no longer read artefacts at all. Nothing compared this file with the
+# parser, so it published a command that exited 2 on every run. It does now:
+# `release_check.documented_flags_exist` reads this file and refuses a flag the
+# command does not have - which is why the option above is written apart from
+# the command's name rather than as a line somebody could copy.
+#
+# WHY `check` AND NOT `diff`. `pre-commit` runs on the tree you are about to
+# commit, and there is exactly one tree there. `diff` needs two moments, and the
+# place two moments exist is the pull request - which is what `action.yml` is
+# for. A local hook that invented a second side by comparing against HEAD would
+# be answering a different question from the one the Action answers, under the
+# same name.
+#
+# `pass_filenames: false` and `always_run: true`: the subject is the repository's
+# configuration, not the files in this commit. A commit that touches no settings
+# file can still be the commit that lands a hook, because `.claude/settings.json`
+# may have arrived in the one before it and the surface is what it is now.
+#
+# The exit code passes through. `1` is a rule that fired and `3` is something
+# that could not be resolved; both stop the commit, which is what a pre-commit
+# hook is. Whether that is what you want is your decision and `--hook-stage` and
+# `stages` are yours to set - this file does not decide it for you, and there is
+# no `|| true` anywhere in it.
+- id: actaira-check
+  name: actaira check (what your agents can do in this repository)
+  description: >-
+    Read the agent configuration of this repository, resolve what it permits
+    across scopes and vendors, and apply the rule packs. Runs nothing it reads,
+    opens no socket, and prints no literal command or URL without --with-content.
+  entry: actaira check --repo .
+  language: python
+  pass_filenames: false
+  always_run: true

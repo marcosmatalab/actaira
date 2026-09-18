@@ -24,10 +24,12 @@
 # nobody executes is documentation, and this repository has just spent a phase
 # removing documentation that described a product that is not here.
 #
-# So this is the three jobs that correspond to something: lint over the three
+# So this is the jobs that correspond to something: lint over the three
 # directories that exist, the suite on the three interpreters `pyproject.toml`
-# claims to support, and an installability check that builds the distributions
-# and runs the tool out of a clean environment.
+# claims to support, an installability check that builds the distributions and
+# runs the tool out of a clean environment, and the two phase S3 added - `zizmor`
+# over this file and `action.yml`, and a test of the published Action that uses
+# it the way a stranger would.
 #
 # WHAT IS DELIBERATELY NOT HERE. A `release` job. Publishing is a deliberate
 # act, and a workflow that performs it on a tag push is the opposite of
@@ -40,11 +42,19 @@
 # is a comparison between two machines. They run in `make all`, which is what
 # the phase gate is.
 #
-# ON PINNING. The `actions/*` steps are pinned to a major tag, not to a commit
-# SHA. A SHA is stricter, and the way to get one is to resolve it on a machine
-# that can reach the registry and record it there. A SHA copied into a
-# repository from somewhere else is a claim the repository cannot check, which
-# is the same argument the Dockerfile makes about the base image digest.
+# ON PINNING. Every `actions/*` step is pinned to a COMMIT SHA, with the tag it
+# resolved from written beside it. They were pinned to a major tag until phase
+# S3, on the argument that a SHA copied from somewhere else is a claim the
+# repository cannot check - which was true and stopped being the whole story the
+# day this repository started PUBLISHING a GitHub Action. A tool whose own
+# workflows float on a mutable tag is not in a position to tell anybody what
+# their agents can do, and `zizmor` below says so on every run.
+#
+# Each SHA was resolved on 2026-09-18 on a machine with network access, with
+# `gh api repos/<owner>/<repo>/git/ref/tags/<tag> --jq .object.sha`, and the
+# command is written here so anybody can run it again and disagree. Re-resolving
+# is how these are updated; editing the tag comment without re-resolving is the
+# failure this note exists to make visible.
 name: ci
 
 on:
@@ -57,16 +67,27 @@ on:
 permissions:
   contents: read
 
+# One run per ref. A second push supersedes the first rather than queueing
+# behind it, which for a gate is the right answer: the only interesting result
+# is the one about the head of the branch. `main` is not cancelled, because the
+# run that proved a commit green is a record rather than a queue slot.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 env:
   PYTHONUNBUFFERED: "1"
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
 jobs:
   lint:
+    name: ruff over the three directories that exist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: "3.12"
       - run: python -m pip install -e ".[dev]"
@@ -78,14 +99,17 @@ jobs:
         run: python -m ruff check src tests scripts
 
   test:
+    name: the suite, on every interpreter pyproject claims
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m pip install -e ".[dev]"
@@ -99,13 +123,16 @@ jobs:
         run: openssl version
 
   package:
+    name: it installs, and the tool runs out of the install
     # "It is installable" is a claim, so it is checked: build the sdist and the
     # wheel, install each into an empty environment that has never seen this
     # checkout, and run the tool from there.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: "3.12"
       - name: build sdist and wheel
@@ -113,7 +140,7 @@ jobs:
           python -m pip install build twine
           python -m build
           python -m twine check dist/*
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: dist
           path: dist/*
@@ -158,3 +185,104 @@ jobs:
           "$RUNNER_TEMP/from-wheel/bin/python" -m pip install --quiet dist/*.whl
           "$RUNNER_TEMP/from-wheel/bin/actaira" --version
           "$RUNNER_TEMP/from-wheel/bin/actaira" scan --demo
+
+  workflows:
+    name: zizmor over action.yml and the workflows
+    # zizmor over this file and over the Action this repository publishes. A
+    # security tool whose own workflow is injectable is the worst possible
+    # ridicule, and the class of defect it looks for - a `${{ }}` expression
+    # pasted into a `run:` block, an unpinned third-party action, a
+    # `pull_request_target` with a head checkout - is exactly the class this
+    # repository tells other people to care about.
+    #
+    # Installed in this job and nowhere else. It is not a dependency of the
+    # package, not in the `dev` extra, and not something `make all` can go red
+    # because of: a tool that inspects supply chains should not acquire one.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.12"
+      - name: zizmor over action.yml and the workflows
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet zizmor
+          python -m zizmor --persona=auditor --format plain action.yml .github/workflows/
+
+  action:
+    name: the published Action, used the way a stranger would
+    # The Action, used the way a stranger would use it: `uses: ./`, against two
+    # directories of fixtures, asserting the exit code each one is supposed to
+    # produce. `from-dir` and `to-dir` exist for this - the two sides of a diff
+    # are two commits, and a job that had to build a repository to test the
+    # Action would be testing the repository it built.
+    #
+    # `continue-on-error` on the step and an explicit `test` on its outcome,
+    # rather than `|| true`: the Action's whole contract is that the exit code
+    # passes through, so the test has to be able to observe a non-zero one
+    # without the job dying before it can.
+    #
+    # ON `uses: ./` AND THE ONE ZIZMOR FINDING IT LEAVES. zizmor asks for
+    # `uses: $/`, GitHub's self-repository syntax, which is stricter: it cannot
+    # load an action a previous step cloned at runtime, and it counts as pinning
+    # for policy enforcement. It is also two months old and nothing on a laptop
+    # can run a GitHub Actions runner, so the first evidence that it resolves
+    # would be this job going green - in the same commit that introduces the
+    # Action, which nobody has ever run either. Two unverified things in one
+    # commit, and a red build that cannot say which of them failed.
+    #
+    # So the variable is isolated: `./` is the spelling that works everywhere,
+    # this job proves the Action works with it, and `$/` is a one-line commit
+    # afterwards where a failure costs ten seconds to revert and drags nothing
+    # with it. `docs/BACKLOG.md` carries the line. The finding zizmor reports
+    # about these two lines is informational, and this paragraph is its reason.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.12"
+      - name: a tree with nothing configured, against itself
+        id: clean
+        continue-on-error: true
+        uses: ./  # zizmor: ignore[self-repository]
+        with:
+          from-dir: tests/fixtures/action/clean
+          to-dir: tests/fixtures/action/clean
+          sarif: clean.sarif
+      - name: the keyv wave arriving on top of it
+        id: keyv
+        continue-on-error: true
+        uses: ./  # zizmor: ignore[self-repository]
+        with:
+          from-dir: tests/fixtures/action/clean
+          to-dir: tests/fixtures/surface/keyv-august
+          sarif: keyv.sarif
+      - name: the exit codes are the ones the contract publishes
+        env:
+          CLEAN: ${{ steps.clean.outputs.exit-code }}
+          KEYV: ${{ steps.keyv.outputs.exit-code }}
+        run: |
+          set -euo pipefail
+          echo "clean=$CLEAN keyv=$KEYV"
+          test "$CLEAN" = "0"
+          test "$KEYV" = "1"
+          test -s clean.sarif
+          test -s keyv.sarif
+          python -c "
+          import json, sys
+          clean = json.load(open('clean.sarif'))
+          keyv = json.load(open('keyv.sarif'))
+          assert clean['version'] == '2.1.0', clean['version']
+          assert clean['runs'][0]['results'] == [], 'a clean tree produced a result'
+          rules = sorted(r['id'] for r in keyv['runs'][0]['tool']['driver']['rules'])
+          assert rules == ['ACT-S001', 'ACT-S003'], rules
+          levels = [r['level'] for r in keyv['runs'][0]['results']]
+          assert sorted(levels) == ['error', 'warning'], levels
+          print('two results, two different levels, neither of them a maximum')
+          "

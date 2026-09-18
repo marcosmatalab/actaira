@@ -16,7 +16,7 @@ about this laptop.
 
 Two independent readings, on purpose:
 
-* the index itself, parsed by `surface.claude_code.git_tracked` - the same reader
+* the index itself, parsed by `surface.disk.git_tracked` - the same reader
   `check` uses to answer whether a hook's script is tracked, so this dogfoods it;
 * `git check-ignore`, which is the authority on WHY a file is missing, used to
   make the failure message name the pattern rather than leave somebody grepping.
@@ -31,7 +31,7 @@ from pathlib import Path
 
 import pytest
 
-from actaira.surface.claude_code import git_tracked
+from actaira.surface.disk import git_tracked
 from conftest import REPO_ROOT
 
 FIXTURES = Path(REPO_ROOT) / "tests" / "fixtures"

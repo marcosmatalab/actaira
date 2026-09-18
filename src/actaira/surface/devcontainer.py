@@ -26,7 +26,13 @@ from pathlib import Path
 from typing import Any
 
 from . import NotRead, Scope, Unresolved
-from .claude_code import Reading, SettingsFile, git_tracked, referenced_path, script_facts
+from .disk import (
+    Reading,
+    SettingsFile,
+    git_tracked,
+    referenced_path,
+    script_facts,
+)
 from .vscode import read_jsonc
 
 VENDOR = "devcontainer"

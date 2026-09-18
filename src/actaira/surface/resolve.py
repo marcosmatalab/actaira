@@ -38,7 +38,8 @@ from . import (
     Surface,
     Unresolved,
 )
-from .claude_code import STARTUP_EVENTS, VENDOR, Reading, digest_of, hook_handlers
+from .claude_code import STARTUP_EVENTS, VENDOR, hook_handlers
+from .disk import Reading, digest_of
 
 # The date every row below was read. One constant, because they were read in one
 # sitting and a per-row date that is always the same value is a field nobody
@@ -946,7 +947,7 @@ def _hooks(
 
 
 def referenced_target(command: str) -> str | None:
-    from .claude_code import referenced_path
+    from .disk import referenced_path
 
     return referenced_path(command)
 
@@ -1011,7 +1012,7 @@ def _permissions(handle: Any, reading: Reading, found: list[Capability],
         if not isinstance(entry, str):
             continue
         resolution, condition = _trust_state(reading, handle.scope)
-        from .claude_code import inside_tree
+        from .disk import inside_tree
 
         _emit(
             found,
@@ -1865,7 +1866,7 @@ def _instructions(reading: Any, *, agent_version: str | None = None,
 
 
 def _looks_like_a_script(spoken: str) -> bool:
-    from .claude_code import SCRIPT_SUFFIXES
+    from .disk import SCRIPT_SUFFIXES
 
     return spoken.lower().endswith(SCRIPT_SUFFIXES)
 

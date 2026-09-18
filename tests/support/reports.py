@@ -156,11 +156,21 @@ __all__ = [
 def emitted_documents(tmp_path: Path) -> list[tuple[str, dict[str, Any]]]:
     """(name, document) for every document an Actaira command can write today.
 
-    Three: the demo trace `actaira scan --demo` prints, a `watch` trace assembled
-    from a recorded session, and the `surface/v1` document `actaira check`
-    writes. When a command that emits a fourth arrives, it is added here and
-    every property over this list starts covering it with no edit at the call
-    sites.
+    Five: the demo trace `actaira scan --demo` prints, a `watch` trace assembled
+    from a recorded session, the `surface/v1` document `actaira check` writes,
+    the `surface-diff/v1` document `actaira diff` writes, and the `seal/v1`
+    document `actaira seal` signs. When a command that emits a sixth arrives, it
+    is added here and every property over this list starts covering it with no
+    edit at the call sites.
+
+    The diff is taken between an EMPTY tree and the worm, so its `added` list is
+    not empty and the findings inside it are real ones with real severities: a
+    diff of a tree against itself would leave every property here walking five
+    empty lists. The seal is taken over the same surface, so the severities it
+    republishes are the same ones - which is the point, because a seal that
+    dropped attribution while keeping a label is exactly the defect these
+    properties exist to catch, and it can only be caught on a seal that has
+    labels in it.
 
     The `check` document is built over a configuration that DOES fire rules,
     which is the only version of it worth walking: `surface/v1` is the first
@@ -189,20 +199,36 @@ def emitted_documents(tmp_path: Path) -> list[tuple[str, dict[str, Any]]]:
     findings, gaps = rules.evaluate(surface, rules.load())
     assert findings, "the check fixture fires no rule, so the severity walk would be vacuous"
 
+    checked = document(
+        root=str(worm),
+        surfaces=(surface,),
+        findings=findings,
+        gaps=tuple([*surface.unresolved, *gaps]),
+        machine=False,
+        merge_rules=resolve.MERGE_TABLE,
+    )
+
+    from actaira.attest.seal import References, seal_document
+    from actaira.cli import check_document
+    from actaira.surface.diff import surface_diff
+
+    empty = tmp_path / "nothing-configured"
+    empty.mkdir(parents=True, exist_ok=True)
+    whole = check_document(worm)
+    changed = surface_diff(
+        check_document(empty),
+        whole,
+        before_label={"label": "empty", "kind": "directory"},
+        after_label={"label": "worm", "kind": "directory"},
+    )
+    assert changed["added"], "the diff fixture adds nothing, so the severity walk would be vacuous"
+
     return [
         ("scan --demo", demo_trace().to_dict()),
         ("watch", session.assemble(child_returncode=0).to_dict()),
-        (
-            "check",
-            document(
-                root=str(worm),
-                surfaces=(surface,),
-                findings=findings,
-                gaps=tuple([*surface.unresolved, *gaps]),
-                machine=False,
-                merge_rules=resolve.MERGE_TABLE,
-            ),
-        ),
+        ("check", checked),
+        ("diff", changed),
+        ("seal", seal_document(whole, References("0" * 32))),
     ]
 
 

@@ -157,9 +157,10 @@ def test_the_entry_points_are_the_ones_this_test_thinks_they_are():
     from actaira.cli import build_parser
 
     commands = set(build_parser()._subparsers._group_actions[0].choices)
-    assert commands == {"check", "scan", "watch", "verify", "keygen"}, (
+    assert commands == {"check", "diff", "seal", "scan", "watch", "verify", "keygen"}, (
         f"the CLI's commands changed: {sorted(commands)}. CLAUDE.md allows eight and "
-        "this tree implements five; adding one is a decision, not a drive-by."
+        "this tree implements seven; adding one is a decision, not a drive-by, and "
+        "a ninth costs one of these."
     )
 
 
