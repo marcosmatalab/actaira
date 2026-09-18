@@ -13,10 +13,10 @@
     "attest": {
       "blank": 573,
       "code": 2649,
-      "comment": 316,
+      "comment": 330,
       "docstring": 764,
       "files": 11,
-      "lines": 4302,
+      "lines": 4316,
       "note": "Merkle tree, chain, signing, keyring, RFC 3161, verification"
     },
     "core": {
@@ -74,21 +74,21 @@
       "note": "this script"
     },
     "tests": {
-      "blank": 3704,
-      "code": 9586,
-      "comment": 1029,
-      "docstring": 2672,
+      "blank": 3714,
+      "code": 9608,
+      "comment": 1032,
+      "docstring": 2686,
       "files": 45,
-      "lines": 16991,
+      "lines": 17040,
       "note": "the test suite"
     },
     "total": {
-      "blank": 6214,
-      "code": 22020,
-      "comment": 2536,
-      "docstring": 5963,
+      "blank": 6224,
+      "code": 22042,
+      "comment": 2553,
+      "docstring": 5977,
       "files": 103,
-      "lines": 36733,
+      "lines": 36796,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -107,6 +107,7 @@
       "adversarial engineering review": 21,
       "adversarial legal review": 8,
       "adversarial review of new code": 27,
+      "an intermittent failure on one interpreter": 1,
       "benchmark self-tests": 2,
       "benign corpus": 1,
       "exhaustive sweep": 1,
@@ -123,13 +124,13 @@
       "writing a test for an adjacent feature": 2
     },
     "checked_against_pytest": true,
-    "defects": 134,
-    "entries": 118,
-    "in_the_shipped_tool": 89,
-    "mechanisms": 17,
-    "named_tests": 26,
+    "defects": 135,
+    "entries": 119,
+    "in_the_shipped_tool": 90,
+    "mechanisms": 18,
+    "named_tests": 27,
     "named_tests_not_collected": [],
-    "pinned_by_a_named_test": 15,
+    "pinned_by_a_named_test": 16,
     "pinned_by_a_note_instead": [
       "DEF-01",
       "DEF-03",
@@ -244,12 +245,12 @@
     },
     "total_lines": 849
   },
-  "generated_at": "2026-09-18T19:23:25+00:00",
+  "generated_at": "2026-09-18T19:46:07+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 28,
-    "head": "bba5403",
+    "commits": 29,
+    "head": "93363ce",
     "head_date": "2026-09-18"
   },
   "package": {
@@ -269,7 +270,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 2317,
+    "collected": 2321,
     "files": 40,
     "per_file": {
       "tests/test_action_yml.py": 11,
@@ -279,13 +280,13 @@
       "tests/test_chain_domain_separation.py": 14,
       "tests/test_cli.py": 32,
       "tests/test_consistency.py": 285,
-      "tests/test_defect_ledger.py": 357,
+      "tests/test_defect_ledger.py": 360,
       "tests/test_design_notes.py": 86,
       "tests/test_diff.py": 25,
       "tests/test_dsse.py": 25,
       "tests/test_fixtures_are_published.py": 194,
       "tests/test_i18n.py": 136,
-      "tests/test_keyring.py": 33,
+      "tests/test_keyring.py": 34,
       "tests/test_mcp.py": 15,
       "tests/test_merkle.py": 146,
       "tests/test_netguard.py": 19,
