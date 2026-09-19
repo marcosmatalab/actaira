@@ -240,6 +240,23 @@ estaba en alcance y falló, sí.
    El `continue` de `release_check.py` y el `return []` de
    `markup_split_problems` eran la misma línea escrita dos veces.
 
+12. EL MODO DE FALLO CARACTERÍSTICO DE ESTE REPO ES UNA COMPROBACIÓN QUE PASA
+   MIENTRAS COMPRUEBA UNA COSA ADYACENTE. No es que falten comprobaciones: es
+   que la que hay mira a un lado, sale verde, y su verde se lee como si hubiera
+   mirado de frente. Antes de fiarte de una verde, nombra QUÉ EJERCITÓ, no qué
+   dice su nombre. Van cinco:
+   `test_the_defect_counts_match_the_measured_ledger` exigía la negrita y con
+   ella sujetaba la forma que hacía la cifra invisible al patrón (DEF-122); el
+   check bilingüe de `design_notes` pasaba porque la figura faltaba en las dos
+   lenguas, así que no comprobaba paridad (DEF-122); los patrones de figuras que
+   no casaban escribían cero y callaban (DEF-122); ACT-S007 nombraba tres de los
+   siete valores que el fabricante publica para `permissions.defaultMode` y el
+   resolvedor conocía dos, y la regla salía verde sobre los que no conocía
+   (DEF-120); y el trabajo `action` de la CI, llamado «la Action usada como la
+   usaría un desconocido», ejercitaba `from-dir`, que es la rama que un
+   desconocido no usa, mientras la única documentada no se ejecutó jamás
+   (DEF-123).
+
 ## La regla de alcanzabilidad
 
 Todo módulo del paquete tiene que ser alcanzable desde el CLI o desde el
