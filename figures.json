@@ -38,12 +38,12 @@
       "note": "the bilingual catalogue"
     },
     "proxy": {
-      "blank": 190,
-      "code": 1232,
-      "comment": 164,
+      "blank": 192,
+      "code": 1238,
+      "comment": 190,
       "docstring": 343,
       "files": 5,
-      "lines": 1929,
+      "lines": 1963,
       "note": "the MCP proxy, its two transports and the watch session"
     },
     "rest": {
@@ -74,21 +74,21 @@
       "note": "this script"
     },
     "tests": {
-      "blank": 3746,
-      "code": 9687,
-      "comment": 1060,
-      "docstring": 2727,
+      "blank": 3756,
+      "code": 9717,
+      "comment": 1080,
+      "docstring": 2737,
       "files": 45,
-      "lines": 17220,
+      "lines": 17290,
       "note": "the test suite"
     },
     "total": {
-      "blank": 6256,
-      "code": 22136,
-      "comment": 2611,
-      "docstring": 6026,
+      "blank": 6268,
+      "code": 22172,
+      "comment": 2657,
+      "docstring": 6036,
       "files": 103,
-      "lines": 37029,
+      "lines": 37133,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -130,9 +130,9 @@
     "entries": 122,
     "in_the_shipped_tool": 92,
     "mechanisms": 20,
-    "named_tests": 32,
+    "named_tests": 33,
     "named_tests_not_collected": [],
-    "pinned_by_a_named_test": 20,
+    "pinned_by_a_named_test": 21,
     "pinned_by_a_note_instead": [
       "DEF-01",
       "DEF-03",
@@ -236,25 +236,24 @@
       "DEF-113",
       "DEF-114",
       "DEF-115",
-      "DEF-116",
-      "DEF-121"
+      "DEF-116"
     ],
     "source": "docs/defects.json",
-    "still_open": 1,
+    "still_open": 0,
     "unpinned": []
   },
   "docs": {
     "docs/DESIGN.md": {
-      "lines": 849
+      "lines": 850
     },
-    "total_lines": 849
+    "total_lines": 850
   },
-  "generated_at": "2026-09-19T12:53:58+00:00",
+  "generated_at": "2026-09-19T13:34:53+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 34,
-    "head": "c328590",
+    "commits": 35,
+    "head": "f83125b",
     "head_date": "2026-09-19"
   },
   "package": {
@@ -274,7 +273,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 2459,
+    "collected": 2461,
     "files": 40,
     "per_file": {
       "tests/test_action_yml.py": 11,
@@ -285,7 +284,7 @@
       "tests/test_cli.py": 32,
       "tests/test_consistency.py": 285,
       "tests/test_defect_ledger.py": 492,
-      "tests/test_design_notes.py": 86,
+      "tests/test_design_notes.py": 87,
       "tests/test_diff.py": 25,
       "tests/test_dsse.py": 25,
       "tests/test_fixtures_are_published.py": 194,
@@ -296,7 +295,7 @@
       "tests/test_netguard.py": 19,
       "tests/test_no_aggregate.py": 11,
       "tests/test_package_verify.py": 31,
-      "tests/test_proxy_completeness.py": 48,
+      "tests/test_proxy_completeness.py": 49,
       "tests/test_proxy_http_interposition.py": 15,
       "tests/test_proxy_protocol.py": 17,
       "tests/test_proxy_transports.py": 28,

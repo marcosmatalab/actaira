@@ -40,6 +40,25 @@ def _now() -> str:
     return datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
+# Published limit 15, in one place so that the README, `docs/COMPATIBILITY.md`,
+# `CLAUDE.md` and the skip this fact forces on Windows are one sentence and not
+# four. Work rule 10: two statements about the same property share their
+# definition or they cancel.
+#
+# Measured on 2026-09-19, three ways of a child ending its output, parent
+# reading the pipe: the child EXITS - Windows 0.3s, Linux 0.0s. The child closes
+# fd 1 and stays alive - Linux 0.0s, WINDOWS NEVER. The child closes fd 1 and
+# exits a second later - Windows 2.1s, Linux 0.0s. So pipes work; the one signal
+# Windows does not deliver is a LIVE writer closing its end, which is exactly
+# and only the `transport_closed` case.
+WINDOWS_TRANSPORT_CLOSED_LIMIT = (
+    "On Windows a server that closes its transport while still running cannot be "
+    "told apart from one that has simply gone quiet. The operating system does not "
+    "deliver EOF to the reader while the writing process is alive, so the gap is "
+    "named `upstream_timeout` and not `transport_closed`."
+)
+
+
 class StdioProxy:
     """One process between the agent and one server, with a deadline.
 
@@ -351,6 +370,21 @@ class StdioProxy:
                 response = self.request(message)
                 self._drain(writer)
                 if response is None:
+                    # Design note D-302, and published limit 16. The server did
+                    # not answer, so neither does this. The agent is left
+                    # waiting, and a client with no deadline of its own waits
+                    # forever - which is what a first report of "the tool hangs"
+                    # will be, and the reporter will be right from where they
+                    # are standing.
+                    #
+                    # Rejected: writing a JSON-RPC error back so the agent
+                    # unblocks. That is this tool inventing a message the server
+                    # never sent, in the agent's own input, and the agent cannot
+                    # tell it from one the server did send. The fourth negative
+                    # is that a witness does not act on what it observes, and
+                    # fabricating traffic is acting. The gap IS recorded either
+                    # way; what a reader gets from the invented reply is a
+                    # session that looks like it completed.
                     continue
                 writer.write(json.dumps(response) + "\n")
                 writer.flush()

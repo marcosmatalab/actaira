@@ -83,9 +83,11 @@ Son invariantes. Un cambio que las viole se rechaza sin discusión.
 ## Los límites publicados
 
 Van en el README, en la web y en el propio informe. No se ablandan para vender
-mejor. Los diez primeros son de lo que mira una EJECUCIÓN, que es `scan` y
-`watch`. Los cuatro últimos son de lo que mira la CONFIGURACIÓN, y llegan con
-la superficie.
+mejor. Diez son de lo que mira una EJECUCIÓN, que es `scan` y `watch`. Cuatro
+son de lo que mira la CONFIGURACIÓN, y llegaron con la superficie. Los dos
+últimos vuelven a ser de `watch`, y el 15 es de una plataforma: la frase vive
+una sola vez, en `proxy/stdio.py`, y el salto que fuerza en la suite la imprime
+como motivo. Regla de trabajo 10.
 
 1. No reproducimos la salida de un modelo hospedado. Ni con seed ni con
    temperatura cero. La causa es el tamaño de lote del proveedor y el
@@ -114,6 +116,16 @@ la superficie.
 14. Un script referenciado puede cambiar después de leído. Por eso todo se liga
     a su digest y no a su ruta: una aprobación sobre un nombre de fichero es
     una aprobación sobre lo que haya ahí mañana.
+15. EN WINDOWS UN TRANSPORTE CERRADO PARECE UNO CALLADO. Un servidor que cierra
+    su transporte estando vivo no se distingue de uno que ha dejado de hablar:
+    el sistema no entrega EOF mientras el proceso que escribe sigue vivo. El
+    hueco sale `upstream_timeout` y no `transport_closed`. Es el límite 6
+    acotado a una plataforma y a una señal; las tuberías van, y el EOF sí llega
+    cuando el proceso sale.
+16. EL PROXY NO CONTESTA POR UN SERVIDOR QUE NO CONTESTÓ. Un cliente MCP sin
+    plazo propio se queda esperando. Fabricarle un error de plazo agotado sería
+    meter en su entrada un mensaje que nadie mandó, indistinguible de uno real:
+    la cuarta negativa, un testigo no actúa sobre lo que observa.
 
 ## Los cuatro niveles de captura
 

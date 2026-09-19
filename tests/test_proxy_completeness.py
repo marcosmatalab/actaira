@@ -13,6 +13,7 @@ proxy that always declares a gap, and that proxy is useless.
 from __future__ import annotations
 
 import json
+import re
 import socket
 import sys
 import threading
@@ -25,7 +26,7 @@ import pytest
 
 from actaira.proxy import Recorder
 from actaira.proxy.http import HttpProxy
-from actaira.proxy.stdio import StdioProxy
+from actaira.proxy.stdio import WINDOWS_TRANSPORT_CLOSED_LIMIT, StdioProxy
 from actaira.trace import CaptureLevel
 from actaira.trace.model import GapReason, Trace
 
@@ -214,6 +215,12 @@ class Scenario:
     name: str
     run: Callable[..., Trace]
     expected: GapReason | None
+    # Set only where a platform cannot produce the signal the scenario is about.
+    # The string is the published limit itself, read from the package, so the
+    # skip's reason and the limit are one sentence (work rule 10). A skip whose
+    # reason is typed here would be a second definition, free to drift from the
+    # one a reader meets in the README.
+    windows_skip: str | None = None
 
 
 def _stdio(tmp_path, body, calls=(CALL,), command=None, timeout=3.0):
@@ -256,6 +263,7 @@ SCENARIOS = [
         "the stdio transport closed",
         lambda tmp_path, http: _stdio(tmp_path, CLOSES_STDOUT_BODY),
         GapReason.TRANSPORT_CLOSED,
+        windows_skip=WINDOWS_TRANSPORT_CLOSED_LIMIT,
     ),
     Scenario(
         "the response was truncated",
@@ -332,6 +340,11 @@ def test_a_trace_never_looks_complete_when_it_is_not(scenario, tmp_path, http_up
 def test_every_gap_names_its_reason_and_says_what_happened(scenario, tmp_path, http_upstream):
     """A gap with no reason is the silence this invariant is against, wearing
     a field name."""
+    if scenario.windows_skip and sys.platform == "win32":
+        # DEF-121. Not "this is flaky on Windows": the reason IS the published
+        # limit, and `test_the_windows_limit_is_published_and_says_what_the_skip_says`
+        # refuses a tree where the two have come apart.
+        pytest.skip(scenario.windows_skip)
     document = scenario.run(tmp_path, http_upstream).to_dict()
 
     reasons = {gap["reason"] for gap in document["gaps"]}
@@ -431,3 +444,60 @@ def test_the_proxy_binds_only_to_the_loopback_interface(http_upstream):
             assert probe.connect_ex(("127.0.0.1", port)) == 0
     finally:
         proxy.close()
+
+
+# ---------------------------------------------------------------------------
+# DEF-121: the skip and the limit are one sentence, or they are nothing
+# ---------------------------------------------------------------------------
+
+
+def test_the_windows_limit_is_published_and_says_what_the_skip_says():
+    """The pin for DEF-121, and it is anchored on the LIMIT, not on the skip.
+
+    A skipped test anchors nothing: it is the absence of a check, and an absence
+    cannot hold a decision in place. What holds this one is that the platform
+    fact is PUBLISHED, so a Windows user reads it before they meet it, and that
+    the reason the skip prints is the same sentence.
+
+    Work rule 10 on its first day. Two statements about one property of Windows
+    - the limit a reader meets and the reason a skip prints - share their
+    definition or they cancel: each would pass on its own terms while saying
+    different things, which is DEF-122 in a new place.
+    """
+    from conftest import REPO_ROOT  # noqa: PLC0415
+
+    root = Path(REPO_ROOT)
+    # Whitespace-collapsed on both sides, because a page wraps its prose and the
+    # constant is one line. Still one definition: the words have to be the same
+    # words, only the line breaks are allowed to differ.
+    def flat(text: str) -> str:
+        # Blockquote markers come off first: `> ` is markup, not a different
+        # word, and `docs/COMPATIBILITY.md` states the limit as a quotation.
+        return " ".join(
+            " ".join(line.lstrip().removeprefix("> ") for line in text.splitlines()).split()
+        )
+
+    wanted = flat(WINDOWS_TRANSPORT_CLOSED_LIMIT)
+    for page in ("README.md", "docs/COMPATIBILITY.md"):
+        assert wanted in flat((root / page).read_text(encoding="utf-8")), (
+            f"{page} does not carry published limit 15 verbatim. The skip on Windows "
+            "prints this sentence as its reason; a reader who meets the behaviour has "
+            "to be able to find it"
+        )
+
+    # And the Spanish page cannot quietly lose it. Counting alone would not
+    # catch that - a parity check that passes because a thing is missing from
+    # both sides is the `design_notes` error of DEF-122 - so both the count and
+    # the presence of the two new numbers are asserted.
+    counts = {}
+    for page in ("README.md", "README.es.md"):
+        text = (root / page).read_text(encoding="utf-8")
+        counts[page] = len(re.findall(r"^\d+\. ", text, re.M))
+        for number in ("15.", "16."):
+            assert re.search(rf"^{re.escape(number)} ", text, re.M), (
+                f"{page} does not state published limit {number}"
+            )
+    assert len(set(counts.values())) == 1, (
+        f"the two READMEs state different numbers of limits: {counts}"
+    )
+

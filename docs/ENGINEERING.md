@@ -98,9 +98,9 @@ pytest actually collects, so a renamed test is reported by name rather than
 leaving a total that still looks healthy.
 
 140 defects have been found here, by 20 distinct mechanisms, and every one of
-them was found by a mechanism that can fail. 1 still open.
+them was found by a mechanism that can fail. 0 still open.
 48 were never in a released build and are marked as such rather than dropped.
-Every entry is held down: 20 pinned by a named test, and 104 by a written note,
+Every entry is held down: 21 pinned by a named test, and 103 by a written note,
 where a named test would be a weaker copy of what the linter or the gate
 already does.
 
