@@ -852,3 +852,25 @@ cogió, y esa parte sigue siendo verdad.
   es la prueba de que el patrón existe en más de un sitio. **Sin fase**, hasta que
   alguien la abra: es un barrido de documentación de seis fabricantes, no un
   arreglo.
+- **`markup_split_problems` lee sus sustantivos de una lista mantenida a mano.**
+  Es la heurística escrita para la clase exacta de DEF-122 —su docstring dice
+  «entre una cifra y el sustantivo que cuenta, solo espacio en blanco»— y saca
+  los sustantivos de `COUNTED_NOUNS`, que tiene entradas para los dos READMEs y
+  ninguna para `docs/ENGINEERING.md`. Devolvió lista vacía justo para la página
+  cuyas cifras se habían desviado. Se dejó en pie a propósito en DEF-122 porque
+  el rechazo del patrón sin casar cubre el caso sin que nadie se acuerde de nada.
+
+  **LA FORMA DEL ARREGLO, escrita para que nadie lo arregle mal: los sustantivos
+  salen del contrato de figuras, no de una lista aparte.** Cada figura ya declara
+  en su patrón qué cuenta —`(?= defects have been found)`, `(?= distinct
+  mechanisms)`—, así que el sustantivo es derivable del patrón y `COUNTED_NOUNS`
+  desaparece. Añadirle entradas a esa lista sería exactamente lo que la regla de
+  trabajo 11 prohíbe: una comprobación que depende de que alguien se acuerde de
+  añadir una línea, y que cumple quien decida no añadirla. Es también la regla 10
+  en pequeño, porque hoy la lista y los patrones son dos definiciones del mismo
+  hecho.
+
+  **Sin fase.** No es urgente: mientras el rechazo de DEF-122 esté en pie, esta
+  heurística solo puede llegar tarde a un fallo que la puerta ya da. Lo que no
+  puede es quedarse como está y creerse una guarda.
+
