@@ -41,7 +41,7 @@ searches that came back empty.
 | [`ACT-S004`](#act-s004) | `hook.command` | DECLARED | high | Actaira core | core | 1 | real |
 | [`ACT-S005`](#act-s005) | `hook.command` | DECLARED | medium | Actaira core | core | 1 | real |
 | [`ACT-S006`](#act-s006) | `helper.command` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S007`](#act-s007) | `permissions.default_mode` | DECLARED | critical | Actaira core | core | 1 | real |
+| [`ACT-S007`](#act-s007) | `permissions.default_mode` | DECLARED | critical | Actaira core | core | 2 | real |
 | [`ACT-S008`](#act-s008) | `permissions.additional_directory` | DECLARED | high | Actaira core | core | 1 | real |
 | [`ACT-S009`](#act-s009) | `permissions.allow` | DECLARED | high | Actaira core | core | 1 | real |
 | [`ACT-S010`](#act-s010) | `mcp.approval` | DECLARED | medium | Actaira core | core | 1 | real |
@@ -183,15 +183,15 @@ A settings key that executes a command is set from a repository file.
 
 ### ACT-S007
 
-The permission mode declared in a repository file skips or automates the prompts.
+The permission mode declared in a repository file removes a confirmation the vendor's own default requires.
 
-*Español:* El modo de permisos declarado en un fichero del repositorio se salta las confirmaciones o las automatiza.
+*Español:* El modo de permisos declarado en un fichero del repositorio quita una confirmación que el modo por defecto del fabricante exige.
 
 - **Vendor**: `claude-code`
 - **Capability**: `permissions.default_mode`
 - **Requires**: DECLARED
 - **Severity**: critical — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Author**: Actaira core, pack `core`, rule version 2
 - **Facts it needs**: `mode`
 - **Remediation it suggests**: Remove the mode from the repository file. Before Claude Code 2.1.257 a committed settings file could start every session with the prompts skipped; from 2.1.257 it cannot, and the line is now a claim about what the repository wanted.
 - **Agent Threat Rules**: ATR-T1562

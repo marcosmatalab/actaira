@@ -74,21 +74,21 @@
       "note": "this script"
     },
     "tests": {
-      "blank": 3714,
-      "code": 9608,
-      "comment": 1032,
-      "docstring": 2686,
+      "blank": 3726,
+      "code": 9629,
+      "comment": 1053,
+      "docstring": 2696,
       "files": 45,
-      "lines": 17040,
+      "lines": 17104,
       "note": "the test suite"
     },
     "total": {
-      "blank": 6224,
-      "code": 22042,
-      "comment": 2553,
-      "docstring": 5977,
+      "blank": 6236,
+      "code": 22063,
+      "comment": 2574,
+      "docstring": 5987,
       "files": 103,
-      "lines": 36796,
+      "lines": 36860,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -115,6 +115,7 @@
       "fuzzing": 14,
       "product review against a roadmap": 6,
       "reading the tool's own output": 7,
+      "reading the vendor's documentation": 1,
       "real-serialiser corpus": 4,
       "running it on the runner for the first time": 3,
       "running the gate": 4,
@@ -124,13 +125,13 @@
       "writing a test for an adjacent feature": 2
     },
     "checked_against_pytest": true,
-    "defects": 135,
-    "entries": 119,
-    "in_the_shipped_tool": 90,
-    "mechanisms": 18,
-    "named_tests": 27,
+    "defects": 136,
+    "entries": 120,
+    "in_the_shipped_tool": 91,
+    "mechanisms": 19,
+    "named_tests": 29,
     "named_tests_not_collected": [],
-    "pinned_by_a_named_test": 16,
+    "pinned_by_a_named_test": 17,
     "pinned_by_a_note_instead": [
       "DEF-01",
       "DEF-03",
@@ -245,12 +246,12 @@
     },
     "total_lines": 849
   },
-  "generated_at": "2026-09-18T19:46:07+00:00",
+  "generated_at": "2026-09-19T10:31:40+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 29,
-    "head": "93363ce",
+    "commits": 30,
+    "head": "9d95fef",
     "head_date": "2026-09-18"
   },
   "package": {
@@ -270,7 +271,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 2321,
+    "collected": 2328,
     "files": 40,
     "per_file": {
       "tests/test_action_yml.py": 11,
@@ -280,7 +281,7 @@
       "tests/test_chain_domain_separation.py": 14,
       "tests/test_cli.py": 32,
       "tests/test_consistency.py": 285,
-      "tests/test_defect_ledger.py": 360,
+      "tests/test_defect_ledger.py": 363,
       "tests/test_design_notes.py": 86,
       "tests/test_diff.py": 25,
       "tests/test_dsse.py": 25,
@@ -305,7 +306,7 @@
       "tests/test_signing_domain_separation.py": 4,
       "tests/test_surface.py": 97,
       "tests/test_surface_instructions.py": 34,
-      "tests/test_surface_rules.py": 76,
+      "tests/test_surface_rules.py": 80,
       "tests/test_surface_vendors.py": 155,
       "tests/test_timestamp.py": 47,
       "tests/test_trace_model.py": 19,

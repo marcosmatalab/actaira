@@ -11,6 +11,12 @@
 #  compared with another pack's. That is the whole of the first negative as it
 #  applies to a rule pack.
 #
+#  A FOURTH PROHIBITION, and DEF-120 is what it cost to write it down. No rule
+#  fires on a value STRICTLY NARROWER than the vendor's own default: reporting a
+#  repository for locking itself down is a finding nobody can act on. The
+#  precedent was already in the tree and this file contradicted it -
+#  `resolve.py:1778` argues it for Gemini's `plan`; ACT-S007 named `dontAsk`.
+#
 #  Format: TOML, because a rule has to carry the argument for its own existence
 #  next to itself and JSON has no comments - D-274 in `rules.py` has the two
 #  rejected alternatives.
@@ -232,9 +238,13 @@ value = ["apiKeyHelper", "statusLine", "awsAuthRefresh", "awsCredentialExport", 
 #  answers INDETERMINATE when the version is unknown, and this rule is reporting
 #  the declaration either way. What changes with the version is the capability's
 #  resolution, printed beside the finding - not whether the rule fires.
+#
+#  Version 2 dropped `dontAsk` (DEF-120). It AUTO-DENIES every call the default
+#  would have prompted for, so it removes no confirmation and grants nothing:
+#  the fourth prohibition at the top of this file.
 [[rule]]
 id = "ACT-S007"
-version = "1"
+version = "2"
 vendor = "claude-code"
 requires = "DECLARED"
 severity = "critical"
@@ -248,7 +258,7 @@ references = [
 [[rule.when]]
 fact = "mode"
 op = "in"
-value = ["bypassPermissions", "auto", "dontAsk"]
+value = ["bypassPermissions", "auto"]
 
 #  A directory the agent may read and write that is not the repository. Waits
 #  for workspace trust, so it is DECLARED until the trust state is read - and

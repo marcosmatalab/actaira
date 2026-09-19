@@ -472,3 +472,67 @@ def test_the_worm_fixtures_carry_an_inert_stub_and_nothing_else():
                 line.strip().startswith("//") or not line.strip()
                 for line in body.splitlines()
             ), f"{script} has a statement in it; a fixture stub is comments only"
+
+
+# ---------------------------------------------------------------------------
+# DEF-120: the fourth prohibition, over `permissions.defaultMode`
+# ---------------------------------------------------------------------------
+#
+# The seven spellings `permissions.defaultMode` publishes, taken from the
+# VENDOR'S PAGE and never from a grep of this tree - two greps of our own
+# constants came back short before this was written down:
+# <https://code.claude.com/docs/en/settings-reference#permissions-defaultmode>,
+# read 2026-09-19. It lists `default`, `acceptEdits`, `plan`, `auto`, `dontAsk`,
+# `bypassPermissions`, and `manual` as an alias of `default` from v2.1.200.
+#
+# `dontAsk` "auto-denies every call that would otherwise prompt", and `plan`
+# "blocks edits until you approve a plan". Both are strictly narrower than the
+# default, so no rule may fire on either. The other two run something the
+# default would have asked about first.
+NARROWER_THAN_THE_DEFAULT = ("dontAsk", "plan")
+REMOVES_A_CONFIRMATION = ("bypassPermissions", "auto")
+
+
+# A version is passed because `bypassPermissions` without one resolves
+# INDETERMINATE - effective before 2.1.257, not from it - and a rule never
+# evaluates an INDETERMINATE capability. That is the product working (published
+# limit 13); asserting the rule fires with no version would be asserting the
+# opposite. Any known version does, since `requires = DECLARED` covers both
+# sides of the threshold.
+A_KNOWN_VERSION = "2.1.300"
+
+
+def _rules_that_fire_on(root: Path, mode: str) -> set[str]:
+    (root / ".claude").mkdir(exist_ok=True)
+    (root / ".claude" / "settings.json").write_text(
+        json.dumps({"permissions": {"defaultMode": mode}}), encoding="utf-8"
+    )
+    surface = resolve.resolve(claude_code.read(root), agent_version=A_KNOWN_VERSION)
+    hits, _gaps = rules.evaluate(surface, CATALOGUE)
+    return {item.rule_id for item in hits}
+
+
+@pytest.mark.parametrize("mode", NARROWER_THAN_THE_DEFAULT)
+def test_no_rule_fires_on_a_mode_narrower_than_the_vendors_own_default(tmp_path, mode):
+    """DEF-120. The fourth prohibition in `claude-code.toml`'s header.
+
+    ACT-S007 named `dontAsk` for two phases. A repository that sets it has
+    locked itself DOWN - the mode denies what the default would have prompted
+    for - and reporting that is a finding nobody can act on. The precedent was
+    already in the tree, at `resolve.py:1778`, arguing exactly this for Gemini's
+    `plan`; this pack contradicted it nine lines away.
+    """
+    assert "ACT-S007" not in _rules_that_fire_on(tmp_path, mode), (
+        f"ACT-S007 fired on `{mode}`, which is narrower than the vendor's own default"
+    )
+
+
+@pytest.mark.parametrize("mode", REMOVES_A_CONFIRMATION)
+def test_act_s007_still_fires_on_every_mode_that_removes_a_confirmation(tmp_path, mode):
+    """The other half of DEF-120: the narrowing must not have over-shot.
+
+    Without this, removing every value from the clause would pass the test above.
+    """
+    assert "ACT-S007" in _rules_that_fire_on(tmp_path, mode), (
+        f"ACT-S007 stopped firing on `{mode}`, which runs what the default would ask about"
+    )
