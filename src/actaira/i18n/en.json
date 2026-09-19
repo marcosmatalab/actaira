@@ -7,7 +7,7 @@
     "ACT-S004": "A hook runs a path outside this tree, which the repository's own history does not record.",
     "ACT-S005": "A hook names a script that is not in the tree, so creating that file later needs no change to any settings file.",
     "ACT-S006": "A settings key that executes a command is set from a repository file.",
-    "ACT-S007": "The permission mode declared in a repository file skips or automates the prompts.",
+    "ACT-S007": "The permission mode declared in a repository file removes a confirmation the vendor's own default requires.",
     "ACT-S008": "An additional directory grants file access outside this repository.",
     "ACT-S009": "An allow rule pre-approves shell execution without narrowing it to a command.",
     "ACT-S010": "The repository approves its own MCP servers.",

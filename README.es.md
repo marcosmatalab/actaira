@@ -579,7 +579,7 @@ documento que nombra un test que ya no existe, un flag que la documentación
 enseña y el comando no tiene, y una afirmación de esta página que el parser
 contradice.
 
-2.321 tests sobre 36.796 líneas de Python corren en cada commit, y las dos cifras las
+2.328 tests sobre 36.860 líneas de Python corren en cada commit, y las dos cifras las
 mide `make figures` en vez de escribirlas a mano: la puerta rechaza un árbol
 donde un número de este fichero no coincide con lo que el código reporta.
 

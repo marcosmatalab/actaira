@@ -560,7 +560,7 @@ does not argue it, a schema version written in two places, a document naming a
 test that no longer exists, a flag the documentation shows that the command does
 not have, and a claim on this page that the parser contradicts.
 
-2,321 tests over 36,796 lines of Python run on every commit, and both figures are
+2,328 tests over 36,860 lines of Python run on every commit, and both figures are
 measured by `make figures` rather than typed: the gate refuses a tree where a
 number in this file disagrees with what the code reports.
 

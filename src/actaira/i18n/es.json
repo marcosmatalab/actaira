@@ -7,7 +7,7 @@
     "ACT-S004": "Un hook ejecuta una ruta fuera de este árbol, que el historial del repositorio no registra.",
     "ACT-S005": "Un hook nombra un script que no está en el árbol, así que crear ese fichero después no exige tocar ningún fichero de configuración.",
     "ACT-S006": "Una clave de configuración que ejecuta un comando está fijada desde un fichero del repositorio.",
-    "ACT-S007": "El modo de permisos declarado en un fichero del repositorio se salta las confirmaciones o las automatiza.",
+    "ACT-S007": "El modo de permisos declarado en un fichero del repositorio quita una confirmación que el modo por defecto del fabricante exige.",
     "ACT-S008": "Un directorio adicional concede acceso a ficheros fuera de este repositorio.",
     "ACT-S009": "Una regla de permiso preaprueba la ejecución de shell sin acotarla a un comando.",
     "ACT-S010": "El repositorio aprueba sus propios servidores MCP.",
