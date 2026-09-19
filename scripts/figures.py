@@ -361,6 +361,15 @@ def measure_defects(collected_node_ids: set[str] | None) -> dict[str, Any]:
         "in_the_shipped_tool": sum(
             defect.get("counts_as", 1) for defect in defects if defect.get("shipped_defect")
         ),
+        # DEF-121. `fixed` is required on every entry and has no default, so
+        # this is a count and not an assumption. The prose used to carry the
+        # word "all", written by hand and captured verbatim by the sync script,
+        # which meant the ledger could only ever hold defects that were already
+        # closed - a list of achievements rather than a ledger. Weighted by
+        # `counts_as` so it is comparable with `defects` beside it.
+        "still_open": sum(
+            defect.get("counts_as", 1) for defect in defects if not defect["fixed"]
+        ),
         "by_mechanism": dict(sorted(by_mechanism.items(), key=lambda item: (-item[1], item[0]))),
         "mechanisms": len(by_mechanism),
         "pinned_by_a_named_test": pinned,
