@@ -163,6 +163,19 @@ def figures() -> list[Figure]:
         return Figure(name=name, value=value[name], source=source,
                       patterns={"docs/ENGINEERING.md": pattern})
 
+    def measured_only(name: str, source: str, why: str) -> Figure:
+        """Measured into `figures.json`, stated on no page, with the reason why.
+
+        DEF-122. A page in `patterns` is a DECLARATION that the figure lives
+        there, and the gate now refuses a declaration that matches nothing. So a
+        figure no page states says so here instead of keeping patterns nothing
+        can satisfy - which is what `design_notes` did, appearing to be guarded
+        by three checks while only `figures_match` ever saw it. `why` is prose
+        and the code never reads it: writing it is the cost of the empty dict.
+        """
+        assert why, f"{name} states no reason for living on no page"
+        return Figure(name=name, value=value[name], source=source, patterns={})
+
     return [
         # The release version, wherever the prose states it - the header strip
         # and the closing line. It is here rather than in `release_check.py`
@@ -207,8 +220,20 @@ def figures() -> list[Figure]:
         # through its own regex and the gate never looked at.
         doc_figure("defects_by_note", "docs/defects.json: pinned_by_a_note_instead",
                    r"\b\d+(?= by a written note)"),
-        figure("design_notes", "docs/DESIGN.md table",
-               r"\b\d+(?= design notes)", r"\b\d+(?= notas de diseño)"),
+        # DEF-122. This one had no row at all: `sync_readme_figures.py` rewrote
+        # the whole ledger sentence with a regex of its own, on the argument that
+        # the figure "never appears on its own". A second mechanism writing a
+        # number the table does not know about is how that sentence came to carry
+        # markup which made every OTHER figure in it unmatchable.
+        doc_figure("defects_pinned", "docs/defects.json: pinned_by_a_named_test",
+                   r"\b\d+(?= pinned by a named test)"),
+        measured_only(
+            "design_notes", "docs/DESIGN.md table",
+            "Neither README has stated a design-note count since phase A rewrote "
+            "both around what the seven commands do. The figure kept an English "
+            "and a Spanish pattern anyway, matching nothing in either page, and "
+            "the bilingual check was satisfied because the absence was symmetric.",
+        ),
     ]
 
 # The spelled-out forms of figures this table owns. A number written as a word

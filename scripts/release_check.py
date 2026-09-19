@@ -216,6 +216,27 @@ def readme_figures_are_current() -> str:
                 continue  # this figure does not live on this page
             found = re.findall(pattern, text)
             if not found:
+                # DEF-122. This branch used to `continue`, and that is the whole
+                # defect: a pattern that matches nothing was written by nobody,
+                # compared against nothing, and reported as nothing. Four figures
+                # on `docs/ENGINEERING.md` sat unguarded that way, two of them
+                # stale by 8 and 4, under a paragraph claiming all four were
+                # measured and gate-refused.
+                #
+                # A page in `figure.patterns` is a DECLARATION that the figure
+                # lives there. Declared and absent is a contradiction, and the
+                # only honest answer to it is red. Adjusting the four regexes
+                # without this would have set the same trap for the fifth time:
+                # any rewording breaks a lookahead, and a broken lookahead was
+                # silent.
+                problems.append(
+                    f"{name}: {figure.name} declares this page, and its pattern "
+                    f"{pattern} matches nothing in it. Either the prose moved away "
+                    f"from the pattern - between a figure and the noun it counts "
+                    f"there may be only whitespace, and no line break inside the "
+                    f"phrase the pattern anchors on - or the figure no longer "
+                    f"belongs on this page and should stop declaring it."
+                )
                 continue
             expected = figure.rendered(name)
             checked += len(found)
