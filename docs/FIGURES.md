@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-19T21:13:05+00:00 for actaira 3.0.0, at commit c0a3367.
+Generated 2026-09-19T22:54:16+00:00 for actaira 3.0.0, at commit 9d1476f.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, ruff>=0.6, jsonschema>=4.18
-- 38 commits, most recent 2026-09-19
+- 40 commits, most recent 2026-09-19
 
 ## Tests
 
-**2477** tests collected by pytest across 41 files.
+**2487** tests collected by pytest across 42 files.
 
 | file | tests |
 |---|---:|
@@ -36,7 +36,7 @@ Generated 2026-09-19T21:13:05+00:00 for actaira 3.0.0, at commit c0a3367.
 | `tests/test_diff.py` | 25 |
 | `tests/test_dsse.py` | 25 |
 | `tests/test_fixtures_are_published.py` | 194 |
-| `tests/test_i18n.py` | 137 |
+| `tests/test_i18n.py` | 140 |
 | `tests/test_keyring.py` | 34 |
 | `tests/test_mcp.py` | 15 |
 | `tests/test_merkle.py` | 146 |
@@ -63,9 +63,10 @@ Generated 2026-09-19T21:13:05+00:00 for actaira 3.0.0, at commit c0a3367.
 | `tests/test_trace_privacy.py` | 77 |
 | `tests/test_trace_provenance.py` | 21 |
 | `tests/test_trust.py` | 13 |
+| `tests/test_value_inventory.py` | 7 |
 | `tests/test_verify_strictness.py` | 23 |
 | `tests/test_workflow_shell.py` | 5 |
-| **total** | **2477** |
+| **total** | **2487** |
 
 ## Defects found in this repository
 
@@ -113,9 +114,9 @@ and the modules are the source of truth.
 | schemas | 1 | 126 | 27 | 36 | 43 | 20 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
 | rest | 18 | 6455 | 4254 | 969 | 412 | 820 |
-| tests | 46 | 17653 | 9892 | 2834 | 1113 | 3814 |
+| tests | 49 | 18570 | 10403 | 3041 | 1180 | 3946 |
 | scripts | 12 | 4040 | 2586 | 589 | 351 | 514 |
-| **total** | 104 | 37496 | 22347 | 6133 | 2690 | 6326 |
+| **total** | 107 | 38413 | 22858 | 6340 | 2757 | 6458 |
 
 Documentation, in lines of Markdown:
 
