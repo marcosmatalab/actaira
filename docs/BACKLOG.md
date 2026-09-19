@@ -823,6 +823,32 @@ cogió, y esa parte sigue siendo verdad.
   **fase L** sobre un repo de fixture propio, que además permite controlar el
   estado de antes; sobre un fork ajeno el lado de antes es el que sea, y aflojar
   el guardarraíl de otro para probarlo no se hace. **Fase L.**
+- **La vista de runtime del punto 1 mira el RESOLVEDOR y no los LECTORES, y
+  extenderla cuesta cinco sitios, no uno.** `watched()` se aplica al `Reading`
+  que `read()` ya devolvió, así que toda decisión que un lector toma mientras
+  lee queda fuera. Dos sitios conocidos caen ahí: `type` en
+  `claude_code.py:186` (dentro de `command_strings`) y `notify` en
+  `codex.py:228`. Sobre esas decisiones hay UNA vista, la estática, que es
+  justo la situación contra la que existe la regla de trabajo 10.
+
+  **MEDIDO ANTES DE DECIDIR, que era la condición.** Si todos los lectores
+  pasaran por un punto de parseo único, envolver ahí sería barato y no tocaría
+  `src/`. No pasan: un documento parseado se construye en **cinco** sitios —
+  `disk.read_json` (Claude Code, Cursor, Gemini), `vscode.read_jsonc` (VS Code,
+  devcontainer) y `codex.read_toml`, que son ayudantes compartidos, más dos
+  inline en `codex.py:177` y `claude_code.py:355`. No son seis instrumentos,
+  pero tampoco uno.
+
+  **NO SE CONSTRUYE AHORA**, y el motivo es de prioridad y no de dificultad:
+  sería refinar la herramienta de medir mientras los puntos 6, 7, 2 y 3 de la
+  puerta de la S3.1 siguen en cero, y el 7 es donde está el falso negativo que
+  da nombre a la fase. Lo que protege las decisiones de los lectores mientras
+  tanto NO es el acuerdo entre vistas —no hay dos— sino el test plantado del
+  punto 3, que entra por el CLI y no sabe dónde se tomó la decisión.
+
+  **La señal para construirlo**: que un test plantado del punto 3 dé una
+  sorpresa dentro de un lector. **Sin fase.**
+
 - **PUNTO DE PUERTA DE LA FASE L, no una línea de esta lista: toda cifra y toda
   afirmación de comportamiento en material de `.launch/` nombra el comando que la
   produce, y se comprueba ANTES de que salga de la carpeta.** Se escribe aquí
