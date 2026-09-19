@@ -288,11 +288,19 @@ jobs:
   surface:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           fetch-depth: 0       # diff necesita los dos lados, o sea la historia entera
-      - uses: marcosmatalab/actaira@main
+          persist-credentials: false
+      - uses: marcosmatalab/actaira@c0a33675c14b8a622ddb794ab3f516a514e3124d
 ```
+
+**Los dos `uses:` van fijados por SHA de commit, y eso no es decoracion.** Una
+etiqueta es un nombre y un nombre se mueve, que es lo que ACT-S003 le dice al
+mundo sobre sus propios servidores MCP y sus hooks; un ejemplo que te dijera
+`@main` seria esta herramienta pidiendote lo que senala en tu repositorio.
+Para volver a resolver uno: `gh api repos/<owner>/<repo>/git/ref/tags/<tag>
+--jq .object.sha`.
 
 Escribe el informe en el resumen del trabajo y SARIF 2.1.0 en `actaira.sarif`;
 subirlo a code scanning es cosa tuya, con `github/codeql-action/upload-sarif` y
@@ -318,7 +326,7 @@ Para un hook local, este repositorio publica uno:
 ```yaml
 repos:
   - repo: https://github.com/marcosmatalab/actaira
-    rev: main
+    rev: c0a33675c14b8a622ddb794ab3f516a514e3124d
     hooks:
       - id: actaira-check
 ```
