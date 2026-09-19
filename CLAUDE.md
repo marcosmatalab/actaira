@@ -193,6 +193,40 @@ estaba en alcance y falló, sí.
    ampliación de presupuesto o de alcance, esa autorización se escribe en el
    mensaje del commit de la fase, con el número, el motivo y qué ficheros la
    consumen. Una sesión posterior solo puede leer el repo.
+9. TODO TEST QUE PRUEBA UNA NEGATIVA LLEVA SU GEMELO, y el gemelo planta el caso
+   que debería dispararla y EXIGE el fallo. Un test que afirma «esto no ocurre»
+   y que nunca ha visto ocurrirlo no distingue entre la propiedad y un plantado
+   que no llega: las dos veces pasa. Ya estaba en el árbol antes de escribirse,
+   y estos son los sitios: `test_the_citation_check_would_notice_an_uncited_row`
+   sobre las filas de mezcla, `test_a_mark_with_no_evidence_is_refused_at_load` y
+   `test_searches_without_a_mark_are_refused` sobre la marca sin cita, la
+   capacidad sin regla que planta `test_capability_coverage.py`, el script con
+   centinela de `test_surface.py` —que aparecería si algo lo ejecutara— y las
+   parejas de DEF-119, DEF-120, DEF-121 y DEF-122, cada una con lo que la hace
+   morder escrito en el ledger o en su commit.
+10. DOS COMPROBACIONES SOBRE LA MISMA PROPIEDAD COMPARTEN SU DEFINICIÓN. Una
+   llama a la otra, o las dos leen el mismo sitio; nunca se escribe dos veces.
+   Con definiciones distintas no se suman, SE ANULAN: cada una pasa en sus
+   términos y el fallo queda invisible entre las dos. DEF-122 es el caso. La
+   puerta comprobaba una figura por el patrón del contrato, que ancla en las
+   palabras posteriores al número, y `test_the_defect_counts_match_the_measured_ledger`
+   la comprobaba por `f"**{valor}**" in página`. El test EXIGÍA la negrita, y la
+   negrita entre la cifra y su sustantivo es justo lo que la hace invisible al
+   patrón: el test sujetaba la forma que apagaba la puerta. Las dos verdes, la
+   cifra publicada desviada por ocho. La paridad bilingüe de `design_notes` es el
+   mismo error con otra cara: una comprobación de que las dos lenguas dicen lo
+   mismo pasa cuando falta en las dos, así que no comprobaba paridad.
+11. UNA COMPROBACIÓN QUE NO CASA, NO ENCUENTRA O NO APLICA FALLA RUIDOSAMENTE, y
+   nombra qué buscaba y dónde. Nunca escribe cero, nunca devuelve lista vacía,
+   nunca cae al extremo seguro. Si de verdad no aplica, se declara con su motivo
+   escrito y el cargador rechaza el motivo vacío —`measured_only` en
+   `figures_contract.py` es la forma—. Es una sola enfermedad en los tres sitios
+   donde ha aparecido: DEF-120, un valor que el fabricante publica y nosotros no
+   conocíamos, leído como «no es el peligroso»; DEF-122, un patrón sin casar
+   saltado con `continue` y un `re.subn` que escribía cero; y la fase S3.1
+   entera, que existe porque un valor fuera del conjunto caía al extremo seguro.
+   El `continue` de `release_check.py` y el `return []` de
+   `markup_split_problems` eran la misma línea escrita dos veces.
 
 ## La regla de alcanzabilidad
 
