@@ -121,6 +121,7 @@ def derive() -> dict[str, Any]:
         "defects_by_note": len(defects["pinned_by_a_note_instead"]),
         "defect_mechanisms": defects["mechanisms"],
         "defects_not_shipped": defects["defects"] - defects["in_the_shipped_tool"],
+        "defects_open": defects["still_open"],
         "schema_families": len(schemas.VERSIONS),
         "schema_documents": len(schemas.names()),
         "schemas_superseded": sum(len(item) for item in schemas.SUPERSEDED.values()),
@@ -227,6 +228,11 @@ def figures() -> list[Figure]:
         # markup which made every OTHER figure in it unmatchable.
         doc_figure("defects_pinned", "docs/defects.json: pinned_by_a_named_test",
                    r"\b\d+(?= pinned by a named test)"),
+        # DEF-121. The page said "all fixed", hand-written prose the sync script
+        # captured and re-emitted without ever checking it. A ledger that can
+        # only say "all" is a ledger that can only hold closed defects.
+        doc_figure("defects_open", "docs/defects.json: entries with fixed false",
+                   r"\b\d+(?= still open)"),
         measured_only(
             "design_notes", "docs/DESIGN.md table",
             "Neither README has stated a design-note count since phase A rewrote "

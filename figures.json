@@ -66,29 +66,29 @@
     },
     "scripts": {
       "blank": 514,
-      "code": 2580,
-      "comment": 342,
+      "code": 2586,
+      "comment": 351,
       "docstring": 589,
       "files": 12,
-      "lines": 4025,
+      "lines": 4040,
       "note": "this script"
     },
     "tests": {
-      "blank": 3739,
-      "code": 9667,
+      "blank": 3746,
+      "code": 9687,
       "comment": 1060,
-      "docstring": 2715,
+      "docstring": 2727,
       "files": 45,
-      "lines": 17181,
+      "lines": 17220,
       "note": "the test suite"
     },
     "total": {
-      "blank": 6249,
-      "code": 22110,
-      "comment": 2602,
-      "docstring": 6014,
+      "blank": 6256,
+      "code": 22136,
+      "comment": 2611,
+      "docstring": 6026,
       "files": 103,
-      "lines": 36975,
+      "lines": 37029,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -119,16 +119,17 @@
       "real-serialiser corpus": 4,
       "running it on the runner for the first time": 3,
       "running the gate": 4,
+      "running the gate on the development machine": 1,
       "running the harness": 2,
       "test suite": 7,
       "using the tool as a person would": 6,
       "writing a test for an adjacent feature": 2
     },
     "checked_against_pytest": true,
-    "defects": 139,
-    "entries": 121,
-    "in_the_shipped_tool": 91,
-    "mechanisms": 19,
+    "defects": 140,
+    "entries": 122,
+    "in_the_shipped_tool": 92,
+    "mechanisms": 20,
     "named_tests": 32,
     "named_tests_not_collected": [],
     "pinned_by_a_named_test": 20,
@@ -235,9 +236,11 @@
       "DEF-113",
       "DEF-114",
       "DEF-115",
-      "DEF-116"
+      "DEF-116",
+      "DEF-121"
     ],
     "source": "docs/defects.json",
+    "still_open": 1,
     "unpinned": []
   },
   "docs": {
@@ -246,12 +249,12 @@
     },
     "total_lines": 849
   },
-  "generated_at": "2026-09-19T11:22:08+00:00",
+  "generated_at": "2026-09-19T11:41:49+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 32,
-    "head": "ec7001f",
+    "commits": 33,
+    "head": "9d26393",
     "head_date": "2026-09-19"
   },
   "package": {
@@ -271,7 +274,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 2333,
+    "collected": 2459,
     "files": 40,
     "per_file": {
       "tests/test_action_yml.py": 11,
@@ -281,7 +284,7 @@
       "tests/test_chain_domain_separation.py": 14,
       "tests/test_cli.py": 32,
       "tests/test_consistency.py": 285,
-      "tests/test_defect_ledger.py": 366,
+      "tests/test_defect_ledger.py": 492,
       "tests/test_design_notes.py": 86,
       "tests/test_diff.py": 25,
       "tests/test_dsse.py": 25,

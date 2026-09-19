@@ -97,13 +97,14 @@ holds it down. `make figures` checks every test the ledger names against what
 pytest actually collects, so a renamed test is reported by name rather than
 leaving a total that still looks healthy.
 
-139 defects have been found here, by 19 distinct mechanisms, and every one of
-them was found by a mechanism that can fail. 48 were never in a released build
-and are marked as such rather than dropped. Every entry is held down:
-20 pinned by a named test, and 103 by a written note, where a named test would
-be a weaker copy of what the linter or the gate already does.
+140 defects have been found here, by 20 distinct mechanisms, and every one of
+them was found by a mechanism that can fail. 1 still open.
+48 were never in a released build and are marked as such rather than dropped.
+Every entry is held down: 20 pinned by a named test, and 104 by a written note,
+where a named test would be a weaker copy of what the linter or the gate
+already does.
 
-Those five numbers are measured by `make figures` and refused by the release
+Those six numbers are measured by `make figures` and refused by the release
 gate if they drift, exactly as the figures on the README are. They live here
 rather than there because a defect count is not what a reader should meet
 first: it says how hard the tool has been looked at, which is a fact about the

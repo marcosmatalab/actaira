@@ -82,6 +82,45 @@ def test_every_test_the_ledger_names_exists(defect):
         )
 
 
+@pytest.mark.parametrize("defect", DEFECTS, ids=lambda item: item["id"])
+def test_every_defect_says_whether_it_is_fixed(defect):
+    """DEF-121. No default, on purpose.
+
+    `docs/ENGINEERING.md` used to say "all fixed" - prose nobody measured, which
+    meant this ledger could only hold defects that were already closed. A
+    ledger that admits only fixed defects is a list of achievements. Reading a
+    missing field as `true` would put the adjective back one entry at a time,
+    which is the shape DEF-120 and DEF-122 were both about: an absence taken for
+    the comfortable answer.
+    """
+    assert "fixed" in defect, (
+        f"{defect['id']} does not say whether it is fixed. The field has no default: "
+        "an open defect that forgets to say so is how the ledger goes back to being a "
+        "list of achievements"
+    )
+    assert isinstance(defect["fixed"], bool), defect["id"]
+
+
+def test_an_open_defect_is_counted_and_published():
+    """The other half: the count exists and the page states it.
+
+    Without this the field could be carried by every entry and read by nothing,
+    which is the same silence in a new place.
+    """
+    figures = Path(REPO_ROOT) / "figures.json"
+    if not figures.exists():  # pragma: no cover - `make figures` writes it
+        pytest.skip("figures.json is absent; run make figures")
+    measured = json.loads(figures.read_text(encoding="utf-8"))["defects"]["still_open"]
+    counted = sum(item.get("counts_as", 1) for item in DEFECTS if not item["fixed"])
+
+    assert measured == counted, "figures.json disagrees with the ledger about what is open"
+    page = (Path(REPO_ROOT) / "docs" / "ENGINEERING.md").read_text(encoding="utf-8")
+    assert f"{counted} still open" in page, (
+        "docs/ENGINEERING.md does not state how many defects are open. The word it used "
+        "to carry instead was `all`"
+    )
+
+
 def test_defect_identifiers_are_unique():
     ids = [defect["id"] for defect in DEFECTS]
     assert len(ids) == len(set(ids))
