@@ -797,3 +797,58 @@ cogió, y esa parte sigue siendo verdad.
   **No es bloqueante hoy**, porque todo lo que ha entrado ha entrado por push a
   `main`. **Lo es el día que haya pull requests de fuera**, que es exactamente el
   día en que un PR puede cambiar `action.yml`.
+
+- **WIDENED no ha corrido nunca de punta a punta en un runner.** Lo cubre la
+  suite: `tests/test_diff.py` lo recorre en las dos direcciones sobre las dos
+  configuraciones públicas de `michaelgrosner/CoffeeMol` y
+  `bybren-llc/safe-agentic-workflow`. Lo que no existe es un run de GitHub
+  Actions que haya producido uno. El punto 10 de la S3 saca 0, 1, 3 y 0, y el 0
+  de la cuarta carpeta es un NARROWED, no un WIDENED. Las dos direcciones no son
+  intercambiables para el código de salida: `fired_on_new_capability` mira
+  `added` y `widened`, y WIDENED es el único camino al 1 que no pasa por una
+  capacidad nueva — o sea, el único que la carpeta 2 no prueba. Se cubre en la
+  **fase L** sobre un repo de fixture propio, que además permite controlar el
+  estado de antes; sobre un fork ajeno el lado de antes es el que sea, y aflojar
+  el guardarraíl de otro para probarlo no se hace. **Fase L.**
+- **¿Sobre qué base documentada se ordena un valor que está fuera del conjunto
+  que publica el fabricante?** Escrita como pregunta porque es la pregunta, y
+  quien la abra no debería tener que reconstruirla. Las dos ramas:
+
+  - Si la documentación de Google dice que un valor inválido se ignora y cae a
+    `default`, entonces ordenarlo por debajo de `auto_edit` es correcto,
+    NARROWED es la respuesta buena, y va **citada** — URL, digest de la página y
+    fecha, como cualquier otra regla de mezcla.
+  - Si no lo dice, ordenarlo es inferir comportamiento del fabricante, que es la
+    tercera negativa, y lo honesto es INDETERMINADO con la causa nombrada.
+
+  **El escenario que importa no es `yolo`.** `yolo` está contestado: el schema
+  que publica Google para `general.defaultApprovalMode` admite `default`,
+  `auto_edit` y `plan`, y dice que YOLO solo se activa por línea de órdenes
+  (`--yolo`, `--approval-mode=yolo`), así que un fichero de ajustes no puede
+  fijarlo y tratarlo como no-`auto_edit` no es inventar nada. Medido el
+  2026-09-18 preparando el punto 10: `auto_edit` -> `"yolo"` sale NARROWED y 0.
+
+  El escenario es el día que un fabricante **añada un modo nuevo más ancho que
+  todos los conocidos** y un valor desconocido caiga al extremo seguro del
+  orden. Eso sale NARROWED sobre un ensanchamiento real: un falso negativo en la
+  única dirección en la que un falso negativo importa. Hoy `surface/gemini.py`
+  conoce una sola constante, `AUTO_EDIT = "auto_edit"`, así que todo lo que no
+  sea esa cadena es «no auto_edit» — que es exactamente el extremo seguro.
+
+  **El test que lo contesta**: un fichero de Gemini con un valor fuera del
+  conjunto publicado a los dos lados de un diff, y la afirmación de qué sale y
+  por qué. **Fase L.**
+- **Qué OTROS valores arrastran una condición que su fila de mezcla no expresa.**
+  Encontrado contando, para la S3.1, cuántas de las 16 claves tienen regla de
+  mezcla por valor. Dos la tienen y entran en esa fase. Aparte de esas, un valor
+  puede no contradecir el `kind` de su fila y aun así arrastrar una condición que
+  la fila no dice: `hooks[].type = "http"` está acotado por `allowedHttpHookUrls`,
+  que «applies to hooks from every source, including managed settings», y
+  `command` y `mcp_tool` no lo están. Ese caso concreto SE ARREGLA EN LA S3.1,
+  como una fila, usando la escalera DECLARADO-a-EFECTIVO que existe para esto.
+  Lo que NO entra en la S3.1 es el barrido sistemático: recorrer las 16 claves
+  preguntando, valor por valor, qué otra clave lo condiciona. El par de VS Code
+  (`runOn: folderOpen` acotado por `task.allowAutomaticTasks`) ya está modelado y
+  es la prueba de que el patrón existe en más de un sitio. **Sin fase**, hasta que
+  alguien la abra: es un barrido de documentación de seis fabricantes, no un
+  arreglo.
