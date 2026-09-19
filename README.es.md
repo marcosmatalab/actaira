@@ -500,9 +500,10 @@ usuario sí.
 ## Límites publicados
 
 Están en el README, en la web y en el propio informe. No se ablandan para vender
-mejor. Los diez primeros son de lo que mirar una **ejecución** no puede enseñar,
-que es `scan` y `watch`; los cuatro últimos son de lo que leer una
-**configuración** no puede enseñar, y llegan con la superficie.
+mejor. Diez son de lo que mirar una **ejecución** no puede enseñar, que es
+`scan` y `watch`; cuatro son de lo que leer una **configuración** no puede
+enseñar, y llegaron con la superficie; y los dos últimos vuelven a ser de
+`watch`, uno de ellos sobre la plataforma en la que se escribe este árbol.
 
 1. No reproducimos la salida de un modelo hospedado. Ni con seed ni con
    temperatura cero. La causa es el tamaño de lote del proveedor y el
@@ -533,6 +534,21 @@ que es `scan` y `watch`; los cuatro últimos son de lo que leer una
 14. **Un script referenciado puede cambiar después de leído.** Por eso todo se
     liga a su digest y no a su ruta: una aprobación sobre un nombre de fichero es
     una aprobación sobre lo que haya ahí mañana.
+15. **En Windows un transporte cerrado parece uno callado.** Un servidor que
+    cierra su transporte estando vivo no se distingue de uno que simplemente ha
+    dejado de hablar: el sistema operativo no entrega EOF al lector mientras el
+    proceso que escribe sigue vivo, así que el hueco se llama `upstream_timeout`
+    y no `transport_closed`. La ejecución se graba y el hueco se declara
+    igualmente; lo que se pierde es cuál de las dos cosas pasó. En la práctica un
+    cliente que se cansa antes del plazo del propio proxy deja además
+    `end_not_recorded`, que no es de la plataforma: es lo que informa cualquier
+    proxy al que matan, y es la verdad.
+16. **El proxy no contesta por un servidor que no contestó.** Cuando un servidor
+    no responde, `watch` graba el hueco y no reenvía nada, así que un cliente MCP
+    sin plazo propio se queda esperando. Escribirle un error de plazo agotado
+    metería en la entrada del agente un mensaje que ningún servidor mandó, y el
+    agente no podría distinguirlo de uno real: un testigo no actúa sobre lo que
+    observa.
 
 ---
 
@@ -579,7 +595,7 @@ documento que nombra un test que ya no existe, un flag que la documentación
 enseña y el comando no tiene, y una afirmación de esta página que el parser
 contradice.
 
-2.459 tests sobre 37.029 líneas de Python corren en cada commit, y las dos cifras las
+2.461 tests sobre 37.133 líneas de Python corren en cada commit, y las dos cifras las
 mide `make figures` en vez de escribirlas a mano: la puerta rechaza un árbol
 donde un número de este fichero no coincide con lo que el código reporta.
 

@@ -485,9 +485,10 @@ status is not acting; writing in the user's tree is.
 ## Published limits
 
 These are in the README, on the site, and in the report itself. They do not get
-softened to sell better. The first ten are about what watching a **run** cannot
-show, which is `scan` and `watch`; the last four are about what reading a
-**configuration** cannot show, and they arrive with the surface.
+softened to sell better. Ten of them are about what watching a **run** cannot
+show, which is `scan` and `watch`; four are about what reading a
+**configuration** cannot show, and they arrived with the surface; and the last
+two are about `watch` again, one of them a platform this tree is written on.
 
 1. We do not reproduce the output of a hosted model. Not with a seed, not at
    temperature zero. The cause is the provider's batch size and MoE routing, and
@@ -516,6 +517,21 @@ show, which is `scan` and `watch`; the last four are about what reading a
 14. **A referenced script can change after it is read.** Which is why everything
     binds to its digest and not to its path: an approval over a file name is an
     approval over whatever is there tomorrow.
+15. **On Windows a closed transport looks like a quiet one.** On Windows a
+    server that closes its transport while still running cannot be told apart
+    from one that has simply gone quiet. The operating system does not deliver
+    EOF to the reader while the writing process is alive, so the gap is named
+    `upstream_timeout` and not `transport_closed`. The run is recorded and the
+    gap is declared either way; what is lost is which of the two happened. In
+    practice a client that gives up before the proxy's own deadline also leaves
+    `end_not_recorded` behind, which is not platform-specific - it is what any
+    killed proxy reports, and it is the truth.
+16. **The proxy does not answer for a server that did not.** When an upstream
+    produces no reply, `watch` records the gap and forwards nothing, so an MCP
+    client with no deadline of its own waits. Writing a timeout error back would
+    put a message in the agent's own input that no server sent, and the agent
+    could not tell it from a real one - a witness does not act on what it
+    observes.
 
 ---
 
@@ -560,7 +576,7 @@ does not argue it, a schema version written in two places, a document naming a
 test that no longer exists, a flag the documentation shows that the command does
 not have, and a claim on this page that the parser contradicts.
 
-2,459 tests over 37,029 lines of Python run on every commit, and both figures are
+2,461 tests over 37,133 lines of Python run on every commit, and both figures are
 measured by `make figures` rather than typed: the gate refuses a tree where a
 number in this file disagrees with what the code reports.
 

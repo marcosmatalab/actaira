@@ -269,6 +269,34 @@ Every finding publishes `rule_id`, `rule_version`, `author` and `pack` beside it
 not compute it, does not order it against another author's, and does not sum it.
 A consumer that needs a total is asking this tool for the one thing it refuses.
 
+## Platforms
+
+`watch` runs on Windows, macOS and Linux, and the gate runs in WSL. One
+observation is not available on Windows, and it is published as limit 15 in both
+READMEs so it reaches a reader before it reaches them:
+
+> On Windows a server that closes its transport while still running cannot be
+> told apart from one that has simply gone quiet. The operating system does not
+> deliver EOF to the reader while the writing process is alive, so the gap is
+> named `upstream_timeout` and not `transport_closed`.
+
+It is limit 6 - we do not prove the absence of an action, only its presence -
+narrowed to one platform and one signal. Pipes themselves work: EOF arrives when
+the writing process EXITS, on Windows in 0.3s against Linux's 0.0s, and it
+arrives when a process closes its end and exits a second later. The one case
+that never arrives is a LIVE writer closing its end, which is the only case
+`transport_closed` is about. Measured 2026-09-19; DEF-121 carries the three-way
+table.
+
+Nothing else about a trace changes with the platform: the same calls are
+observed, the same digests computed, the same document written, and a run that
+loses this distinction still says INCOMPLETE and still names every other gap.
+The scenario is skipped in the suite on Windows, and the skip prints this same
+sentence, which
+`test_the_windows_limit_is_published_and_says_what_the_skip_says` enforces - a
+skipped test anchors nothing, so what holds the decision in place is that the
+limit is published.
+
 ## What is not promised
 
 - Message text, in either language.
