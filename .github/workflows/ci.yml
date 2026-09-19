@@ -310,6 +310,7 @@ jobs:
           levels = [r['level'] for r in keyv['runs'][0]['results']]
           assert sorted(levels) == ['error', 'warning'], levels
           print('two results, two different levels, neither of them a maximum')
+          "
       - name: two commits in this checkout, so the refs branch has refs to read
         run: |
           set -euo pipefail
@@ -343,4 +344,3 @@ jobs:
           test -s refs.sarif
           test -s actaira-diff.txt
           grep -q "Identical on both sides" actaira-diff.txt
-          "

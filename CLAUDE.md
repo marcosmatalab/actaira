@@ -244,7 +244,7 @@ estaba en alcance y falló, sí.
    MIENTRAS COMPRUEBA UNA COSA ADYACENTE. No es que falten comprobaciones: es
    que la que hay mira a un lado, sale verde, y su verde se lee como si hubiera
    mirado de frente. Antes de fiarte de una verde, nombra QUÉ EJERCITÓ, no qué
-   dice su nombre. Van cinco:
+   dice su nombre. Van seis:
    `test_the_defect_counts_match_the_measured_ledger` exigía la negrita y con
    ella sujetaba la forma que hacía la cifra invisible al patrón (DEF-122); el
    check bilingüe de `design_notes` pasaba porque la figura faltaba en las dos
@@ -255,7 +255,16 @@ estaba en alcance y falló, sí.
    (DEF-120); y el trabajo `action` de la CI, llamado «la Action usada como la
    usaría un desconocido», ejercitaba `from-dir`, que es la rama que un
    desconocido no usa, mientras la única documentada no se ejecutó jamás
-   (DEF-123).
+   (DEF-123); y `test_action_yml.py`, escrito por DEF-116 a DEF-118 para el
+   shell metido en YAML, leía `action.yml` y no `.github/workflows/`, así que
+   una comilla desplazada dejó la CI en rojo con toda la puerta en verde
+   (DEF-124).
+   DE AQUÍ SALE UNA OBLIGACIÓN, no otra regla: CUANDO CONSTRUYAS UNA
+   COMPROBACIÓN PORQUE ALGO SE ROMPIÓ, EN LA MISMA PASADA BUSCA QUÉ MÁS TIENE
+   ESA FORMA, y lo que encuentres o entra en la comprobación o entra en
+   `docs/BACKLOG.md` con su nombre. Nunca en silencio. Si se hubiera hecho al
+   cerrar DEF-118, DEF-124 no existiría: el fichero de al lado llevaba la misma
+   forma y nadie miró.
 
 ## La regla de alcanzabilidad
 
