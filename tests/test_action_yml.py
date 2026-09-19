@@ -43,6 +43,7 @@ from pathlib import Path
 
 import pytest
 
+from actaira import cli
 from conftest import REPO_ROOT
 
 ACTION = Path(REPO_ROOT) / "action.yml"
@@ -287,4 +288,109 @@ def test_the_comment_stripper_does_not_strip_the_code():
     assert "|| true" in BLOCKS[DIFF_STEP], (
         "action.yml no longer argues the `|| true` rule in a comment, so this "
         "guard is no longer about anything and the stripper is untested"
+    )
+
+
+# ---------------------------------------------------------------------------
+# DEF-123: the argv the step builds has to be one the CLI accepts
+# ---------------------------------------------------------------------------
+#
+# Every test above runs the step against a stub that prints and exits, and a
+# stub that swallows ANY argv is why they were all green over a call `actaira
+# diff` refuses. `--sarif` was written after `"$@"`, so on the refs branch it
+# landed after the `--` that ends option parsing; argparse read it and its path
+# as two more refs, and the DOCUMENTED path - `on: pull_request` with no inputs
+# - exited 2 on every pull request that ever used it.
+#
+# So this one does not stub the judgement. The stub RECORDS the argv and the
+# real CLI decides, over real inputs: a git repository with two commits for the
+# refs branch, two directories for the other. One definition of "an argv `diff`
+# accepts", and it is the one a user gets.
+
+RECORD = "ACTAIRA_ARGV_RECORD"
+
+
+def _recording_stub(binaries: Path) -> None:
+    """A stub that writes its arguments, one per line, and says nothing else.
+
+    Shell and not Python: this runs under whatever `bash` is on PATH, and a
+    Python interpreter path quoted into a shell script is one more thing to get
+    wrong on the platform where the shell is not the system's own.
+    """
+    binaries.mkdir(parents=True, exist_ok=True)
+    stub = binaries / "actaira"
+    stub.write_text(
+        "#!/bin/sh\n"
+        f': > "${RECORD}"\n'
+        f'for argument in "$@"; do printf \'%s\n\' "$argument" >> "${RECORD}"; done\n'
+        "echo 'a report the stub printed'\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    stub.chmod(0o755)
+
+
+def _git(where: Path, *arguments: str) -> str:
+    done = subprocess.run(["git", *arguments],  # noqa: S607 - git from PATH, as diff.py runs it
+                          cwd=where, check=True,
+                          capture_output=True, text=True, timeout=120)
+    return done.stdout.strip()
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="no git on PATH")
+@pytest.mark.parametrize("branch", ["dirs", "refs"])
+def test_the_argv_the_step_builds_is_one_the_cli_accepts(branch, tmp_path, monkeypatch):
+    """DEF-123, over BOTH branches, because only one was ever exercised.
+
+    CI's `action` job passes `from-dir`, which is the branch a stranger does not
+    use, and the branch nobody ran is the branch that was broken.
+    """
+    workspace = tmp_path / branch
+    workspace.mkdir()
+    record = workspace / "argv.txt"
+    _recording_stub(workspace / "bin")
+    environment = {
+        **os.environ,
+        "PATH": os.pathsep.join([str(workspace / "bin"), os.environ.get("PATH", "")]),
+        RECORD: str(record),
+        "ACTAIRA_FROM_DIR": "", "ACTAIRA_TO_DIR": "",
+        "ACTAIRA_BASE": "", "ACTAIRA_HEAD": "",
+        "ACTAIRA_EVENT_BASE": "", "ACTAIRA_EVENT_HEAD": "",
+        "ACTAIRA_SARIF": str(workspace / "actaira.sarif"),
+        "ACTAIRA_LANG": "en",
+        "GITHUB_OUTPUT": str(workspace / "github_output"),
+        "GITHUB_STEP_SUMMARY": str(workspace / "github_step_summary"),
+    }
+
+    if branch == "dirs":
+        for name in ("a", "b"):
+            (workspace / name).mkdir()
+        environment["ACTAIRA_FROM_DIR"] = str(workspace / "a")
+        environment["ACTAIRA_TO_DIR"] = str(workspace / "b")
+    else:
+        _git(workspace, "init", "--quiet", "-b", "main")
+        _git(workspace, "config", "user.email", "gate@example.invalid")
+        _git(workspace, "config", "user.name", "gate")
+        (workspace / "README.md").write_text("before\n", encoding="utf-8")
+        _git(workspace, "add", "README.md")
+        _git(workspace, "commit", "--quiet", "-m", "before")
+        environment["ACTAIRA_EVENT_BASE"] = _git(workspace, "rev-parse", "HEAD")
+        (workspace / "README.md").write_text("after\n", encoding="utf-8")
+        _git(workspace, "commit", "--quiet", "-am", "after")
+        environment["ACTAIRA_EVENT_HEAD"] = _git(workspace, "rev-parse", "HEAD")
+
+    bash(BLOCKS[DIFF_STEP], workspace, environment)
+
+    assert record.is_file(), "the step never reached the tool"
+    argv = record.read_text(encoding="utf-8").splitlines()
+
+    # The real CLI is the judge, over real inputs, in the directory the step ran
+    # in: `--repo .` means nothing anywhere else.
+    monkeypatch.chdir(workspace)
+    code = cli.main(argv)
+
+    assert code != 2, (
+        f"the {branch} branch builds an argv `actaira diff` refuses as a usage error: "
+        f"{argv}. DEF-123: a stub that accepts anything cannot tell a call the tool "
+        "would take from one it would not"
     )

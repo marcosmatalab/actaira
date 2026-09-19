@@ -133,8 +133,15 @@ runs:
         base="${ACTAIRA_BASE:-$ACTAIRA_EVENT_BASE}"
         head="${ACTAIRA_HEAD:-$ACTAIRA_EVENT_HEAD}"
 
+        # DEF-123. EVERY OPTION GOES INTO `$@`, AND NOTHING IS APPENDED AFTER IT
+        # AT THE CALL SITE. `--sarif` used to be written after `"$@"`, which put
+        # it AFTER the `--` below, and `--` ends option parsing: argparse read
+        # `--sarif` and its path as two more refs, `diff` got four where it
+        # wants two, and the documented path exited 2 on every pull request
+        # that ever used it. The from-dir branch has no `--`, so it parsed
+        # fine - which is the only reason the self-test was green.
         if [ -n "$ACTAIRA_FROM_DIR" ] || [ -n "$ACTAIRA_TO_DIR" ]; then
-          set -- --from-dir "$ACTAIRA_FROM_DIR" --to-dir "$ACTAIRA_TO_DIR"
+          set -- --from-dir "$ACTAIRA_FROM_DIR" --to-dir "$ACTAIRA_TO_DIR" --sarif "$ACTAIRA_SARIF"
         else
           if [ -z "$base" ] || [ -z "$head" ]; then
             echo "actaira: no base and head to compare." >&2
@@ -144,7 +151,9 @@ runs:
           fi
           # `--` so a ref is a ref. The tool refuses one starting with a dash on
           # its own account as well; this is the outer half of the same refusal.
-          set -- --repo . -- "$base" "$head"
+          # It stays. What moved is `--sarif`, which now goes in FRONT of it,
+          # where an option belongs.
+          set -- --repo . --sarif "$ACTAIRA_SARIF" -- "$base" "$head"
         fi
 
         # Written to a file and then read back, rather than piped: the exit code
@@ -159,7 +168,7 @@ runs:
         # what it does when the tool exits non-zero. `|| code=$?` handles the
         # failure, which is what stops `-e` acting on it.
         code=0
-        actaira --lang "$ACTAIRA_LANG" diff "$@" --sarif "$ACTAIRA_SARIF" > actaira-diff.txt || code=$?
+        actaira --lang "$ACTAIRA_LANG" diff "$@" > actaira-diff.txt || code=$?
 
         # The heading is the tool's name and nothing else. Everything under it is
         # what `actaira diff` printed, in the language the caller asked for; a

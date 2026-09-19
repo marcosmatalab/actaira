@@ -224,11 +224,23 @@ jobs:
 
   action:
     name: the published Action, used the way a stranger would
-    # The Action, used the way a stranger would use it: `uses:` against two
-    # directories of fixtures, asserting the exit code each one is supposed to
-    # produce. `from-dir` and `to-dir` exist for this - the two sides of a diff
-    # are two commits, and a job that had to build a repository to test the
-    # Action would be testing the repository it built.
+    # The Action, used the way a stranger would use it. BOTH WAYS, since DEF-123.
+    #
+    # This job used to run `from-dir`/`to-dir` only, on the argument that a job
+    # which had to build a repository would be testing the repository it built.
+    # The argument was wrong and it cost the launch: a stranger does not pass
+    # `from-dir`, a stranger writes `on: pull_request` and passes nothing, and
+    # that path builds a DIFFERENT argv - one with a `--` in it. `--sarif` was
+    # appended after `"$@"`, so it landed after the separator, argparse read it
+    # as two more refs and `diff` exited 2. On every pull request. Always. A job
+    # named "used the way a stranger would" was exercising the way a stranger
+    # would not, and three real pull requests in point 10 of phase S3 are how
+    # that was found.
+    #
+    # So the refs branch runs here too, over two commits this job makes in its
+    # own checkout. That is not testing the repository it built: the repository
+    # is the fixture, and what is under test is whether the Action can hand two
+    # refs to the tool at all.
     #
     # `continue-on-error` on the step and an explicit `test` on its outcome,
     # rather than `|| true`: the Action's whole contract is that the exit code
@@ -298,4 +310,37 @@ jobs:
           levels = [r['level'] for r in keyv['runs'][0]['results']]
           assert sorted(levels) == ['error', 'warning'], levels
           print('two results, two different levels, neither of them a maximum')
+      - name: two commits in this checkout, so the refs branch has refs to read
+        run: |
+          set -euo pipefail
+          git config user.email "ci@example.invalid"
+          git config user.name "actaira ci"
+          git switch --quiet -c actaira-refs-probe
+          git commit --quiet --allow-empty -m "the base side of the refs probe"
+          echo "REFS_BASE=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "" >> README.md
+          echo "probe" >> README.md
+          git commit --quiet -am "one line of a file that is not agent configuration"
+          echo "REFS_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: the refs branch, which is the one the documentation tells people to use
+        id: refs
+        continue-on-error: true
+        uses: $/
+        with:
+          base: ${{ env.REFS_BASE }}
+          head: ${{ env.REFS_HEAD }}
+          sarif: refs.sarif
+      - name: the refs run said what a pull request of that shape has to say
+        run: |
+          set -euo pipefail
+          REFS="$(cat actaira-exit-code.txt)"
+          echo "refs=$REFS"
+          # 0 and not 2. This repository carries agent configuration of its own,
+          # in fixtures and in `.claude/`, and it is identical on both sides, so
+          # it resolves to unchanged and moves nothing. A 2 here is the argv
+          # being refused, which is DEF-123 coming back.
+          test "$REFS" = "0"
+          test -s refs.sarif
+          test -s actaira-diff.txt
+          grep -q "Identical on both sides" actaira-diff.txt
           "
