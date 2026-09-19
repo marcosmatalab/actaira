@@ -823,6 +823,41 @@ cogió, y esa parte sigue siendo verdad.
   **fase L** sobre un repo de fixture propio, que además permite controlar el
   estado de antes; sobre un fork ajeno el lado de antes es el que sea, y aflojar
   el guardarraíl de otro para probarlo no se hace. **Fase L.**
+- **PUNTO DE PUERTA DE LA FASE L, no una línea de esta lista: toda cifra y toda
+  afirmación de comportamiento en material de `.launch/` nombra el comando que la
+  produce, y se comprueba ANTES de que salga de la carpeta.** Se escribe aquí
+  para que el prompt de la L lo recoja, no para que alguien lo arregle hoy.
+
+  POR QUÉ ES UN PUNTO DE PUERTA Y NO UNA LÍNEA. `.launch/` es el único sitio del
+  repositorio sin ninguna guarda. Está en `.gitignore` —línea 96, a propósito:
+  material sobre publicar el producto, no parte de él—, así que no lo mira el
+  check de afirmaciones de los READMEs, ni `figures_contract.py`, ni la regla de
+  trabajo 6, ni `markup_split_problems`, ni el barrido de shell que trajo
+  DEF-124, que lo salta declarando su motivo. Y la fase L consiste precisamente
+  en LLENARLO de material publicable. Una fase cuyo entregable vive en el único
+  directorio sin puerta necesita la puerta antes que el entregable.
+
+  DE DÓNDE SALE, medido y no supuesto. El kit 4 del punto 10 afirmaba que el
+  informe mostraba ACT-S031 disparando en el lado de antes. Ejecutado el
+  2026-09-19, run 35468400213: salida 0, `NARROWED: 1`, cero menciones de ninguna
+  regla en todo el log. La afirmación era falsa, contradecía al kit 1 —que
+  explicaba correctamente lo mismo— y `fired_on_new_capability` en
+  `surface/diff.py` la contesta en tres líneas, nota de diseño D-299: los
+  hallazgos se adjuntan a `added` y `widened` y a nada más. Nadie lo vio porque
+  nada lo comprobaba y porque nadie lo había ejecutado: fue el propio punto 10
+  quien lo destapó. Eso es un hallazgo sobre el material de lanzamiento, no una
+  errata, y la diferencia importa: una errata se corrige, un hallazgo cambia la
+  puerta.
+
+  LA FORMA, escrita para que nadie la implemente mal. No vale una lista de
+  ficheros a revisar a mano: sería la regla de trabajo 11 otra vez, una
+  comprobación que cumple quien decida no añadir la línea. La comprobación tiene
+  que descubrir el material —recorrer `.launch/`— y exigir de cada cifra y cada
+  afirmación de comportamiento el comando que la produce, del mismo modo que los
+  bloques de consola de los READMEs se comparan hoy contra lo que el comando
+  imprime de verdad. Y tiene que fallar ruidosamente cuando no encuentre
+  material, porque un directorio ignorado que hoy está y mañana no es justo el
+  caso en que un cero silencioso se leería como verde. **Fase L, en la puerta.**
 - **¿Sobre qué base documentada se ordena un valor que está fuera del conjunto
   que publica el fabricante?** Escrita como pregunta porque es la pregunta, y
   quien la abra no debería tener que reconstruirla. Las dos ramas:
