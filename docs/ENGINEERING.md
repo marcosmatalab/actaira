@@ -97,10 +97,10 @@ holds it down. `make figures` checks every test the ledger names against what
 pytest actually collects, so a renamed test is reported by name rather than
 leaving a total that still looks healthy.
 
-141 defects have been found here, by 20 distinct mechanisms, and every one of
+142 defects have been found here, by 20 distinct mechanisms, and every one of
 them was found by a mechanism that can fail. 0 still open.
-48 were never in a released build and are marked as such rather than dropped.
-Every entry is held down: 22 pinned by a named test, and 103 by a written note,
+49 were never in a released build and are marked as such rather than dropped.
+Every entry is held down: 23 pinned by a named test, and 103 by a written note,
 where a named test would be a weaker copy of what the linter or the gate
 already does.
 

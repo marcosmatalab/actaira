@@ -55,35 +55,67 @@ DIFF_STEP = "diff"
 # not a credential.
 PASSTHROUGH_STEP = "pass the tool's exit code through"  # noqa: S105
 
-BLOCK = re.compile(r"^(\s*)run: \|\s*$")
+BLOCK = re.compile(r"^(\s*)(- )?run: \|\s*$")
+INLINE = re.compile(r"^\s*(?:- )?run: (?![|>])(\S.*?)\s*$")
+FOLDED = re.compile(r"^\s*(?:- )?run: >")
 LABEL = re.compile(r"^\s*(?:- )?(?:id|name): (.+?)\s*$")
 
 
 def run_blocks(text: str) -> dict[str, str]:
-    """{step label: shell body} for every `run: |` block in a workflow file.
+    """{step label: shell body} for every `run:` in a workflow file.
 
-    The label is the nearest `id:` or `name:` above the block, with `id:`
-    winning because it is the stable handle a workflow refers to. Bodies are
+    The label is the nearest `id:` or `name:` above it, with `id:` winning
+    because it is the stable handle a workflow refers to. Block bodies are
     dedented by the block's own indentation, which is what a YAML block scalar
     means and all of it this needs to understand.
+
+    THREE THINGS IT DOES THAT LOOK LIKE DETAIL AND ARE NOT, all of them DEF-124:
+    a one-line `run:` is returned too, because a sweep that read only `run: |`
+    would leave seven of `ci.yml`'s sixteen unread and be green about them; a
+    repeated label gets a suffix rather than overwriting, because a dict keyed
+    by label silently DROPS every unnamed step after the first; and `run: >` is
+    refused loudly rather than guessed at, because a folded scalar joins its
+    lines and this reader would hand the shell something the runner never sees.
     """
     found: dict[str, str] = {}
     lines = text.splitlines()
     label = "?"
+
+    def record(name: str, body: str) -> None:
+        key, repeat = name, 1
+        while key in found:
+            repeat += 1
+            key = f"{name} ({repeat})"
+        found[key] = body
+
     for index, line in enumerate(lines):
+        if line.lstrip().startswith("#"):
+            continue
         named = LABEL.match(line)
-        if named and not line.lstrip().startswith("#"):
+        if named:
             label = named.group(1)
+        if FOLDED.match(line):
+            raise ValueError(
+                f"`run: >` on line {index + 1}: a folded scalar is not a block "
+                "scalar, and this reader would hand bash text the runner will "
+                "not. Write `run: |`, or teach this function what folding does."
+            )
+        one_liner = INLINE.match(line)
+        if one_liner:
+            record(label, one_liner.group(1) + "\n")
+            continue
         opened = BLOCK.match(line)
         if not opened:
             continue
-        indent = len(opened.group(1)) + 2
+        # `- run: |` puts the key two columns right of the dash, so its
+        # body is indented from there and not from the list marker.
+        indent = len(opened.group(1)) + (2 if opened.group(2) else 0) + 2
         body: list[str] = []
         for following in lines[index + 1:]:
             if following.strip() and not following.startswith(" " * indent):
                 break
             body.append(following[indent:] if len(following) >= indent else "")
-        found[label] = "\n".join(body).rstrip() + "\n"
+        record(label, "\n".join(body).rstrip() + "\n")
     return found
 
 

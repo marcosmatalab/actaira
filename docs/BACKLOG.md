@@ -738,6 +738,19 @@ cogió, y esa parte sigue siendo verdad.
   sale ahora limpio sin ninguna exención, «No findings to report» sin
   «(N ignored)». El aislamiento de la variable, que es lo que la línea pedía,
   funcionó exactamente como estaba previsto.
+- **Las recetas del `Makefile` son el único sitio con la forma de DEF-124 que
+  el barrido no cubre.** `tests/test_workflow_shell.py` le pasa `bash -n` a todo
+  el shell que este repositorio mete en un fichero que no es un script —los
+  `run:` de los workflows y de `action.yml`, los `RUN` del `Dockerfile`—, y a las
+  recetas no, porque expandirlas es `make -n` y eso es otro mecanismo: meterlo en
+  el mismo test es como un test deja de ser una cosa. `make all` ejecuta lo que
+  alcanza (`lint`, `test`, `figures`, `release-check` y lo que cuelgue de ellos),
+  así que las recetas sin cubrir son las que no alcanza: `install`, `types`,
+  `contracts`, `rules`, `design-notes`, `package`, `source-archive`, `clean` y
+  `help`. Se anota aquí, y no se calla, porque callarlo sería exactamente lo que
+  la regla de trabajo 12 añadió al cerrar DEF-124: buscar qué más tiene la forma
+  y no decir lo que encontraste. **Sin fase.**
+
 - **El informe HTML no tiene una comprobación de que se lea.** Se afirma que no
   carga nada de la red, que sale igual dos veces y que escapa lo que viene de
   otro; no se afirma nada de que el resultado sea legible, y eso no es
