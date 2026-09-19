@@ -9,7 +9,7 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-19T20:38:03+00:00 for actaira 3.0.0, at commit 3e793fb.
+Generated 2026-09-19T21:13:05+00:00 for actaira 3.0.0, at commit c0a3367.
 
 ## The package
 
