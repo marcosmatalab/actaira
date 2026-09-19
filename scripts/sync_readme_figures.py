@@ -33,7 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from figures_contract import ROOT, SEPARATORS, derive, figures  # noqa: E402
+from figures_contract import ROOT, SEPARATORS, figures  # noqa: E402
 
 
 def main() -> int:
@@ -43,15 +43,15 @@ def main() -> int:
         print(problem, file=sys.stderr)
         return 1
 
-    # The three the ledger sentence carries. Two of them are not in the
-    # pattern table because they never appear on their own - they only ever
-    # appear inside that one clause.
-    value = derive()
-    ledger, pinned, by_note = value["defects"], value["defects_pinned"], value["defects_by_note"]
-
-    def ledger_sentence(match: re.Match[str]) -> str:
-        return f"**{ledger}**, {match.group(1)}, **{pinned}**{match.group(2)}**{by_note}**"
-
+    # DEF-122 removed a second writer from this function. The defect ledger's
+    # sentence used to be rewritten whole, by a regex of its own, on the ground
+    # that two of its figures "never appear on their own". That regex emitted
+    # `**137**, all fixed, **17**` - and markup between a figure and its noun is
+    # exactly what makes every pattern in the table stop matching. So one
+    # mechanism wrote the sentence into a shape the other could not read, the
+    # loop below silently wrote nothing there, and the gate silently compared
+    # nothing. Both ledger figures have rows in the table now, `defects_pinned`
+    # included, and this function has one way of writing a number.
     changed: list[str] = []
     written = 0
     for name in SEPARATORS:
@@ -64,14 +64,6 @@ def main() -> int:
                 continue
             text, count = re.subn(pattern, figure.rendered(name), text)
             written += count
-        # The defect ledger's own sentence, which carries three figures in one
-        # clause and is therefore easier to rewrite whole than to anchor three
-        # lookaheads inside.
-        text = re.sub(
-            r"\*\*\d+\*\*, (all fixed|todos corregidos), \*\*\d+\*\*([^*\d]*)\*?\*?\d+\*?\*?",
-            ledger_sentence,
-            text,
-        )
         if text != before:
             path.write_text(text, encoding="utf-8", newline="\n")
             changed.append(name)

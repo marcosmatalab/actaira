@@ -522,3 +522,63 @@ def test_a_package_description_missing_a_command_fails(working_tree, tmp_path):
         gate.package_metadata_names_real_commands()
 
     assert "diff" in str(raised.value) and "seal" in str(raised.value)
+
+
+def test_a_figure_pattern_that_matches_nothing_fails(working_tree, tmp_path):
+    """DEF-122, and the twin that proves the new refusal bites.
+
+    The gate used to `continue` past a pattern that found nothing, so a figure
+    could declare a page, live on none, and be reported as neither wrong nor
+    missing. Four on `docs/ENGINEERING.md` sat that way under a paragraph
+    claiming they were gate-refused, two of them stale by 8 and by 4, and
+    `design_notes` declared both READMEs while appearing in neither.
+
+    The break is done in the PROSE and not in the table, because that is the
+    direction it happens: somebody rewords a sentence, the lookahead stops
+    matching, and nothing says so. Bolding the digits is the exact shape that
+    did it - `**136** defects` instead of `136 defects`.
+    """
+    broken = tmp_path / "unmatchable-pattern"
+    shutil.copytree(working_tree, broken)
+    page = broken / "docs" / "ENGINEERING.md"
+    text = page.read_text(encoding="utf-8")
+    before, hit, after = text.partition(" defects have been found")
+    assert hit, "the sentence this test breaks is not on the page any more"
+    digits = re.search(r"(\d+)$", before)
+    assert digits, before[-40:]
+    page.write_text(
+        before[: digits.start()] + f"**{digits.group(1)}**" + hit + after,
+        encoding="utf-8",
+    )
+
+    result = run(broken)
+
+    assert result.returncode == 1, result.stdout
+    assert "defects declares this page" in result.stdout, result.stdout
+    assert "matches nothing in it" in result.stdout, result.stdout
+
+
+def test_a_figure_on_no_page_says_so_rather_than_keeping_a_dead_pattern(working_tree):
+    """The other half of DEF-122: the door the refusal above leaves open.
+
+    A figure that no page states can satisfy the new check in two ways - by
+    being written into a page, or by declaring no page at all. The second is
+    legitimate and is what `design_notes` needed, so it exists; what it must
+    not become is the quiet way to switch the check off for a figure that
+    really is published. `measured_only` refuses an empty reason, and every
+    figure that declares no page still goes through `figures_match`.
+    """
+    sys.path.insert(0, str(working_tree / "scripts"))
+    for module in ("figures_contract",):
+        sys.modules.pop(module, None)
+    from figures_contract import figures  # noqa: PLC0415
+
+    stated = [figure for figure in figures() if figure.patterns]
+    silent = [figure for figure in figures() if not figure.patterns]
+
+    assert stated, "no figure declares a page; the pattern check would compare nothing"
+    assert [figure.name for figure in silent] == ["design_notes"], (
+        "a figure stopped declaring a page. That is allowed, and it is also how "
+        "the check above gets switched off one figure at a time, so it is "
+        "asserted here rather than noticed later"
+    )

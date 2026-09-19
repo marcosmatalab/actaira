@@ -127,10 +127,27 @@ def test_the_defect_counts_match_the_measured_ledger():
     """
     defects = FIGURES["defects"]
     engineering = (Path(REPO_ROOT) / "docs" / "ENGINEERING.md").read_text(encoding="utf-8")
-    assert f"**{defects['defects']}**" in engineering, (
-        f"docs/ENGINEERING.md must state {defects['defects']} defects, the count make figures measured"
+
+    # DEF-122. This used to assert `f"**{value}**" in engineering`, and that
+    # assertion is part of what kept the defect alive: every pattern in
+    # `figures_contract` anchors on the words AFTER the number, so bold between
+    # the digits and the noun hides the figure from the sync script and from the
+    # gate. A test demanding the broken shape is a test holding it in place. It
+    # goes through the contract's own patterns now, so "stated on this page"
+    # has one definition and this cannot drift from the gate's.
+    sys.path.insert(0, str(Path(REPO_ROOT) / "scripts"))
+    from figures_contract import figures  # noqa: PLC0415
+
+    stated = {
+        figure.name: re.findall(figure.patterns["docs/ENGINEERING.md"], engineering)
+        for figure in figures()
+        if "docs/ENGINEERING.md" in figure.patterns
+    }
+    assert stated["defects"] == [str(defects["defects"])], (
+        f"docs/ENGINEERING.md must state {defects['defects']} defects, the count "
+        f"make figures measured, where the contract's pattern can see it"
     )
-    assert f"**{defects['pinned_by_a_named_test']}**" in engineering
+    assert stated["defects_pinned"] == [str(defects["pinned_by_a_named_test"])], stated
 
     # And they must not have crept back onto a landing page.
     for name, text in BOTH.items():
