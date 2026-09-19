@@ -248,13 +248,13 @@
     },
     "total_lines": 850
   },
-  "generated_at": "2026-09-19T22:54:16+00:00",
+  "generated_at": "2026-09-19T23:06:57+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 40,
-    "head": "9d1476f",
-    "head_date": "2026-09-19"
+    "commits": 41,
+    "head": "bf6493d",
+    "head_date": "2026-09-20"
   },
   "package": {
     "declared_version": "3.0.0",

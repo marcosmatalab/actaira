@@ -281,11 +281,18 @@ jobs:
   surface:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           fetch-depth: 0       # diff needs both sides, so the whole history
-      - uses: marcosmatalab/actaira@main
+          persist-credentials: false
+      - uses: marcosmatalab/actaira@c0a33675c14b8a622ddb794ab3f516a514e3124d
 ```
+
+**Both `uses:` are pinned to a commit SHA, and that is not decoration.** A tag
+is a name and a name moves, which is what ACT-S003 tells other people about
+their own MCP servers and hooks; an example that told you to write `@main`
+would be this tool asking of you what it flags in your repository. Re-resolve
+one with `gh api repos/<owner>/<repo>/git/ref/tags/<tag> --jq .object.sha`.
 
 It writes the report into the job summary and SARIF 2.1.0 to `actaira.sarif`;
 uploading that to code scanning is yours to do, with
@@ -310,7 +317,7 @@ For a local hook, this repository publishes one:
 ```yaml
 repos:
   - repo: https://github.com/marcosmatalab/actaira
-    rev: main
+    rev: c0a33675c14b8a622ddb794ab3f516a514e3124d
     hooks:
       - id: actaira-check
 ```
