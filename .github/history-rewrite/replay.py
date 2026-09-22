@@ -53,9 +53,20 @@ def field(sha: str, spelling: str) -> str:
     return git("log", "-1", f"--format={spelling}", sha).rstrip("\n")
 
 
-def check_messages() -> None:
+def check(resulting: dict[str, str]) -> None:
+    """The cap and the vocabulary, over the RESULTING history.
+
+    It used to run over `MESSAGES` alone, which is the shape work rule 12
+    names: the check looked at the map and its green was read as being about
+    the branch. A commit written after the map was generated sat one line over
+    the cap with the map passing its own assertion, and the commit that did it
+    was the one that added the map.
+
+    So what is measured is what the history would carry: a rewritten message
+    where there is one, and the commit's own message where there is not.
+    """
     problems = []
-    for sha, message in sorted(MESSAGES.items()):
+    for sha, message in sorted(resulting.items()):
         lines = message.rstrip("\n").split("\n")
         if len(lines) + 1 > MAX_LINES:
             problems.append(f"{sha}: {len(lines) + 1} lines, the cap is {MAX_LINES}")
@@ -73,7 +84,6 @@ def main() -> int:
     parser.add_argument("--branch", default="main")
     arguments = parser.parse_args()
 
-    check_messages()
     commits = git("rev-list", "--reverse", arguments.branch).split()
     unknown = sorted(set(MESSAGES) - {sha[:8] for sha in commits})
     if unknown:
@@ -82,13 +92,17 @@ def main() -> int:
             f"stale: {unknown}"
         )
 
+    # Read every message first, then check the whole history, then build. A
+    # check between the two would be about what this run intends rather than
+    # about what it would produce.
+    resulting = {sha[:8]: MESSAGES.get(sha[:8], field(sha, "%B")) for sha in commits}
+    check(resulting)
+
     mapping: dict[str, str] = {}
     rewritten = 0
     for sha in commits:
-        message = MESSAGES.get(sha[:8])
-        if message is None:
-            message = field(sha, "%B")
-        else:
+        message = resulting[sha[:8]]
+        if sha[:8] in MESSAGES:
             rewritten += 1
         environment = dict(
             os.environ,
