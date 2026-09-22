@@ -24,6 +24,7 @@ from actaira.surface import (
     devcontainer,
     gemini,
     jsonc,
+    merge,
     miniyaml,
     resolve,
     rules,
@@ -101,7 +102,7 @@ def test_a_folder_open_task_is_effective_when_the_setting_allows_it(tree, tmp_pa
     root = tree({".vscode/tasks.json": KEYV_TASK})
     home = _user_settings(tmp_path, "on")
 
-    surface = resolve._vscode(vscode.read(root, machine=True, home=home))
+    surface = vscode.vscode_surface(vscode.read(root, machine=True, home=home))
     task = _capabilities(surface, "task.command")[0]
 
     assert task.resolution is Resolution.EFFECTIVE
@@ -113,7 +114,7 @@ def test_a_folder_open_task_is_declared_when_the_setting_blocks_it(tree, tmp_pat
     root = tree({".vscode/tasks.json": KEYV_TASK})
     home = _user_settings(tmp_path, "off")
 
-    surface = resolve._vscode(vscode.read(root, machine=True, home=home))
+    surface = vscode.vscode_surface(vscode.read(root, machine=True, home=home))
     task = _capabilities(surface, "task.command")[0]
 
     assert task.resolution is Resolution.DECLARED
@@ -130,7 +131,7 @@ def test_a_folder_open_task_is_indeterminate_when_no_scope_read_says(tree):
     """
     root = tree({".vscode/tasks.json": KEYV_TASK})
 
-    surface = resolve._vscode(vscode.read(root))
+    surface = vscode.vscode_surface(vscode.read(root))
     task = _capabilities(surface, "task.command")[0]
 
     assert task.resolution is Resolution.INDETERMINATE
@@ -152,11 +153,11 @@ def test_the_rule_reports_the_task_once_the_setting_is_visible(tree, tmp_path):
     root = tree({".vscode/tasks.json": KEYV_TASK})
     catalogue = rules.load()
 
-    seen = resolve._vscode(vscode.read(root, machine=True, home=_user_settings(tmp_path, "on")))
+    seen = vscode.vscode_surface(vscode.read(root, machine=True, home=_user_settings(tmp_path, "on")))
     found, _gaps = rules.evaluate(seen, catalogue)
     assert [item.rule_id for item in found] == ["ACT-S016"]
 
-    blind = resolve._vscode(vscode.read(root))
+    blind = vscode.vscode_surface(vscode.read(root))
     found, gaps = rules.evaluate(blind, catalogue)
     assert not found
     assert any(gap.subject.startswith("ACT-S016") for gap in gaps)
@@ -281,7 +282,7 @@ def test_a_real_tasks_file_with_comments_is_read_rather_than_refused(tree):
     reading = vscode.read(root)
 
     assert not reading.unresolved, "a comment is not a defect in a JSONC file"
-    surface = resolve._vscode(reading)
+    surface = vscode.vscode_surface(reading)
     assert _capabilities(surface, "task.command")[0].facts["run_on"] == "folderOpen"
 
 
@@ -363,7 +364,7 @@ def test_initialize_command_is_the_one_that_runs_on_the_host(tree):
         }
     )
 
-    surface = resolve._devcontainer(devcontainer.read(root))
+    surface = devcontainer.devcontainer_surface(devcontainer.read(root))
     by_key = {item.facts["key"]: item for item in _capabilities(surface, "lifecycle.command")}
 
     assert by_key["initializeCommand"].facts["on_host"] is True
@@ -401,7 +402,7 @@ def test_a_mount_is_read_in_both_documented_spellings(tree):
         }
     )
 
-    surface = resolve._devcontainer(devcontainer.read(root))
+    surface = devcontainer.devcontainer_surface(devcontainer.read(root))
     mounts = _capabilities(surface, "container.mount")
 
     assert len(mounts) == 2
@@ -419,7 +420,7 @@ def test_a_codex_hook_waits_on_a_trust_level_that_is_not_in_the_repository(tree)
         }
     )
 
-    surface = resolve._codex(codex.read(root))
+    surface = codex.codex_surface(codex.read(root))
     hook = _capabilities(surface, "hook.command")[0]
 
     assert hook.resolution is Resolution.DECLARED
@@ -432,7 +433,7 @@ def test_codex_notify_in_a_repository_file_is_declared_and_not_effective(tree):
     effective would be Actaira contradicting the vendor about its own product."""
     root = tree({".codex/config.toml": 'notify = ["python3", ".codex/notify.py"]\n'})
 
-    surface = resolve._codex(codex.read(root))
+    surface = codex.codex_surface(codex.read(root))
     helper = _capabilities(surface, "helper.command")[0]
 
     assert helper.resolution is Resolution.DECLARED
@@ -451,7 +452,7 @@ def test_gemini_trust_is_read_as_the_bypass_the_vendor_says_it_is(tree):
         }
     )
 
-    surface = resolve._gemini(gemini.read(root))
+    surface = gemini.gemini_surface(gemini.read(root))
     by_name = {item.facts["server"]: item for item in _capabilities(surface, "mcp.server")}
 
     assert by_name["trusted"].facts["trusted_by_config"] is True
@@ -504,8 +505,8 @@ def test_every_vendor_has_its_own_ladder_and_they_disagree():
     Gemini's precedence puts the project file ABOVE the user's; Claude Code's
     puts the user's above the project. A single table would have to pick one.
     """
-    claude = resolve.row_for("*", "claude-code")
-    gemini_row = resolve.row_for("*", "gemini-cli")
+    claude = merge.row_for("*", "claude-code")
+    gemini_row = merge.row_for("*", "gemini-cli")
 
     assert claude.url != gemini_row.url
     assert "highest level that sets it" in claude.quote
@@ -514,12 +515,12 @@ def test_every_vendor_has_its_own_ladder_and_they_disagree():
 
 def test_every_vendor_in_the_registry_has_a_merge_table():
     for vendor, _reader, _resolver in resolve.vendor_registry():
-        assert vendor in resolve.MERGE_TABLES, (
+        assert vendor in merge.MERGE_TABLES, (
             f"{vendor} resolves capabilities and names no documented rule for any of them"
         )
 
 
-@pytest.mark.parametrize("row", resolve.MERGE_TABLE, ids=lambda row: f"{row.keys[0]}")
+@pytest.mark.parametrize("row", merge.MERGE_TABLE, ids=lambda row: f"{row.keys[0]}")
 def test_every_merge_row_of_every_vendor_cites_its_source(row):
     assert row.cited
     assert len(row.doc_sha256) == 64
@@ -529,8 +530,8 @@ def test_every_merge_row_of_every_vendor_cites_its_source(row):
 def test_every_capability_any_vendor_emits_names_a_row_that_exists():
     """No capability may cite a rule that is not in its own vendor's table."""
     handles = {
-        vendor: {resolve.rule_name(row) for row in rows}
-        for vendor, rows in resolve.MERGE_TABLES.items()
+        vendor: {merge.rule_name(row) for row in rows}
+        for vendor, rows in merge.MERGE_TABLES.items()
     }
     for root in sorted(CORPUS.iterdir()):
         if not (root / "provenance.json").is_file():
@@ -914,14 +915,14 @@ def test_a_managed_codex_requirement_is_read_and_stamped_managed(tmp_path, monke
     )
     monkeypatch.setattr(codex, "managed_paths", lambda: (managed / "requirements.toml",))
 
-    surface = resolve._codex(codex.read(tmp_path, machine=True, home=tmp_path / "home"))
+    surface = codex.codex_surface(codex.read(tmp_path, machine=True, home=tmp_path / "home"))
     policy = _capabilities(surface, "policy.managed_hooks_only")
 
     assert len(policy) == 1
     assert policy[0].scope is Scope.MANAGED
     assert policy[0].resolution is Resolution.EFFECTIVE
-    assert policy[0].merge_rule == resolve.rule_name(
-        resolve.row_for("allow_managed_hooks_only", "codex")
+    assert policy[0].merge_rule == merge.rule_name(
+        merge.row_for("allow_managed_hooks_only", "codex")
     )
 
 
@@ -935,7 +936,7 @@ def test_the_same_key_in_a_repository_file_is_not_a_managed_policy(tree, tmp_pat
     """
     root = tree({".codex/config.toml": "allow_managed_hooks_only = true\n"})
 
-    surface = resolve._codex(codex.read(root))
+    surface = codex.codex_surface(codex.read(root))
 
     assert _capabilities(surface, "policy.managed_hooks_only") == []
 
@@ -950,7 +951,7 @@ def test_a_managed_cursor_hook_outranks_nothing_it_cannot_reach(tmp_path, monkey
     )
     monkeypatch.setattr(cursor, "enterprise_paths", lambda: (managed / "hooks.json",))
 
-    surface = resolve._cursor(cursor.read(tmp_path, machine=True, home=tmp_path / "home"))
+    surface = cursor.cursor_surface(cursor.read(tmp_path, machine=True, home=tmp_path / "home"))
     hooks = _capabilities(surface, "hook.command")
 
     assert len(hooks) == 1

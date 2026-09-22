@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 from actaira import cli
-from actaira.surface import Resolution, claude_code, disk, resolve, rules
+from actaira.surface import Resolution, claude_code, disk, merge, resolve, rules
 from conftest import REPO_ROOT
 
 FIXTURES = Path(REPO_ROOT) / "tests" / "fixtures" / "surface"
@@ -61,19 +61,19 @@ def no_network(monkeypatch):
 
 
 def test_the_merge_table_is_not_empty():
-    assert len(resolve.MERGE_TABLE) >= 10, "the table is how a capability names its rule"
+    assert len(merge.MERGE_TABLE) >= 10, "the table is how a capability names its rule"
 
 
 @pytest.mark.parametrize(
     "row",
-    resolve.CLAUDE_CODE_ROWS,
+    merge.CLAUDE_CODE_ROWS,
     ids=lambda row: "{}:{}".format(row.url.rsplit("/", 1)[-1], row.keys[0]),
 )
 def test_every_claude_code_merge_row_cites_its_source(row):
     """The rule, the URL, the page digest, the date, and the sentence.
 
     A row that cannot say where it came from is an opinion about somebody else's
-    software, and CLAUDE.md's second negative forbids Actaira having one.
+    software, and the second negative forbids Actaira having one.
 
     This file keeps the Claude Code half, where the host and the consultation
     date are one value each. The other six vendors publish on their own hosts
@@ -83,9 +83,9 @@ def test_every_claude_code_merge_row_cites_its_source(row):
     assert row.cited, f"{row.keys} is missing part of its citation"
     assert row.url.startswith("https://code.claude.com/docs/"), row.url
     assert len(row.doc_sha256) == 64 and all(c in "0123456789abcdef" for c in row.doc_sha256)
-    assert row.consulted == resolve.CONSULTED
+    assert row.consulted == merge.CONSULTED
     assert len(row.quote) > 40, "the quote must be the sentence, not a gesture at it"
-    assert row.kind in resolve.Kind
+    assert row.kind in merge.Kind
 
 
 def test_every_row_of_every_vendor_is_cited_and_dated():
@@ -95,8 +95,8 @@ def test_every_row_of_every_vendor_is_cited_and_dated():
     citation, so the property is asserted over the whole set here as well as
     per row in `test_surface_vendors`.
     """
-    dates = {resolve.CONSULTED, resolve.CONSULTED_S2}
-    for vendor, rows in resolve.MERGE_TABLES.items():
+    dates = {merge.CONSULTED, merge.CONSULTED_S2}
+    for vendor, rows in merge.MERGE_TABLES.items():
         assert rows, f"{vendor} has an empty merge table"
         for row in rows:
             assert row.cited, f"{vendor} {row.keys} is missing part of its citation"
@@ -112,7 +112,7 @@ def test_the_citation_check_would_notice_an_uncited_row():
     must be refused. Without this, `cited` could be returning True for
     everything and the parametrised test above would pass over an empty promise.
     """
-    good = resolve.CLAUDE_CODE_ROWS[0]
+    good = merge.CLAUDE_CODE_ROWS[0]
     assert good.cited, "the fixture row is not itself cited; this test proves nothing"
 
     from dataclasses import replace
@@ -136,7 +136,7 @@ def test_every_capability_names_a_row_that_exists():
     capability citing a rule that only Gemini publishes would be a capability
     resolved by somebody else's documentation.
     """
-    names = {resolve.rule_name(row) for row in resolve.MERGE_TABLES["claude-code"]}
+    names = {merge.rule_name(row) for row in merge.MERGE_TABLES["claude-code"]}
     surface = resolve.resolve(claude_code.read(FIXTURES / "mini-shai-hulud"))
 
     assert surface.capabilities
@@ -182,7 +182,7 @@ def test_bypass_with_no_version_is_indeterminate_and_names_the_threshold(repo):
 
 
 def test_a_capability_that_waits_for_trust_is_declared_and_never_effective(repo):
-    """CLAUDE.md: what waits for folder trust is DECLARED with the condition
+    """`docs/PRINCIPLES.md`: what waits for folder trust is DECLARED with the condition
     written out, never EFFECTIVE."""
     root = repo({"permissions": {"additionalDirectories": ["/etc"]}})
     surface = resolve.resolve(claude_code.read(root))
@@ -350,7 +350,7 @@ def test_nothing_the_configuration_names_is_ever_run(tmp_path, capsys, no_networ
 
     If any part of this tool ever ran what it reads - to classify it, to see
     what it does, "just in a sandbox" - the sentinel appears and this fails.
-    That is the prohibition in CLAUDE.md and the reason the reader records four
+    That is the prohibition in `docs/PRINCIPLES.md` and the reason the reader records four
     facts about a script and not a fifth.
     """
     sentinel = tmp_path / "sentinel.txt"

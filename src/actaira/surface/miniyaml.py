@@ -14,7 +14,7 @@ and merge keys are each a load error naming itself. The report then says
 INDETERMINATE with that cause, which is a true sentence about a file we declined
 to guess at.
 
-Rejected: PyYAML, or ruamel. CLAUDE.md caps the runtime dependencies at one and
+Rejected: PyYAML, or ruamel. `docs/PRINCIPLES.md` caps the runtime dependencies at one and
 neither is `cryptography`. The cost of the cap is this file; the cost of lifting
 it is that the cap stops being one.
 

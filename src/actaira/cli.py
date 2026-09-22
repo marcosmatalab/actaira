@@ -1,4 +1,4 @@
-"""The command line: seven of the eight commands CLAUDE.md caps the set at.
+"""The command line: seven of the eight commands `docs/PRINCIPLES.md` caps the set at.
 
 `check` reads the agent configuration of a repository or a machine, resolves
 what it permits across scopes, and applies the rule packs. `diff` says what
@@ -8,7 +8,8 @@ changed between two moments, and `seal` signs a baseline of a surface that
 transcripts an agent already wrote and turns them into canonical traces, and
 `watch` records a run from outside the agent.
 
-Seven of seven, so CLAUDE.md's list now has no unbuilt name on it. The cap of
+Seven of seven, so the list in `docs/PRINCIPLES.md` now has no unbuilt name
+on it. The cap of
 eight is still the cap: an eighth is a decision and a ninth costs one of these.
 
 Rejected: keeping the previous 2 458-line parser with the dead subcommands
@@ -372,7 +373,7 @@ def _agent_versions(spoken: list[str]) -> tuple[dict[str, str], str | None]:
     `claude --version`, and not because running it would be slow. Asking the
     audited tool what it is is trusting the audited tool, which is the same
     objection `scan` files against an L0 transcript, and this tool does not
-    execute an agent binary for any reason (CLAUDE.md, "lo prohibido").
+    execute an agent binary for any reason (`docs/PRINCIPLES.md`, "What is forbidden").
 
     Rejected: reading it out of `~/.claude.json`. That file is written and
     maintained by Claude Code about itself, so it is the same class of evidence
@@ -394,8 +395,8 @@ def _print_check(document: dict[str, Any], catalog: Catalog) -> None:
     """Capabilities, then what could not be resolved, then what was not read.
 
     That order, always. The three are never merged and never totalled: a reader
-    who could add them up would be computing the thing CLAUDE.md's first
-    negative forbids, and a reader who could not see the second list would be
+    who could add them up would be computing the thing the first negative
+    forbids, and a reader who could not see the second list would be
     reading a clean report about a tree nobody finished looking at.
 
     Findings are selected by vendor rather than reprinted under each one. There
@@ -505,7 +506,8 @@ def check_document(
     that can be removed independently.
     """
     from .surface import document as build_document
-    from .surface.resolve import MERGE_TABLE, vendor_registry
+    from .surface.merge import MERGE_TABLE
+    from .surface.resolve import vendor_registry
     from .surface.rules import evaluate, load
 
     versions = versions or {}

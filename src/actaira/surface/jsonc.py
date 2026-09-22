@@ -14,7 +14,7 @@ comes back INDETERMINATE. A permissive parser is the fail-open shape of a
 configuration reader: it turns a file somebody hand-edited into a confident
 answer about a document nobody can agree on the meaning of.
 
-Rejected: a JSON5 dependency (`json5`, `pyjson5`). CLAUDE.md caps the runtime
+Rejected: a JSON5 dependency (`json5`, `pyjson5`). `docs/PRINCIPLES.md` caps the runtime
 dependencies at one, `cryptography`, and JSON5 is a strictly larger language
 than either specification here allows - it would accept unquoted keys and
 single-quoted strings in a `tasks.json` that VS Code itself refuses, so Actaira

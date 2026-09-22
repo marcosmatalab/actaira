@@ -1,6 +1,6 @@
 """Every rule in `packs/core`, against a conforming case and a violating one.
 
-CLAUDE.md's rule for a rule: two tests, and both on a REAL configuration - a
+the rule for a rule: two tests, and both on a REAL configuration - a
 public repository with an OSI licence, citing repo, commit and licence, or a
 reconstruction from a published report citing the URL and the fragment. Never
 invented. "A rule tested against a fixture we wrote ourselves proves that we can
@@ -111,7 +111,7 @@ NO_REAL_VIOLATION = {rule.id: rule.no_real_violation for rule in CATALOGUE if ru
 
 
 def test_the_mark_is_only_used_where_it_is_allowed_and_is_published():
-    """CLAUDE.md's third, narrow branch, and the three conditions on using it.
+    """the third, narrow branch, and the three conditions on using it.
 
     A rule may be marked NO REAL VIOLATION only when its own scope makes a public
     sample impossible, or when a recorded search found none. The mark then costs
@@ -462,7 +462,7 @@ def test_the_2026_npm_worms_are_caught(root):
 
 
 def test_the_worm_fixtures_carry_an_inert_stub_and_nothing_else():
-    """CLAUDE.md: no fixture carries a payload. A security repository that
+    """`docs/PRINCIPLES.md`: no fixture carries a payload. A security repository that
     shipped the worm it detects would be the worm."""
     for root in WORMS:
         for script in root.rglob("*.mjs"):

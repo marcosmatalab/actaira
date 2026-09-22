@@ -48,23 +48,23 @@ CORPUS = pathlib.Path(REPO_ROOT) / "tests" / "fixtures" / "surface" / "corpus"
 # "other": the whole point of this file is that silence is not an answer.
 DECLARED_UNOBSERVED = {
     # The corpus runs without `--machine`, so no user-scope file is read.
-    ("allowAutomaticTasks", "resolve.py:1347"): "user scope, corpus has no --machine",
-    ("allowAutomaticTasks", "resolve.py:1354"): "user scope, corpus has no --machine",
-    ("trust_level", "codex.py:192"): "user scope, corpus has no --machine",
+    ("allowAutomaticTasks", "vscode.py:331"): "user scope, corpus has no --machine",
+    ("allowAutomaticTasks", "vscode.py:338"): "user scope, corpus has no --machine",
+    ("trust_level", "codex.py:194"): "user scope, corpus has no --machine",
     # `x in frozenset` resolves by hashing; `__eq__` is never called.
-    ("allowedDomains", "resolve.py:1104"): "membership over a frozenset, resolved by hash",
-    ("excludedCommands", "resolve.py:1104"): "membership over a frozenset, resolved by hash",
+    ("allowedDomains", "resolve.py:312"): "membership over a frozenset, resolved by hash",
+    ("excludedCommands", "resolve.py:312"): "membership over a frozenset, resolved by hash",
     # `entry.get("url") or entry.get("httpUrl")` picks a transport and compares
     # nothing.
-    ("type", "resolve.py:1162"): "truthiness, no comparison",
-    ("type", "resolve.py:1883"): "truthiness, no comparison",
-    ("url", "resolve.py:1883"): "truthiness, no comparison",
-    ("httpUrl", "resolve.py:1883"): "truthiness, no comparison",
+    ("type", "resolve.py:370"): "truthiness, no comparison",
+    ("type", "emit.py:127"): "truthiness, no comparison",
+    ("url", "emit.py:127"): "truthiness, no comparison",
+    ("httpUrl", "emit.py:127"): "truthiness, no comparison",
     # `urlparse(...).hostname` hands back a plain str and the watch is lost.
-    ("host", "resolve.py:976"): "the value leaves the instrumented type",
+    ("host", "emit.py:90"): "the value leaves the instrumented type",
     # Decided while READING, before `watched()` is applied. One view, not two.
     ("type", "claude_code.py:186"): "decided in a reader, outside the runtime view",
-    ("notify", "codex.py:228"): "decided in a reader, outside the runtime view",
+    ("notify", "codex.py:230"): "decided in a reader, outside the runtime view",
 }
 
 
@@ -150,13 +150,13 @@ def test_the_comparison_would_notice_a_misattributed_site(views):
     reason the declaration of causes exists as well.
     """
     static, runtime, _recorder, _roots = views
-    real = ("allowedDomains", "resolve.py:1144")
+    real = ("allowedDomains", "resolve.py:352")
     assert real in static and real in runtime, (
         "this twin plants over a site both views see, and that site is gone"
     )
 
     planted = {pair for pair in static if pair != real}
-    planted.add(("excludedCommands", "resolve.py:1144"))
+    planted.add(("excludedCommands", "resolve.py:352"))
 
     assert {key for key, _ in planted} == {key for key, _ in static}, (
         "the plant has to leave the set of key NAMES untouched, or it proves "

@@ -254,7 +254,7 @@ directory is not the artifact. No second assertion inside the suite reaches that
 because the suite is inside the thing being mis-measured. So the remedy is at a
 different level, and it is two things: `tests/test_fixtures_are_published.py`
 asserts that everything under `tests/fixtures/` is in git's index, which closes
-the specific hole; and CLAUDE.md's rule 7 now runs the gate on a CLEAN CLONE OF
+the specific hole; and work rule 7 now runs the gate on a CLEAN CLONE OF
 HEAD rather than on the working directory, which closes the class. The
 working-directory run survives as an iteration shortcut and is explicitly not the
 gate.
@@ -305,17 +305,17 @@ exactly two kinds:
 
 - **A decision about how something is built** is implemented by code, so its
   note lives in the module it argues about. This is almost every note.
-- **A decision about what gets built** is implemented by `CLAUDE.md`, which is
+- **A decision about what gets built** is implemented by `docs/PRINCIPLES.md`, which is
   the only governance document and the thing that decides what exists, so its
   note points there.
 
 That second clause is a rule and not an exception, and it is written narrowly on
 purpose: it admits doctrine decisions only, and nothing else may point at
-`CLAUDE.md`. A note about a data structure, a format, a gate or an algorithm
+`docs/PRINCIPLES.md`. A note about a data structure, a format, a gate or an algorithm
 points at code even when the prose explaining it happens to sit in a document,
 because what implements it is the code. The distinction is not where the
 argument reads best; it is what a reader would have to change to reverse the
-decision. Reverse a doctrine decision and you edit `CLAUDE.md` and the tree
+decision. Reverse a doctrine decision and you edit `docs/PRINCIPLES.md` and the tree
 follows. Reverse anything else and you edit the module.
 
 D-269 is the only note of the second kind today: it decides that the subject of

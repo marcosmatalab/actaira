@@ -4,7 +4,7 @@ Design note D-274. The pack format is TOML, read with `tomllib` from the
 standard library.
 
 Rejected, YAML: it is what the plan maestro wrote down, and it costs either a
-runtime dependency - which CLAUDE.md caps at one, `cryptography` - or bringing
+runtime dependency - which `docs/PRINCIPLES.md` caps at one, `cryptography` - or bringing
 back the hand-written `miniyaml` that phase A deleted. A rule format is not
 worth either.
 
@@ -146,7 +146,7 @@ class Rule:
     remediation: str
     atr: tuple[str, ...] = ()
     references: tuple[str, ...] = ()
-    # The narrow third branch of CLAUDE.md's rule about a rule's two tests. A
+    # The narrow third branch of `docs/PRINCIPLES.md`'s rule about a rule's two tests. A
     # rule may only be marked when a public sample is impossible by the rule's
     # own scope, or when a recorded search found none - and the mark is
     # published, on `docs/RULES.md`, rather than kept in a fixture's provenance

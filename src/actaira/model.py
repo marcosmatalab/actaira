@@ -11,7 +11,7 @@ fires. Two of its three companions did not survive that meeting.
 
 `Severity` is gone. It was a five-member enum whose only reason to be an enum
 rather than a string was `rank`, and `rank` exists to ORDER severities - which
-is the fold CLAUDE.md's first negative forbids, sitting inside the package as a
+is the fold the first negative forbids, sitting inside the package as a
 finished implementation waiting for a caller. A rule pack's severity is a label
 its author wrote, it is published verbatim beside that author's name, and the
 set of labels belongs to whoever writes the pack rather than to us. So the field
@@ -49,7 +49,7 @@ class Finding:
     changing wording can never change a test outcome (D-07).
 
     `rule_version`, `author` and `pack` are not decoration and not metadata:
-    CLAUDE.md's second negative says Actaira never judges, only cites, so a
+    the second negative says Actaira never judges, only cites, so a
     finding that did not name who wrote the rule it came from would be Actaira
     holding the opinion. They travel as siblings of `severity` for the same
     reason - a severity standing on its own is one somebody computed, and

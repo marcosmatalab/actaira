@@ -21,11 +21,11 @@
     },
     "core": {
       "blank": 159,
-      "code": 732,
+      "code": 733,
       "comment": 83,
-      "docstring": 208,
+      "docstring": 209,
       "files": 4,
-      "lines": 1182,
+      "lines": 1184,
       "note": "the model and the CLI"
     },
     "i18n": {
@@ -47,12 +47,12 @@
       "note": "the MCP proxy, its two transports and the watch session"
     },
     "rest": {
-      "blank": 820,
-      "code": 4254,
-      "comment": 412,
-      "docstring": 969,
-      "files": 18,
-      "lines": 6455,
+      "blank": 869,
+      "code": 4270,
+      "comment": 477,
+      "docstring": 1003,
+      "files": 20,
+      "lines": 6619,
       "note": "everything in src/ the areas above do not claim"
     },
     "schemas": {
@@ -74,21 +74,21 @@
       "note": "this script"
     },
     "tests": {
-      "blank": 4075,
-      "code": 10713,
-      "comment": 1237,
-      "docstring": 3183,
+      "blank": 4077,
+      "code": 10725,
+      "comment": 1247,
+      "docstring": 3192,
       "files": 51,
-      "lines": 19208,
+      "lines": 19241,
       "note": "the test suite"
     },
     "total": {
-      "blank": 6676,
-      "code": 23547,
-      "comment": 2877,
-      "docstring": 6636,
-      "files": 111,
-      "lines": 39736,
+      "blank": 6727,
+      "code": 23576,
+      "comment": 2952,
+      "docstring": 6680,
+      "files": 113,
+      "lines": 39935,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -248,12 +248,12 @@
     },
     "total_lines": 850
   },
-  "generated_at": "2026-09-22T12:32:42+00:00",
+  "generated_at": "2026-09-22T13:33:41+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 45,
-    "head": "1883706",
+    "commits": 46,
+    "head": "cfe8eac",
     "head_date": "2026-09-22"
   },
   "package": {
@@ -274,7 +274,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 2544,
+    "collected": 2548,
     "files": 44,
     "per_file": {
       "tests/test_action_yml.py": 13,
@@ -289,7 +289,7 @@
       "tests/test_diff.py": 25,
       "tests/test_dsse.py": 25,
       "tests/test_fixtures_are_published.py": 193,
-      "tests/test_i18n.py": 142,
+      "tests/test_i18n.py": 144,
       "tests/test_keyring.py": 34,
       "tests/test_layering.py": 9,
       "tests/test_mcp.py": 15,
@@ -302,7 +302,7 @@
       "tests/test_proxy_http_interposition.py": 15,
       "tests/test_proxy_protocol.py": 17,
       "tests/test_proxy_transports.py": 28,
-      "tests/test_reachability.py": 48,
+      "tests/test_reachability.py": 50,
       "tests/test_readme_parity.py": 30,
       "tests/test_release_check.py": 31,
       "tests/test_scan_claude_code.py": 33,

@@ -68,7 +68,7 @@ somebody else's laptop for a reason that is not a defect. So the numbers are
 dated, attributed to one machine, and nothing in the repository checks them: run
 it yourself and you will get your own.
 
-Work rule 7 in [`CLAUDE.md`](CLAUDE.md) already sends the gate to a clean clone
+Work rule 7 in [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) already sends the gate to a clean clone
 under `/tmp` for a different and more important reason - a working directory has
 ignored and untracked files that nobody who clones the repository will ever
 receive. This is a second, smaller reason to be there anyway.

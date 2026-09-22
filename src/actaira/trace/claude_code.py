@@ -30,7 +30,7 @@ an exception, and the versions the file was written by travel in the trace.
 What is NOT in the file, checked rather than assumed: the permission decision
 for an individual call. Only the session's `permissionMode` is recorded. That
 is declared as a blind spot of the level instead of being guessed at, which is
-CLAUDE.md's third negative.
+the third negative.
 """
 from __future__ import annotations
 
@@ -143,8 +143,8 @@ class ClaudeCodeReader:
         nested another level down, and there are far more of those files than
         of session files. A reader that took only the session file published a
         trace saying an agent had done a fraction of what it did and was silent
-        about the rest. No count here: it was measured on one machine, and rule
-        6 of CLAUDE.md is that a published figure has a command behind it.
+        about the rest. No count here: it was measured on one machine, and
+        work rule 6 is that a published figure has a command behind it.
         The sibling directories
         `tool-results/` and `memory/` hold `.txt` and `.md` and are not
         transcripts, so the glob names the one that is.
@@ -295,7 +295,7 @@ class ClaudeCodeReader:
 
         No proportion here, for the reason `subagent_files` gives: it was
         measured over one person's private transcripts, `make figures` cannot
-        re-measure somebody else's `~/.claude`, and rule 6 of CLAUDE.md is
+        re-measure somebody else's `~/.claude`, and work rule 6 is
         that a published figure has a command behind it. The measurement is
         in the commit that made this change.
 

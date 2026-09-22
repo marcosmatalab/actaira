@@ -310,7 +310,7 @@ def figures_match() -> str:
     sides agree on the same wrong number. This is the side that has to be
     pinned to the code.
 
-    Rule 6 of CLAUDE.md is that no published figure lacks a command that
+    Work rule 6 is that no published figure lacks a command that
     measures it. A gate that measured one of them was that rule's own
     machinery breaking it.
     """

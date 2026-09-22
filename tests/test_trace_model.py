@@ -101,7 +101,7 @@ def test_the_document_declares_the_schema_version_it_was_written_against():
 
 
 def test_an_l0_trace_declares_authenticity_not_evaluated_with_its_reason():
-    """CLAUDE.md: a trace the audited agent produced about itself cannot claim
+    """`docs/PRINCIPLES.md`: a trace the audited agent produced about itself cannot claim
     authenticity, and says so rather than leaving the field out."""
     document = _trace(CaptureLevel.L0).to_dict()
 
@@ -185,7 +185,7 @@ def test_events_are_indexed_from_zero_without_holes():
 
 
 def test_a_document_whose_indices_have_a_hole_is_refused_at_load():
-    """A format error is a message at load time, per CLAUDE.md's code rules."""
+    """A format error is a message at load time, per the code rules."""
     document = _trace().to_dict()
     document["events"][1]["index"] = 7
 
@@ -215,7 +215,7 @@ def test_a_document_declaring_an_unknown_capture_level_is_refused():
 
 
 def test_the_event_uses_the_genai_attribute_names():
-    """CLAUDE.md: the field names follow the OpenTelemetry GenAI conventions,
+    """`docs/PRINCIPLES.md`: the field names follow the OpenTelemetry GenAI conventions,
     and we do not invent vocabulary where one exists."""
     event = _trace().to_dict()["events"][0]
 

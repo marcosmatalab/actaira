@@ -1,4 +1,4 @@
-"""What an agent CAN do, in the three states CLAUDE.md allows an answer to have.
+"""What an agent CAN do, in the three states `docs/PRINCIPLES.md` allows an answer to have.
 
 Design note D-270. The four capture levels govern what a RUN can be said to
 have done; these three govern what a FILE can be said to permit, and mixing the

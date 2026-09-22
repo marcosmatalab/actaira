@@ -12,7 +12,7 @@ Design note D-298. TWO THINGS IT DOES NOT DO, both of which the archived one did
 It never takes a maximum. Every finding becomes one SARIF `result` with its own
 `level`, transliterated from the `severity` the rule's author wrote, one at a
 time. There is no run-level, file-level or rule-group level severity anywhere in
-the output, because that is the fold CLAUDE.md's first negative forbids and
+the output, because that is the fold the first negative forbids and
 SARIF offers three convenient places to commit it.
 
 It never invents a level. `LEVEL` below is a TRANSLITERATION table, not an

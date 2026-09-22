@@ -28,15 +28,17 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-from . import NotRead, Scope, Unresolved
+from . import REPOSITORY_SCOPES, Capability, NotRead, Resolution, Scope, Surface, Unresolved
 from .disk import (
     Reading,
     SettingsFile,
+    digest_of,
     git_tracked,
     read_text,
     referenced_path,
     script_facts,
 )
+from .emit import emit, referenced_target, server_facts, target_facts
 from .jsonc import JsoncError
 from .jsonc import loads as jsonc_loads
 
@@ -258,3 +260,145 @@ __all__ = [
     "read_toml",
     "trust_level",
 ]
+
+
+# ---------------------------------------------------------------------------
+# The resolver
+# ---------------------------------------------------------------------------
+#
+# A pure function of what the reader above read. It touches no disk, no clock
+# and no socket, which is what lets a fixture replay the whole decision path.
+# It lived in `resolve.py` until the file reached two thousand lines holding
+# seven vendors; it is beside its reader now, which is where the next person
+# looking for it will look.
+
+
+
+
+def _codex_trust(reading: Any, scope: Scope) -> tuple[Resolution, str | None]:
+    """Codex's project layer waits on `projects.<path>.trust_level`.
+
+    Same shape as Claude Code's workspace trust and a different mechanism, so it
+    is written out rather than shared: the trust state lives in the user's own
+    config file, and a run that did not open it says so instead of assuming.
+    """
+    if scope not in REPOSITORY_SCOPES:
+        return Resolution.EFFECTIVE, None
+    if reading.trusted is True:
+        return Resolution.EFFECTIVE, None
+    if reading.trusted is False:
+        return Resolution.DECLARED, "this project's trust_level is `untrusted`, so the .codex/ layer is skipped"
+    return (
+        Resolution.DECLARED,
+        "the project .codex/ layer loads only when trusted, and no trust_level was read "
+        "(run with --machine to read ~/.codex/config.toml)",
+    )
+
+
+def codex_surface(reading: Any, *, agent_version: str | None = None,
+        with_content: bool = False) -> Surface:
+    """Codex CLI: hooks, MCP servers, `notify`, and the sandbox pair."""
+    from .codex import STARTUP_EVENTS as STARTUP_EVENTS
+
+    found: list[Capability] = []
+
+    for handle in reading.settings:
+        if not handle.ok:
+            continue
+        data = handle.data
+        resolution, condition = _codex_trust(reading, handle.scope)
+
+        for event, handler in hook_handlers(data):
+            command = hook_command(handler)
+            if command is None:
+                continue
+            facts: dict[str, Any] = {
+                "event": event,
+                "at_startup": event in STARTUP_EVENTS,
+                "command_sha256": digest_of(command),
+            }
+            if isinstance(handler.get("matcher"), str):
+                facts["matcher"] = handler["matcher"]
+            if with_content:
+                facts["command"] = command
+            spoken = referenced_target(command)
+            facts["target"] = spoken
+            facts.update(target_facts(reading, spoken))
+            emit(
+                found, name="hook.command", scope=handle.scope, source=handle.display,
+                key="hooks", resolution=resolution, condition=condition, facts=facts,
+                vendor=reading.vendor,
+            )
+
+        notify = data.get("notify")
+        command = None
+        if isinstance(notify, list):
+            parts = [item for item in notify if isinstance(item, str)]
+            command = " ".join(parts) if parts else None
+        elif isinstance(notify, str):
+            command = notify
+        if command is not None:
+            facts = {"key": "notify", "command_sha256": digest_of(command)}
+            if with_content:
+                facts["command"] = command
+            emit(
+                found, name="helper.command", scope=handle.scope, source=handle.display,
+                key="notify",
+                # `notify` is on the list of keys a project file cannot set, so a
+                # repository that sets one has declared something Codex ignores.
+                resolution=(
+                    Resolution.DECLARED if handle.scope in REPOSITORY_SCOPES
+                    else Resolution.EFFECTIVE
+                ),
+                condition=(
+                    "project-scoped config cannot override notification keys"
+                    if handle.scope in REPOSITORY_SCOPES else None
+                ),
+                facts=facts, vendor=reading.vendor,
+            )
+
+        mode = data.get("sandbox_mode")
+        if isinstance(mode, str):
+            emit(
+                found, name="sandbox.mode", scope=handle.scope, source=handle.display,
+                key="sandbox_mode", resolution=Resolution.EFFECTIVE,
+                facts={"mode": mode, "guardrail_removed": mode == FULL_ACCESS},
+                vendor=reading.vendor,
+            )
+        policy = data.get("approval_policy")
+        if isinstance(policy, str):
+            emit(
+                found, name="approval.policy", scope=handle.scope, source=handle.display,
+                key="approval_policy", resolution=Resolution.EFFECTIVE,
+                facts={"policy": policy, "guardrail_removed": policy == NEVER_ASKS},
+                vendor=reading.vendor,
+            )
+
+        servers = data.get("mcp_servers")
+        for name in sorted(servers) if isinstance(servers, dict) else []:
+            entry = servers[name]
+            if not isinstance(entry, dict):
+                continue
+            emit(
+                found, name="mcp.server", scope=handle.scope, source=handle.display,
+                key="mcp_servers", resolution=resolution, condition=condition,
+                facts=server_facts(name, entry, with_content=with_content),
+                vendor=reading.vendor,
+            )
+
+        if data.get("allow_managed_hooks_only") is True and handle.scope is Scope.MANAGED:
+            emit(
+                found, name="policy.managed_hooks_only", scope=handle.scope,
+                source=handle.display, key="allow_managed_hooks_only",
+                resolution=Resolution.EFFECTIVE,
+                facts={"key": "allow_managed_hooks_only", "value": True},
+                vendor=reading.vendor,
+            )
+
+    return Surface(
+        vendor=reading.vendor,
+        agent_version=None,
+        capabilities=tuple(found),
+        unresolved=tuple(reading.unresolved),
+        not_read=tuple(reading.not_read),
+    )

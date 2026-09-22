@@ -424,9 +424,9 @@ Todas las cifras de abajo salen de un comando. Corre cualquiera y discrepa.
 
 | Afirmación | Comando | Resultado |
 |---|---|---|
-| 2.544 tests | `python -m pytest --collect-only -q` | la misma cuenta |
-| 15.803 líneas de código de producto | `find src -name '*.py' \| xargs cat \| wc -l` | la misma cuenta |
-| 39.736 líneas de Python en el árbol | `python scripts/figures.py` | `docs/FIGURES.md`, por área |
+| 2.548 tests | `python -m pytest --collect-only -q` | la misma cuenta |
+| 15.969 líneas de código de producto | `find src -name '*.py' \| xargs cat \| wc -l` | la misma cuenta |
+| 39.935 líneas de Python en el árbol | `python scripts/figures.py` | `docs/FIGURES.md`, por área |
 | 32 reglas documentadas | `python scripts/rules_doc.py` | `docs/RULES.md`, desde los paquetes |
 | 7 comandos de CLI, y no hay un octavo | `actaira --help` | los siete de arriba |
 | el suelo de cobertura aguanta | `make test-cov` | el suelo es 88 y el árbol mide 90 |
@@ -468,7 +468,7 @@ tipos y el ledger de defectos.
 |---|---|
 | [`docs/COMMANDS.md`](docs/COMMANDS.md) | Los siete comandos enteros, con sus flags y sus códigos de salida. |
 | [`docs/LIMITS.es.md`](docs/LIMITS.es.md) | Lo que Actaira no puede enseñarte, y por qué nada de ello se ablanda para vender mejor. |
-| [`CLAUDE.md`](CLAUDE.md) | Qué es Actaira, las negativas, y las reglas que sigue el trabajo. El documento de gobierno. |
+| [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) | Qué es Actaira, las negativas, y las reglas que sigue el trabajo. El documento de gobierno. |
 | [`docs/DESIGN.md`](docs/DESIGN.md) | Cada decisión de diseño con su alternativa rechazada, nombrando el fichero y la línea que la implementa. |
 | [`docs/RULES.md`](docs/RULES.md) | Cada regla, con su autor, su versión, los hechos que necesita y su configuración violadora. Generado desde los paquetes. |
 | [`docs/CONTRACTS.md`](docs/CONTRACTS.md) · [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) | Qué prometen los documentos, y qué se promete entre versiones. |

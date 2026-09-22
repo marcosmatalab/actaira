@@ -2,8 +2,8 @@
 
 Design note D-287. These files are free text that several vendors load into a
 model's context at session start, so the temptation is to classify what they
-SAY. That is judging intention on evidence that cannot support it - CLAUDE.md's
-second and third negatives together - and it is also a losing game: a list of
+SAY. That is judging intention on evidence that cannot support it - the second
+and third negatives together - and it is also a losing game: a list of
 suspicious phrases is a list somebody rewords.
 
 So this module answers three questions that a machine can answer the same way
@@ -40,7 +40,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from . import NotRead, Scope, Unresolved
+from . import Capability, NotRead, Resolution, Scope, Surface, Unresolved
 from .disk import (
     MAX_FILES,
     Reading,
@@ -51,6 +51,7 @@ from .disk import (
     read_text,
     script_facts,
 )
+from .emit import emit, looks_like_a_script, target_facts
 
 VENDOR = "instructions"
 
@@ -210,3 +211,89 @@ __all__ = [
     "read",
     "strip_code",
 ]
+
+
+# ---------------------------------------------------------------------------
+# The resolver
+# ---------------------------------------------------------------------------
+#
+# A pure function of what the reader above read. It touches no disk, no clock
+# and no socket, which is what lets a fixture replay the whole decision path.
+# It lived in `resolve.py` until the file reached two thousand lines holding
+# seven vendors; it is beside its reader now, which is where the next person
+# looking for it will look.
+
+
+
+
+def instructions_surface(reading: Any, *, agent_version: str | None = None,
+        with_content: bool = False) -> Surface:
+    """The three structural facts about an instructions file, and no fourth.
+
+    Nothing here looks at what the file MEANS. An import is a path, a piped
+    download is a literal string, and a referenced script gets the same four
+    facts a hook's target gets. `test_surface_instructions` asserts that a
+    document telling the agent to ignore its instructions produces nothing,
+    because classifying that sentence is the second negative.
+    """
+
+    found: list[Capability] = []
+
+    for handle in reading.settings:
+        if not handle.ok:
+            continue
+        data = handle.data
+        name = data["file"]
+        for spoken in data["imports"]:
+            outside = outside_tree(reading.root, spoken)
+            facts: dict[str, Any] = {
+                "file": name,
+                "documented_by": data["documented_by"],
+                "path": spoken,
+                "outside_tree": outside,
+                "is_script": looks_like_a_script(spoken),
+            }
+            facts.update(target_facts(reading, spoken))
+            emit(
+                found,
+                name="instructions.import",
+                scope=handle.scope,
+                source=handle.display,
+                key="import",
+                resolution=Resolution.DECLARED if outside else Resolution.EFFECTIVE,
+                condition=(
+                    "an import that resolves outside the working directory waits for a "
+                    "one-time approval dialog the first time it is met"
+                    if outside else None
+                ),
+                facts=facts,
+                vendor=reading.vendor,
+            )
+        for line in data["piped_download_lines"]:
+            emit(
+                found,
+                name="instructions.remote_execution",
+                scope=handle.scope,
+                source=handle.display,
+                key="import.syntax",
+                resolution=Resolution.DECLARED,
+                condition=(
+                    "the file declares it; whether anybody runs it is not something a "
+                    "configuration reader can see (published limit 11)"
+                ),
+                facts={
+                    "file": name,
+                    "documented_by": data["documented_by"],
+                    "line": line,
+                    "literal_remote_execution": True,
+                },
+                vendor=reading.vendor,
+            )
+
+    return Surface(
+        vendor=reading.vendor,
+        agent_version=None,
+        capabilities=tuple(found),
+        unresolved=tuple(reading.unresolved),
+        not_read=tuple(reading.not_read),
+    )

@@ -3,7 +3,7 @@
 This file exists to hold one line that is easy to cross and hard to uncross.
 These are free-text files that several vendors load into a model's context at
 session start, so the useful-looking thing to do is classify what they SAY - and
-that is judging intention (CLAUDE.md's second negative) on evidence that cannot
+that is judging intention (the second negative) on evidence that cannot
 support it (the third). It is also a losing game: a list of suspicious phrases
 is a list somebody rewords.
 
@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 from actaira import cli
-from actaira.surface import Resolution, instructions, resolve, rules
+from actaira.surface import Resolution, instructions, rules
 from conftest import REPO_ROOT
 
 FIXTURES = Path(REPO_ROOT) / "tests" / "fixtures" / "surface"
@@ -37,7 +37,7 @@ def tree(tmp_path):
 
 
 def _surface(root: Path):
-    return resolve._instructions(instructions.read(root))
+    return instructions.instructions_surface(instructions.read(root))
 
 
 # ---------------------------------------------------------------------------
@@ -289,7 +289,7 @@ def _instruction_roots():
 
 
 def test_the_three_rules_each_have_a_real_violating_repository():
-    """CLAUDE.md's rule for a rule, for block 3's three. None is marked."""
+    """the rule for a rule, for block 3's three. None is marked."""
     fired: dict[str, list[str]] = {}
     for root in _instruction_roots():
         found, _gaps = rules.evaluate(_surface(root), rules.load())

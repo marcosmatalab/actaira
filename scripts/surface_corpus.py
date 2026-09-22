@@ -94,7 +94,7 @@ def call(path: str, auth: str, params: str = "") -> Any:
 
 # The searches this corpus is built from. The first is the broad one, which is
 # what measures how often a rule fires on configurations nobody wrote for us.
-# The rest are targeted, and they exist because CLAUDE.md requires a rule's two
+# The rest are targeted, and they exist because `docs/PRINCIPLES.md` requires a rule's two
 # tests to run on a REAL configuration: a rule with no real violating case in
 # the broad sweep gets one by going to look for it, never by inventing a fixture.
 QUERIES = {
@@ -431,7 +431,7 @@ def goldens() -> int:
 def report() -> int:
     """How many of the tracked corpus each rule fires on.
 
-    Printed here and written into no published document. CLAUDE.md is explicit
+    Printed here and written into no published document. `docs/PRINCIPLES.md` is explicit
     that publishing a figure is the study's job and that no figure is published
     without a command that measures it; this is the command, and the commit
     message is where the number goes.

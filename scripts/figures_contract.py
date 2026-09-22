@@ -102,7 +102,7 @@ def derive() -> dict[str, Any]:
     # `evals/` and `fuzz/` went to tag v2.3.0, and with them the
     # judged-retrieval, marking-survival and benchmark figures. Nothing here
     # falls back to a literal: a figure with no command that measures it is a
-    # figure this file does not carry. See CLAUDE.md, work rule 6.
+    # figure this file does not carry. See work rule 6.
     defects = measured["defects"]
     parser = build_parser()
     commands: set[str] = set()

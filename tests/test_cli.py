@@ -1,12 +1,13 @@
 """The commands that exist, and the contract each of them publishes.
 
-Five of the seven CLAUDE.md lists: `check`, `verify`, `keygen`, `scan` and
+Five of the seven the governance document lists: `check`, `verify`, `keygen`, `scan` and
 `watch`. That is the interesting assertion in this file and the first test makes
 it - the help text is the contract, and a command that does not exist must not
 appear in it. The other two arrive phase by phase, and adding one here before it
 works would be publishing a promise.
 
-Which is why the last section of this file reads that list out of `CLAUDE.md`
+Which is why the last section of this file reads that list out of
+`docs/PRINCIPLES.md`
 rather than trusting a copy kept here. Phase S0 changed the list, and a name on
 it that neither parses nor says when it will is exactly the promise the
 paragraph above refuses: it reads as shipped to anybody who has not tried it.
@@ -87,7 +88,8 @@ UNSHIPPED = [*NOT_BUILT_YET, *RETIRED, "serve"]
 
 
 def test_the_cli_publishes_exactly_the_commands_that_work():
-    """CLAUDE.md lists seven, caps the set at eight, and this release ships seven.
+    """The governance document lists seven, caps the set at eight, and this
+    release ships seven.
 
     Phase S1 built the configuration reader and phase S3 built the two that were
     left, so the promised list is empty for the first time. The cap is still the
@@ -145,13 +147,14 @@ def test_version_is_the_package_version(capsys):
 
 
 # ---------------------------------------------------------------------------
-# The list in CLAUDE.md, against this parser
+# The list in docs/PRINCIPLES.md, against this parser
 # ---------------------------------------------------------------------------
 #
 # `release_check.readme_documents_the_commands` asks one direction: every
 # command that exists is named on the pages that list commands. It cannot ask
 # the other, because the other direction is only answerable for a list that
-# says which of its names are promises. CLAUDE.md's is, one phase per unbuilt
+# says which of its names are promises. The governance document's is, one
+# phase per unbuilt
 # name, so it is the one list in this repository where both directions are
 # checkable, and this is the check.
 #
@@ -162,9 +165,14 @@ def test_version_is_the_package_version(capsys):
 # command from an intention, and the whole point of the phase before this one
 # was that the tree stops describing intentions in the present tense.
 
-CLI_SECTION = re.compile(r"^## El CLI$(.*?)^## ", re.M | re.S)
+# The governance document was `CLAUDE.md`, in Spanish, at the root. It is
+# `docs/PRINCIPLES.md` now, in English, and this reads it there. The section
+# heading and the phase mark moved language with it; nothing else changed,
+# because what this checks is the list and not the prose around it.
+DOCTRINE_PAGE = "docs/PRINCIPLES.md"
+CLI_SECTION = re.compile(r"^## The CLI$(.*?)^## ", re.M | re.S)
 CLI_ENTRY = re.compile(r"^ {4}actaira (\S+)(.*?)(?=^ {4}actaira |\Z)", re.M | re.S)
-PHASE_MARK = re.compile(r"\(fase [A-Z]\d(?:\.\d)?\)")
+PHASE_MARK = re.compile(r"\(phase [A-Z]\d(?:\.\d)?\)")
 
 
 def doctrine_commands(text: str) -> list[tuple[str, bool]]:
@@ -175,14 +183,14 @@ def doctrine_commands(text: str) -> list[tuple[str, bool]]:
     description wraps.
     """
     section = CLI_SECTION.search(text)
-    assert section, "CLAUDE.md has no `## El CLI` section, or it is now the last one"
+    assert section, f"{DOCTRINE_PAGE} has no `## The CLI` section, or it is now the last one"
     return [
         (name, bool(PHASE_MARK.search(body)))
         for name, body in CLI_ENTRY.findall(section.group(1))
     ]
 
 
-DOCTRINE = doctrine_commands((Path(REPO_ROOT) / "CLAUDE.md").read_text(encoding="utf-8"))
+DOCTRINE = doctrine_commands((Path(REPO_ROOT) / DOCTRINE_PAGE).read_text(encoding="utf-8"))
 
 
 def test_the_doctrine_list_was_actually_parsed():
@@ -190,14 +198,15 @@ def test_the_doctrine_list_was_actually_parsed():
     document: a regex that stopped matching reports success having compared
     nothing, and this file would go on passing through the next rewrite of the
     section it reads."""
-    assert len(DOCTRINE) >= len(SHIPPED), f"parsed only {DOCTRINE} out of CLAUDE.md"
+    assert len(DOCTRINE) >= len(SHIPPED), f"parsed only {DOCTRINE} out of {DOCTRINE_PAGE}"
 
     names = [name for name, _phased in DOCTRINE]
     assert len(names) == len(set(names)), f"a command is listed twice: {names}"
     assert SHIPPED <= set(names), (
-        f"CLAUDE.md's list is missing a command that exists: {sorted(SHIPPED - set(names))}"
+        f"{DOCTRINE_PAGE}'s list is missing a command that exists: "
+        f"{sorted(SHIPPED - set(names))}"
     )
-    assert len(names) <= 8, f"CLAUDE.md caps the list at eight and lists {len(names)}"
+    assert len(names) <= 8, f"{DOCTRINE_PAGE} caps the list at eight and lists {len(names)}"
 
 
 @pytest.mark.parametrize("name, phased", DOCTRINE, ids=lambda item: str(item))
@@ -206,14 +215,14 @@ def test_every_name_in_the_doctrine_list_either_exists_or_says_when(name, phased
 
     if name in parser_commands:
         assert not phased, (
-            f"CLAUDE.md marks `{name}` with a phase and the parser already has it. "
+            f"{DOCTRINE_PAGE} marks `{name}` with a phase and the parser already has it. "
             "A shipped command described as arriving later is the same defect "
             "pointing the other way."
         )
         return
 
     assert phased, (
-        f"CLAUDE.md lists `actaira {name}`, which this parser does not have, and "
+        f"{DOCTRINE_PAGE} lists `actaira {name}`, which this parser does not have, and "
         "does not say which phase it arrives in. A name on that list without a "
         "phase reads as a shipped command to anybody who has not typed it."
     )
@@ -224,10 +233,11 @@ def test_the_check_would_notice_a_planted_command():
     failure mode is worth, so a command is planted into a copy of the section
     and both halves are asserted: that it is parsed at all, and that it is
     parsed as unphased."""
-    real = (Path(REPO_ROOT) / "CLAUDE.md").read_text(encoding="utf-8")
+    real = (Path(REPO_ROOT) / DOCTRINE_PAGE).read_text(encoding="utf-8")
     planted = real.replace(
         "    actaira keygen ",
-        "    actaira publish             sube el acta al registro\n    actaira keygen ",
+        "    actaira publish              push the record to the registry\n"
+        "    actaira keygen ",
         1,
     )
     assert planted != real, "the plant did not apply; the fixture line moved"
@@ -247,7 +257,8 @@ def test_the_check_would_notice_a_planted_command():
     # ban on adding a name.
     with_phase = real.replace(
         "    actaira keygen ",
-        "    actaira publish             sube el acta al registro    (fase S9)\n    actaira keygen ",
+        "    actaira publish              push the record to the registry (phase S9)\n"
+        "    actaira keygen ",
         1,
     )
     assert dict(doctrine_commands(with_phase))["publish"] is True
