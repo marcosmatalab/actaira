@@ -13,7 +13,7 @@
 # The image carries the tool and nothing else: no tests and no docs. What goes
 # in is decided by the COPY lines below and enforced by .dockerignore. It used
 # to say "and above all no `evals/artifacts`, a directory of crafted malicious
-# pickles"; that directory went to archive/model-scanner with the scanner, and a
+# pickles"; that directory went to tag v2.3.0 with the scanner, and a
 # comment guarding against a hazard the tree no longer has reads as a description
 # of a tree that still has it.
 #

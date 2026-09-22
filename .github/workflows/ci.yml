@@ -36,11 +36,15 @@
 # deliberate. The version agreement it used to check is checked by
 # `scripts/release_check.py`, which runs on a laptop and needs no tag.
 #
-# `make release-check` and `make figures` are also not here, and that is a
-# limit rather than an oversight: both re-measure the working tree, and a
-# figure measured on a runner and compared against a file written on a laptop
-# is a comparison between two machines. They run in `make all`, which is what
-# the phase gate is.
+# `make release-check` and `make figures` ARE here now, in the `consistency`
+# job, and the thing that changed to allow it is in `scripts/figures.py`. They
+# were excluded because both re-measure the working tree and `figures.py`
+# rewrote a wall clock and the current HEAD on every run, so the comparison a
+# runner could make was between two machines and always came out different.
+# The stamp is carried over when nothing was measured differently, so the file
+# is a function of the tree, and `git diff --exit-code` after it means what it
+# says. The best gate this repository has ran on one laptop until then; a fork
+# had no net at all.
 #
 # ON PINNING. Every `actions/*` step is pinned to a COMMIT SHA, with the tag it
 # resolved from written beside it. They were pinned to a major tag until phase
@@ -114,7 +118,20 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: python -m pip install -e ".[dev]"
       - name: tests
-        run: python -m pytest tests
+        run: python -m pytest tests --cov=src/actaira --cov-report=term
+      - name: the coverage floor
+        # Measured on all three interpreters, enforced on one. A floor applied
+        # per interpreter turns a version-gated branch into a red build on the
+        # version that does not take it, which is a failure about Python rather
+        # than about this repository. The number is printed by every job, so a
+        # drop on 3.11 or 3.13 is visible without being fatal.
+        #
+        # 88 while the tree measures 90, and the reason is in the Makefile: a
+        # floor pegged to the current value goes red the day somebody adds a
+        # legitimate defensive branch, and a gate that breaks on its own gets
+        # switched off.
+        if: matrix.python-version == '3.12'
+        run: python -m coverage report --fail-under=88
       - name: openssl is present, so the cross-implementation checks ran
         # `tests/test_chain_and_signing.py` checks this tree's Ed25519 against
         # openssl rather than against itself. If openssl were missing the tests
@@ -185,6 +202,39 @@ jobs:
           "$RUNNER_TEMP/from-wheel/bin/python" -m pip install --quiet dist/*.whl
           "$RUNNER_TEMP/from-wheel/bin/actaira" --version
           "$RUNNER_TEMP/from-wheel/bin/actaira" scan --demo
+
+  consistency:
+    name: the tree does not disagree with itself
+    # `scripts/release_check.py` is the best artifact in this repository and it
+    # ran nowhere but one laptop. It compares facts recorded in two places and
+    # fails when they have come apart: a figure that drifted from what the code
+    # measures, a flag the documentation shows that the command does not have,
+    # a claim on the README that the CLI's own parser contradicts.
+    #
+    # The second step is the other half. `release_check.py` compares the READMEs
+    # against `figures.json`; it cannot notice that `figures.json` itself was
+    # written against an older tree, because both sides then agree on the same
+    # wrong number. Re-measuring and demanding an empty diff is what closes it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          persist-credentials: false
+          # `figures.py` counts commits and names HEAD. A shallow clone would
+          # make it measure a repository with one commit in it.
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[dev]"
+      - name: the parts of the tree agree with each other
+        run: python scripts/release_check.py
+      - name: the measured figures are the ones committed
+        run: |
+          set -euo pipefail
+          python scripts/figures.py
+          python scripts/sync_readme_figures.py
+          git diff --exit-code
 
   workflows:
     name: zizmor over action.yml and the workflows

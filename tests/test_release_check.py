@@ -630,3 +630,191 @@ def test_a_manifest_line_pruning_a_directory_that_is_gone_fails(working_tree, tm
     assert result.returncode == 1
     assert "evals" in result.stdout
     assert "not in the tree" in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# `make figures` has to be a function of the tree
+# ---------------------------------------------------------------------------
+#
+# `python scripts/figures.py && git diff --exit-code` is a CI gate: it catches
+# a figure that has drifted from what the code measures. It can only be that
+# while running the script twice over one tree produces one answer. It did not:
+# `generated_at` was a wall clock and the `git` block followed HEAD, so every
+# run left `M docs/FIGURES.md` and `M figures.json` behind and the gate would
+# have gone red on every commit, which is the fastest way to have a gate
+# deleted.
+
+
+def _stamp_keeper():
+    sys.path.insert(0, str(Path(REPO_ROOT) / "scripts"))
+    from figures import keep_the_stamps_when_nothing_was_measured_differently  # noqa: PLC0415
+
+    return keep_the_stamps_when_nothing_was_measured_differently
+
+
+def test_the_stamp_is_carried_over_when_nothing_was_measured_differently():
+    keep = _stamp_keeper()
+    existing = {"generated_at": "2026-01-01T00:00:00+00:00", "git": {"commits": 1},
+                "code": {"total": {"lines": 10}}}
+    measured = {"generated_at": "2026-09-22T12:00:00+00:00", "git": {"commits": 2},
+                "code": {"total": {"lines": 10}}}
+
+    keep(measured, existing)
+
+    assert measured["generated_at"] == existing["generated_at"]
+    assert measured["git"] == existing["git"]
+
+
+def test_the_stamp_moves_as_soon_as_one_measured_figure_moves():
+    """The twin. A carry-over that never stops carrying would freeze the file
+    against the tree, which is a worse defect than the one it replaced."""
+    keep = _stamp_keeper()
+    existing = {"generated_at": "2026-01-01T00:00:00+00:00", "git": {"commits": 1},
+                "code": {"total": {"lines": 10}}}
+    measured = {"generated_at": "2026-09-22T12:00:00+00:00", "git": {"commits": 2},
+                "code": {"total": {"lines": 11}}}
+
+    keep(measured, existing)
+
+    assert measured["generated_at"] == "2026-09-22T12:00:00+00:00"
+    assert measured["git"] == {"commits": 2}
+
+
+def test_running_the_measurement_twice_over_one_tree_writes_the_same_bytes(working_tree):
+    """The property the CI step actually depends on, end to end.
+
+    Asserted on the script and not on the helper, because the helper being
+    right and the script not calling it is exactly the shape work rule 12 is
+    about.
+    """
+    def measure():
+        result = subprocess.run(
+            [sys.executable, str(working_tree / "scripts" / "figures.py")],
+            cwd=working_tree, capture_output=True, text=True, timeout=900,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+        return (
+            (working_tree / "figures.json").read_bytes(),
+            (working_tree / "docs" / "FIGURES.md").read_bytes(),
+        )
+
+    first = measure()
+    second = measure()
+
+    assert first == second, (
+        "two runs of scripts/figures.py over one tree wrote different bytes, so "
+        "`git diff --exit-code` after it can never mean what CI says it means"
+    )
+
+
+def _section(stdout: str, title: str) -> str:
+    """The lines one check printed, so a twin asserts on its check and no other.
+
+    Planting a file under `tests/fixtures/` adds a parametrized case to
+    `test_every_fixture_file_is_in_the_index`, which moves the collected test
+    count, which makes `figures_match` red as well. Asserting on the exit code
+    alone would therefore pass with the check under test green, which is the
+    shape work rule 12 names.
+    """
+    lines = stdout.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip().endswith(title):
+            body = []
+            for following in lines[index + 1:]:
+                if following.startswith(("  ok    ", "  FAIL  ")):
+                    break
+                body.append(following)
+            return "\n".join([line, *body])
+    raise AssertionError(f"the gate printed no line for {title!r}:\n{stdout}")
+
+
+ORPHAN_CHECK = "every fixture under tests/fixtures is one the suite names"
+
+
+def test_a_fixture_nothing_in_the_suite_names_fails(working_tree, tmp_path):
+    """The 262 KB CycloneDX schema, reconstructed as the shape rather than the file.
+
+    It survived two releases because the only test that looked at
+    `tests/fixtures/` asked whether git had it, not whether anything read it.
+
+    The directory name is assembled at run time on purpose. Written as a
+    literal it would appear in this file, this file is part of what the check
+    reads, and the plant would vouch for itself - which is how the first
+    version of this test passed while the check under it did nothing.
+    """
+    folder = "zz" + "unreferenced"
+    broken = tmp_path / "orphan-fixture"
+    shutil.copytree(working_tree, broken)
+    orphan = broken / "tests" / "fixtures" / folder / "payload.json"
+    orphan.parent.mkdir(parents=True, exist_ok=True)
+    orphan.write_text('{"unread": true}\n', encoding="utf-8")
+
+    section = _section(run(broken).stdout, ORPHAN_CHECK)
+
+    assert section.startswith("  FAIL"), section
+    assert f"{folder}/payload.json" in section, section
+
+
+def test_a_fixture_a_test_names_only_by_its_directory_passes(working_tree, tmp_path):
+    """And the other direction, which is what keeps the check survivable.
+
+    A corpus of 54 repositories is walked by one loop that names the directory
+    once. A check that demanded every file be named by hand would fail on all
+    of them, and a gate that fails on the correct shape gets switched off.
+    """
+    folder = "zz" + "planted"
+    fine = tmp_path / "named-fixture"
+    shutil.copytree(working_tree, fine)
+    added = fine / "tests" / "fixtures" / "surface" / "corpus" / folder / "CLAUDE.md"
+    added.parent.mkdir(parents=True, exist_ok=True)
+    added.write_text("# planted by the suite\n", encoding="utf-8")
+
+    section = _section(run(fine).stdout, ORPHAN_CHECK)
+
+    assert section.startswith("  ok"), section
+
+
+MAKE_CHECK = "every make target a document names is one the Makefile defines"
+
+
+def test_a_document_naming_a_make_target_that_does_not_exist_fails(working_tree, tmp_path):
+    """docs/ENGINEERING.md listed six of them for two releases.
+
+    make only complains when somebody types one, so a page can go on telling
+    readers to run a target that left with the product it measured.
+    """
+    broken = tmp_path / "dead-target"
+    shutil.copytree(working_tree, broken)
+    page = broken / "docs" / "ENGINEERING.md"
+    page.write_text(
+        page.read_text(encoding="utf-8") + "\n" + "Run `make benchmark` first." + "\n",
+        encoding="utf-8",
+    )
+
+    section = _section(run(broken).stdout, MAKE_CHECK)
+
+    assert section.startswith("  FAIL"), section
+    assert "make benchmark" in section, section
+
+
+def test_prose_that_happens_to_say_make_is_left_alone(working_tree, tmp_path):
+    """The other direction. "make a decision" is not a target.
+
+    The first version of this check read every `make <word>` in the page and
+    reported `make a`, `make the` and `make you`, which is a gate failing on
+    English. Only code counts now, and this is what holds that.
+    """
+    fine = tmp_path / "prose-make"
+    shutil.copytree(working_tree, fine)
+    page = fine / "docs" / "ENGINEERING.md"
+    page.write_text(
+        page.read_text(encoding="utf-8")
+        + "\n"
+        + "Somebody has to make a decision, and make the gate green afterwards."
+        + "\n",
+        encoding="utf-8",
+    )
+
+    section = _section(run(fine).stdout, MAKE_CHECK)
+
+    assert section.startswith("  ok"), section

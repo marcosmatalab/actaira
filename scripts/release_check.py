@@ -1304,6 +1304,152 @@ def run_output_stays_out_of_the_index() -> str:
     return f"{len(foreign)} foreign run artifact(s), ignored and untracked"
 
 
+# Documents that tell a reader to run something. A page that names a command
+# the tree does not have is the defect phase A.1 spent itself removing.
+COMMAND_PAGES = (
+    "README.md", "README.es.md", "CONTRIBUTING.md",
+    "docs/ENGINEERING.md", "docs/DESIGN.md", "docs/GOVERNANCE.md",
+    "docs/COMPATIBILITY.md", "SECURITY.md",
+)
+
+
+def _make_targets_named_in(text: str) -> list[str]:
+    """`make x` where the page means the command, not the English verb.
+
+    Only inside code: an inline span between backticks, or a line of a fenced
+    block. Without that, "make a decision" and "make the gate green" are read
+    as targets, which is a gate failing on prose - and a gate that fails on
+    the correct shape is one people switch off.
+    """
+    found: list[str] = []
+    for span in re.findall(r"`([^`\n]+)`", text):
+        match = re.match(r"make ([a-z][a-z0-9-]*)", span.strip())
+        if match:
+            found.append(match.group(1))
+    fenced = False
+    for line in text.splitlines():
+        if line.startswith("```"):
+            fenced = not fenced
+            continue
+        if fenced:
+            match = re.match(r"\s*make ([a-z][a-z0-9-]*)", line)
+            if match:
+                found.append(match.group(1))
+    return found
+
+
+@check("every make target a document names is one the Makefile defines")
+def documented_make_targets_exist() -> str:
+    """`docs/ENGINEERING.md` listed six targets that left with the scanner.
+
+    `make eval`, `make eval-marking`, `make benchmark`, `make fuzz`, `make
+    screenshots` and `make diagrams`, on the page that argues how this
+    repository is held up, for two releases. Nothing noticed, because make
+    only complains when somebody types one.
+
+    `docs/BACKLOG.md` is excluded and it is the one exclusion here: it is the
+    record of what is wrong, so it quotes the broken command on purpose, and a
+    check that refused that would be refusing the page for doing its job.
+    """
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    defined = set(re.findall(r"^([A-Za-z][A-Za-z0-9_-]*):", makefile, re.M))
+    phony = re.search(r"^\.PHONY:((?:.*\\\n)*.*)$", makefile, re.M)
+    if phony:
+        defined.update(phony.group(1).replace("\\", " ").split())
+    if not defined:
+        raise DriftError("no target was read out of the Makefile, so this compared nothing")
+
+    problems: list[str] = []
+    counted = 0
+    for name in COMMAND_PAGES:
+        path = ROOT / name
+        if not path.is_file():
+            raise DriftError(f"{name} is named by this check and is not in the tree")
+        for target in _make_targets_named_in(path.read_text(encoding="utf-8")):
+            counted += 1
+            if target not in defined:
+                problems.append(
+                    f"{name} tells a reader to run `make {target}`, which the Makefile does not define"
+                )
+    if not counted:
+        raise DriftError("no document names a make target, so this check compared nothing")
+    if problems:
+        raise DriftError("\n".join(sorted(set(problems))))
+    return f"{counted} mention(s) of a make target across {len(COMMAND_PAGES)} pages, all defined"
+
+
+@check("every fixture under tests/fixtures is one the suite names")
+def no_fixture_is_an_orphan() -> str:
+    """The 262 KB CycloneDX schema nothing had read since phase A.
+
+    `tests/test_fixtures_are_published.py` requires every fixture to be in
+    git's index, which is the right rule and says nothing at all about whether
+    anything reads it. So the largest tracked file in the repository survived
+    two releases after the module that consumed it left, held in place by a
+    test whose subject was the opposite question.
+
+    WHAT THIS ASSERTS, EXACTLY, because a check that claims more than it does
+    is the failure mode this repository keeps meeting: that for every file
+    under `tests/fixtures/`, the suite or the scripts NAME it or name one of
+    the directories it sits in. It does not assert that a test opens it. A
+    fixture directory walked by a loop is named once and every file under it
+    is then accounted for, which is correct - the loop is what reads them -
+    and it is also the limit of what this can see.
+
+    Rejected: executing the suite under an open() trace, which would be exact
+    and would make this check cost a full test run inside a gate that already
+    runs one.
+    """
+    fixtures = ROOT / "tests" / "fixtures"
+    if not fixtures.is_dir():
+        raise DriftError("tests/fixtures is not there, so this check has nothing to read")
+
+    haystack = []
+    for folder in ("tests", "scripts", "src"):
+        for path in sorted((ROOT / folder).rglob("*.py")):
+            if "__pycache__" in path.parts or path.parts[-2:] == ("tests", "fixtures"):
+                continue
+            if fixtures in path.parents:
+                continue  # a fixture cannot vouch for itself
+            haystack.append(path.read_text(encoding="utf-8", errors="replace"))
+    text = "\n".join(haystack)
+    if not text:
+        raise DriftError("no Python was read, so this check compared nothing")
+
+    def named(relative: Path) -> bool:
+        """Is this path, or a directory above it, written down in the suite?
+
+        Segments are joined by a loose separator so that `FIXTURES / "surface"
+        / "keyv-august"` and `"tests/fixtures/surface/keyv-august"` both count.
+        """
+        parts = relative.parts
+        for depth in range(len(parts), 0, -1):
+            pattern = r"[^A-Za-z0-9]{1,8}".join(re.escape(part) for part in parts[:depth])
+            if re.search(pattern, text):
+                return True
+        return False
+
+    files = [
+        path for path in sorted(fixtures.rglob("*"))
+        if path.is_file() and "__pycache__" not in path.parts
+    ]
+    if not files:
+        raise DriftError("tests/fixtures holds no files, so this check compared nothing")
+
+    orphans = [
+        path.relative_to(ROOT).as_posix()
+        for path in files
+        if not named(path.relative_to(fixtures))
+    ]
+    if orphans:
+        raise DriftError(
+            "nothing in tests/, scripts/ or src/ names these fixtures or any directory "
+            "they sit in, so they are tracked weight rather than evidence:\n  "
+            + "\n  ".join(orphans)
+        )
+    return f"{len(files)} fixture file(s), every one named by the suite or the scripts"
+
+
 @check("every path the build configuration names is a path that exists")
 def the_build_configuration_names_real_paths() -> str:
     """Two files that name paths and are read by tools that shrug at a miss.

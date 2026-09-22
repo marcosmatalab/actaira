@@ -31,7 +31,7 @@
       "found_by": "test suite",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -55,7 +55,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_eval_harness.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_eval_harness.py`",
       "fixed": true
     },
     {
@@ -66,7 +66,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "the eval measuring the cost of a policy, resolved as two documented risk acceptances",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_policy.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_policy.py`",
       "fixed": true
     },
     {
@@ -76,7 +76,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -86,7 +86,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -96,7 +96,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py, test_policy.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py, test_policy.py`",
       "fixed": true
     },
     {
@@ -106,7 +106,7 @@
       "found_by": "fuzzing",
       "counts_as": 14,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_fuzz_regressions.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_fuzz_regressions.py`",
       "fixed": true
     },
     {
@@ -116,7 +116,7 @@
       "found_by": "real-serialiser corpus",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_real_artifacts.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_real_artifacts.py`",
       "fixed": true
     },
     {
@@ -127,7 +127,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_benchmark.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_benchmark.py`",
       "fixed": true
     },
     {
@@ -163,7 +163,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -185,7 +185,7 @@
       "found_by": "running the harness",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -195,7 +195,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -205,7 +205,7 @@
       "found_by": "test suite",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_pickle_scan.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_pickle_scan.py`",
       "fixed": true
     },
     {
@@ -215,7 +215,7 @@
       "found_by": "reading the tool's own output",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_real_artifacts.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_real_artifacts.py`",
       "fixed": true
     },
     {
@@ -225,7 +225,7 @@
       "found_by": "reading the tool's own output",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_real_artifacts.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_real_artifacts.py`",
       "fixed": true
     },
     {
@@ -235,7 +235,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_governance.py`",
       "fixed": true
     },
     {
@@ -245,7 +245,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_governance.py`",
       "fixed": true
     },
     {
@@ -255,7 +255,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_governance.py`",
       "fixed": true
     },
     {
@@ -265,7 +265,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_governance.py`",
       "fixed": true
     },
     {
@@ -275,7 +275,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_governance.py`",
       "fixed": true
     },
     {
@@ -285,7 +285,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_governance.py`",
       "fixed": true
     },
     {
@@ -295,7 +295,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_governance.py`",
       "fixed": true
     },
     {
@@ -305,7 +305,7 @@
       "found_by": "adversarial legal review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_governance.py`",
       "fixed": true
     },
     {
@@ -315,7 +315,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py, test_policy.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py, test_policy.py`",
       "fixed": true
     },
     {
@@ -325,7 +325,7 @@
       "found_by": "test suite",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -335,7 +335,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -345,7 +345,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -355,7 +355,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_cli.py`",
       "fixed": true
     },
     {
@@ -365,7 +365,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py, test_fuzz_regressions.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py, test_fuzz_regressions.py`",
       "fixed": true
     },
     {
@@ -375,7 +375,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -385,7 +385,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_pickle_scan.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_pickle_scan.py`",
       "fixed": true
     },
     {
@@ -395,7 +395,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -405,7 +405,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -441,7 +441,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_cli.py`",
       "fixed": true
     },
     {
@@ -479,7 +479,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_governance.py`",
       "fixed": true
     },
     {
@@ -489,7 +489,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_governance.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_governance.py`",
       "fixed": true
     },
     {
@@ -500,7 +500,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_fuzz_regressions.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_fuzz_regressions.py`",
       "fixed": true
     },
     {
@@ -511,7 +511,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_fuzz_regressions.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_fuzz_regressions.py`",
       "fixed": true
     },
     {
@@ -521,7 +521,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -532,7 +532,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the benchmark that compares the tool, not in the tool",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_benchmark.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_benchmark.py`",
       "fixed": true
     },
     {
@@ -543,7 +543,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the measuring apparatus, not in the tool",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_eval_harness.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_eval_harness.py`",
       "fixed": true
     },
     {
@@ -563,7 +563,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_bom.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_bom.py`",
       "fixed": true
     },
     {
@@ -573,7 +573,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_web_limits.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_web_limits.py`",
       "fixed": true
     },
     {
@@ -597,7 +597,7 @@
       "found_by": "test suite",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_connectors.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_connectors.py`",
       "fixed": true
     },
     {
@@ -607,7 +607,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 2,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_connectors.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_connectors.py`",
       "fixed": true
     },
     {
@@ -617,7 +617,7 @@
       "found_by": "adversarial engineering review",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_connectors.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_connectors.py`",
       "fixed": true
     },
     {
@@ -628,7 +628,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "found by reading the two URL parsers against each other before this package had a release; it is recorded because the mechanism that caught it is the one this ledger is a claim about",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_connectors.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_connectors.py`",
       "fixed": true
     },
     {
@@ -650,7 +650,7 @@
       "found_by": "product review against a roadmap",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_formats.py`",
       "fixed": true
     },
     {
@@ -660,7 +660,7 @@
       "found_by": "product review against a roadmap",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_cli.py`",
       "fixed": true
     },
     {
@@ -670,7 +670,7 @@
       "found_by": "product review against a roadmap",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_coverage.py, test_formats.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_coverage.py, test_formats.py`",
       "fixed": true
     },
     {
@@ -717,7 +717,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "the policy layer is new in this version and the bridge was exercised end to end before the tag",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_cli.py`",
       "fixed": true
     },
     {
@@ -739,7 +739,7 @@
       "counts_as": 1,
       "shipped_defect": true,
       "shipped_in": "2.0.0 and 2.1.0",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_cli.py`",
       "fixed": true
     },
     {
@@ -750,7 +750,7 @@
       "counts_as": 1,
       "shipped_defect": true,
       "shipped_in": "2.1.0",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_cli.py`",
       "fixed": true
     },
     {
@@ -838,7 +838,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_cli.py`",
       "fixed": true
     },
     {
@@ -849,7 +849,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_cli.py`",
       "fixed": true
     },
     {
@@ -860,7 +860,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_cli.py`",
       "fixed": true
     },
     {
@@ -882,7 +882,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_subjects.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_subjects.py`",
       "fixed": true
     },
     {
@@ -937,7 +937,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_trust_paths.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_trust_paths.py`",
       "fixed": true
     },
     {
@@ -948,7 +948,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py, test_remote_receipt.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_cli.py, test_remote_receipt.py`",
       "fixed": true
     },
     {
@@ -959,7 +959,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_remote_receipt.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_remote_receipt.py`",
       "fixed": true
     },
     {
@@ -1025,7 +1025,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "found by an adversarial read of this release's own new code, before the tag",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_remote_receipt.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_remote_receipt.py`",
       "fixed": true
     },
     {
@@ -1061,7 +1061,7 @@
         "tests/test_dsse.py::test_verify_checks_the_envelope_it_finds",
         "tests/test_dsse.py::test_an_edited_envelope_is_caught_twice"
       ],
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_dsse.py` also pinned it",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_dsse.py` also pinned it",
       "fixed": true
     },
     {
@@ -1071,7 +1071,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_controls.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_controls.py`",
       "fixed": true
     },
     {
@@ -1081,7 +1081,7 @@
       "found_by": "external adversarial audit",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_connectors.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_connectors.py`",
       "fixed": true
     },
     {
@@ -1091,7 +1091,7 @@
       "found_by": "adversarial review of new code",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_state.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_state.py`",
       "fixed": true
     },
     {
@@ -1113,7 +1113,7 @@
       "found_by": "using the tool as a person would",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_cli.py`",
       "fixed": true
     },
     {
@@ -1124,7 +1124,7 @@
       "counts_as": 2,
       "shipped_defect": false,
       "not_shipped_because": "a stale assertion in the nightly suite and in the expectation file it reads, not a defect in the shipped tool: the behaviour they disagreed with is the corrected one",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_real_artifacts.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_real_artifacts.py`",
       "fixed": true
     },
     {
@@ -1135,7 +1135,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "the fuzz harness is not part of the distributed package; it is the apparatus that measures it, and this is a defect in the apparatus and in what the apparatus was willing to claim",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_fuzz_regressions.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_fuzz_regressions.py`",
       "fixed": true
     },
     {
@@ -1155,7 +1155,7 @@
       "found_by": "reading the tool's own output",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_web_frontend.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_web_frontend.py`",
       "fixed": true
     },
     {
@@ -1176,7 +1176,7 @@
       "found_by": "using the tool as a person would",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_cli.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_cli.py`",
       "fixed": true
     },
     {
@@ -1187,7 +1187,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "a defect in the documentation the tool ships with rather than in the tool: the interface itself switches language correctly, which is what `tests/test_i18n.py` asserts",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_readme_parity.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_readme_parity.py`",
       "fixed": true
     },
     {
@@ -1198,7 +1198,7 @@
       "counts_as": 1,
       "shipped_defect": false,
       "not_shipped_because": "the shipped tool is correct on both policies and on both spellings; this was a test that could only ever have been run on one kind of host, and an untested branch of the denylist",
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_real_artifacts.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_real_artifacts.py`",
       "fixed": true
     },
     {
@@ -1218,7 +1218,7 @@
       "found_by": "writing a test for an adjacent feature",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_web_frontend.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_web_frontend.py`",
       "fixed": true
     },
     {
@@ -1258,7 +1258,7 @@
       "found_by": "product review against a roadmap",
       "counts_as": 1,
       "shipped_defect": true,
-      "pinned_note": "the test that pinned this went to archive/model-scanner with the module it covered; it is at tag v2.3.0, `tests/test_state_change.py`",
+      "pinned_note": "the test that pinned this went to tag v2.3.0 with the module it covered; it is there as, `tests/test_state_change.py`",
       "fixed": true
     },
     {
@@ -1426,6 +1426,36 @@
         "tests/test_release_check.py::test_a_manifest_line_pruning_a_directory_that_is_gone_fails"
       ],
       "pinned_note": "Two twins, one per file, because the check reads two files with one definition and a twin that only planted the pyproject half would leave the MANIFEST half asserted by nobody. Each plants the defect in the shape it happened - the exact `src/actaira/coverage.py` key and the exact `prune evals` line - and demands the gate exit 1 naming the path."
+    },
+    {
+      "id": "DEF-128",
+      "title": "`scripts/figures.py` wrote a wall clock and the current HEAD into its own output, so the file it produced was not a function of the tree and the best gate in the repository could not be put in CI",
+      "effect": "THE DEFECT. `figures.json` and `docs/FIGURES.md` carried `generated_at`, a timestamp taken at run time, and a `git` block naming whatever HEAD was. Neither is a measurement of the repository. Two runs over one unchanged tree therefore wrote different bytes, and `make figures` left `M docs/FIGURES.md` and `M figures.json` behind every single time.\n\nWHAT IT COST, WHICH IS NOT THE UNTIDINESS. `scripts/release_check.py` compares the READMEs against `figures.json`. It cannot notice that `figures.json` was itself written against an older tree, because then both sides agree on the same wrong number. The check that closes that hole is re-measuring and demanding an empty diff - and that check could not exist, because the diff was never empty. So the repository's best artifact, the 24 checks that refuse a tree whose parts disagree, ran on exactly one laptop for three releases. `.github/workflows/ci.yml` said so in a comment and called it a limit: a figure measured on a runner and compared against a file written on a laptop is a comparison between two machines. That was true, and the cause was in our own script.\n\nTHE FIX. The stamp is carried over from the previous artifact when every measured block is identical, so it records when these figures were last measured to be DIFFERENT, which is both honest and a function of the tree. Rejected: deleting the stamp. `release_check.py` checks `git.commits` and `git.head_date` against the commit the file names, and a figure that leaves the guarded set is unguarded rather than moved - the argument that put the defect ledger's counts under guard on the page they moved to.\n\nWITH IT FIXED, `release-check` and `figures` are jobs in CI.",
+      "found_by": "product review against a roadmap",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "`scripts/` is pruned from the sdist. What it kept out of CI was the gate, not anything the installed tool does.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_release_check.py::test_running_the_measurement_twice_over_one_tree_writes_the_same_bytes",
+        "tests/test_release_check.py::test_the_stamp_moves_as_soon_as_one_measured_figure_moves"
+      ],
+      "pinned_note": "The first runs the script twice over a copy of the tree and demands the same bytes, which is the property the CI step depends on and is asserted on the script rather than on the helper: the helper being right and the script not calling it is the shape work rule 12 names. The second is work rule 9's twin in the other direction - a carry-over that never stops carrying would freeze the file against the tree, which is a worse defect than the one it replaced."
+    },
+    {
+      "id": "DEF-129",
+      "title": "the page that argues how this repository is held up listed six make targets that left with the model scanner, on the release that removed documentation describing a product that is not here",
+      "effect": "THE DEFECT. `docs/ENGINEERING.md` opened with a block of the commands a contributor runs. Six of them - `eval`, `eval-marking`, `benchmark`, `fuzz`, `screenshots` and `diagrams` - have not been Makefile targets since phase A.1 archived the scanner they measured. Typing any of them gets `No rule to make target`.\n\nWHY IT IS THE ONE THAT STINGS. Phase A.1 existed to remove documentation describing a product that is not here. It removed the pages and left the command list on the page that explains the rigor. `docs/BACKLOG.md` recorded two of the six in phase S3, re-checked them, argued correctly that there was nothing to restore, and then deferred the deletion on the ground that it was a documentation file the phase did not open. A known defect deferred four times is a defect the process has decided to keep.\n\nTHE FIX IS NOT THE DELETION. Deleting six lines fixes six lines. `release_check.py` now reads every make target written INSIDE CODE on the eight pages that tell a reader to run something, and fails on one the Makefile does not define. Inside code and not anywhere, because the first version read `make a`, `make the` and `make you` out of English prose, and a gate that fails on the correct shape is one people switch off. `docs/BACKLOG.md` is the single exclusion: it is the record of what is wrong, so it quotes the broken command on purpose.",
+      "found_by": "product review against a roadmap",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "`docs/*.md` ships in the sdist, so it travels, but nothing it says changes what the tool does. What it cost is the argument rather than the behaviour.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_release_check.py::test_a_document_naming_a_make_target_that_does_not_exist_fails",
+        "tests/test_release_check.py::test_prose_that_happens_to_say_make_is_left_alone"
+      ],
+      "pinned_note": "The twin plants `make benchmark` back into the page it was on and demands the gate name it. The second test is the other twin, and it is the one that makes the check survivable: it plants prose that says `make a decision` and `make the gate green` and demands silence, which is the case the first version of the check got wrong."
     }
   ]
 }

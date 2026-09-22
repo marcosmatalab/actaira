@@ -66,17 +66,6 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   Path(p).read_text(encoding='utf-8'))]) for p in ('README.md','README.es.md')])"
   ```
 
-- `CONTRIBUTING.md` y `docs/ENGINEERING.md` nombran `make diagrams`, `make
-  screenshots` y `docs/img/`, que ya no existen. **Recomprobado en la S3 y
-  reasignado con motivo**: `grep -n 'make diagrams\|make screenshots'
-  CONTRIBUTING.md docs/ENGINEERING.md` devuelve dos líneas, las dos en
-  `docs/ENGINEERING.md:23-24`, y el `Makefile` no tiene ninguno de los dos
-  objetivos. La premisa de la reasignación a la S3 resultó falsa: el informe HTML
-  no es una imagen de `docs/img/`, es un fichero que el usuario pide con `--html`
-  y que no se genera en el repositorio ni se commitea, así que la S3 no devuelve
-  ninguna imagen que generar y no hay objetivo que restaurar. Lo que hay que
-  hacer es borrar las dos líneas, y eso es un fichero de documentación que esta
-  fase no abre. **Sin fase**, hasta que algo vuelva a dibujar.
 - `docs/GOVERNANCE.md`, `docs/FORMATS.md`, `docs/EVALUATION.md` y
   `docs/CONCEPTS*.md` documentan módulos archivados. `docs/COMPATIBILITY.md`
   promete que un contrato publicado sigue publicado, y 3.0.0 retira diez.

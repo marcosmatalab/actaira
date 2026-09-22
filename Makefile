@@ -1,10 +1,10 @@
 # `lint`, `test`, `figures`, `contracts`, `design-notes` and `release-check` run
 # on a clean checkout with no arguments and no network.
 #
-# `all` is made of `lint`, `test`, `figures` and `release-check`, in the order a
+# `all` is made of `lint`, `test-cov`, `figures` and `release-check`, in the order a
 # failure is cheapest to read. Nothing in it needs anything beyond the dev extra.
 #
-# What went to archive/model-scanner at v2.3.0, and why no target here calls it:
+# What went to tag v2.3.0 with the scanner, and why no target here calls it:
 # `eval`, `benchmark`, `eval-marking`, `real-corpus` and `nightly-real` all ran
 # `evals/`, which read `actaira.inspect`; `fuzz` and `fuzz-long` ran `fuzz/`,
 # which read `actaira.formats`; `diagrams` and `screenshots` drew pictures of
@@ -13,12 +13,13 @@
 # that give them something to measure.
 PY ?= python3
 
-.PHONY: help install test lint figures release-check contracts design-notes \
+.PHONY: help install test test-cov lint figures release-check contracts design-notes \
         package source-archive types clean all
 
 help:
 	@echo "install    install the package and dev extras"
 	@echo "test       run the test suite"
+	@echo "test-cov   the suite with the coverage floor that make all enforces"
 	@echo "lint       run ruff"
 	@echo "types      hold every mypy-clean module clean; needs the types extra"
 	@echo "figures    measure the repository into docs/FIGURES.md and figures.json"
@@ -28,13 +29,24 @@ help:
 	@echo "package    build the wheel and the sdist into dist/ and check what is in them"
 	@echo "source-archive  zip the tracked source into dist/, from an allowlist"
 	@echo "clean      remove every generated directory and build artifact"
-	@echo "all        lint, test, figures, release-check"
+	@echo "all        lint, test-cov, figures, release-check"
 
 install:
 	$(PY) -m pip install -e ".[dev]"
 
 test:
 	$(PY) -m pytest tests
+
+# The coverage floor. It is 88 while the tree measures 90, on purpose: a floor
+# pegged to the current value goes red the day somebody adds a legitimate
+# defensive branch, and a gate that breaks on its own gets switched off.
+#
+# `--cov=src/actaira`, with the path, and not `--cov=actaira`. `tests/conftest.py`
+# puts `src/` on `sys.path`, so with the module name coverage measures an import
+# it never sees and reports a confident 0%.
+COVERAGE_FLOOR ?= 88
+test-cov:
+	$(PY) -m pytest tests --cov=src/actaira --cov-report=term --cov-fail-under=$(COVERAGE_FLOOR)
 
 lint:
 	$(PY) -m ruff check src tests scripts
@@ -120,7 +132,7 @@ source-archive:
 # The gate, in the order a failure is cheapest to read. CI runs these same
 # steps as separate jobs rather than invoking `all`, so a red build names the
 # stage that failed instead of the word "all".
-all: lint test figures release-check
+all: lint test-cov figures release-check
 
 clean:
 	rm -rf .pytest_cache .ruff_cache build dist
