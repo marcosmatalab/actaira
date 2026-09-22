@@ -25,7 +25,7 @@ property over every emitted document watches it for free, because the assertion
 was already written - only its subject changed, from "the receipt" to
 "everything this tree emits".
 
-CLAUDE.md's first negative, in full, is what these enforce: no score, grade,
+the first negative, in full, is what these enforce: no score, grade,
 rating, percent, confidence or ranking in any emitted document; and a rule's
 author-written `severity` is an attributed label that is never aggregated or
 summed with another.
@@ -169,7 +169,7 @@ def test_no_emitted_document_carries_a_number_shaped_word(emitted, word):
     ]
 
     assert offenders == [], (
-        f"an emitted document carries {word!r}, which CLAUDE.md's first negative "
+        f"an emitted document carries {word!r}, which the first negative "
         "forbids in any published document: " + "; ".join(offenders)
     )
 

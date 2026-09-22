@@ -531,7 +531,7 @@ def test_something_that_is_not_a_zip_is_refused_without_raising(tmp_path):
 # Hostile input: a verdict, never a traceback
 # ---------------------------------------------------------------------------
 #
-# CLAUDE.md, code rules: a format error is caught at load time and is a message,
+# `docs/PRINCIPLES.md`, code rules: a format error is caught at load time and is a message,
 # not a traceback. `_read_member` already obeyed that and the three readers
 # after it did not. Each of these came out of `verify_package` as an exception,
 # so `actaira verify` printed a Python stack to stderr on a package anyone can

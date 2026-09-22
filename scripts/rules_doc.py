@@ -49,7 +49,7 @@ answers: `DECLARED` means the rule reports what a file says, whether or not it
 is in force; `EFFECTIVE` means it answers only once the scopes resolve.
 
 **A rule marked NO REAL VIOLATION has no violating case from a real public
-configuration.** CLAUDE.md requires a rule's two tests to run on a real
+configuration.** `docs/PRINCIPLES.md` requires a rule's two tests to run on a real
 configuration or on a reconstruction cited from an incident report; a third,
 narrow branch admits the vendor's own published configuration when the rule's
 scope makes a public sample impossible, or when a recorded search found none.

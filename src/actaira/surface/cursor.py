@@ -35,15 +35,17 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from . import NotRead, Scope, Unresolved
+from . import REPOSITORY_SCOPES, Capability, NotRead, Resolution, Scope, Surface, Unresolved
 from .disk import (
     Reading,
     SettingsFile,
+    digest_of,
     git_tracked,
     read_json,
     referenced_path,
     script_facts,
 )
+from .emit import emit, referenced_target, server_facts, target_facts
 
 VENDOR = "cursor"
 
@@ -210,3 +212,75 @@ __all__ = [
     "hook_entries",
     "read",
 ]
+
+
+# ---------------------------------------------------------------------------
+# The resolver
+# ---------------------------------------------------------------------------
+#
+# A pure function of what the reader above read. It touches no disk, no clock
+# and no socket, which is what lets a fixture replay the whole decision path.
+# It lived in `resolve.py` until the file reached two thousand lines holding
+# seven vendors; it is beside its reader now, which is where the next person
+# looking for it will look.
+
+
+
+
+def cursor_surface(reading: Any, *, agent_version: str | None = None,
+        with_content: bool = False) -> Surface:
+    """Cursor: the hooks that are files, and the MCP servers beside them."""
+    from .cursor import hook_command, hook_entries
+
+    found: list[Capability] = []
+
+    for handle in reading.settings:
+        if not handle.ok:
+            continue
+        for event, entry in hook_entries(handle.data):
+            command = hook_command(entry)
+            if command is None:
+                continue
+            facts: dict[str, Any] = {
+                "event": event,
+                "at_startup": event in STARTUP_EVENTS,
+                "command_sha256": digest_of(command),
+            }
+            if with_content:
+                facts["command"] = command
+            spoken = referenced_target(command)
+            facts["target"] = spoken
+            facts.update(target_facts(reading, spoken))
+            emit(
+                found, name="hook.command", scope=handle.scope, source=handle.display,
+                key="hooks", resolution=Resolution.EFFECTIVE,
+                condition=(
+                    "an enterprise or team hook outranks this one, and the team level is "
+                    "not a file"
+                    if handle.scope in REPOSITORY_SCOPES else None
+                ),
+                facts=facts, vendor=reading.vendor,
+            )
+
+    for handle in reading.mcp_files:
+        if not handle.ok:
+            continue
+        servers = handle.data.get("mcpServers")
+        for name in sorted(servers) if isinstance(servers, dict) else []:
+            entry = servers[name]
+            if not isinstance(entry, dict):
+                continue
+            emit(
+                found, name="mcp.server", scope=handle.scope, source=handle.display,
+                key="mcpServers", resolution=Resolution.EFFECTIVE,
+                facts=server_facts(name, entry, with_content=with_content),
+                vendor=reading.vendor,
+            )
+
+    return Surface(
+        vendor=reading.vendor,
+        agent_version=None,
+        capabilities=tuple(found),
+        unresolved=tuple(reading.unresolved),
+        not_read=tuple(reading.not_read),
+    )

@@ -81,9 +81,9 @@ NOT_A_RESOLVER = {
 # and MUST NOT be read as what makes this safe: its real value is catching the
 # day somebody weakens the anchor back into a list of names.
 SYNTHESISED_AT = (
-    ("instructions.py", 180, "a CLAUDE.md has `@path` syntax, not keys"),
-    ("resolve.py", 1071, "the managed-sandbox mapping, when nothing is managed"),
-    ("resolve.py", 1088, "the managed-sandbox mapping handed to `_sandbox`"),
+    ("instructions.py", 181, "a CLAUDE.md has `@path` syntax, not keys"),
+    ("resolve.py", 279, "the managed-sandbox mapping, when nothing is managed"),
+    ("resolve.py", 296, "the managed-sandbox mapping handed to `_sandbox`"),
 )
 
 # Predicates that identify both operands, at the same strength as `==`.

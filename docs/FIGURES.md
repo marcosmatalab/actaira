@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-22T12:32:42+00:00 for actaira 3.0.0, at commit 1883706.
+Generated 2026-09-22T13:33:41+00:00 for actaira 3.0.0, at commit cfe8eac.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, pytest-cov>=5, ruff>=0.6, jsonschema>=4.18
-- 45 commits, most recent 2026-09-22
+- 46 commits, most recent 2026-09-22
 
 ## Tests
 
-**2544** tests collected by pytest across 44 files.
+**2548** tests collected by pytest across 44 files.
 
 | file | tests |
 |---|---:|
@@ -36,7 +36,7 @@ Generated 2026-09-22T12:32:42+00:00 for actaira 3.0.0, at commit 1883706.
 | `tests/test_diff.py` | 25 |
 | `tests/test_dsse.py` | 25 |
 | `tests/test_fixtures_are_published.py` | 193 |
-| `tests/test_i18n.py` | 142 |
+| `tests/test_i18n.py` | 144 |
 | `tests/test_keyring.py` | 34 |
 | `tests/test_layering.py` | 9 |
 | `tests/test_mcp.py` | 15 |
@@ -49,7 +49,7 @@ Generated 2026-09-22T12:32:42+00:00 for actaira 3.0.0, at commit 1883706.
 | `tests/test_proxy_http_interposition.py` | 15 |
 | `tests/test_proxy_protocol.py` | 17 |
 | `tests/test_proxy_transports.py` | 28 |
-| `tests/test_reachability.py` | 48 |
+| `tests/test_reachability.py` | 50 |
 | `tests/test_readme_parity.py` | 30 |
 | `tests/test_release_check.py` | 31 |
 | `tests/test_scan_claude_code.py` | 33 |
@@ -68,7 +68,7 @@ Generated 2026-09-22T12:32:42+00:00 for actaira 3.0.0, at commit 1883706.
 | `tests/test_value_inventory.py` | 7 |
 | `tests/test_verify_strictness.py` | 23 |
 | `tests/test_workflow_shell.py` | 5 |
-| **total** | **2544** |
+| **total** | **2548** |
 
 ## Defects found in this repository
 
@@ -112,13 +112,13 @@ and the modules are the source of truth.
 | attest | 11 | 4316 | 2649 | 764 | 330 | 573 |
 | trace | 5 | 1706 | 939 | 383 | 161 | 223 |
 | proxy | 5 | 1963 | 1238 | 343 | 190 | 192 |
-| core | 4 | 1182 | 732 | 208 | 83 | 159 |
+| core | 4 | 1184 | 733 | 209 | 83 | 159 |
 | schemas | 1 | 126 | 27 | 36 | 43 | 20 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
-| rest | 18 | 6455 | 4254 | 969 | 412 | 820 |
-| tests | 51 | 19208 | 10713 | 3183 | 1237 | 4075 |
+| rest | 20 | 6619 | 4270 | 1003 | 477 | 869 |
+| tests | 51 | 19241 | 10725 | 3192 | 1247 | 4077 |
 | scripts | 14 | 4725 | 2965 | 743 | 414 | 603 |
-| **total** | 111 | 39736 | 23547 | 6636 | 2877 | 6676 |
+| **total** | 113 | 39935 | 23576 | 6680 | 2952 | 6727 |
 
 Documentation, in lines of Markdown:
 

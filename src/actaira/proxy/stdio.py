@@ -41,7 +41,7 @@ def _now() -> str:
 
 
 # Published limit 15, in one place so that the README, `docs/COMPATIBILITY.md`,
-# `CLAUDE.md` and the skip this fact forces on Windows are one sentence and not
+# `docs/PRINCIPLES.md` and the skip this fact forces on Windows are one sentence and not
 # four. Work rule 10: two statements about the same property share their
 # definition or they cancel.
 #

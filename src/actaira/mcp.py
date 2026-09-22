@@ -113,7 +113,7 @@ def _check(arguments: dict[str, Any]) -> dict[str, Any]:
         )
     payload = check_document(repo)
     # Three counts and no fourth, and never a total: a caller that could add
-    # them up would be computing the number CLAUDE.md's first negative forbids,
+    # them up would be computing the number the first negative forbids,
     # and an INDETERMINATE quietly counted as a rule that did not fire is the
     # exact confusion `surface.document` keeps three lists to prevent.
     payload["state"] = "read"

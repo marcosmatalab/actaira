@@ -51,7 +51,7 @@ SCHEMA_VERSION = schemas.VERSIONS["trace"]
 READS = schemas.accepted("trace")
 
 # The OpenTelemetry GenAI attribute names this document uses verbatim, from
-# open-telemetry/semantic-conventions-genai. CLAUDE.md: no invented vocabulary
+# open-telemetry/semantic-conventions-genai. `docs/PRINCIPLES.md`: no invented vocabulary
 # where one exists.
 OTEL_FIELDS = (
     "gen_ai.operation.name",
@@ -578,7 +578,7 @@ def parse_trace(document: dict[str, Any]) -> Trace:
     """Read a document back, refusing what this reader does not understand.
 
     Format errors are raised here rather than surfacing later as a wrong
-    answer, per CLAUDE.md's code rules: a malformed document is a message at
+    answer, per the code rules: a malformed document is a message at
     load time, not a traceback during evaluation.
     """
     if not isinstance(document, dict):

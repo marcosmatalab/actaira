@@ -89,8 +89,8 @@ def test_the_table_does_not_classify_fields_that_are_not_published():
 
 
 def test_every_third_party_field_that_travels_literally_carries_its_argument():
-    """A decision with no reason written down is a preference, and CLAUDE.md's
-    fifth working rule is that a decision is written with its alternative."""
+    """A decision with no reason written down is a preference, and work rule 5
+    is that a decision is written with its alternative."""
     unargued = [
         field.path
         for field in PUBLISHED + REFUSED

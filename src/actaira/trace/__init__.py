@@ -1,7 +1,7 @@
 """Capture levels, and the interface every source of a trace arrives through.
 
 Design note D-251. The level is not a label on the document, it is the thing
-that decides what the document may claim. CLAUDE.md gives four:
+that decides what the document may claim. `docs/PRINCIPLES.md` gives four:
 
     L0  the agent's own transcript. Complete tool calls, written by the
         audited party. Cannot assert authenticity - not because it failed,

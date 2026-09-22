@@ -25,14 +25,16 @@ import re
 from pathlib import Path
 from typing import Any
 
-from . import NotRead, Scope, Unresolved
+from . import Capability, NotRead, Resolution, Scope, Surface, Unresolved
 from .disk import (
     Reading,
     SettingsFile,
+    digest_of,
     git_tracked,
     referenced_path,
     script_facts,
 )
+from .emit import emit, referenced_target, target_facts
 from .vscode import read_jsonc
 
 VENDOR = "devcontainer"
@@ -188,3 +190,117 @@ __all__ = [
     "names_a_credential",
     "read",
 ]
+
+
+# ---------------------------------------------------------------------------
+# The resolver
+# ---------------------------------------------------------------------------
+#
+# A pure function of what the reader above read. It touches no disk, no clock
+# and no socket, which is what lets a fixture replay the whole decision path.
+# It lived in `resolve.py` until the file reached two thousand lines holding
+# seven vendors; it is beside its reader now, which is where the next person
+# looking for it will look.
+
+
+
+
+def devcontainer_surface(reading: Any, *, agent_version: str | None = None,
+        with_content: bool = False) -> Surface:
+    """A dev container's lifecycle commands, its mounts and its isolation flags."""
+
+    found: list[Capability] = []
+
+    for handle in reading.settings:
+        if not handle.ok:
+            continue
+        data = handle.data
+        for key, on_host in LIFECYCLE.items():
+            for command in commands_of(data.get(key)):
+                facts: dict[str, Any] = {
+                    "key": key,
+                    "on_host": on_host,
+                    "command_sha256": digest_of(command),
+                }
+                if with_content:
+                    facts["command"] = command
+                spoken = referenced_target(command)
+                facts["target"] = spoken
+                facts.update(target_facts(reading, spoken))
+                emit(
+                    found,
+                    name="lifecycle.command",
+                    scope=handle.scope,
+                    source=handle.display,
+                    key=key,
+                    resolution=Resolution.EFFECTIVE,
+                    condition=(
+                        "runs on the host during initialization, before any container exists"
+                        if on_host
+                        else "runs inside the container"
+                    ),
+                    facts=facts,
+                    vendor=reading.vendor,
+                )
+
+        mounts = data.get("mounts")
+        for entry in mounts if isinstance(mounts, list) else []:
+            source = mount_source(entry)
+            if source is None:
+                continue
+            credential = names_a_credential(source)
+            emit(
+                found,
+                name="container.mount",
+                scope=handle.scope,
+                source=handle.display,
+                key="mounts",
+                resolution=Resolution.EFFECTIVE,
+                facts={
+                    "source": source,
+                    "credential": credential,
+                    "names_credential": credential is not None,
+                },
+                vendor=reading.vendor,
+            )
+
+        for key in ("privileged",):
+            if data.get(key) is True:
+                emit(
+                    found, name="container.isolation", scope=handle.scope,
+                    source=handle.display, key=key, resolution=Resolution.EFFECTIVE,
+                    facts={"key": key, "value": True, "isolation_weakened": True},
+                    vendor=reading.vendor,
+                )
+        for key in ("capAdd", "securityOpt"):
+            entries = data.get(key)
+            for entry in entries if isinstance(entries, list) else []:
+                if not isinstance(entry, str):
+                    continue
+                emit(
+                    found, name="container.isolation", scope=handle.scope,
+                    source=handle.display, key=key, resolution=Resolution.EFFECTIVE,
+                    facts={"key": key, "value": entry, "isolation_weakened": True},
+                    vendor=reading.vendor,
+                )
+
+        features = data.get("features")
+        for name in sorted(features) if isinstance(features, dict) else []:
+            # `pinned` follows the same reading as an npx launch: the `@` after
+            # the first character is the version. A feature is fetched at build
+            # time, so an unpinned one resolves to whatever is published then.
+            spelled = str(name)
+            emit(
+                found, name="container.feature", scope=handle.scope,
+                source=handle.display, key="features", resolution=Resolution.EFFECTIVE,
+                facts={"feature": spelled, "pinned": "@" in spelled[1:]},
+                vendor=reading.vendor,
+            )
+
+    return Surface(
+        vendor=reading.vendor,
+        agent_version=None,
+        capabilities=tuple(found),
+        unresolved=tuple(reading.unresolved),
+        not_read=tuple(reading.not_read),
+    )

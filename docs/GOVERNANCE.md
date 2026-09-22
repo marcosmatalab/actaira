@@ -30,7 +30,7 @@ CHANGELOG.md records what it was before.
 What lives here, and stays here:
 
 - **The CLI.** `scan`, `watch`, `verify`, `keygen` today; `check`, `diff` and
-  `seal` as they are built. CLAUDE.md lists seven and caps the list at eight.
+  `seal` as they are built. `docs/PRINCIPLES.md` lists seven and caps the list at eight.
 - **The trace format, and the surface format beside it.** The `trace/vN`
   schemas, the OpenTelemetry GenAI field names, and the reader and writer for
   them; and, as they are built, the per-vendor configuration readers, the scope
@@ -141,11 +141,11 @@ defect.
 
 ## What this repository will not grow
 
-From CLAUDE.md, repeated here because this is the page somebody reads before
+From `docs/PRINCIPLES.md`, repeated here because this is the page somebody reads before
 proposing one:
 
 - No dashboard, no server mode, no multi-tenancy in this tree.
-- No second governance document. CLAUDE.md is the only one, and this page is
+- No second governance document. `docs/PRINCIPLES.md` is the only one, and this page is
   subordinate to it.
 - No runtime dependency beyond `cryptography` without an explicit decision
   justified in `pyproject.toml` itself.

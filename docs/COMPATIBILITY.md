@@ -154,7 +154,7 @@ Seven, and `actaira --help` prints the same seven.
 `tests/test_no_aggregate.py::test_the_enumeration_names_every_emitter_this_tree_has`
 and `release_check.py` both fail when this list and the parser disagree.
 
-CLAUDE.md lists seven commands, caps the list at eight, and this tree now
+`docs/PRINCIPLES.md` lists seven commands, caps the list at eight, and this tree now
 implements all seven: `diff` and `seal` were the last two and arrived in phase
 S3. There is no name on that list carrying a phase any more, and
 `tests/test_cli.py` fails in both directions - on a name that neither parses nor
@@ -197,7 +197,7 @@ are not coming. They are named here once, in the past tense, for the only reason
 a retired name belongs in a compatibility document: somebody's script may still
 type one, and what it gets is exit code 2 and a usage error rather than
 something worse. `tests/test_cli.py` asserts that for all four, and it reads the
-current list out of CLAUDE.md so this paragraph cannot quietly go stale again.
+current list out of `docs/PRINCIPLES.md` so this paragraph cannot quietly go stale again.
 
 ## Exit codes
 
@@ -223,7 +223,7 @@ resolved on one side or the other. `0` otherwise. `2` for a usage error,
 including a ref that starts with a dash, which is refused before git is asked.
 
 `--fail-on` is not, and is not coming. A threshold over severities is a fold
-over labels two different authors wrote, which is CLAUDE.md's first negative;
+over labels two different authors wrote, which is the first negative;
 the way to act on a subset of findings is to choose which rule packs you load,
 not to ask this tool to rank them for you.
 

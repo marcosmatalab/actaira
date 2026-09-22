@@ -11,15 +11,23 @@ report made of those is noise wearing the shape of rigour. It is the same
 argument `tests/test_reachability.py` makes about a module no command reaches,
 applied to the other end of the pipe.
 
-The set of capabilities is recovered from the SOURCE of `surface/resolve.py`, by
-walking every `_emit` call, rather than from running the resolvers over the
-fixtures. Fixtures only show what some repository happened to configure; a
+The set of capabilities is recovered from the SOURCE of every module under
+`surface/`, by walking every `emit` call, rather than from running the resolvers
+over the fixtures. Fixtures only show what some repository happened to configure; a
 capability nothing in the corpus triggers is exactly the one that would slip
 through, and it is the one this file exists to catch. `hook.mcp_tool` was
 precisely that: emitted since phase S1, named by nothing, and invisible to every
 test until this one was written.
 
-That static walk imposes one constraint on `resolve.py`, and it is a constraint
+It reads the whole package and not one file. It read `resolve.py` alone while
+all seven resolvers lived there, and the day six of them moved beside their
+readers that walk would have gone on passing over the one that stayed: a
+shrinking set satisfies "every capability is named" without anybody noticing
+what left it. `test_every_emitting_function_is_accounted_for` is what makes that
+fail instead, because a resolver that emits and is not in `VENDOR_OF_FUNCTION`
+is refused by name.
+
+That static walk imposes one constraint on the resolvers, and it is a constraint
 worth having: a capability NAME must be a literal in the source. It used to be
 built as `f"hook.{kind}"` from the `type` string in the settings file, so a
 repository could put `"type": "made-up"` in a settings file and name a
@@ -35,7 +43,14 @@ import pytest
 from actaira.surface import resolve, rules
 from conftest import SRC_DIR
 
-RESOLVE = SRC_DIR / "actaira" / "surface" / "resolve.py"
+SURFACE = SRC_DIR / "actaira" / "surface"
+
+# Read, but not resolvers: `emit` is the machinery every resolver calls and
+# names no capability of its own, and the readers and parsers below it emit
+# nothing at all. Naming them here rather than filtering on whether a file
+# happens to contain an `emit(` call, because that filter passes silently the
+# day a resolver stops emitting.
+NOT_A_RESOLVER = ("emit.py", "merge.py")
 
 # Which vendor each emitting function speaks for. Claude Code's resolver is
 # split into six helpers that `resolve()` calls, so the mapping is by function
@@ -49,17 +64,17 @@ VENDOR_OF_FUNCTION = {
     "_sandbox": "claude-code",
     "_approvals": "claude-code",
     "_mcp": "claude-code",
-    "_vscode": "vscode",
-    "_devcontainer": "devcontainer",
-    "_codex": "codex",
-    "_cursor": "cursor",
-    "_gemini": "gemini-cli",
-    "_instructions": "instructions",
+    "vscode_surface": "vscode",
+    "devcontainer_surface": "devcontainer",
+    "codex_surface": "codex",
+    "cursor_surface": "cursor",
+    "gemini_surface": "gemini-cli",
+    "instructions_surface": "instructions",
 }
 
 
 def _names_in(node: ast.AST) -> set[str]:
-    """Every capability name one `_emit` call can pass, or a marker if computed.
+    """Every capability name one `emit` call can pass, or a marker if computed.
 
     A plain constant, or a subscripted dict literal - the shape `_hooks` uses to
     map a documented handler type to its capability name. Anything else comes
@@ -83,20 +98,26 @@ COMPUTED = "<computed at runtime>"
 
 
 def emitted() -> dict[str, set[str]]:
-    """function name -> the capability names its `_emit` calls can produce."""
-    tree = ast.parse(RESOLVE.read_text(encoding="utf-8"))
+    """function name -> the capability names its `emit` calls can produce."""
     found: dict[str, set[str]] = {}
-    for node in ast.walk(tree):
-        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+    read = 0
+    for path in sorted(SURFACE.glob("*.py")):
+        if path.name in NOT_A_RESOLVER:
             continue
-        for call in ast.walk(node):
-            if not isinstance(call, ast.Call):
+        read += 1
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
-            if not (isinstance(call.func, ast.Name) and call.func.id == "_emit"):
-                continue
-            for keyword in call.keywords:
-                if keyword.arg == "name":
-                    found.setdefault(node.name, set()).update(_names_in(keyword.value))
+            for call in ast.walk(node):
+                if not isinstance(call, ast.Call):
+                    continue
+                if not (isinstance(call.func, ast.Name) and call.func.id == "emit"):
+                    continue
+                for keyword in call.keywords:
+                    if keyword.arg == "name":
+                        found.setdefault(node.name, set()).update(_names_in(keyword.value))
+    assert read >= 8, f"only {read} module(s) were read; the walk is not walking"
     return found
 
 
@@ -136,7 +157,7 @@ def test_every_capability_is_named_by_a_rule_or_excused_in_writing():
 
     assert unnamed == [], (
         f"these capabilities are emitted and nothing names them: {unnamed}. "
-        "Either add a rule naming each - with the two tests CLAUDE.md requires, on a "
+        "Either add a rule naming each - with the two tests `docs/PRINCIPLES.md` requires, on a "
         "real configuration - or add it to resolve.EMITTED_WITHOUT_A_RULE with a "
         "reason saying why naming it would be WRONG. A capability nobody names is a "
         "line in a report that a reader can neither act on nor appeal."

@@ -35,16 +35,18 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from . import NotRead, Scope, Unresolved
+from . import Capability, NotRead, Resolution, Scope, Surface, Unresolved
 from .disk import (
     MAX_BYTES,
     Reading,
     SettingsFile,
+    digest_of,
     git_tracked,
     read_text,
     referenced_path,
     script_facts,
 )
+from .emit import emit, referenced_target, target_facts
 from .jsonc import JsoncError
 from .jsonc import loads as jsonc_loads
 
@@ -258,3 +260,134 @@ __all__ = [
     "tasks_in",
     "workspace_claims_automatic_tasks",
 ]
+
+
+# ---------------------------------------------------------------------------
+# The resolver
+# ---------------------------------------------------------------------------
+#
+# A pure function of what the reader above read. It touches no disk, no clock
+# and no socket, which is what lets a fixture replay the whole decision path.
+# It lived in `resolve.py` until the file reached two thousand lines holding
+# seven vendors; it is beside its reader now, which is where the next person
+# looking for it will look.
+
+
+
+
+# ---------------------------------------------------------------------------
+# One resolver per vendor, and the union that is the repository's surface
+# ---------------------------------------------------------------------------
+#
+# Each of these is a pure function of what its reader read, exactly like
+# `resolve` above. None of them touches disk, a clock or a socket, which is what
+# lets a fixture replay the whole decision path.
+#
+# Nothing here ever fuses two vendors' capabilities. If Cursor and Claude Code
+# configure the same MCP server, that is TWO capabilities with the same
+# `args_sha256`, each naming its own vendor, its own file and its own merge
+# rule - and the report says so rather than collapsing them into one row that
+# belongs to neither. Two vendors running the same command is two things that
+# can be removed independently and two approvals that expire independently.
+
+
+def vscode_surface(reading: Any, *, agent_version: str | None = None,
+        with_content: bool = False) -> Surface:
+    """VS Code: the tasks, and the setting that decides whether they run.
+
+    The three answers of D-282 are produced here and nowhere else. `allowed` is
+    the value a scope we actually READ supplies, so `None` means no scope we
+    opened said either way - which is INDETERMINATE, not the documented default.
+    """
+
+    found: list[Capability] = []
+    unresolved: list[Unresolved] = list(reading.unresolved)
+    allowed, decided_by = automatic_tasks_setting(reading)
+
+    for handle in reading.settings:
+        if not handle.ok:
+            continue
+        for entry in tasks_in(handle.data):
+            command = task_command(entry)
+            if command is None:
+                continue
+            when = runs_on(entry)
+            automatic = when == "folderOpen"
+            facts: dict[str, Any] = {
+                "label": entry.get("label") if isinstance(entry.get("label"), str) else None,
+                "task_type": entry.get("type") if isinstance(entry.get("type"), str) else None,
+                "run_on": when,
+                "at_startup": automatic,
+                "command_sha256": digest_of(command),
+            }
+            if with_content:
+                facts["command"] = command
+            spoken = referenced_target(command)
+            facts["target"] = spoken
+            facts.update(target_facts(reading, spoken))
+
+            resolution, condition = Resolution.EFFECTIVE, None
+            if automatic:
+                if allowed == ALLOWED:
+                    facts["automatic_allowed"] = True
+                    resolution = Resolution.EFFECTIVE
+                    condition = (
+                        f"`{AUTOMATIC_TASKS}` is `{ALLOWED}` in {decided_by}, and automatic "
+                        "tasks still never run in an untrusted workspace"
+                    )
+                elif allowed == BLOCKED:
+                    facts["automatic_allowed"] = False
+                    resolution = Resolution.DECLARED
+                    condition = f"`{AUTOMATIC_TASKS}` is `{BLOCKED}` in {decided_by}"
+                else:
+                    # No `automatic_allowed` fact at all, which is the point:
+                    # a rule that needs it comes back INDETERMINATE on its own
+                    # rather than being told to (D-275).
+                    resolution = Resolution.INDETERMINATE
+                    condition = (
+                        f"`{AUTOMATIC_TASKS}` decides whether this runs; it is "
+                        "APPLICATION-scoped, so only the user's own settings file can set "
+                        "it, and no scope this run read says either way (run with --machine)"
+                    )
+            emit(
+                found,
+                name="task.command",
+                scope=handle.scope,
+                source=handle.display,
+                key="tasks",
+                resolution=resolution,
+                condition=condition,
+                facts=facts,
+                vendor=reading.vendor,
+            )
+
+    # A repository that writes the application-scoped key into `.vscode/`. VS
+    # Code does not honour it there, so the capability it declared is not one -
+    # and saying nothing would lose the fact that somebody tried.
+    for handle in workspace_claims_automatic_tasks(reading):
+        emit(
+            found,
+            name="settings.ignored_key",
+            scope=handle.scope,
+            source=handle.display,
+            key="task.allowAutomaticTasks",
+            resolution=Resolution.DECLARED,
+            condition=(
+                "the key is APPLICATION-scoped, so VS Code does not take it from a "
+                "workspace file; the value in the user's settings is what decides"
+            ),
+            facts={
+                "key": AUTOMATIC_TASKS,
+                "value": handle.data.get(AUTOMATIC_TASKS),
+                "honoured_here": False,
+            },
+            vendor=reading.vendor,
+        )
+
+    return Surface(
+        vendor=reading.vendor,
+        agent_version=None,
+        capabilities=tuple(found),
+        unresolved=tuple(unresolved),
+        not_read=tuple(reading.not_read),
+    )

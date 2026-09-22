@@ -1,7 +1,7 @@
 """One HTML file a reviewer can open, with nothing in it that reaches the network.
 
-`--html` is a flag on `check` and on `diff`, not a command of its own: CLAUDE.md
-caps the set at eight and a report is a rendering of a document those two
+`--html` is a flag on `check` and on `diff`, not a command of its own: the
+CLI list caps the set at eight and a report is a rendering of a document those two
 already produce, not a third thing to run.
 
 Design note D-297. WHAT THIS PAGE MAY NOT DO, and each is enforced by a test

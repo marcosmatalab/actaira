@@ -60,7 +60,7 @@ package = ["build>=1.2"]
 [project.scripts]
 actaira = "actaira.cli:main"
 # The MCP server is a second entry point rather than a ninth subcommand:
-# CLAUDE.md caps `actaira` at eight commands, and a server is not a command
+# `docs/PRINCIPLES.md` caps `actaira` at eight commands, and a server is not a command
 # anybody types. This is the string that goes in somebody's .mcp.json.
 actaira-mcp = "actaira.mcp:main"
 

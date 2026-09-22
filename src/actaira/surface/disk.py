@@ -234,8 +234,8 @@ def script_facts(
     """Exists, inside the tree, tracked by git, and its sha256. Nothing else.
 
     Four facts and no fifth. The fifth would be what the script does, and
-    reading it to find out is the line this tool does not cross - CLAUDE.md's
-    second and third negatives, and the reason an approval is tied to the digest
+    reading it to find out is the line this tool does not cross - the second
+    and third negatives, and the reason an approval is tied to the digest
     rather than to the path (published limit 14).
     """
     target = (root / spoken).expanduser()

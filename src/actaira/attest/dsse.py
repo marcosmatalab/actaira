@@ -82,8 +82,8 @@ feed this predicate, and it anchored `coverage.py` behind it.
 
 The second is doctrine, and it outweighs the line count. `worst_verdict` folded
 the verdicts of several artifacts into the worst one, and `_aggregate_rules`
-folded the severities one rule fired at into the worst of them. CLAUDE.md's
-first negative says an author's `severity` is an attributed label that is NOT
+folded the severities one rule fired at into the worst of them. The first
+negative says an author's `severity` is an attributed label that is NOT
 aggregated or summed with others, and this module was doing exactly that inside
 the signed bytes of a published document. Two of the three `xfail(strict=True)`
 markers in the old `tests/test_receipt.py` named these two functions by line.

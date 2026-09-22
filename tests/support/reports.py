@@ -181,7 +181,7 @@ def emitted_documents(tmp_path: Path) -> list[tuple[str, dict[str, Any]]]:
     """
     from actaira.proxy import Recorder
     from actaira.proxy.session import WatchSession
-    from actaira.surface import claude_code, document, resolve, rules
+    from actaira.surface import claude_code, document, merge, resolve, rules
     from actaira.trace.claude_code import demo_trace
 
     session = WatchSession(tmp_path / "records", "s")
@@ -205,7 +205,7 @@ def emitted_documents(tmp_path: Path) -> list[tuple[str, dict[str, Any]]]:
         findings=findings,
         gaps=tuple([*surface.unresolved, *gaps]),
         machine=False,
-        merge_rules=resolve.MERGE_TABLE,
+        merge_rules=merge.MERGE_TABLE,
     )
 
     from actaira.attest.seal import References, seal_document

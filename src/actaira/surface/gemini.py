@@ -31,14 +31,23 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from . import NotRead, Scope, Unresolved
+from . import Capability, NotRead, Resolution, Scope, Surface, Unresolved
 from .disk import (
     Reading,
     SettingsFile,
+    digest_of,
     git_tracked,
     read_json,
     referenced_path,
     script_facts,
+)
+from .emit import (
+    emit,
+    host_of,
+    is_loopback,
+    referenced_target,
+    server_facts,
+    target_facts,
 )
 
 VENDOR = "gemini-cli"
@@ -182,3 +191,103 @@ __all__ = [
     "read",
     "system_paths",
 ]
+
+
+# ---------------------------------------------------------------------------
+# The resolver
+# ---------------------------------------------------------------------------
+#
+# A pure function of what the reader above read. It touches no disk, no clock
+# and no socket, which is what lets a fixture replay the whole decision path.
+# It lived in `resolve.py` until the file reached two thousand lines holding
+# seven vendors; it is beside its reader now, which is where the next person
+# looking for it will look.
+
+
+
+
+def gemini_surface(reading: Any, *, agent_version: str | None = None,
+        with_content: bool = False) -> Surface:
+    """Gemini CLI: MCP servers with their `trust` flag, and the two tool commands."""
+    from .gemini import COMMAND_KEYS as COMMAND_KEYS
+
+    found: list[Capability] = []
+
+    for handle in reading.settings:
+        if not handle.ok:
+            continue
+        data = handle.data
+        servers = dig(data, "mcpServers")
+        for name in sorted(servers) if isinstance(servers, dict) else []:
+            entry = servers[name]
+            if not isinstance(entry, dict):
+                continue
+            facts = server_facts(name, entry, with_content=with_content)
+            # Gemini's own key, and the reason this vendor's servers are worth
+            # reading separately: one boolean removes every confirmation for
+            # one server's tools.
+            facts["trusted_by_config"] = entry.get("trust") is True
+            if isinstance(entry.get("httpUrl"), str):
+                facts["remote"] = True
+                facts["host"] = host_of(entry["httpUrl"])
+                facts["loopback"] = is_loopback(facts["host"])
+                facts["url_sha256"] = digest_of(entry["httpUrl"])
+            emit(
+                found, name="mcp.server", scope=handle.scope, source=handle.display,
+                key="mcpServers", resolution=Resolution.EFFECTIVE, facts=facts,
+                vendor=reading.vendor,
+            )
+
+        for key in (*COMMAND_KEYS, *LEGACY_COMMAND_KEYS):
+            command = dig(data, key)
+            if not isinstance(command, str):
+                continue
+            legacy = key in LEGACY_COMMAND_KEYS
+            facts = {
+                "key": key,
+                "command_sha256": digest_of(command),
+                "spelling": "v1" if legacy else "current",
+            }
+            if with_content:
+                facts["command"] = command
+            spoken = referenced_target(command)
+            facts["target"] = spoken
+            facts.update(target_facts(reading, spoken))
+            emit(
+                found, name="helper.command", scope=handle.scope, source=handle.display,
+                key=LEGACY_COMMAND_KEYS.get(key, key),
+                # D-291. The v1 spelling is read and NOT resolved: the current
+                # schema publishes only the nested name, and whether this
+                # release still migrates the flat one is not something the
+                # vendor publishes. Answering either way would invent it.
+                resolution=Resolution.INDETERMINATE if legacy else Resolution.EFFECTIVE,
+                condition=(
+                    f"`{key}` is the v1 spelling of `{LEGACY_COMMAND_KEYS[key]}`; the current "
+                    "settings schema publishes only the nested name, and whether this "
+                    "agent version still reads the flat one is unknown "
+                    "(published limit 13)"
+                    if legacy else None
+                ),
+                facts=facts,
+                vendor=reading.vendor,
+            )
+
+        mode = dig(data, "general.defaultApprovalMode")
+        if isinstance(mode, str):
+            emit(
+                found, name="approval.policy", scope=handle.scope, source=handle.display,
+                key="*", resolution=Resolution.EFFECTIVE,
+                # `guardrail_removed`, the same fact name Codex's two keys carry,
+                # because it is the same statement. `plan` is read-only and so is
+                # a tightening; only `auto_edit` stops the agent asking.
+                facts={"policy": mode, "guardrail_removed": mode == AUTO_EDIT},
+                vendor=reading.vendor,
+            )
+
+    return Surface(
+        vendor=reading.vendor,
+        agent_version=None,
+        capabilities=tuple(found),
+        unresolved=tuple(reading.unresolved),
+        not_read=tuple(reading.not_read),
+    )

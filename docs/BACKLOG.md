@@ -2,7 +2,7 @@
 
 Una línea por cosa encontrada y no arreglada, con la fase que la posee. No es
 una lista de deseos: solo entra aquí lo que una pasada real encontró y decidió
-no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
+no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `docs/PRINCIPLES.md`.
 
 ## Fase 0 — la amputación
 
@@ -21,7 +21,7 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
 - Catorce líneas de cada README enuncian una cifra que ya no mide ningún
   comando, medidas contra `scripts/figures_contract.py`, que es la lista de las
   21 que sí se miden. Los dos ficheros están alineados línea a línea, así que
-  los números valen para ambos. Regla de trabajo 6 de `CLAUDE.md`. **Cerrado en
+  los números valen para ambos. Regla de trabajo 6 de `docs/PRINCIPLES.md`. **Cerrado en
   la A**; la tabla se conserva porque nombra el mecanismo, no porque siga
   abierta.
 
@@ -407,7 +407,7 @@ cogió, y esa parte sigue siendo verdad.
   argumentan. Ahora dice la regla entera, que tiene dos ramas y es estrecha en
   la segunda: una decisión sobre CÓMO se construye algo la implementa el
   módulo; una decisión de doctrina, sobre QUÉ se construye, la implementa
-  `CLAUDE.md`, y nada más puede apuntar ahí. `docs/DESIGN.md` §11.3 la
+  `docs/PRINCIPLES.md`, y nada más puede apuntar ahí. `docs/DESIGN.md` §11.3 la
   argumenta y D-269 es la única fila de la segunda clase.
 - `src/actaira/mcp.py` anunciaba en `tools/list` dos herramientas del producto
   retirado. Ya no las anuncia. Se comprobó antes de tocarlas que ninguna hacía
@@ -506,7 +506,7 @@ cogió, y esa parte sigue siendo verdad.
   superficie donde una lectura que ya ocurrió no se corrige más abajo.
   Reproducción: `test_check_over_mcp_answers_with_the_same_document_the_command_builds`.
 - **Tres de las quince reglas no tienen caso violador REAL. Cerrada como
-  desviación, no como deuda.** CLAUDE.md tiene desde esta fase una tercera rama
+  desviación, no como deuda.** `docs/PRINCIPLES.md` tiene desde esa fase una tercera rama
   estrecha que la admite, y las tres la cumplen: ACT-S013 y ACT-S014 comparan
   contra una política gestionada, que vive en una ruta del sistema operativo
   fuera de todo repositorio, así que ninguna búsqueda encontrará jamás una
