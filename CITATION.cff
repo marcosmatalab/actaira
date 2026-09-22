@@ -34,13 +34,18 @@ abstract: >-
   absent is not proof that nothing ran. Only what is on disk is visible, merge
   semantics depend on the agent version, and a referenced script can change
   after it is read, which is why everything binds to a digest.
-  This release ships the capture half rather than the surface half: scan reads
-  the sessions an agent recorded about itself, watch records one from outside
-  the agent through an MCP proxy, and every record declares the level it was
-  captured at and what that level may not claim. Underneath both, an offline
-  verifier over an RFC 6962 Merkle tree with Ed25519 signatures, integrity and
-  identity kept as separate answers. The surface commands are under
-  construction; README.md states which, and which phase each arrives in.
+  This release ships both halves. check resolves the surface and diff says what
+  changed between two moments; scan reads the sessions an agent recorded about
+  itself and watch records one from outside the agent through an MCP proxy, with
+  every record declaring the level it was captured at and what that level may
+  not claim. Underneath all of it, an offline verifier over an RFC 6962 Merkle
+  tree with Ed25519 signatures, integrity and identity kept as separate answers.
+  Built by one author with heavy use of an AI coding assistant. The product
+  decisions, the invariants and every rejected alternative in docs/DESIGN.md are
+  the author's; the assistant wrote a large share of the implementation and the
+  tests against them. README.md states this in full, and the gates in the
+  repository exist because assistance at that speed produces exactly the failure
+  they catch.
 repository-code: "https://github.com/marcosmatalab/actaira"
 type: software
 version: 3.0.0
