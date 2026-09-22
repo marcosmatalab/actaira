@@ -1351,6 +1351,10 @@ COMMAND_PAGES = (
     "README.md", "README.es.md", "CONTRIBUTING.md",
     "docs/ENGINEERING.md", "docs/DESIGN.md", "docs/GOVERNANCE.md",
     "docs/COMPATIBILITY.md", "SECURITY.md",
+    # The runbook is the page with the most at stake: it is followed once,
+    # by a person, with a credential in hand, and a target that does not
+    # exist is found in the middle of publishing.
+    ".github/release-notes/RUNBOOK.md",
 )
 
 
@@ -1581,6 +1585,502 @@ def the_network_guard_is_armed() -> str:
     passed = [line for line in run.stdout.splitlines() if "passed" in line]
     return (passed[-1].strip() if passed else "the guard's meta-test passes") + (
         ", so the suite ran with the guard armed"
+    )
+
+
+# --------------------------------------------------------------------------
+# The shape of the landing page
+# --------------------------------------------------------------------------
+
+# The ceiling each landing page is held to, and the reason it is a ceiling
+# rather than a target is in `docs/ENGINEERING.md`. The pages are 476 and 485
+# lines; this leaves each of them a little room and refuses the direction they
+# have grown in twice before.
+LANDING_CEILING = {"README.md": 500, "README.es.md": 510}
+
+# What has to be above the fold, and the depth a fold is taken to be. Nothing
+# here is about beauty: it is the four things a reader needs before they decide
+# whether to keep reading - what it is called, what it does in one sentence,
+# whether it is alive, and a command they can run.
+FIRST_SCREEN = 40
+
+
+def landing_problems(page: str, text_of: str) -> list[str]:
+    """Pure, so a twin can plant a page with its badges below the fold."""
+    problems: list[str] = []
+    lines = text_of.splitlines()
+    if len(lines) > LANDING_CEILING[page]:
+        problems.append(
+            f"{page} is {len(lines)} lines and the ceiling is {LANDING_CEILING[page]}. "
+            "Move a section to docs/ and leave a pointer, the way the limits and the "
+            "five smaller commands went."
+        )
+    opening = lines[:FIRST_SCREEN]
+    heading = [line for line in opening if line.startswith("# ")]
+    if not heading:
+        problems.append(f"{page}: no H1 in the first {FIRST_SCREEN} lines")
+    sentence = [
+        line for line in opening
+        if line.startswith("**") and line.rstrip().endswith("**") and len(line) > 20
+    ]
+    if not sentence:
+        problems.append(
+            f"{page}: nothing in the first {FIRST_SCREEN} lines says in one bold "
+            "sentence what this is"
+        )
+    badges = [line for line in opening if "![" in line and "](http" in line]
+    if len(badges) < 3:
+        problems.append(
+            f"{page}: {len(badges)} badges above the fold. A reader decides whether a "
+            "repository is alive before reading a word of it."
+        )
+    fenced = None
+    for number, line in enumerate(opening):
+        if line.startswith("```bash") or line.startswith("```console"):
+            fenced = number + 1
+            break
+    if fenced is None:
+        problems.append(
+            f"{page}: no command to run in the first {FIRST_SCREEN} lines. The page "
+            "argues that every claim on it is checkable, so the first screen is where "
+            "the first check goes."
+        )
+    return problems
+
+
+@check("each landing page opens with what it is and stays under its ceiling")
+def the_landing_pages_keep_their_shape() -> str:
+    """The phase 4 criterion, as the part of it that can be measured.
+
+    The plan asked for a landing page of about 300 lines. These are 476 and
+    485, the reason is written up in `docs/ENGINEERING.md`, and what is held
+    here is the two halves of that criterion that a command can answer: the
+    page does not grow, and the first screen carries the name, the sentence,
+    the badges and a command.
+
+    What it deliberately does NOT assert is that the picture is above the
+    fold. The demo picture sits beside the paragraph that reads it, four
+    screens down, because a picture of a report is worth nothing to a reader
+    who has not yet been told what the report is of - and a check that forced
+    it upwards would be this file having an opinion about the page rather than
+    holding a claim about it.
+    """
+    problems: list[str] = []
+    for page in LANDING_CEILING:
+        problems += landing_problems(page, (ROOT / page).read_text(encoding="utf-8"))
+    # The prose that argues the exception states the ceilings, and prose about
+    # a number is the second copy that goes stale first.
+    engineering = (ROOT / "docs" / "ENGINEERING.md").read_text(encoding="utf-8")
+    for page, ceiling in LANDING_CEILING.items():
+        if f"{ceiling} " not in engineering:
+            problems.append(
+                f"docs/ENGINEERING.md does not state the ceiling of {ceiling} lines it "
+                f"argues for {page}"
+            )
+    if problems:
+        raise DriftError("\n".join(problems))
+    sizes = ", ".join(
+        f"{page} {len((ROOT / page).read_text(encoding='utf-8').splitlines())}/"
+        f"{ceiling}" for page, ceiling in LANDING_CEILING.items()
+    )
+    return f"{sizes} lines, each opening with its name, a sentence, badges and a command"
+
+
+# --------------------------------------------------------------------------
+# The demo picture, as somebody else's renderer will see it
+# --------------------------------------------------------------------------
+
+# The elements and attributes the picture is allowed to use. It is an
+# ALLOWLIST, like every other contract here, because the failure to guard
+# against is the element nobody thought of: a renderer that drops what it does
+# not recognise shows a reader a blank rectangle and says nothing to anybody.
+#
+# The set is deliberately smaller than what any sanitiser permits. These are
+# shapes and text with presentation attributes, which is the subset that
+# survives every path a picture takes to a reader: an `<img>` on a rendered
+# README, where no script runs and no stylesheet applies; a raw file served
+# under `default-src 'none'`, where an external font or image would be
+# blocked; and a sanitiser that strips what it cannot read.
+SVG_ELEMENTS = frozenset({"svg", "rect", "path", "circle", "g", "text"})
+SVG_ATTRIBUTES = frozenset({
+    "xmlns", "width", "height", "viewBox", "role", "aria-label",
+    "fill", "rx", "cx", "cy", "r", "d", "x", "y",
+    "font-family", "font-size",
+    "{http://www.w3.org/XML/1998/namespace}space",
+})
+
+# The generic families a browser can always resolve. The stack may name
+# whatever it likes as long as it ENDS at one of these, or a machine without
+# the named fonts draws the picture in a proportional face and every column in
+# it stops lining up.
+GENERIC_FAMILIES = ("monospace", "sans-serif", "serif")
+
+def svg_problems(source: str) -> list[str]:
+    """Everything about one picture that would make it render somewhere else.
+
+    Pure, and over the text rather than over a path, so the twins can plant a
+    script element without writing one into `docs/img/`.
+    """
+    import xml.etree.ElementTree as ET  # noqa: PLC0415, S405 - parsing our own output
+
+    # The advance width the picture was measured with, from the script that
+    # measured it. A second copy of that number here would be two definitions
+    # of "wide enough" that agree until one of them is tuned (work rule 10).
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from terminal_svg import WIDEST_GLYPH  # noqa: PLC0415
+
+    problems: list[str] = []
+    for hostile in ("<script", "<foreignObject", "<style", "@import", "url(", "javascript:"):
+        if hostile in source:
+            problems.append(
+                f"the picture contains `{hostile}`, which a renderer will strip or refuse"
+            )
+    try:
+        root = ET.fromstring(source)  # noqa: S314 - our own generated file
+    except ET.ParseError as broken:
+        return [*problems, f"the picture is not well-formed XML: {broken}"]
+
+    for element in root.iter():
+        tag = element.tag.split("}")[-1]
+        if tag not in SVG_ELEMENTS:
+            problems.append(f"<{tag}> is not in the set of elements this picture may use")
+        for name, value in element.attrib.items():
+            if name.split("}")[-1].lower().startswith("on"):
+                problems.append(f"<{tag}> carries the event handler {name}")
+            elif name.split("}")[-1] in ("href", "xlink:href", "src"):
+                problems.append(
+                    f"<{tag}> references {value}: a picture that fetches anything is a "
+                    "picture that is blank wherever the fetch is blocked"
+                )
+            elif name not in SVG_ATTRIBUTES:
+                problems.append(f"<{tag}> carries {name}, which is not in the allowed set")
+
+    if not (root.get("width") and root.get("height")):
+        problems.append(
+            "the root <svg> has no width and height, so an `<img>` that loads it has "
+            "nothing to size the box with until it has been parsed"
+        )
+    stack = [
+        element.get("font-family") for element in root.iter()
+        if element.get("font-family")
+    ]
+    if not stack:
+        problems.append("nothing in the picture names a font family")
+    for family in stack:
+        if family.strip().rsplit(",", 1)[-1].strip().strip("'\"") not in GENERIC_FAMILIES:
+            problems.append(
+                f"the font stack `{family}` does not end at one of "
+                f"{', '.join(GENERIC_FAMILIES)}, so a machine without the named faces "
+                "draws this in whatever it likes"
+            )
+
+    width = float(root.get("width", "0"))
+    for element in root.iter():
+        if element.tag.split("}")[-1] != "text" or not element.text:
+            continue
+        right = float(element.get("x", "0")) + len(element.text) * WIDEST_GLYPH
+        if right > width:
+            problems.append(
+                f"a line of {len(element.text)} characters reaches {right:.0f}px in a "
+                f"{width:.0f}px picture if a stranger's monospace is wider than the one "
+                f"this was measured with: {element.text[:40]!r}..."
+            )
+    return problems
+
+
+@check("the demo picture uses only what every renderer of it will keep")
+def the_demo_image_renders_anywhere() -> str:
+    """The half of a published picture that `--check` cannot see.
+
+    `scripts/terminal_svg.py --check` proves the picture is what the command
+    produces. It says nothing about whether a reader can SEE it: the landing
+    page is read on github.com, where the file is served to an `<img>` under a
+    policy that blocks every outbound fetch, and a picture that quietly needs
+    one is a blank rectangle at the top of the page with nothing anywhere
+    saying so.
+
+    This is a check on the bytes and not a rendering, and the difference is
+    stated rather than papered over: it can prove the picture asks nothing of
+    the network, uses no element a sanitiser strips and fits its own box at a
+    generous glyph width. It cannot prove what a particular browser draws. The
+    part that no command can answer is in `.github/release-notes/RUNBOOK.md`,
+    as a step somebody performs with their eyes before the repository is
+    public.
+    """
+    directory = ROOT / "docs" / "img"
+    pictures = sorted(directory.glob("*.svg"))
+    if not pictures:
+        raise DriftError(
+            f"{directory.relative_to(ROOT).as_posix()} holds no .svg, and this check "
+            "looked for the demo pictures `make demo-image` writes"
+        )
+    problems: list[str] = []
+    for picture in pictures:
+        for problem in svg_problems(picture.read_text(encoding="utf-8")):
+            problems.append(f"{picture.relative_to(ROOT).as_posix()}: {problem}")
+    if problems:
+        raise DriftError("\n".join(problems))
+    return (
+        f"{len(pictures)} pictures, each drawn with shapes and text alone, fetching "
+        "nothing and fitting its own box"
+    )
+
+
+# --------------------------------------------------------------------------
+# One way to build the distributions
+# --------------------------------------------------------------------------
+
+# The spellings that build or inspect a distribution. `make package` is the
+# one that is allowed; the other two are the second definition.
+BUILDERS = (
+    (re.compile(r"\bmake\s+package\b"), "make package"),
+    (re.compile(r"python\s+-m\s+build\b"), "python -m build"),
+    (re.compile(r"\bscripts/build_package\.py"), "scripts/build_package.py"),
+)
+
+
+def build_commands(text_of: str) -> list[str]:
+    """Every distribution-building command written in a workflow."""
+    found: list[str] = []
+    for line in text_of.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            continue
+        for pattern, name in BUILDERS:
+            if pattern.search(stripped):
+                found.append(name)
+    return found
+
+
+def build_problems(workflows: dict[str, str]) -> tuple[list[str], int]:
+    """(what is wrong, how many steps go through the target). Pure, so the
+    twins can plant a workflow without writing one into `.github/`."""
+    problems: list[str] = []
+    through_the_target = 0
+    for name, text_of in sorted(workflows.items()):
+        for command in build_commands(text_of):
+            if command == "make package":
+                through_the_target += 1
+            else:
+                problems.append(f"{name} runs `{command}`")
+    return problems, through_the_target
+
+
+@check("the distributions are built by one command, and CI runs that command")
+def the_package_is_built_one_way() -> str:
+    """Work rule 10, at the level above the one it was already fixed at.
+
+    `make package` asserted five resources that left with the model scanner
+    while the CI job asserted a different two, so the target failed on every
+    laptop run from the pivot onwards and the job stayed green over the same
+    distributions. The list became one definition - every non-Python file
+    under `src/actaira/`, read from the tree - and the COMMAND was still in
+    two places: the Makefile called `scripts/build_package.py` and so did the
+    workflow. A step added to the target would not have reached CI, and the
+    two would have come apart again one level up.
+
+    So the workflows build through the target or they do not build. This is
+    not a style rule: it is the assertion that there is one answer to "how is
+    the package built", which is the only thing that makes `make package`
+    green mean anything about what CI uploaded.
+    """
+    found = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
+    if not found:
+        raise DriftError(".github/workflows holds no workflow, so nothing builds anything")
+    workflows = {
+        path.relative_to(ROOT).as_posix(): path.read_text(encoding="utf-8")
+        for path in [*found, ROOT / "action.yml"] if path.is_file()
+    }
+    offenders, through_the_target = build_problems(workflows)
+    if offenders:
+        raise DriftError(
+            "these build the distributions without going through `make package`, so the "
+            "target and CI can come apart the way they did before the pivot:\n  "
+            + "\n  ".join(offenders)
+        )
+    if not through_the_target:
+        raise DriftError(
+            "no workflow builds the distributions at all, so `it installs` is a claim "
+            "nothing on a runner checks. This check looked for "
+            + ", ".join(name for _, name in BUILDERS)
+        )
+    return (
+        f"{through_the_target} workflow step(s) across {len(workflows)} files build "
+        "through `make package`, and nothing builds them another way"
+    )
+
+
+# --------------------------------------------------------------------------
+# Commit SHAs written into the documentation
+# --------------------------------------------------------------------------
+
+# `.github/workflows/` is in the list because a workflow pins actions the same
+# way the documentation does. `docs/archive/` is NOT: it is the model
+# scanner's documentation, kept unedited on purpose, and a gate that forces an
+# edit to an archived page is a gate that rewrites the past.
+SHA_PAGES = (
+    "README.md", "README.es.md", ".pre-commit-hooks.yaml", "action.yml",
+)
+SHA_DIRECTORIES = ("docs", ".github/workflows")
+SHA_EXCLUDED = ("docs/archive",)
+
+FULL_SHA = re.compile(r"(?<![0-9a-f])[0-9a-f]{40}(?![0-9a-f])")
+USES_FORM = re.compile(r"([A-Za-z0-9._-]+/[A-Za-z0-9._-]+)@$")
+REV_FORM = re.compile(r"^\s*rev:\s*$")
+REPO_FORM = re.compile(r"^\s*(?:-\s*)?repo:\s*(\S+)")
+
+
+def _this_repository() -> str:
+    """`owner/name`, from the package metadata and not from a git remote.
+
+    The remote is the wrong source twice over: the gate is meant to run on a
+    clone made from a local path, which has no owner in its URL, and a fork's
+    remote would make this check ask a different repository about the same
+    commit.
+    """
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    found = re.search(r'^Repository\s*=\s*"https://github\.com/([^/"]+/[^/"]+?)/?"',
+                      pyproject, re.M)
+    if not found:
+        raise DriftError(
+            "pyproject.toml declares no [project.urls] Repository, so there is no way "
+            "to tell a commit of this repository from one of somebody else's"
+        )
+    return found.group(1)
+
+
+def sha_citations(relative: str, text: str) -> list[dict]:
+    """Every 40-hex string on a page, with the repository it refers to.
+
+    Two forms are recognised, which are the two that exist in this tree:
+    `owner/name@<sha>`, as `uses:` writes it, and a `rev: <sha>` under the
+    `repo:` line of a pre-commit block. Anything else comes back with
+    `repository` set to None and is a failure rather than a pass - a 40-hex
+    string nobody can attribute is exactly the citation this check exists to
+    catch, and skipping it would be the check looking sideways (work rule 11).
+    """
+    found: list[dict] = []
+    lines = text.splitlines()
+    for number, line in enumerate(lines, start=1):
+        for match in FULL_SHA.finditer(line):
+            sha = match.group(0)
+            before = line[: match.start()]
+            uses = USES_FORM.search(before)
+            repository: str | None = None
+            if uses:
+                repository = uses.group(1)
+            elif REV_FORM.match(before):
+                for previous in reversed(lines[: number - 1]):
+                    owner = REPO_FORM.match(previous)
+                    if owner:
+                        repository = owner.group(1).rstrip("/").removeprefix(
+                            "https://github.com/"
+                        ).removesuffix(".git")
+                        break
+            found.append({
+                "sha": sha, "repository": repository,
+                "where": f"{relative}:{number}", "line": line.strip(),
+            })
+    return found
+
+
+def sha_problems(citations: list[dict], ours: str, resolve) -> list[str]:
+    """What is wrong with a list of citations. Pure, so the twins can plant one.
+
+    `resolve(sha)` returns None when the commit is on this branch and a
+    sentence saying why not when it is not. It is injected rather than called
+    here so that a test can plant a dead SHA without a repository to plant it
+    in.
+    """
+    problems: list[str] = []
+    for citation in citations:
+        if citation["repository"] is None:
+            problems.append(
+                f"{citation['where']}: {citation['sha']} is a commit SHA and nothing on "
+                "the line says which repository it belongs to, so nothing can check it. "
+                f"The line is: {citation['line']}"
+            )
+            continue
+        if citation["repository"].lower() != ours.lower():
+            continue
+        reason = resolve(citation["sha"])
+        if reason:
+            problems.append(f"{citation['where']}: {citation['sha']} {reason}")
+    return problems
+
+
+@check("every commit of this repository that the documentation cites is on this branch")
+def cited_commits_exist() -> str:
+    """The rewrite hazard, held where it lands.
+
+    `README.md` tells a reader to write `uses: marcosmatalab/actaira@<sha>` and
+    `.pre-commit-hooks.yaml` is used with a `rev:`, so this repository
+    publishes commit SHAs of its own as instructions. A history rewrite moves
+    every one of them, and a reader who copies a dead SHA gets a checkout error
+    from a repository that audits other people's configuration for pinning.
+
+    ANCESTOR OF HEAD, not merely present. After a rewrite the old commits are
+    still in the local object database - the backup ref holds them - so
+    `git cat-file -e` goes on answering yes on the machine that did the rewrite
+    and no on every fresh clone. A check that passes on the one machine where
+    the answer does not matter is the characteristic failure this repository
+    keeps finding in itself, so the question asked here is the one a stranger's
+    clone would ask.
+    """
+    ours = _this_repository()
+    pages: list[str] = [page for page in SHA_PAGES if (ROOT / page).is_file()]
+    for directory in SHA_DIRECTORIES:
+        for path in sorted((ROOT / directory).rglob("*")):
+            if not path.is_file() or path.suffix not in (".md", ".yml", ".yaml"):
+                continue
+            relative = path.relative_to(ROOT).as_posix()
+            if any(relative.startswith(skip) for skip in SHA_EXCLUDED):
+                continue
+            pages.append(relative)
+
+    citations: list[dict] = []
+    for relative in pages:
+        citations += sha_citations(
+            relative, (ROOT / relative).read_text(encoding="utf-8")
+        )
+
+    mine = [row for row in citations if (row["repository"] or "").lower() == ours.lower()]
+    executable = shutil.which("git")
+
+    def git(*arguments: str) -> tuple[int, str]:
+        if executable is None:  # pragma: no cover - no git on the machine
+            return 1, ""
+        completed = subprocess.run(  # noqa: S603 - resolved path, fixed argv, no shell
+            [executable, *arguments], cwd=ROOT, capture_output=True, text=True, timeout=30
+        )
+        return completed.returncode, completed.stdout.strip()
+
+    code, top = git("rev-parse", "--show-toplevel")
+    a_checkout = code == 0 and Path(top).resolve() == ROOT.resolve()
+
+    def resolve(sha: str) -> str | None:
+        if git("rev-parse", "--verify", f"{sha}^{{commit}}")[0] != 0:
+            return "is not a commit in this repository"
+        if git("merge-base", "--is-ancestor", sha, "HEAD")[0] != 0:
+            return (
+                "is a commit in this repository and is not an ancestor of HEAD, so a "
+                "fresh clone would not have it"
+            )
+        return None
+
+    problems = sha_problems(citations, ours, resolve if a_checkout else lambda _: None)
+    if problems:
+        raise DriftError("\n".join(problems))
+
+    external = len(citations) - len(mine)
+    if not a_checkout:
+        return (
+            f"{len(citations)} commit SHAs across {len(pages)} pages, {len(mine)} of this "
+            f"repository, and none of them resolved: this tree is not a checkout"
+        )
+    return (
+        f"{len(citations)} commit SHAs across {len(pages)} pages: {len(mine)} of this "
+        f"repository, each on this branch, and {external} pinning somebody else's action"
     )
 
 

@@ -919,3 +919,50 @@ and that part is still true.
   same tuple. The same pass extended the guard to whitespace that is not
   exactly one space, because every pattern spells that gap as a literal space
   and a line break unhooks a figure as completely as `<br>` does.
+
+
+## From the review of the closing plan
+
+The plan's own criteria, read back against the tree after the six phases were
+done, and what was decided about the ones that were not met. Each of these is
+now held by something that can fail; what is here is the part that is a
+decision rather than a check.
+
+- **Two files stay over the 900-line cap and have no phase to split them.**
+  `src/actaira/cli.py` (1086) and `src/actaira/attest/timestamp.py` (1129) are
+  not in the plan's change inventory, and `src/actaira/attest/verify.py` (976)
+  is protected by it by name. `tests/test_file_size.py` holds the cap over
+  every other file in `src/` and holds these three at the size they are, so
+  none of them can grow and a fourth cannot appear. Splitting `cli.py` behind
+  the parser, or the RFC 3161 codec away from the verifier that uses it, is
+  work somebody has to want for its own sake. **No phase.**
+- **Both landing pages stay over the ~300 lines the plan asked for**, with a
+  ceiling each and a contract on the first screen. The argument, the
+  trade-off and the rejected alternative are in `docs/ENGINEERING.md`. **No
+  phase**: it is a decision, not pending work.
+- **What GitHub's renderer draws is not machine-checkable here.**
+  `release_check.py` proves the demo SVG fetches nothing, uses no element a
+  sanitiser strips, and fits its own box at a glyph width wider than any
+  common monospace face - which is everything a command in this repository
+  can answer. What it cannot answer is what a particular browser draws, and
+  that is step 3 of `.github/release-notes/RUNBOOK.md`: push a preview
+  branch, look at the rendered page, and only then carry on. **No phase**: it
+  is a known limit with a step attached.
+- **`v2.3.0` stops being an ancestor of `main` when the history is replayed.**
+  The tag is the seventh commit, so a replay from the root moves everything
+  after it. The tag, its tree, its release and every `v2.3.0:path`
+  locator in this tree are unaffected, which is why those locators were moved
+  onto the tag in the first place. The alternative - replaying only after the
+  tag - leaves five commits with bodies of 50, 39, 25, 21 and 20 lines, which
+  is the thing the rewrite exists to remove. Written up in the runbook, at the
+  step where it happens. **No phase.**
+- **The suite's slowest file is the one that runs the gate.**
+  `tests/test_release_check.py` starts `scripts/release_check.py` in a
+  subprocess for each twin, and the gate collects the whole suite and runs the
+  network guard's meta-test on every one of those runs. It is the honest way
+  to test a gate - the twin plants a defect in a copy of the tree and demands
+  the real script refuse it - and it is why `make test` is minutes rather than
+  seconds. What would fix it is a mode that runs one named check, which is a
+  second entry point into the gate and therefore a second definition of what
+  running it means. **No phase**, and it is recorded here so that the next
+  person does not discover the cost and assume nobody noticed.

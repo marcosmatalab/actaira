@@ -44,7 +44,22 @@ OUTPUTS = {
 }
 
 COLUMNS = 104
-CHARACTER_WIDTH = 8.42  # DejaVu Sans Mono at 14px, which is the advance width
+
+# The canvas is measured at a WIDER glyph than any face in the stack below,
+# and that is the whole of the reason this constant is not 8.42.
+#
+# The picture is served to an `<img>` on somebody else's machine, so the face
+# that draws it is the reader's `monospace` and not ours: DejaVu Sans Mono and
+# Menlo advance 8.43px at 14px, Courier New and Liberation Mono 8.4, Consolas
+# 7.7. A canvas measured at 8.42 fits all of them to the pixel and clips the
+# first one that is wider, because an `<img>` clips at the viewBox - so the
+# longest line of the report, which is the line with the rule text in it, would
+# lose its right-hand end on a machine nobody here owns and nothing would say
+# so. The margin is 7% and it costs a strip of background on the right.
+#
+# `release_check.py` reads this constant rather than carrying its own copy, and
+# refuses a picture whose longest line does not fit a canvas measured with it.
+WIDEST_GLYPH = 9.0
 LINE_HEIGHT = 20
 PADDING = 22
 TITLE_BAR = 34
@@ -119,7 +134,7 @@ def escape(text: str) -> str:
 
 
 def svg(rows: list[tuple[str, str]], spoken: str) -> str:
-    width = round(COLUMNS * CHARACTER_WIDTH + PADDING * 2)
+    width = round(COLUMNS * WIDEST_GLYPH + PADDING * 2)
     height = TITLE_BAR + PADDING + len(rows) * LINE_HEIGHT + PADDING
     lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '

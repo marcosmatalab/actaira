@@ -55,7 +55,7 @@ inside a section that is otherwise live: **3.4** (CycloneDX ML-BOM) and **3.5**
 | D-232 | The index of published contracts is generated, because an index with a hole in it still looks complete | `scripts/contracts_doc.py:4` |
 | D-234 | The console blocks are output this tool produced, and the gate re-runs them under two hash seeds | `scripts/cli_transcripts.py:4` |
 | D-235 | A reader that stops reading is a shell convention, not an error, and never a traceback over a success code | `src/actaira/cli.py:1067` |
-| D-236 | The published line count is a sum over a partition of the tree, checked, not a sum over a list somebody maintained | `scripts/figures.py:60` |
+| D-236 | The published line count is a sum over a partition of the tree, checked, not a sum over a list somebody maintained | `scripts/figures.py:63` |
 | D-237 | A line number in the note table is derived, because a reference wrong by four hundred lines is not stale, it is wrong | `scripts/design_notes.py:4` |
 | D-239 | A build writes into `dist/` and is then opened and checked, because the one artifact nobody looks at is a package | `scripts/build_package.py:4` |
 | D-240 | The default key path is resolved when a parser is built, not at import, so a host with no home does not break every command | `src/actaira/cli.py:78` |

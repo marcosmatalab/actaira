@@ -132,6 +132,24 @@ jobs:
         # switched off.
         if: matrix.python-version == '3.12'
         run: python -m coverage report --fail-under=88
+      - name: the coverage figure the READMEs publish is the one measured here
+        # The floor above says the tree may not fall below 88. This says the
+        # number both landing pages print is the one this runner measured, and
+        # it is here rather than in the consistency job because that job does
+        # not run the suite and therefore has no coverage to compare with.
+        #
+        # The published figure is the integer coverage.py prints, not the
+        # float: a percentage to two places would turn one defensive branch
+        # into a red build on somebody else's machine, which is a gate going
+        # red for a reason that is not a change to this repository.
+        if: matrix.python-version == '3.12'
+        run: |
+          set -euo pipefail
+          MEASURED="$(python scripts/coverage_figure.py)"
+          RECORDED="$(python -c "import json; print(json.load(open('figures.json'))['coverage']['percent'])")"
+          echo "this runner measured $MEASURED, figures.json publishes $RECORDED"
+          test "$MEASURED" = "$RECORDED"
+
       - name: openssl is present, so the cross-implementation checks ran
         # `tests/test_chain_and_signing.py` checks this tree's Ed25519 against
         # openssl rather than against itself. If openssl were missing the tests
@@ -153,19 +171,26 @@ jobs:
         with:
           python-version: "3.12"
       - name: build sdist and wheel, and assert what went into them
-        # `scripts/build_package.py` and not `python -m build`, and that is
-        # work rule 10 rather than a preference. This step used to build with
-        # `build` and then assert two resource paths of its own further down,
-        # while `make package` asserted a different set on a laptop. Two
-        # definitions of "the package carries what it needs" do not add up,
-        # they cancel: the laptop's list named `actaira/web/static/index.html`
-        # and four more files that left with the scanner, so `make package`
-        # failed on every run from the pivot onwards and this job stayed green
-        # over the same distributions.
+        # `make package`, the same target a laptop runs, and that is work rule
+        # 10 rather than a preference. This step used to build with
+        # `python -m build` and then assert two resource paths of its own
+        # further down, while `make package` asserted a different set on a
+        # laptop. Two definitions of "the package carries what it needs" do not
+        # add up, they cancel: the laptop's list named
+        # `actaira/web/static/index.html` and four more files that left with the
+        # scanner, so `make package` failed on every run from the pivot onwards
+        # and this job stayed green over the same distributions.
+        #
+        # Calling `scripts/build_package.py` here closed the list and left the
+        # COMMAND in two places, which is the same shape one level up: the
+        # target could grow a step - a cleaned `dist/`, a signature, a source
+        # archive - and CI would go on building the distributions the old way
+        # and still be green. `release_check.py` refuses a workflow that builds
+        # them any other way.
         run: |
           set -euo pipefail
           python -m pip install build twine
-          python scripts/build_package.py
+          make package
           python -m twine check dist/*.whl dist/*.tar.gz
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
