@@ -280,6 +280,11 @@ a public repository at no cost. Turn it on for `pypi` and on nothing else:
 
 > Settings → Environments → `pypi` → Required reviewers → add yourself → Save.
 
+Leave **Prevent self-review** unticked, and that is not a detail: it is off by
+default, and with one maintainer and one reviewer, ticking it makes the
+publication unapprovable by anybody - a deadlock that arrives with the release
+already public and the assets already attached.
+
 What it buys is the thing no check in this tree can buy. The gate refuses a
 workflow where a `workflow_dispatch` could reach the PyPI job, and it refuses
 it here, in a tree somebody has to change and commit. A protection rule refuses
