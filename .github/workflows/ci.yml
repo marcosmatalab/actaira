@@ -152,11 +152,21 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: "3.12"
-      - name: build sdist and wheel
+      - name: build sdist and wheel, and assert what went into them
+        # `scripts/build_package.py` and not `python -m build`, and that is
+        # work rule 10 rather than a preference. This step used to build with
+        # `build` and then assert two resource paths of its own further down,
+        # while `make package` asserted a different set on a laptop. Two
+        # definitions of "the package carries what it needs" do not add up,
+        # they cancel: the laptop's list named `actaira/web/static/index.html`
+        # and four more files that left with the scanner, so `make package`
+        # failed on every run from the pivot onwards and this job stayed green
+        # over the same distributions.
         run: |
+          set -euo pipefail
           python -m pip install build twine
-          python -m build
-          python -m twine check dist/*
+          python scripts/build_package.py
+          python -m twine check dist/*.whl dist/*.tar.gz
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: dist
@@ -171,22 +181,20 @@ jobs:
           REPORTED="$("$RUNNER_TEMP/from-sdist/bin/actaira" --version)"
           echo "pyproject says $VERSION, the installed tool says $REPORTED"
           test "$REPORTED" = "actaira $VERSION"
-      - name: the package carries the tool and the data it needs
+      - name: the installed package imports, in isolation
         run: |
           set -euo pipefail
           # -I: isolated, so the checkout's own directory is off sys.path and
-          # these imports say what is installed rather than what is lying about.
-          # `actaira.web` was in this list until phase A.1 and has not existed
-          # since 3.0.0, so this step asserted the presence of a module the
-          # package does not ship.
+          # these imports say what is installed rather than what is lying
+          # about. `actaira.web` was in this list until phase A.1 and has not
+          # existed since 3.0.0, so this step asserted the presence of a module
+          # the package does not ship.
+          #
+          # What is NOT here any more is a hand-written list of resource files.
+          # `scripts/build_package.py` reads every non-Python file under
+          # `src/actaira/` and asserts it is in the wheel, which is one
+          # definition instead of two that can drift apart.
           "$RUNNER_TEMP/from-sdist/bin/python" -I -c "import actaira, actaira.mcp, actaira.attest.timestamp"
-          "$RUNNER_TEMP/from-sdist/bin/python" -I -c "
-          import importlib.resources as resources
-          root = resources.files('actaira')
-          assert (root / 'i18n' / 'es.json').is_file(), 'the catalogue did not ship'
-          assert (root / 'schemas' / 'trace-v3.json').is_file(), 'the contract did not ship'
-          print('catalogue and contracts present')
-          "
       - name: the installed tool runs offline, out of the package
         run: |
           set -euo pipefail
@@ -235,6 +243,74 @@ jobs:
           python scripts/figures.py
           python scripts/sync_readme_figures.py
           git diff --exit-code
+
+  dogfood:
+    name: this repository runs its own Action on itself and uploads the result
+    # README.md told a reader that uploading the SARIF to code scanning was
+    # theirs to do, and this repository did not do it. A tool whose own
+    # Security tab is empty while it recommends the integration is the thing a
+    # hostile reader looks for first, so it does it here, with the published
+    # Action and no shortcut.
+    #
+    # It does not fail on a finding, and that is the fourth negative rather
+    # than a soft gate. An exit code INFORMS; whether it blocks is branch
+    # protection, which belongs to whoever owns the branch. What DOES fail this
+    # job is the tool breaking: an exit code outside the published set means
+    # the argv was refused or the process died, which is DEF-123 coming back,
+    # and `test -s` means the file the next step uploads actually exists.
+    #
+    # Only on a push to `main`. `security-events: write` is not granted to a
+    # workflow run from a fork's pull request, so running it there would fail
+    # for a reason that has nothing to do with this repository.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          persist-credentials: false
+          # Two commits, because the subject of `diff` is what changed between
+          # them. A shallow clone has one.
+          fetch-depth: 2
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.12"
+      - name: the two sides of this push
+        run: |
+          set -euo pipefail
+          echo "ACTAIRA_BASE=$(git rev-parse HEAD^)" >> "$GITHUB_ENV"
+          echo "ACTAIRA_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: what this push changed about what the agents here can do
+        id: own
+        continue-on-error: true
+        uses: $/
+        with:
+          base: ${{ env.ACTAIRA_BASE }}
+          head: ${{ env.ACTAIRA_HEAD }}
+          sarif: actaira.sarif
+      - name: the run ended in one of the codes the contract publishes
+        run: |
+          set -euo pipefail
+          CODE="$(cat actaira-exit-code.txt)"
+          echo "actaira exited $CODE"
+          # 0 nothing fired, 1 a rule fired, 3 something could not be resolved.
+          # 2 is the argv being refused and anything else is a crash; both are
+          # this repository's problem rather than a finding.
+          case "$CODE" in
+            0|1|3) ;;
+            *) echo "exit $CODE is not a finding, it is a break"; exit 1 ;;
+          esac
+          test -s actaira.sarif
+      - uses: github/codeql-action/upload-sarif@3ea06614dafe36dec890db3446326e0d40ce53d4  # v3
+        # Resolved on 2026-09-22 with
+        #   gh api repos/github/codeql-action/git/ref/tags/v3 --jq .object.sha
+        # and dereferenced to the commit it points at, because `uses:` takes a
+        # commit and an annotated tag's sha is the tag object.
+        with:
+          sarif_file: actaira.sarif
+          category: actaira
 
   workflows:
     name: zizmor over action.yml and the workflows

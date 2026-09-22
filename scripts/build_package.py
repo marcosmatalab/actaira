@@ -34,18 +34,36 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 
-# Everything a working install needs that is not a `.py` file. The failure
-# these guard against is always the same shape: the tool imports, runs, and
-# then cannot find a schema, a translation or a page.
-REQUIRED = (
-    "actaira/i18n/en.json",
-    "actaira/i18n/es.json",
-    "actaira/web/static/index.html",
-    "actaira/web/static/app.js",
-    "actaira/web/static/styles.css",
-    "actaira/agents/cassettes/judged-gold.json",
-    "actaira/schemas/report-v1.json",
-)
+def required() -> tuple[str, ...]:
+    """Everything a working install needs that is not a `.py` file.
+
+    Read off `src/` rather than typed. The failure these guard against is
+    always the same shape: the tool imports, runs, and then cannot find a
+    schema, a translation or a demo session.
+
+    It WAS typed, and it named `actaira/web/static/index.html`, two more files
+    beside it, a cassette and `report-v1.json` - all of which went to tag
+    v2.3.0 with the scanner. So `make package` failed on every run from the
+    pivot onwards, and nothing said so because `make package` is deliberately
+    not in `make all`: a packaging tool must not be able to break an install.
+    That argument is still right and it left this script unread for a release.
+
+    The rule now is the simple one: a non-Python file that is inside the
+    package directory is a file the package ships. Rejected: extending the
+    literal list, which is how it came to describe a tree that is not there.
+    """
+    package = ROOT / "src" / "actaira"
+    found = tuple(sorted(
+        path.relative_to(ROOT / "src").as_posix()
+        for path in package.rglob("*")
+        if path.is_file() and path.suffix != ".py" and "__pycache__" not in path.parts
+    ))
+    if not found:
+        raise SystemExit(
+            "no data file was found under src/actaira, so this build would be checked "
+            "against nothing. Work rule 11: a check that finds nothing has not passed."
+        )
+    return found
 
 # What must never ship. The first two are the point: a distributed artifact is
 # not where a generator of working gadget pickles belongs, and the fuzz corpus
@@ -120,7 +138,7 @@ def check(path: Path, *, require_resources: bool) -> list[str]:
                 problems.append(f"{path.name} contains {name} (under {prefix!r})")
 
     if require_resources:
-        for needed in REQUIRED:
+        for needed in required():
             if needed not in names:
                 problems.append(
                     f"{path.name} is missing {needed}, which the tool reads at run time"
