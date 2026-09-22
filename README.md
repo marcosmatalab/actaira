@@ -583,9 +583,10 @@ does not argue it, a schema version written in two places, a document naming a
 test that no longer exists, a flag the documentation shows that the command does
 not have, and a claim on this page that the parser contradicts.
 
-2,487 tests over 38,413 lines of Python run on every commit, and both figures are
-measured by `make figures` rather than typed: the gate refuses a tree where a
-number in this file disagrees with what the code reports.
+2,504 tests run on every commit over 15,803 lines of product code, part of the
+38,648 lines of Python in the tree once the suite and the scripts are counted.
+Every figure here is measured by `make figures` rather than typed: the gate
+refuses a tree where a number in this file disagrees with what the code reports.
 
 One check is worth naming because it is this release's whole theme. **Every
 module of the package has to be reachable from the CLI or from the MCP server,

@@ -412,6 +412,10 @@ def test_no_figure_is_separated_from_its_noun_by_markup(name):
         "**80** documented rules",
         "| **15** | executable controls |",
         "`21` obligations",
+        # A rewrapped paragraph, which is the shape that hid `lines of Python`
+        # on README.md while README.es.md, wrapped elsewhere, stayed current.
+        "2,486 tests over 38,431\nlines of Python in the tree",
+        "80  documented rules",
     ],
 )
 def test_the_markup_guard_catches_a_figure_it_cannot_keep_current(broken):
@@ -437,3 +441,52 @@ def test_the_markup_guard_leaves_a_usable_figure_alone(fine):
     A guard that fires on the correct shape is a guard people route around.
     """
     assert _markup_split("README.md", fine) == []
+
+
+# The guard above only protects a noun it knows about, and for three releases
+# it read a hand-typed tuple that never contained `lines`. `anchor_nouns` reads
+# the nouns off the patterns instead, so the set it protects and the set the
+# sync script writes are the same set by construction. These two assert that,
+# in both directions: every figure is protected, and the protection bites.
+
+
+def _contract():
+    sys.path.insert(0, str(Path(REPO_ROOT) / "scripts"))
+    import figures_contract  # noqa: PLC0415
+
+    return figures_contract
+
+
+def test_every_figure_anchored_on_a_noun_is_one_the_markup_guard_protects():
+    contract = _contract()
+    missing = []
+    for page in contract.PAGES:
+        guarded = set(contract._guarded_nouns(page))  # noqa: SLF001 - one module, one property
+        for noun in contract.anchor_nouns(page):
+            if noun not in guarded:
+                missing.append(f"{page}: {noun!r}")
+    assert not missing, (
+        "these figures anchor on a noun the markup guard does not protect, which "
+        "is the shape DEF-125 had: " + ", ".join(missing)
+    )
+
+
+def test_the_markup_guard_bites_on_every_figure_it_claims_to_protect():
+    """Plant the rewrap on each figure's own noun and demand a report.
+
+    Work rule 9's twin. Written this way rather than with a literal list
+    because a literal list is a third hand-typed copy of the nouns, and the
+    hand-typed copy is the defect.
+    """
+    contract = _contract()
+    unprotected = []
+    for page in contract.PAGES:
+        for noun in contract.anchor_nouns(page):
+            planted = f"1,234\n{noun} and then some prose"
+            if not contract.markup_split_problems(page, planted):
+                unprotected.append(f"{page}: {noun!r}")
+    assert not unprotected, (
+        "a figure left at the end of a line with its noun on the next one is "
+        "invisible to every pattern in the table, and the guard said nothing "
+        "about: " + ", ".join(unprotected)
+    )

@@ -13,8 +13,6 @@ include CITATION.cff
 recursive-include docs *.md
 
 prune tests
-prune evals
-prune fuzz
 prune .github
 exclude Makefile
 exclude Dockerfile

@@ -12,7 +12,7 @@ with `receipt.py` because no command reached it. Its two tests went with it.
 The property is unchanged and is not weaker for having one fewer signer - it
 is about whether a preimage names its role, and two roles that collide are
 exactly as bad as three. Recover the receipt half from
-`archive/model-scanner:tests/test_signing_domain_separation.py`.
+`v2.3.0:tests/test_signing_domain_separation.py`.
 
 One test per signer, plus the pair test that is the actual property: the
 preimages over the same digest are different byte strings.

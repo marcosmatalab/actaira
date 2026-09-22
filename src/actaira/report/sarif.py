@@ -3,7 +3,7 @@
 `report/sarif.py` existed in phase A, shaped around the model scanner: its
 results were artifacts with formats and tensors, and its `level` came from a
 fold over the severities one artifact's findings carried. That module went to
-`archive/model-scanner` and is not resurrected; this is a new one whose whole
+tag `v2.3.0` and is not resurrected; this is a new one whose whole
 job is to carry what `surface-diff/v1` already says into the one format a code
 host reads without being taught anything.
 

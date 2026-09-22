@@ -603,9 +603,11 @@ documento que nombra un test que ya no existe, un flag que la documentación
 enseña y el comando no tiene, y una afirmación de esta página que el parser
 contradice.
 
-2.487 tests sobre 38.413 líneas de Python corren en cada commit, y las dos cifras las
-mide `make figures` en vez de escribirlas a mano: la puerta rechaza un árbol
-donde un número de este fichero no coincide con lo que el código reporta.
+2.504 tests corren en cada commit sobre 15.803 líneas de código de producto, de
+las 38.648 líneas de Python que hay en el árbol contando la suite y los scripts.
+Cada cifra de aquí la mide `make figures` en vez de escribirse a mano: la puerta
+rechaza un árbol donde un número de este fichero no coincide con lo que el código
+reporta.
 
 Una comprobación merece nombre propio porque es el tema de esta release. **Todo
 módulo del paquete tiene que ser alcanzable desde la CLI o desde el servidor MCP,

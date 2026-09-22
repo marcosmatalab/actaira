@@ -90,7 +90,7 @@ markers in the old `tests/test_receipt.py` named these two functions by line.
 They are now properties over every document this tree emits, in
 `tests/test_no_aggregate.py`, asserted forward rather than deferred.
 
-Recover the writing half from `archive/model-scanner:src/actaira/attest/dsse.py`
+Recover the writing half from `v2.3.0:src/actaira/attest/dsse.py`
 if a future revision needs to speak OMS again. It will need a subject shape
 that is not the scanner's, and a verdict that is not a fold.
 

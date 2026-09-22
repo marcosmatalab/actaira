@@ -3,8 +3,7 @@
 > the EU AI Act catalogue. **None of it is in this tree.** It is kept, unedited,
 > because a document that argued a decision is worth more than a summary of it,
 > and because deleting it would leave the design notes that cite it pointing at
-> nothing. The code it describes is on the `archive/model-scanner` branch and at
-> tag `v2.3.0`. For what Actaira is now, read [`../../README.md`](../../README.md).
+> nothing. The code it describes is at tag `v2.3.0`. For what Actaira is now, read [`../../README.md`](../../README.md).
 > Nothing below is maintained, and nothing below is checked by a gate.
 
 # Conceptos

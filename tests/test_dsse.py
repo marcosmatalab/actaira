@@ -267,7 +267,7 @@ def test_the_envelope_json_uses_the_field_names_the_specification_names(reports,
 # `to_envelope` wrote: its subject names, its verdict, its policy block, its
 # `fully_read` rows and its byte-stability. Phase A removed that writer, and a
 # test re-pointed at the suite's own writer would assert that the suite agrees
-# with itself. They are recoverable at `archive/model-scanner:tests/test_dsse.py`
+# with itself. They are recoverable at `v2.3.0:tests/test_dsse.py`
 # alongside the code they covered. What the reader still owes - `_type`,
 # `predicateType`, `payloadType` - is asserted above, against envelopes this
 # tree did not write.
@@ -293,7 +293,7 @@ def test_a_missing_signatures_array_loads_as_unsigned_rather_than_raising():
 def _package_with_envelope(tmp_path, reports, keypair, *, dsse=True, signed_envelope=True):
     """A package, with or without the DSSE member. What `attest --dsse` wrote.
 
-    The command that assembled this went to archive/model-scanner; the
+    The command that assembled this went to tag v2.3.0; the
     assembly did not. Writing it out here keeps the property under test -
     an envelope is an ordinary package member, covered by the manifest and
     by its own signature - attached to the code that still implements it.
