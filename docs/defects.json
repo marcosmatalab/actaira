@@ -1456,6 +1456,21 @@
         "tests/test_release_check.py::test_prose_that_happens_to_say_make_is_left_alone"
       ],
       "pinned_note": "The twin plants `make benchmark` back into the page it was on and demands the gate name it. The second test is the other twin, and it is the one that makes the check survivable: it plants prose that says `make a decision` and `make the gate green` and demands silence, which is the case the first version of the check got wrong."
+    },
+    {
+      "id": "DEF-130",
+      "title": "`make package` had failed on every run since the pivot, because the list of resources it asserts named five files that left with the model scanner, and the CI job that builds the same distributions asserted a different list",
+      "effect": "THE DEFECT. `scripts/build_package.py` holds `REQUIRED`, the non-Python files a working install needs. It named `actaira/web/static/index.html`, `app.js`, `styles.css`, `actaira/agents/cassettes/judged-gold.json` and `actaira/schemas/report-v1.json`. None of those has been in the tree since phase A. So `make package` printed five failures and exited 1 every time it was run, from the pivot to the release that was about to be published from it.\n\nWHY NOTHING SAID SO. `make package` is deliberately not in `make all` - a packaging tool must not be able to break an install of the package - and that argument is still right. Its consequence is that the script is only exercised by somebody typing it, and nobody typed it between the pivot and the attempt to publish.\n\nAND WHY CI DID NOT CATCH IT. The `package` job built the distributions with `python -m build` and then asserted TWO resource paths of its own, `i18n/es.json` and `schemas/trace-v3.json`, both of which exist. Work rule 10 exactly: two checks over one property with two definitions do not add up, they cancel. The job was green over the same distributions the laptop's check was refusing, and each looked like it was covering the other.\n\nTHE FIX. `required()` reads every non-Python file under `src/actaira/` off disk: a data file inside the package directory is a file the package ships. The CI job calls `scripts/build_package.py` instead of building and asserting its own pair, so there is one definition. Rejected: extending the literal list, which is how it came to describe a tree that is not there.",
+      "found_by": "product review against a roadmap",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "`scripts/` is pruned from the sdist. What it blocked was publishing: the check was refusing artifacts that were in fact correct, which is the failure direction that gets a check deleted rather than fixed.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_package_contents.py::test_every_data_file_in_the_package_is_required_of_the_build",
+        "tests/test_package_contents.py::test_the_requirement_list_would_notice_a_resource_that_stopped_shipping"
+      ],
+      "pinned_note": "Pinned by a test rather than by the build, because the build needs `build` from an extra that `make all` does not install and a gate must not depend on one. The first asserts that `required()` returns exactly the non-Python files under `src/actaira/`, which is the property that failed. The second is work rule 9's twin: it hides a data file from the walk and demands that `required()` stops naming it, so a `required()` that had quietly started returning a frozen list again fails."
     }
   ]
 }

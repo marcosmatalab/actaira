@@ -300,7 +300,9 @@ etiqueta es un nombre y un nombre se mueve, que es lo que ACT-S003 le dice al
 mundo sobre sus propios servidores MCP y sus hooks; un ejemplo que te dijera
 `@main` seria esta herramienta pidiendote lo que senala en tu repositorio.
 Para volver a resolver uno: `gh api repos/<owner>/<repo>/git/ref/tags/<tag>
---jq .object.sha`.
+--jq .object.sha`. `@v3.0.0` es la forma legible de ese SHA y es lo que citará
+una nota de release, pero el ejemplo de aquí sigue siendo el digest, porque eso
+es lo que se recomienda.
 
 Escribe el informe en el resumen del trabajo y SARIF 2.1.0 en `actaira.sarif`;
 subirlo a code scanning es cosa tuya, con `github/codeql-action/upload-sarif` y
@@ -603,8 +605,8 @@ documento que nombra un test que ya no existe, un flag que la documentación
 enseña y el comando no tiene, y una afirmación de esta página que el parser
 contradice.
 
-2.529 tests corren en cada commit sobre 15.803 líneas de código de producto, de
-las 39.223 líneas de Python que hay en el árbol contando la suite y los scripts.
+2.537 tests corren en cada commit sobre 15.803 líneas de código de producto, de
+las 39.314 líneas de Python que hay en el árbol contando la suite y los scripts.
 Cada cifra de aquí la mide `make figures` en vez de escribirse a mano: la puerta
 rechaza un árbol donde un número de este fichero no coincide con lo que el código
 reporta.

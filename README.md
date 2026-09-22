@@ -293,6 +293,8 @@ is a name and a name moves, which is what ACT-S003 tells other people about
 their own MCP servers and hooks; an example that told you to write `@main`
 would be this tool asking of you what it flags in your repository. Re-resolve
 one with `gh api repos/<owner>/<repo>/git/ref/tags/<tag> --jq .object.sha`.
+`@v3.0.0` is the readable form of that SHA and it is what a release note will
+quote, but the example here stays a digest, because that is the advice.
 
 It writes the report into the job summary and SARIF 2.1.0 to `actaira.sarif`;
 uploading that to code scanning is yours to do, with
@@ -583,8 +585,8 @@ does not argue it, a schema version written in two places, a document naming a
 test that no longer exists, a flag the documentation shows that the command does
 not have, and a claim on this page that the parser contradicts.
 
-2,529 tests run on every commit over 15,803 lines of product code, part of the
-39,223 lines of Python in the tree once the suite and the scripts are counted.
+2,537 tests run on every commit over 15,803 lines of product code, part of the
+39,314 lines of Python in the tree once the suite and the scripts are counted.
 Every figure here is measured by `make figures` rather than typed: the gate
 refuses a tree where a number in this file disagrees with what the code reports.
 
