@@ -82,7 +82,9 @@ had:
   back, with the expensive ones named in a table beside the reason each is not
   run;
 - the notes for the version in `pyproject.toml` against the figures this tree
-  measures, and no other release note, because a published one is a record.
+  measures, and no other release note, because a published one is a record;
+- the two publishing jobs against the asymmetry the release order rests on:
+  the rehearsal may repeat itself and the publication may not.
 
 A fourth, `scripts/history_check.py`, is neither of those: it reads the
 history rather than the tree, and it has a section of its own below.

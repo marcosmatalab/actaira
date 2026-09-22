@@ -173,12 +173,20 @@ This is the last point at which that sentence is true.
 ## 6. The force-push
 
 ```bash
+git fetch origin
 git push --force-with-lease origin main
 ```
 
 `--force-with-lease` and not `--force`: if anything was pushed in the meantime
 it fails instead of overwriting it. The backup is already on the remote from
 step 4, which is what makes this recoverable by somebody who is not you.
+
+`git fetch` first, and it is not a formality. `--force-with-lease` compares the
+remote against YOUR `origin/main`, which is a local note of what the remote
+looked like the last time you asked. A stale note makes the guarantee
+decorative: it would let you overwrite a push you have never seen, which is the
+exact thing the flag is there to refuse. Fetching moves the note, so the
+comparison is against what is actually there.
 
 ## 7. CI, green on the rewritten branch
 
@@ -197,29 +205,67 @@ commit everything below is about to be cut from.
 
 Three settings, once. Everything after this assumes them.
 
-**The key that signs the tag.** SSH rather than GPG, because this machine
-already has an SSH key for pushing and a second key type is a second thing to
-lose. If there is no key yet, make one; if there is, skip the first line.
+**Where this section runs: PowerShell, on Windows, NOT inside `wsl`.** The tag
+in step 10 is signed by the Windows git, which reads the `.ssh` and
+`.gitconfig` of the Windows profile. A key made inside WSL lives in the WSL
+home, where that git does not look, and the failure is a missing file rather
+than a wrong one. Every command in this file that belongs in WSL is written
+with `wsl -e`; this one is the other kind, and says so rather than leaving it
+to be worked out.
 
-```bash
-ssh-keygen -t ed25519 -C "matagarciamarcos@gmail.com" -f ~/.ssh/id_ed25519
+### The signing key
+
+Look before creating anything. `ssh-keygen` offers to overwrite the file it is
+given and takes yes for an answer, and on this machine that file is the key you
+log in with:
+
+```powershell
+Get-ChildItem $HOME\.ssh
+```
+
+Then a SEPARATE key, for signing only. They are different jobs: one proves who
+is pushing, the other proves who cut a tag, and putting both on one file means
+a careless prompt costs the access as well as the signature.
+
+```powershell
+ssh-keygen -t ed25519 -C "matagarciamarcos@gmail.com" -f $HOME\.ssh\id_ed25519_signing
 git config --global gpg.format ssh
-git config --global user.signingkey ~/.ssh/id_ed25519.pub
-gh ssh-key add ~/.ssh/id_ed25519.pub --type signing --title "actaira release signing"
+git config --global user.signingkey $HOME\.ssh\id_ed25519_signing.pub
 ```
 
-`--type signing` is not decoration: a key registered only for authentication
-lets you push and does not make GitHub write **Verified** on anything. The two
-lists are separate on the account, and the same public key can be in both.
+`ssh-keygen` asks for a passphrase. Empty means `git tag -s` signs without
+asking; a passphrase means it asks every time, in whatever terminal it is
+running in, and there is no agent set up here to remember it.
 
-For `git tag -v` to answer on this machine, git needs to know which keys it is
-willing to believe. Without this file, verification says "no principal matched"
-on a tag it signed itself a minute earlier:
+### Registering it on GitHub as a signing key
 
-```bash
-git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers
-printf '%s %s\n' "matagarciamarcos@gmail.com" "$(cat ~/.ssh/id_ed25519.pub)" >> ~/.ssh/allowed_signers
+`gh` does not hold `admin:ssh_signing_key` unless it was asked for at login.
+Without the refresh, the next line fails with a permissions error that does not
+name the permission:
+
+```powershell
+gh auth refresh -h github.com -s admin:ssh_signing_key
+gh ssh-key add $HOME\.ssh\id_ed25519_signing.pub --type signing --title "actaira release signing"
 ```
+
+`--type signing` is not decoration: authentication keys and signing keys are
+two separate lists on the account, and a key in only the first lets you push
+while GitHub writes **Verified** on nothing.
+
+### Believing your own signature on this machine
+
+`git tag -v` answers out of a file of identities git is willing to believe.
+Without it, verification says "no principal matched" about a tag it signed
+itself a minute earlier:
+
+```powershell
+git config --global gpg.ssh.allowedSignersFile $HOME\.ssh\allowed_signers
+Add-Content -Encoding ascii -Path $HOME\.ssh\allowed_signers -Value "matagarciamarcos@gmail.com $(Get-Content $HOME\.ssh\id_ed25519_signing.pub)"
+```
+
+`-Encoding ascii` deliberately. Windows PowerShell writes UTF-16 with a byte
+order mark by default, ssh reads that file as bytes, and the first line then
+matches nobody.
 
 **The two environments the publish jobs run in.** Repository settings →
 Environments → New environment, twice, named exactly `pypi` and `testpypi`. No
@@ -271,6 +317,39 @@ replaced**, so this is not optional.
 `gh workflow run` only offers a workflow that is already on the default
 branch, which is why this comes after the force-push and not before it.
 
+**If the rehearsal fails, where it failed decides what to do.** The TestPyPI
+job carries `skip-existing`, which the PyPI job deliberately does not: a
+rehearsal is meant to be repeatable and a publication is meant to happen once.
+
+- **Before the upload** - the build, the attestation, `twine check`: nothing
+  was sent. Fix it and run it again.
+- **After the upload, in the install** - a wrong index URL, no network, a typo
+  in the command: TestPyPI now holds 3.0.0 and will never take those bytes
+  again, which is what `skip-existing` is for. Run it again; the upload step
+  passes over what is already there and you get back to the install.
+- **After the upload, because the distribution itself is wrong**: the bytes on
+  TestPyPI cannot be replaced and neither can the version number, so that
+  rehearsal is spent. Do NOT bump the version to buy another one - the version
+  is the thing half the checks in this tree compare against. Verify the fixed
+  build by installing the workflow's own artifact instead, which is the same
+  bytes the runner built and attested:
+
+  ```powershell
+  gh run download "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')" --name dist --dir $HOMEctaira-rehearsal
+  ```
+
+  ```bash
+  wsl -e bash -lc 'rm -rf /tmp/rehearsal && python3 -m venv /tmp/rehearsal && /tmp/rehearsal/bin/pip install --quiet /mnt/c/Users/Usuario/actaira-rehearsal/actaira-3.0.0-py3-none-any.whl'
+  wsl -e bash -lc 'cd /tmp && /tmp/rehearsal/bin/actaira scan --demo'
+  ```
+
+  Into the home directory and not into the checkout: an untracked folder in
+  the working tree is the one thing step 5 asks you to confirm is not there.
+
+  That skips the index round trip and nothing else. PyPI's upload is then the
+  first time those bytes are published anywhere, which is exactly what it is,
+  and the attestation is what lets somebody else check that claim.
+
 What the rehearsal does NOT exercise is the `attach` job: uploading the
 assets to a release needs a release, and there is not one yet. That is the one
 step of step 11 that runs for the first time when it runs for real, and it is
@@ -302,7 +381,11 @@ gh release create v3.0.0 --title "Actaira 3.0.0" \
 Publishing it starts `.github/workflows/release.yml`, which builds the wheel
 and the sdist on the runner with the same `make package` a laptop runs, signs a
 provenance attestation for both, attaches them and `SHA256SUMS` to the release,
-and then publishes to PyPI. Watch it to the end:
+and then publishes to PyPI.
+
+**The release is public with no files attached for the few minutes that takes,
+and that is the workflow working rather than failing.** Anybody looking at the
+releases page in that window sees notes and no downloads. Watch it to the end:
 
 ```bash
 gh run watch "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')"
@@ -337,16 +420,24 @@ would no longer be true.
 
 ## 12. Verify what was published, the way a stranger would
 
-```bash
-gh release download v3.0.0 --dir /tmp/verify --repo marcosmatalab/actaira
-cd /tmp/verify && sha256sum -c SHA256SUMS
+`gh` and `git` are the Windows ones here, like everywhere else in this file
+that is not marked `wsl -e`; `sha256sum` is not a Windows command, so that one
+line is marked and reads the same directory through `/mnt/c`.
+
+```powershell
+gh release download v3.0.0 --dir $HOME\actaira-verify --repo marcosmatalab/actaira
+cd $HOME\actaira-verify
 gh attestation verify actaira-3.0.0-py3-none-any.whl --repo marcosmatalab/actaira
 gh attestation verify actaira-3.0.0.tar.gz --repo marcosmatalab/actaira
-git tag -v v3.0.0
+git -C C:\Users\Usuario\Desktop\actaira tag -v v3.0.0
 ```
 
-Each of those four is in the release notes, word for word, so that a reader
-does not have to be told they exist.
+```bash
+wsl -e bash -lc 'cd /mnt/c/Users/Usuario/actaira-verify && sha256sum -c SHA256SUMS'
+```
+
+The same four checks are in the release notes, in the POSIX spelling a reader
+on any other machine would use, so that nobody has to be told they exist.
 
 ## 13. About, topics and website
 

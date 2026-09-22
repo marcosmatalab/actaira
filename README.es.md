@@ -424,9 +424,9 @@ Todas las cifras de abajo salen de un comando. Corre cualquiera y discrepa.
 
 | Afirmación | Comando | Resultado |
 |---|---|---|
-| 2.640 tests | `python -m pytest --collect-only -q -o addopts=` | la misma cuenta |
+| 2.644 tests | `python -m pytest --collect-only -q -o addopts=` | la misma cuenta |
 | 15.969 líneas de código de producto | `find src -name '*.py' \| xargs cat \| wc -l` | la misma cuenta |
-| 42.147 líneas de Python en el árbol | `python scripts/figures.py` | `docs/FIGURES.md`, por área |
+| 42.301 líneas de Python en el árbol | `python scripts/figures.py` | `docs/FIGURES.md`, por área |
 | 32 reglas documentadas | `python scripts/rules_doc.py` | `docs/RULES.md`, desde los paquetes |
 | 7 comandos de CLI, y no hay un octavo | `actaira --help` | los siete de arriba |
 | el suelo de cobertura aguanta | `make test-cov` | el suelo es 88 y el árbol mide 90 |
