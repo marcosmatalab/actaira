@@ -99,7 +99,7 @@ def derive() -> dict[str, Any]:
     if not measured.get("tests", {}).get("available"):
         raise ValueError("figures.json records no test count. Run `make figures`.")
 
-    # `evals/` and `fuzz/` went to archive/model-scanner, and with them the
+    # `evals/` and `fuzz/` went to tag v2.3.0, and with them the
     # judged-retrieval, marking-survival and benchmark figures. Nothing here
     # falls back to a literal: a figure with no command that measures it is a
     # figure this file does not carry. See CLAUDE.md, work rule 6.
@@ -115,6 +115,16 @@ def derive() -> dict[str, Any]:
         "version": __version__,
         "tests": measured["tests"]["collected"],
         "lines": measured["code"]["total"]["lines"],
+        # The product is `src/`, and the tree is `src/` plus the suite plus the
+        # scripts. `measure_areas` partitions those three and raises on a file
+        # no area claimed, so this subtraction is exact rather than an estimate.
+        # Rejected: a tenth entry in AREAS, which would count `src/` twice in a
+        # table whose whole guarantee is that every file is counted once.
+        "product_lines": (
+            measured["code"]["total"]["lines"]
+            - measured["code"]["tests"]["lines"]
+            - measured["code"]["scripts"]["lines"]
+        ),
         "rules": measured["catalog"]["rules"],
         "defects": defects["defects"],
         "defects_pinned": defects["pinned_by_a_named_test"],
@@ -195,8 +205,16 @@ def figures() -> list[Figure]:
                r"(?<=\*\*Actaira )\d+\.\d+\.\d+(?=\*\*)", r"(?<=\*\*Actaira )\d+\.\d+\.\d+(?=\*\*)"),
         figure("tests", "figures.json: pytest --collect-only",
                r"\b[\d,.]+(?= tests\b)", r"\b[\d,.]+(?= tests\b)", True),
-        figure("lines", "figures.json: line count over src/",
+        figure("lines", "figures.json: line count over src, tests and scripts",
                r"\b[\d,.]+(?= lines of Python)", r"\b[\d,.]+(?= líneas de Python)", True),
+        # `lines` was published as if it were the size of the product. It is the
+        # size of the tree, and the suite and the scripts are most of it. Both
+        # are stated now, each anchored on its own noun, so neither sentence can
+        # be read as the other. Rejected: narrowing `lines` to src/, which would
+        # have moved the ambiguity rather than removed it.
+        figure("product_lines", "figures.json: code.total minus tests and scripts",
+               r"\b[\d,.]+(?= lines of product code)",
+               r"\b[\d,.]+(?= líneas de código de producto)", True),
         figure("rules", "i18n catalogue",
                r"\b\d+(?= documented rules)", r"\b\d+(?= reglas documentadas)"),
         # The ledger's counts live in `docs/ENGINEERING.md`. A landing page is
@@ -260,25 +278,62 @@ FORBIDDEN_NUMBER_WORDS = {
     ),
 }
 
-# What each number word must not be followed by: the nouns this table counts.
-# `one runtime dependency` is fine and `seven schemas` is not, so the check is
-# on the pair rather than on the word.
-COUNTED_NOUNS = {
+# What each number word must not be followed by: nouns this table once counted
+# and no longer does. `one runtime dependency` is fine and `seven schemas` is
+# not, so the check is on the pair rather than on the word.
+#
+# This list is ADDITIVE ONLY, and that is the whole of its job. The nouns a
+# figure actually anchors on are read off the patterns by `anchor_nouns`, so
+# there is one definition of "a noun this table counts" and not two. What is
+# left here is the retired ones - `connectors`, `executable controls`,
+# `obligations`, `corpus artifacts`, `fuzz targets` - whose figures went to tag
+# v2.3.0 and whose spelled-out forms must still not come back.
+#
+# Rule 10. It was not additive before, and that is how `lines of Python` came
+# to be a figure the markup guard had never looked at: the guard read this
+# hand-typed tuple, `lines` was never in it, and the shape that unhooks a
+# figure went unreported on the one figure most likely to be rewrapped.
+RETIRED_NOUNS = {
     "README.md": (
-        "defects", "mechanisms", "distinct mechanisms", "schemas", "schema documents",
-        "versioned contracts",
-        "superseded versions",
-        "connectors", "executable controls", "obligations", "CLI commands", "design notes",
-        "documented rules", "corpus artifacts", "fuzz targets", "tests",
+        "defects", "mechanisms", "distinct mechanisms", "schemas",
+        "connectors", "executable controls", "obligations", "design notes",
+        "corpus artifacts", "fuzz targets",
     ),
     "README.es.md": (
-        "defectos", "mecanismos", "mecanismos distintos", "esquemas", "documentos de esquema",
-        "contratos versionados", "versiones sustituidas", "conectores",
-        "controles ejecutables", "obligaciones", "comandos de CLI",
-        "notas de diseño", "reglas documentadas",
-        "artefactos de corpus", "objetivos de fuzz", "tests",
+        "defectos", "mecanismos", "mecanismos distintos", "esquemas",
+        "conectores", "controles ejecutables", "obligaciones",
+        "notas de diseño", "artefactos de corpus", "objetivos de fuzz",
     ),
 }
+
+def anchor_nouns(readme: str) -> tuple[str, ...]:
+    """The words each pattern for this page anchors on, read off the patterns.
+
+    A pattern in this table looks like `\\b[\\d,.]+(?= lines of Python)`, so the
+    noun it depends on is written there already. Reading it back is the only
+    way the two guards below can be about the same thing as the sync script.
+    Rejected: a second hand-typed tuple, which is what `COUNTED_NOUNS` was and
+    what let `lines` stay outside both guards for three releases.
+    """
+    nouns: list[str] = []
+    for figure in figures():
+        pattern = figure.patterns.get(readme)
+        if pattern is None:
+            continue
+        match = re.search(r"\(\?= (.+?)\)$", pattern)
+        if match is None:
+            # A figure anchored some other way - the version string looks
+            # ahead at `**`, not at a noun. Nothing to guard, and saying so
+            # here is cheaper than a reader wondering which ones are missing.
+            continue
+        nouns.append(match.group(1).removesuffix(r"\b"))
+    return tuple(dict.fromkeys(nouns))
+
+
+def _guarded_nouns(readme: str) -> tuple[str, ...]:
+    """Every noun a number must not be separated from, on this page."""
+    return tuple(dict.fromkeys(anchor_nouns(readme) + tuple(RETIRED_NOUNS.get(readme, ()))))
+
 
 def number_word_problems(readme: str, text: str) -> list[str]:
     """Figures written as words, where this table owns the figure."""
@@ -287,7 +342,7 @@ def number_word_problems(readme: str, text: str) -> list[str]:
     # English document with no list of its own: it carries four figures and no
     # prose this rule is about. No list means nothing to check, not a crash.
     words = "|".join(FORBIDDEN_NUMBER_WORDS.get(readme, ()))
-    nouns = "|".join(re.escape(noun) for noun in sorted(COUNTED_NOUNS.get(readme, ()), key=len, reverse=True))
+    nouns = "|".join(re.escape(noun) for noun in sorted(_guarded_nouns(readme), key=len, reverse=True))
     if not words or not nouns:
         return problems
     for match in re.finditer(rf"\b({words})[\s-]+({nouns})\b", text, re.IGNORECASE):
@@ -312,15 +367,24 @@ def markup_split_problems(readme: str, text: str) -> list[str]:
     `make test  # 3,233 tests` that was correct, because the first was
     invisible to `\b[\d,.]+(?= tests\b)` and the second was not.
 
-    So the rule is: **between a figure and the noun it counts, only
-    whitespace**. `**80 documented rules**` is fine and `**80** documented
-    rules` is not, which looks pedantic until you notice that the second one
-    is exactly the shape that drifted.
+    So the rule is: **between a figure and the noun it counts, exactly one
+    space**. `**80 documented rules**` is fine and `**80** documented rules`
+    is not, which looks pedantic until you notice that the second one is
+    exactly the shape that drifted.
+
+    "Exactly one space" and not "only whitespace" because every pattern above
+    spells the gap as a literal space, so a line break unhooks a figure just
+    as completely as a `<br>` does. That is how a rewrapped paragraph on
+    README.md left `lines of Python` on its own line while README.es.md, whose
+    wrap fell elsewhere, stayed current.
     """
     problems: list[str] = []
-    nouns = "|".join(re.escape(noun) for noun in sorted(COUNTED_NOUNS.get(readme, ()), key=len, reverse=True))
-    if not nouns:
-        return problems
+    guarded = _guarded_nouns(readme)
+    if not guarded:
+        # Rule 11: a guard with nothing to look for has not passed, it has
+        # stopped looking. Every guarded page states at least one figure.
+        raise ValueError(f"{readme} is guarded by this table and no figure anchors on a noun in it")
+    nouns = "|".join(re.escape(noun) for noun in sorted(guarded, key=len, reverse=True))
     # What may sit between a figure and its noun and still be markup rather
     # than prose: whitespace, Markdown emphasis, a table pipe, or a complete
     # HTML tag. Nothing else. Prose in between means the two are not a pair
@@ -331,7 +395,24 @@ def markup_split_problems(readme: str, text: str) -> list[str]:
     for match in re.finditer(pattern, text):
         between = match.group(2)
         if not set(between) & set("*`|<"):
-            continue  # whitespace only, which is the form the patterns read
+            # Whitespace, which is the form the patterns read - but every
+            # pattern above spells it as one literal space, so a line break or
+            # a run of spaces unhooks the figure exactly as markup does. That
+            # is not the same defect twice: a figure left at the end of one
+            # line with its noun at the start of the next is what a paragraph
+            # rewrap produces, and it produced it on this page. A figure stated
+            # twice hides it, because the other occurrence keeps the match
+            # count non-zero and the gate green.
+            if between == " ":
+                continue
+            problems.append(
+                f"{readme}: {match.group(0)!r} puts {between!r} between the figure "
+                "and the noun it counts. Every pattern in this table spells that "
+                "gap as one space, so a line break or a double space is as "
+                "invisible to it as markup. Keep the figure and its noun on one "
+                "line, separated by one space."
+            )
+            continue
         problems.append(
             f"{readme}: {match.group(0)!r} puts {between!r} between the figure and "
             "the noun it counts, so no pattern in this table can keep it current. "

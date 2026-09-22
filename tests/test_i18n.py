@@ -18,7 +18,7 @@ from actaira.i18n.catalog import SUPPORTED, Catalog, load
 from conftest import REPO_ROOT, SRC_DIR
 
 # Sections whose values are plain strings. The `governance` and `controls`
-# sections went to archive/model-scanner with the modules whose ids keyed
+# sections went to tag v2.3.0 with the modules whose ids keyed
 # own tests further down rather than a shape exception here.
 # `ui` is the only section with entries in this tree. `rules` and `rule_help`
 # are empty and a test below asserts they stay empty for as long as no module

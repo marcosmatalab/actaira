@@ -4,7 +4,7 @@ The project is not installed, so `src/` goes on `sys.path` here rather than in
 every test file. `tests/` goes on it too, so `support.reports` imports the same
 way from every test file.
 
-The generated artifact corpus went to archive/model-scanner with the inspector
+The generated artifact corpus went to tag v2.3.0 with the inspector
 that read it. Tests that used it as a fixture factory build an `ArtifactReport`
 directly instead: see `tests/support/reports.py` for why that is the honest
 replacement rather than a stand-in inspector.

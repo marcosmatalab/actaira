@@ -24,7 +24,7 @@ numbers and renumbering would have broken all of them silently.
 
 Two subsections below are in the same position and stayed only because they sit
 inside a section that is otherwise live: **3.4** (CycloneDX ML-BOM) and **3.5**
-(disassembly) argue code that went to `archive/model-scanner` at 3.0.0.
+(disassembly) argue code that went to tag `v2.3.0` at 3.0.0.
 
 ## 1. Index of design notes
 
@@ -125,7 +125,7 @@ softening the promise.
 
 The two worth rereading are re-argued in section 10 in full: D-223 on the five
 evidence states, and D-245 on a decision as a historical fact. The rest are
-recoverable with their code from `archive/model-scanner`, where the docstring
+recoverable with their code from tag `v2.3.0`, where the docstring
 that argues each one sits on the line it argues about.
 
 D-25b is numbered as a continuation rather than as a note of its own because
@@ -623,7 +623,7 @@ was revoked is telling the truth against its own interest.
 
 Phase A applied one rule to the tree: every module of the package has to be
 reachable from the CLI or from the MCP server, and what is not, goes. Around
-8 700 lines went. The history keeps the code and `archive/model-scanner` is
+8 700 lines went. The history keeps the code and tag `v2.3.0` is
 intact, so a `git show` brings any of it back.
 
 What a `git show` does not bring back is why a thing was shaped the way it
@@ -639,7 +639,7 @@ still describe what is there" is `decide.py`'s `CURRENT` /
 about a model artifact. Section 11 argues the change of subject; this section is
 the half of it that was already written.
 
-Recover the code from `archive/model-scanner:src/actaira/state/`.
+Recover the code from `v2.3.0:src/actaira/state/`.
 
 ### 10.1 Five evidence states, and supersession bound to a digest (D-223)
 
@@ -745,11 +745,11 @@ it is worth carrying in a tree where no command can reach it.
   consumes claims and returns a decision with the proof that lets someone else
   re-derive it, plus the inversion that matters, `Unevaluable → REVIEW`, so a
   condition that cannot be evaluated is never silently False (D-111, D-112,
-  D-113). Recover from `archive/model-scanner:src/actaira/policy/`.
+  D-113). Recover from `v2.3.0:src/actaira/policy/`.
 - **`receipt.py`, the signing half only** — `signing_subject`, `signed_bytes`,
   `sign` and `verify`: what exactly gets covered by a signature, and the
   separation of the document from the bytes that are signed over it (D-120).
-  Recover from `archive/model-scanner:src/actaira/receipt.py`. The building
+  Recover from `v2.3.0:src/actaira/receipt.py`. The building
   half is scanner-shaped and is not worth recovering.
 - **The archived front end's presentation layer** — a stylesheet with no
   framework, no build step and no external font or icon, and an inline icon

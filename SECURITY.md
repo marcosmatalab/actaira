@@ -5,8 +5,7 @@ this tree actually consists of. Everything else this page used to say described
 the model scanner, which left at 3.0.0, and a security policy that describes a
 surface the tree does not have is the same defect as a compatibility page doing
 it. The scanner's threat model, its section on the crafted artifacts its corpus
-generated, and its build-attestation recipe are at tag `v2.3.0` and on
-`archive/model-scanner`, unedited.
+generated, and its build-attestation recipe are at tag `v2.3.0`, unedited.
 
 The threat model for the new input is [below](#threat-model-reading-somebody-elses-repository).
 It was deliberately held open until phase S1 so that it would describe code that
@@ -52,7 +51,7 @@ disclosure indefinitely.
 | Version | Supported |
 |---|---|
 | 3.0.x | yes |
-| 2.x | no, and it is a different tool: see `archive/model-scanner` |
+| 2.x | no, and it is a different tool: see tag `v2.3.0` |
 | 1.x, 0.x | no |
 
 This table is about which code receives fixes, and not about documents. A

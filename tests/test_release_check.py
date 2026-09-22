@@ -582,3 +582,51 @@ def test_a_figure_on_no_page_says_so_rather_than_keeping_a_dead_pattern(working_
         "the check above gets switched off one figure at a time, so it is "
         "asserted here rather than noticed later"
     )
+
+
+def test_a_per_file_ignore_for_a_module_that_is_gone_fails(working_tree, tmp_path):
+    """The shape ten entries in `pyproject.toml` had after phase A.
+
+    Ruff does not complain about a per-file-ignores key it cannot match: it
+    applies nothing and says nothing, so the configuration goes on describing
+    a tree that is not there. In a repository whose product is refusing
+    exactly that, it was the cheapest possible thing to be caught doing.
+    """
+    broken = tmp_path / "dead-ignore"
+    shutil.copytree(working_tree, broken)
+    pyproject = broken / "pyproject.toml"
+    pyproject.write_text(
+        pyproject.read_text(encoding="utf-8").replace(
+            '[tool.ruff.lint.per-file-ignores]',
+            '[tool.ruff.lint.per-file-ignores]\n"src/actaira/coverage.py" = ["UP042"]',
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    result = run(broken)
+
+    assert result.returncode == 1
+    assert "src/actaira/coverage.py" in result.stdout
+    assert "not in the tree" in result.stdout
+
+
+def test_a_manifest_line_pruning_a_directory_that_is_gone_fails(working_tree, tmp_path):
+    """`prune evals` and `prune fuzz` outlived the directories by a release.
+
+    setuptools reports it as a warning, and only `make package` would print
+    it, and `make package` is deliberately not in `make all`. So the line sat
+    there being false in the one file that decides what a stranger downloads.
+    """
+    broken = tmp_path / "dead-prune"
+    shutil.copytree(working_tree, broken)
+    manifest = broken / "MANIFEST.in"
+    manifest.write_text(
+        manifest.read_text(encoding="utf-8") + "\nprune evals\n", encoding="utf-8"
+    )
+
+    result = run(broken)
+
+    assert result.returncode == 1
+    assert "evals" in result.stdout
+    assert "not in the tree" in result.stdout

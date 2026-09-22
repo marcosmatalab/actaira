@@ -21,7 +21,7 @@ is a `str` and the enum is in the history.
 INCONCLUSIVE are conformance vocabulary, and the conformance product left in
 phase S0. What replaced INCONCLUSIVE is `surface.Resolution.INDETERMINATE`,
 which says something different and says it about a capability rather than about
-an inspection. Recover either from `archive/model-scanner:src/actaira/model.py`.
+an inspection. Recover either from `v2.3.0:src/actaira/model.py`.
 
 What left with the scanner, and why, since a reader looking for it should not
 have to use `git log`: `ArtifactReport` and `TensorInfo` described a file that
@@ -31,7 +31,7 @@ per surface. Nothing in this tree inspects a file. They anchored `coverage.py`
 phase A. `artifact_name` went with them: it existed because six
 scanner-era documents spelled "the last path segment" three ways, and none of
 those six documents exists now. Recover any of it from
-`archive/model-scanner:src/actaira/model.py`.
+`v2.3.0:src/actaira/model.py`.
 """
 from __future__ import annotations
 

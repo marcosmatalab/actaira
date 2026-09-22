@@ -239,7 +239,7 @@ tool no longer reads model artifacts at all.
 The subject changes from model artifacts to AI agent runs. The scanner - formats,
 controls, connectors, scan, bom, agents, governance, web, the bundle resolver, the
 marking and trust modules and the 2 458-line CLI - is archived whole at tag
-`v2.3.0` on `archive/model-scanner`; what survives is the evidence core: attest,
+`v2.3.0`; what survives is the evidence core: attest,
 state, policy, report, receipt, subject and the conformance package, renamed from
 `agentgov` because it collided with the `agents` module beside it. Two
 cryptographic defects found on the way out are fixed: the chain entry hash

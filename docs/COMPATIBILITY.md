@@ -133,9 +133,9 @@ than a tidy-up, and it is recorded as one.
 `trust-policy/v1`, `state-export/v1` and `assurance-receipt/v1` went the same
 way at 3.0.0.
 
-All of them stay readable at tag `v2.3.0` and on the `archive/model-scanner`
-branch. Shipping a schema file with no emitter publishes a contract the tool
-cannot honour, and reads to a consumer as still supported.
+All of them stay readable at tag `v2.3.0`. Shipping a schema file with no
+emitter publishes a contract the tool cannot honour, and reads to a consumer as
+still supported.
 
 ## Commands
 

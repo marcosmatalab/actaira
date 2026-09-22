@@ -85,7 +85,7 @@ VERSIONS = {
 # modules that used to write them. Report, model-bundle, agent-bom, asset-graph,
 # attack-paths, source-snapshot, subject-manifest, trust-policy, state-export
 # and assurance-receipt/v1 went the same way at 3.0.0. All of them stay readable
-# at tag v2.3.0 and on `archive/model-scanner`.
+# at tag v2.3.0.
 # Rejected: shipping the files with no emitter, which publishes a contract the
 # tool cannot honour and reads to a consumer as still supported.
 SUPERSEDED: dict[str, tuple[str, ...]] = {"trace": ("trace/v1", "trace/v2")}

@@ -87,7 +87,7 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
 - `conformance/model.py` declara `SCHEMA_VERSION = "agent-bom/v2"` y ese esquema
   ya no se publica: el módulo emite un documento contra un contrato que no está
   en `schemas/`. **Cerrado por desaparición**: `conformance/` se fue entero a
-  `archive/model-scanner` en la 3.0.0, y el producto que lo iba a necesitar sale
+  el tag `v2.3.0` en la 3.0.0, y el producto que lo iba a necesitar sale
   del plan en la S0. Reproducción: `ls src/actaira/conformance` no existe.
 - `statecli._record_manifest` grababa un manifiesto de sujetos en el grafo de
   estado. Se fue con `statecli.py`, y `manifest.py` y `state/` se fueron después
@@ -156,7 +156,7 @@ no tocar, y la razón de no tocarlo. Regla de trabajo 2 de `CLAUDE.md`.
   **Sin fase.**
 - `scripts/build_package.py` sigue exigiendo `actaira/web/static/index.html`,
   `actaira/agents/cassettes/judged-gold.json` y `actaira/schemas/report-v1.json`,
-  que se fueron a `archive/model-scanner` en la 3.0.0. **Recomprobado en la S3 y
+  que se fueron al tag `v2.3.0` en la 3.0.0. **Recomprobado en la S3 y
   NO cerrado, con motivo.** La premisa de la reasignación era que la S3 sería la
   primera fase que publica algo que instala un tercero, y lo es; lo que resultó
   no ser cierto es que ese algo pase por aquí. La acción de GitHub instala con
@@ -289,7 +289,7 @@ llevan seis meses mintiendo.
   Reproducción: `grep -c 'pickle' docs/FORMATS.md`. Candidato a borrarse entero,
   como se borró `docs/CLI-OUTPUT.md` en esta fase.
 - `docs/EVALUATION.md` describe un corpus y un harness que viven en
-  `archive/model-scanner`.
+  el tag `v2.3.0`.
 - `docs/ARCHITECTURE.md` dibuja un árbol de directorios con `formats/`,
   `conformance/`, `policy/` y `state/`.
 - `docs/THREAT-MODEL.md` y `docs/CONCEPTS.md` / `CONCEPTS.es.md` están a medias:

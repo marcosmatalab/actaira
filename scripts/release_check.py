@@ -1304,6 +1304,59 @@ def run_output_stays_out_of_the_index() -> str:
     return f"{len(foreign)} foreign run artifact(s), ignored and untracked"
 
 
+@check("every path the build configuration names is a path that exists")
+def the_build_configuration_names_real_paths() -> str:
+    """Two files that name paths and are read by tools that shrug at a miss.
+
+    `per-file-ignores` in `pyproject.toml` carried ten entries for modules
+    deleted in phase A - `coverage.py`, `policy/model.py`, `state/watch.py` and
+    the rest - and ruff simply does not apply a rule it cannot match. `prune`
+    in `MANIFEST.in` named `evals` and `fuzz`, which went to tag v2.3.0;
+    setuptools prints a warning that only `make package` would show, and
+    `make package` is not in `make all`. Both were configuration asserting a
+    tree that is not there, in a repository whose product is refusing exactly
+    that.
+
+    Rejected: a test per file. The property is one property, and work rule 10
+    says two checks over one property share a definition or they cancel.
+    """
+    problems: list[str] = []
+    counted = 0
+
+    import tomllib
+
+    ignores = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    per_file = ignores["tool"]["ruff"]["lint"]["per-file-ignores"]
+    for key in per_file:
+        if "*" in key:
+            continue  # a glob names a shape, not a path
+        counted += 1
+        if not (ROOT / key).exists():
+            problems.append(f"pyproject.toml per-file-ignores names {key}, which is not in the tree")
+
+    manifest = ROOT / "MANIFEST.in"
+    for number, line in enumerate(manifest.read_text(encoding="utf-8").splitlines(), 1):
+        words = line.split()
+        if len(words) != 2 or words[0] not in {"prune", "exclude", "include"}:
+            continue
+        target = words[1]
+        if any(character in target for character in "*?["):
+            continue
+        counted += 1
+        if not (ROOT / target).exists():
+            problems.append(f"MANIFEST.in:{number} names {target}, which is not in the tree")
+
+    if problems:
+        raise DriftError("\n".join(problems))
+    if not counted:
+        # Work rule 11: a check that matched nothing has not passed.
+        raise DriftError(
+            "no path was read out of pyproject.toml or MANIFEST.in, so this check "
+            "compared nothing. Their shape has changed."
+        )
+    return f"{counted} path(s) named by the build configuration, all present"
+
+
 @check("the test suite runs behind an armed network guard")
 def the_network_guard_is_armed() -> str:
     """Design note D-267, and the half of it that is not a test.

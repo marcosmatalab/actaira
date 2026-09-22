@@ -348,7 +348,7 @@ _RUN = 0
 def attest(reports: list, out: Path, key: Path, continue_from: Path | None = None) -> int:
     """What `attest [--continue]` assembled, against the library that still has it.
 
-    The command went to archive/model-scanner; `chain.load_entries` and
+    The command went to tag v2.3.0; `chain.load_entries` and
     `package.write_package` did not, and they are what `--continue` was. The
     resumed chain is rebuilt from the earlier package's own bytes rather than
     re-derived, which is the property D-26 is about and the one these tests

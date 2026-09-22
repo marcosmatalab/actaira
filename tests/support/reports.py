@@ -15,7 +15,7 @@ own writer is the shape D-15 warns about at the top of `attest/verify.py`: a
 bug in the writer cancels the same bug in the reader and both tests pass. The
 writer here is the specification's shape typed out again, so the two halves
 have no code in common. Rejected: importing the archived `to_envelope` from
-`archive/model-scanner`, which would restore exactly the shared path.
+tag `v2.3.0`, which would restore exactly the shared path.
 
 Nothing here computes a verdict, a severity or a fold over either. A helper
 that decided PASS or FAIL would be the decision logic these tests exist to

@@ -270,7 +270,7 @@ estaba en alcance y falló, sí.
 
 Todo módulo del paquete tiene que ser alcanzable desde el CLI o desde el
 servidor MCP. Lo que no lo sea, sale. El historial lo guarda y
-`archive/model-scanner` está intacta; un `git show` lo trae de vuelta.
+el tag `v2.3.0` está intacto; un `git show` lo trae de vuelta.
 
 La alcanzabilidad se calcula DESDE LAS RAÍCES A TRAVÉS DE LAS FUNCIONES QUE SE
 ALCANZAN, no a través de los imports a nivel de módulo. Un import que solo
@@ -373,7 +373,7 @@ ningún agente instalado.
 - Volver a tocar `formats/`, `controls/`, `connectors/`, `scan/`, `bom/`,
   `agents/`, `governance/`, `web/`, `evals_support/`, `bundle.py`, `marking.py`,
   `inspect.py`, `remote.py`, `trustpolicy.py`. Están en la rama
-  `archive/model-scanner` y ahí se quedan.
+  el tag `v2.3.0` y ahí se quedan.
 - Reintroducir el pipeline de LLM como juez, o generar remediaciones con un
   modelo. La remediación es un campo de la regla, escrito por un humano.
 - Aplicar un cambio en el entorno del usuario sin que él lo ejecute.

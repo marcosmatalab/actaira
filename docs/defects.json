@@ -1382,6 +1382,50 @@
         "tests/test_workflow_shell.py::test_the_dockerfile_shell_parses"
       ],
       "pinned_note": "Verified to bite against the defect as published rather than against a reconstruction: the sweep run over `ci.yml` at 487eae9 reports both broken steps with the runner's own message, `unexpected EOF while looking for matching '\"'`. `test_the_sweep_would_notice_an_unterminated_quote` is the twin required by work rule 9 and plants the defect in the shape it happened - a step inserted between a `python -c \"` and the line that closed it - demanding two failures from the same function the real sweep calls, not from a private copy. `test_the_sweep_found_the_files_and_the_blocks_it_thinks_it_did` is the work rule 11 guard: it pins the block counts (16 in `ci.yml`, 4 in `action.yml`, 2 `RUN` in the `Dockerfile`) so an extractor that quietly stopped matching cannot make the sweep pass over nothing."
+    },
+    {
+      "id": "DEF-125",
+      "title": "the guard that keeps a figure attached to its noun read a hand-typed list of nouns, `lines` was never in it, and a line break unhooks a figure as completely as markup does",
+      "effect": "THE DEFECT, in two halves that are the same disease.\n\nFirst half: `markup_split_problems` in `scripts/figures_contract.py` exists to refuse prose where something sits between a figure and the noun it counts, because every pattern in that table anchors on the noun and stops matching otherwise. It read its nouns from `COUNTED_NOUNS`, a tuple typed by hand beside the table rather than derived from it. `lines of Python` was never in that tuple. So the one figure on either README most likely to be moved by a paragraph rewrap, the line count, was outside the guard from the day the guard was written, and the guard's own tests passed because they were written from the same tuple.\n\nSecond half: the guard treated whitespace as always safe and returned early on it. But the patterns spell the gap as one literal space, so `38,431` at the end of a line with `lines of Python` at the start of the next is exactly as invisible to them as `<br>` is. Whitespace was the one separator the guard declared harmless and it is not.\n\nWHAT IT COST. Correcting the published line count, which had been stated as if it were the size of the product when it is the size of the tree, rewrapped that paragraph in README.md. `make figures` then updated README.es.md, whose wrap fell elsewhere, and left README.md saying 38,413 over a tree with 38,431 in it. Two languages, one page correct.\n\nWHY IT WAS SURVIVABLE AND STILL WORTH A NUMBER. `readme_figures_are_current` refuses a figure that declares a page and matches nothing in it, which is what made this visible in one run rather than in a release. That check saves the case where the figure appears once. It does not save the case where a page states a figure twice and one of the two is rewrapped: the other keeps the match count non-zero and the gate stays green over a stale sentence.\n\nTHE FIX IS THE RULE 10 ONE. `anchor_nouns` reads the nouns off the patterns, so the set the guard protects and the set the sync script writes are one set by construction; what is left by hand is `RETIRED_NOUNS`, which is additive only and holds the nouns of figures that went to tag v2.3.0. And whitespace that is not exactly one space is reported like markup, with the line break named. Rule 12's obligation was discharged in the same pass: the other check reading that same hand-typed tuple, `number_word_problems`, was reading it for the same property and now reads the derived set too.",
+      "found_by": "running the harness",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "a defect in the gate, not in the tool: `scripts/` is pruned from the sdist and never enters the wheel. What it let through is a published figure, which is the thing work rule 6 exists to make impossible.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_readme_parity.py::test_every_figure_anchored_on_a_noun_is_one_the_markup_guard_protects",
+        "tests/test_readme_parity.py::test_the_markup_guard_bites_on_every_figure_it_claims_to_protect"
+      ],
+      "pinned_note": "The twin required by work rule 9 is `test_the_markup_guard_bites_on_every_figure_it_claims_to_protect`: it builds the rewrapped shape out of each figure's OWN anchor and demands a report for every one, so it fails on the tree as it stood for `lines of Python` and for `lines of product code` rather than on a reconstruction. Written that way and not as a literal list of broken strings because a literal list would be a third hand-typed copy of the nouns, and the hand-typed copy is the defect. `test_the_markup_guard_leaves_a_usable_figure_alone` keeps it from firing on the correct shape, which is what makes a guard survivable."
+    },
+    {
+      "id": "DEF-126",
+      "title": "both READMEs published the size of the tree as if it were the size of the product, so a reader was told 38,413 lines for 15,803 lines of tool",
+      "effect": "THE DEFECT. `2,487 tests over 38,413 lines of Python` sat in the section of both READMEs that argues how the repository is held up. Every number in it was correct and measured. What it counted was `src` plus `tests` plus `scripts`, and the sentence read as the size of the thing you install. The product is 15,803 lines; the suite is 18,570 and the scripts are 4,040.\n\nWHY IT IS A DEFECT AND NOT A WORDING PREFERENCE. This repository's own argument is that a figure without a command that measures it is not allowed on a page, and the point of that rule is that a reader can check the claim. A figure whose COMMAND is right and whose NOUN is wrong defeats it exactly: the gate compares 38,413 against 38,413 and passes, and the reader takes away a number about a thing nobody measured. An overstatement that passes its own gate is worse than one that does not, because the gate is what the page tells you to trust.\n\nTHE FIX. Both figures are stated, each anchored on its own noun: `lines of product code` from `code.total` minus the suite and the scripts, and `lines of Python` for the tree. The subtraction is exact rather than an estimate because `measure_areas` partitions those three directories and raises on a file no area claimed. Rejected: narrowing `lines` to `src/` alone, which moves the ambiguity to whoever next wonders why the total does not match `wc -l`.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "a defect in a published document rather than in the package: `README.md` ships in the sdist and the wheel's metadata, so it travels, but nothing it says changes what the tool does.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_readme_parity.py::test_the_line_count_matches_the_measurement"
+      ],
+      "pinned_note": "Pinned by the figure table rather than by a string: `product_lines` has a row in `scripts/figures_contract.py` with a pattern per language, so the sync script writes it and `readme_figures_are_current` refuses a page that declares it and does not state it. That is the same mechanism that holds every other figure, which is the point - a figure kept current by a test of its own would be the second definition work rule 10 forbids."
+    },
+    {
+      "id": "DEF-127",
+      "title": "ten per-file-ignores and two MANIFEST.in prune lines named modules and directories deleted a release earlier, and both tools answer a miss with silence",
+      "effect": "THE DEFECT. `pyproject.toml` carried per-file-ignores for `src/actaira/coverage.py`, `policy/model.py`, `policy/engine.py`, `conformance/model.py`, `conformance/vocabulary.py`, `conformance/paths.py`, `subject.py`, `state/evidence.py`, `state/graph.py` and `state/watch.py`. None of those files has existed since phase A. `MANIFEST.in` pruned `evals` and `fuzz`, which went to tag v2.3.0.\n\nWHY NOTHING SAID SO. Ruff applies a per-file-ignores key it cannot match to nothing and reports nothing: there is no such thing as an unused-ignore warning for a path. setuptools does warn about a `prune` of a directory that is not there, but only `make package` would print it, and `make package` is kept out of `make all` on purpose. So twelve lines of configuration described a tree that had not existed for a release, in the repository whose product is telling other people that their configuration describes a tree that is not there.\n\nWHAT IT COULD HAVE COST. Not much on its own, and that is the honest answer. What it cost is the argument: every one of those lines is exactly the artifact `actaira check` would cite if it found it in somebody else's repository.\n\nTHE FIX. The twelve lines are gone, and `release_check.py` gained `every path the build configuration names is a path that exists`, which reads both files through one definition. Rejected: a test per file, which is the two-definitions shape work rule 10 exists to refuse.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "`pyproject.toml` ships and `MANIFEST.in` decides what ships, but neither line was reachable from anything the installed package does.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_release_check.py::test_a_per_file_ignore_for_a_module_that_is_gone_fails",
+        "tests/test_release_check.py::test_a_manifest_line_pruning_a_directory_that_is_gone_fails"
+      ],
+      "pinned_note": "Two twins, one per file, because the check reads two files with one definition and a twin that only planted the pyproject half would leave the MANIFEST half asserted by nobody. Each plants the defect in the shape it happened - the exact `src/actaira/coverage.py` key and the exact `prune evals` line - and demands the gate exit 1 naming the path."
     }
   ]
 }

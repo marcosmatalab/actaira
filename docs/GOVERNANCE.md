@@ -1,14 +1,20 @@
 # Governance
 
-Where the line runs between this repository and the hosted product, and what is
-allowed to cross it.
+Where the line runs between this repository and a hosted product, if one is ever
+built, and what would be allowed to cross it.
 
 This page used to model obligations from Regulation (EU) 2024/1689 and describe
 an `actaira governance` command. Both went with the model scanner: the
 obligation catalogue had no reader in Python, the command did not parse, and a
 governance page describing a surface that is not there is the same defect as a
-compatibility page doing it. That material is at tag `v2.3.0` and on
-`archive/model-scanner`.
+compatibility page doing it. That material is at tag `v2.3.0`.
+
+The model scanner itself is at that same tag, whole: `git ls-tree --name-only
+v2.3.0` lists `evals/`, `fuzz/`, `policies/` and every module that went with
+them. There is no archive branch to look for. A branch moves and a tag does
+not, which is the argument this tool makes to everybody else in ACT-S003, and a
+second pointer at one commit is a second thing that can come to disagree with
+it.
 
 ---
 
@@ -44,14 +50,23 @@ is time-limited, seat-limited or telemetry-gated.
 
 ---
 
-## The hosted platform is a separate product
+## If a hosted platform is ever built, it is a separate product
 
-**A separate repository. A separate licence. It contains none of this.**
+**There is no hosted platform today, and nothing in this page should be read as
+saying there is one.** This section states the boundary in advance, because the
+point of writing it now is that it is cheap now and expensive later.
 
-It consumes the records this repository produces. It does not extend them, fork
-them, or hold a privileged copy of them: a record verified by the hosted
-platform and a record verified by `actaira verify` on a laptop with no network
-are checked by the same rules, and neither answer outranks the other.
+The commitment, should one be built: **a separate repository, a separate
+licence, and none of this in it.** It would consume the records this repository
+produces. It would not extend them, fork them, or hold a privileged copy of
+them: a record verified by a hosted platform and a record verified by `actaira
+verify` on a laptop with no network would be checked by the same rules, and
+neither answer would outrank the other.
+
+This page is the only place that boundary is written, and it is an intention
+rather than an artifact. Nothing in this tree can check it, and a document that
+asserted a repository a reader cannot open would be doing what the third
+negative forbids: stating what was not observed.
 
 This matters more than it looks. The whole product argument is that a third
 party can check a record **without trusting the operator and without trusting

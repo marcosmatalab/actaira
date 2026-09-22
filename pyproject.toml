@@ -113,30 +113,6 @@ ignore = ["E501", "S101"]
 # UP042: str+Enum is kept over StrEnum so the module stays readable on 3.11
 # without a version-gated import; the .value semantics are identical.
 "src/actaira/model.py" = ["S105", "UP042"]
-# UP042, the same decision again. `Surface` and `CoverageState` are compared
-# with `is`, serialised with `.value` and read back from JSON by third-party
-# verifiers, exactly like `Verdict`. The coverage matrix is signed into an
-# attestation, so how these enums serialise is part of a public contract, and
-# it should be spelt the way every other enum in this repository is spelt.
-"src/actaira/coverage.py" = ["UP042"]
-"src/actaira/policy/model.py" = ["UP042"]
-# UP042 once more. `Effect` is serialised into the A-BOM with `.value` and
-# read back from it, so its spelling is part of a document contract, and it
-# should look like every other enum in this repository.
-"src/actaira/conformance/model.py" = ["UP042"]
-"src/actaira/conformance/vocabulary.py" = ["UP042", "S105"]
-"src/actaira/subject.py" = ["UP042"]
-"src/actaira/state/evidence.py" = ["UP042", "S105"]
-"src/actaira/state/graph.py" = ["UP042"]
-"src/actaira/state/watch.py" = ["UP042"]
-"src/actaira/conformance/paths.py" = ["UP042", "S105"]
-# N818: `Unevaluable` keeps its name, on the same argument the predicates keep theirs. The rule exists so an unfamiliar exception is recognisable as one
-# at the call site, and this one is: it is raised by the predicates in
-# engine.py, caught by name at exactly one place, and named in the design note
-# that explains why a predicate with no information must not return False.
-# `UnevaluableError` would read as a failure of the engine rather than what it
-# is, a statement about the run.
-"src/actaira/policy/engine.py" = ["N818"]
 # N818 again: `NetworkRefused` is raised by the suite's network guard and
 # caught by name in exactly one place, `tests/test_netguard.py`. The rule
 # exists so an unfamiliar exception reads as one at the call site, and this

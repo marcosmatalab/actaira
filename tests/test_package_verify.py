@@ -58,7 +58,7 @@ def attested(tmp_path: Path, artifacts: list[Path], keypair):
         chain.append(entries, report.sha256, report.to_dict())
         # Any JSON document. The packaging layer stores a BOM by digest and
         # never reads inside it; the CycloneDX writer that used to fill this in
-        # is on archive/model-scanner. What is under test is the manifest's
+        # is at tag v2.3.0. What is under test is the manifest's
         # coverage of the member, not the member's schema.
         boms[report.sha256] = {"subject": report.sha256, "verdict": report.to_dict()["verdict"]}
 

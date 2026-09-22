@@ -12,7 +12,7 @@
 # WHAT WENT IN PHASE A.1, AND WHY. Five of the eight jobs here ran commands and
 # directories that do not exist:
 #
-#   eval        `evals/` went to archive/model-scanner at 3.0.0.
+#   eval        `evals/` went to tag v2.3.0 at 3.0.0.
 #   fuzz        `fuzz/` went with it, and `make fuzz` is not a Makefile target.
 #   benchmark   installed picklescan, modelscan and fickling to compare against
 #               a scanner this tree does not contain.

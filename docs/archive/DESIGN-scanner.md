@@ -3,7 +3,7 @@
 > until 3.0.0: how it read pickle, ONNX, HDF5 and GGUF without executing them,
 > the web interface, the read budgets, the evaluation corpus, and the bugs the
 > project found in itself while building all of that. **None of that code is in
-> this tree.** It is on the `archive/model-scanner` branch and at tag `v2.3.0`.
+> this tree.** It is at tag `v2.3.0`.
 >
 > They are kept because a document that argues a decision is worth more than a
 > summary of it, and because the next person to build an artifact reader should
