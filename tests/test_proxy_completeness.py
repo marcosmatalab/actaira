@@ -478,7 +478,12 @@ def test_the_windows_limit_is_published_and_says_what_the_skip_says():
         )
 
     wanted = flat(WINDOWS_TRANSPORT_CLOSED_LIMIT)
-    for page in ("README.md", "docs/COMPATIBILITY.md"):
+    # `docs/LIMITS.md` and not `README.md`. The sixteen limits moved off the
+    # landing page when it was cut down, and a claim that leaves the checked set
+    # is not moved, it is unchecked. The property is unchanged: the sentence the
+    # skip prints has to be findable, verbatim, on a page this repository
+    # publishes.
+    for page in ("docs/LIMITS.md", "docs/COMPATIBILITY.md"):
         assert wanted in flat((root / page).read_text(encoding="utf-8")), (
             f"{page} does not carry published limit 15 verbatim. The skip on Windows "
             "prints this sentence as its reason; a reader who meets the behaviour has "
@@ -490,7 +495,11 @@ def test_the_windows_limit_is_published_and_says_what_the_skip_says():
     # both sides is the `design_notes` error of DEF-122 - so both the count and
     # the presence of the two new numbers are asserted.
     counts = {}
-    for page in ("README.md", "README.es.md"):
+    # Both languages, because `actaira --lang es` prints the same limits. That
+    # is why the Spanish page exists at all and why it is not optional: a
+    # parity check that passes because a thing is missing from both sides is
+    # the `design_notes` error of DEF-122.
+    for page in ("docs/LIMITS.md", "docs/LIMITS.es.md"):
         text = (root / page).read_text(encoding="utf-8")
         counts[page] = len(re.findall(r"^\d+\. ", text, re.M))
         for number in ("15.", "16."):

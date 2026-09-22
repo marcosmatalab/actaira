@@ -1471,6 +1471,21 @@
         "tests/test_package_contents.py::test_the_requirement_list_would_notice_a_resource_that_stopped_shipping"
       ],
       "pinned_note": "Pinned by a test rather than by the build, because the build needs `build` from an extra that `make all` does not install and a gate must not depend on one. The first asserts that `required()` returns exactly the non-Python files under `src/actaira/`, which is the property that failed. The second is work rule 9's twin: it hides a data file from the walk and demands that `required()` stops naming it, so a `required()` that had quietly started returning a frozen list again fails."
+    },
+    {
+      "id": "DEF-131",
+      "title": "the licence check compared by substring, so a link to `docs/LIMITS.md` made it announce that README.md names MIT",
+      "effect": "THE DEFECT. `licence_is_consistent` asks which licences each page names, and it asked with `name in text_of`. `LIMITS` contains M, I and T in that order. The moment the landing page grew a link to the page that carries the published limits, the gate refused the tree with `README.md names ['Apache-2.0', 'MIT'] and pyproject.toml says Apache-2.0`.\n\nWHY IT MATTERS MORE THAN IT LOOKS. This is a false positive, which is the failure direction that gets a gate DELETED rather than fixed. A check that goes red for a reason a reader cannot see in their own edit is one somebody routes around, and this one guards a real thing: the repository was MIT, became Apache-2.0, and the relicensing reached four files and not the READMEs.\n\nAND IT WAS ALSO WRONG IN THE OTHER DIRECTION. A page that said `MITIGATION` or `SUMMIT` would have been reported as naming MIT for a release, which is a gate green on a page nobody checked and red on a page that was fine, both from the same line.\n\nTHE FIX. The match is on a boundary: not preceded by a word character, a dot or a hyphen, and not followed by a word character or a hyphen. The hyphen matters on both sides, because `Apache-2.0` has one in the middle and a shields.io badge spells it `Apache--2.0`. Rejected: excluding the known words, which is a list that grows by one every time somebody writes a new sentence.",
+      "found_by": "running the gate",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "`scripts/` is pruned from the sdist. What it would have cost is the gate itself: a check that fails on correct prose is a check that gets removed.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_release_check.py::test_a_page_that_names_the_other_licence_fails",
+        "tests/test_release_check.py::test_a_word_that_merely_contains_a_licence_name_is_not_one"
+      ],
+      "pinned_note": "Two twins because the check has to fail in one direction and stay quiet in the other, and only one of those was ever asserted. The first plants `Also available under MIT.` on the README and demands the gate name it. The second plants a link to `docs/LIMITS.md` and the word `SUMMIT` and demands silence, which is the case the old line got wrong."
     }
   ]
 }

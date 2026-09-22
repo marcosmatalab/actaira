@@ -36,6 +36,20 @@ ENGLISH = (Path(REPO_ROOT) / "README.md").read_text(encoding="utf-8")
 SPANISH = (Path(REPO_ROOT) / "README.es.md").read_text(encoding="utf-8")
 BOTH = {"README.md": ENGLISH, "README.es.md": SPANISH}
 
+# Pages whose ```console blocks are run and compared. It was the two READMEs,
+# because they were the only pages that showed output. `seal`, `watch`, `verify`
+# and `keygen` moved to `docs/COMMANDS.md` when the landing page was cut down,
+# and a block that leaves the checked set is not moved, it is UNCHECKED - which
+# is the mistake this whole file exists about. So the page it moved to is
+# checked, exactly as `figures_contract` guards the page the defect counts moved
+# to. Heading and image parity stay on `BOTH`: there is one Spanish README and
+# no Spanish commands page, so there is nothing for that page to be compared
+# against.
+CONSOLE_PAGES = {
+    **BOTH,
+    "docs/COMMANDS.md": (Path(REPO_ROOT) / "docs" / "COMMANDS.md").read_text(encoding="utf-8"),
+}
+
 
 def headings(text: str) -> list[str]:
     return [line.split(" ", 1)[0] for line in text.splitlines() if line.startswith("#")]
@@ -320,7 +334,7 @@ def run_command(command: str, cwd: Path, expected_exit: int = 0) -> str:
 def test_the_readmes_carry_console_blocks_to_check():
     """The guard. If the regex stopped matching, every case below would vanish
     and this file would report success having compared nothing."""
-    for name, page in BOTH.items():
+    for name, page in CONSOLE_PAGES.items():
         blocks = console_blocks(page)
         assert blocks, f"{name} has no console block; the extraction is broken"
         for command, expected, _code in blocks:
@@ -329,22 +343,25 @@ def test_the_readmes_carry_console_blocks_to_check():
     # The guard on the guard. A block whose command exits non-zero has to be READ
     # as exiting non-zero, or the harness has quietly gone back to asserting
     # zero everywhere and the demo's exit code is unchecked.
-    codes = {code for page in BOTH.values() for _c, _o, code in console_blocks(page)}
+    codes = {code for page in CONSOLE_PAGES.values() for _c, _o, code in console_blocks(page)}
     assert codes - {0}, (
         "no console block declares a non-zero exit, so the `# exits N` reading is "
         "never exercised and could have stopped working"
     )
 
 
-@pytest.mark.parametrize("name", sorted(BOTH))
+@pytest.mark.parametrize("name", sorted(CONSOLE_PAGES))
 def test_every_console_block_is_what_the_tool_actually_prints(name, tmp_path):
     """The blocks labelled real output have to be output anybody can get.
 
     The Quickstart is the first thing a stranger runs and the single worst place
     in the repository for a line of invented output to sit.
     """
-    for index, (command, expected, code) in enumerate(console_blocks(BOTH[name])):
-        workspace = tmp_path / f"{name.replace('.', '-')}-{index}"
+    for index, (command, expected, code) in enumerate(console_blocks(CONSOLE_PAGES[name])):
+        # Every separator goes through `-`. A page under `docs/` would
+        # otherwise ask for a directory whose parent is not there.
+        slug = name.replace("/", "-").replace(".", "-")
+        workspace = tmp_path / f"{slug}-{index}"
         workspace.mkdir()
         # A script block runs where its own first line says to run it.
         where = Path(REPO_ROOT) if command.startswith("python3 ") else workspace

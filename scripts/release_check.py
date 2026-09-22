@@ -165,7 +165,15 @@ def licence_is_consistent() -> str:
     # until phase A.1. It said MIT for a whole commit after the relicensing.
     for page in ("README.md", "README.es.md", "docs/GOVERNANCE.md", "Dockerfile"):
         text_of = (ROOT / page).read_text(encoding="utf-8")
-        found = {name for name in heads if name in text_of}
+        # On a word boundary, not as a substring. `docs/LIMITS.md` contains the
+        # letters M, I and T in that order, so a substring test reported that
+        # the README names MIT the moment a link to the limits page appeared on
+        # it. A check that reads a licence out of an unrelated word is not
+        # stricter, it is wrong in the direction that gets a gate switched off.
+        found = {
+            name for name in heads
+            if re.search(rf"(?<![\w.-]){re.escape(name)}(?![\w-])", text_of)
+        }
         if found != {licence}:
             raise DriftError(
                 f"{page} names {sorted(found) or 'no licence'} and pyproject.toml says {licence}"
@@ -839,7 +847,8 @@ def documented_flags_exist() -> str:
         for name, sub in subparsers.choices.items()
     }
 
-    pages = ("README.md", "README.es.md", "docs/COMPATIBILITY.md", ".pre-commit-hooks.yaml")
+    pages = ("README.md", "README.es.md", "docs/COMMANDS.md", "docs/COMPATIBILITY.md",
+             ".pre-commit-hooks.yaml")
     checked = 0
     for page in pages:
         path = ROOT / page
@@ -1010,6 +1019,38 @@ def cli_output_is_deterministic() -> str:
 
     transcripts = json.loads(outputs[0])
     return f"{len(transcripts)} command(s), byte-identical under two hash seeds"
+
+
+@check("the demo picture is the output the demo command produces")
+def the_demo_image_is_current() -> str:
+    """A picture is a figure that a reader cannot run a command against.
+
+    Work rule 6 says no published number without a command that measures it,
+    and the argument does not stop at numbers: a screenshot of a release that
+    has gone is a claim about the tool, made on the page a reader meets first,
+    and nothing would notice it going stale. So the demo picture is TEXT,
+    drawn from the command by `scripts/terminal_svg.py`, and this re-draws it
+    and refuses a difference.
+
+    `docs/img/02-report.png` is not checked this way and cannot be: it is a
+    browser rendering the HTML report, and the pixels belong to a font and a
+    browser version rather than to this tree. What holds it is that it is
+    produced by `scripts/report_image.py` from one run of the same demo, and
+    that `every image in docs/img is one a document displays` refuses a
+    `docs/img/` that has quietly grown a picture nothing shows.
+    """
+    import subprocess as sp
+
+    script = ROOT / "scripts" / "terminal_svg.py"
+    if not script.is_file():
+        raise DriftError("scripts/terminal_svg.py is gone, so the picture is unchecked")
+    run = sp.run(  # noqa: S603 - a fixed argv, no shell
+        [sys.executable, str(script), "--check"],
+        cwd=ROOT, capture_output=True, text=True, timeout=900,
+    )
+    if run.returncode != 0:
+        raise DriftError((run.stdout + run.stderr).strip() or "the demo picture has drifted")
+    return run.stdout.strip() or "docs/img/01-demo.svg is what the command produces"
 
 
 @check("every image in docs/img is one a document displays")
