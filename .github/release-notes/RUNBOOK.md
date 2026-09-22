@@ -81,14 +81,30 @@ gh release create v3.0.0 --title "Actaira 3.0.0" \
 
 ## 5. The history rewrite
 
-The procedure, the backup branch and the checks are in the commit that did the
-local half. What is left is the push, and it is the only irreversible step in
-this file that touches somebody else's clone:
+Forty-four commit messages are written and waiting in
+[`../history-rewrite/messages.json`](../history-rewrite/messages.json). They
+take the phase scaffolding out of the history and hold every body under fifteen
+lines; what the long bodies argued is in `docs/DESIGN.md`, `docs/defects.json`
+and `CHANGELOG.md`, which is where a reader can find it without running
+`git log`.
+
+`.github/history-rewrite/replay.py` rebuilds the history with them. It replays
+each commit's recorded TREE OBJECT rather than applying patches, so the final
+tree is identical by construction, and it carries the author and committer
+dates over untouched. Without `--apply` it moves nothing.
 
 ```bash
-git branch backup-pre-rewrite <the sha main had before>
-git push origin backup-pre-rewrite              # first, and not optional
-git diff backup-pre-rewrite main --stat         # has to be empty: only messages moved
+python3 .github/history-rewrite/replay.py            # builds the objects, moves nothing
+git diff main <the new head printed above> --stat    # has to be empty
+python3 .github/history-rewrite/replay.py --apply    # moves main, keeps a backup ref
+```
+
+Then check what it was for, and only then push:
+
+```bash
+git log --format='%B' | grep -ci 'work rule\|budget\|adversarial pass'   # 0
+git log --format='%H' | while read h; do git log -1 --format='%B' $h | wc -l; done | sort -rn | head -1   # <= 15
+git push origin backup-pre-rewrite-<sha>        # first, and not optional
 git push --force-with-lease origin main
 ```
 
@@ -100,7 +116,8 @@ Then update the two SHAs the documentation pins, which the rewrite moved:
 `git log --format=%H`, commit, and only then delete the backup:
 
 ```bash
-git push origin --delete backup-pre-rewrite
+git push origin --delete backup-pre-rewrite-<sha>
+git branch -D backup-pre-rewrite-<sha>
 ```
 
 ## 6. About, topics and website
