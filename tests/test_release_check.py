@@ -1622,15 +1622,40 @@ def test_notes_for_a_version_already_released_are_left_alone():
 # The publication happens once, the rehearsal as often as it takes
 # --------------------------------------------------------------------------
 
-REHEARSAL = """    name: the rehearsal
+# A workflow with the shape of the real one and nothing else in it: two
+# triggers, a build both can reach, and two uploads that one each can reach.
+WORKFLOW = """on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: make package
+
+  attach:
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh release upload
+
+  testpypi:
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
     steps:
       - uses: pypa/gh-action-pypi-publish@abc
         with:
           repository-url: https://test.pypi.org/legacy/
           skip-existing: true
-"""
 
-PUBLICATION = """    name: publish
+  pypi:
+    needs: [build, attach]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
     steps:
       - uses: pypa/gh-action-pypi-publish@abc
         with:
@@ -1639,45 +1664,141 @@ PUBLICATION = """    name: publish
 
 
 def test_the_release_workflow_has_one_of_each_and_this_check_reads_them():
-    """Non-vacuity over the real file: two publishing jobs, found by name."""
+    """Non-vacuity over the real file: four jobs, two of them uploads, and
+    one event reaching each."""
     module = _release_check()
     workflow = (
         Path(REPO_ROOT) / ".github" / "workflows" / "release.yml"
     ).read_text(encoding="utf-8")
 
-    jobs = module.publishing_jobs(workflow)
+    assert sorted(module.workflow_jobs(workflow)) == ["attach", "build", "pypi", "testpypi"]
+    assert sorted(module.publishing_jobs(workflow)) == ["pypi", "testpypi"]
+    assert module.triggering_events(workflow) == {
+        "release": ["published"], "workflow_dispatch": [],
+    }
 
-    assert sorted(jobs) == ["pypi", "testpypi"], sorted(jobs)
-    assert module.publish_problems(jobs) == []
+    reaching = module.events_reaching(
+        module.workflow_jobs(workflow), set(module.triggering_events(workflow))
+    )
+
+    assert reaching["testpypi"] == {"workflow_dispatch"}
+    assert reaching["pypi"] == {"release"}
+    assert module.publish_problems(workflow) == []
+
+
+def test_the_shape_this_repository_publishes_with_is_accepted():
+    """The other direction over the fixture, so every twin below is planted
+    against something that passes."""
+    module = _release_check()
+
+    assert module.publish_problems(WORKFLOW) == []
 
 
 def test_a_rehearsal_that_cannot_be_repeated_is_refused():
-    """The case the runbook now has three paragraphs about: the upload
-    succeeds, the install fails, and the second run dies at the step the first
-    one already passed."""
+    """The upload succeeds, the install fails, and the second run dies at the
+    step the first one passed."""
     module = _release_check()
 
-    problems = module.publish_problems(
-        {"testpypi": REHEARSAL.replace("          skip-existing: true\n", "")}
-    )
+    problems = module.publish_problems(WORKFLOW.replace("          skip-existing: true\n", ""))
 
     assert any("cannot upload" in problem for problem in problems), problems
 
 
 def test_a_publication_that_can_be_repeated_is_refused():
-    """The other direction, and the worse one: `skip-existing` on the job that
-    uploads to PyPI turns publishing a version twice into a green build."""
+    """`skip-existing` on the PyPI job turns publishing a version twice into a
+    green build."""
     module = _release_check()
 
-    problems = module.publish_problems(
-        {"pypi": PUBLICATION + "          skip-existing: true\n"}
+    planted = WORKFLOW.replace(
+        "          packages-dir: dist\n", "          packages-dir: dist\n          skip-existing: true\n"
     )
 
-    assert any("looks like a success" in problem or "green build" in problem
+    problems = module.publish_problems(planted)
+
+    assert any("already there is a mistake" in problem for problem in problems), problems
+
+
+def test_a_dispatch_that_could_reach_pypi_is_refused():
+    """The one that cannot be undone: a condition deleted, and step 9 of the
+    runbook - a dispatch meant for TestPyPI - publishes 3.0.0 for real."""
+    module = _release_check()
+
+    planted = WORKFLOW.replace(
+        "    needs: [build, attach]\n    if: github.event_name == 'release'\n",
+        "    needs: build\n",
+    )
+
+    problems = module.publish_problems(planted)
+
+    assert any("spent for good" in problem for problem in problems), problems
+    assert any("workflow_dispatch" in problem for problem in problems), problems
+
+
+def test_a_pypi_job_reachable_through_a_loosened_dependency_is_refused():
+    """The subtler half of the same thing: the condition stays and the
+    `needs:` chain that also held it is loosened. `attach` is what makes a
+    dispatch unable to reach PyPI even if somebody edits the `if:`."""
+    module = _release_check()
+
+    planted = WORKFLOW.replace(
+        "    needs: [build, attach]\n    if: github.event_name == 'release'\n",
+        "    needs: build\n    if: github.event_name == 'workflow_dispatch'\n",
+    )
+
+    problems = module.publish_problems(planted)
+
+    assert any("spent for good" in problem for problem in problems), problems
+
+
+def test_a_rehearsal_reachable_from_a_release_is_refused():
+    """The other job, the other direction. A rehearsal that runs on a release
+    uploads to TestPyPI every time one is cut, which is noise rather than
+    damage - and it means the two jobs are no longer what their names say."""
+    module = _release_check()
+
+    planted = WORKFLOW.replace(
+        "    if: github.event_name == 'workflow_dispatch'\n", ""
+    )
+
+    problems = module.publish_problems(planted)
+
+    assert any("is the rehearsal and can be reached from" in problem
                for problem in problems), problems
 
 
-def test_the_pair_as_it_stands_is_accepted():
+def test_a_release_trigger_without_an_activity_type_is_refused():
+    """Without `types: [published]` GitHub also sends `edited`, so fixing a
+    typo in the notes of a release that is already out would start the
+    publication again."""
     module = _release_check()
 
-    assert module.publish_problems({"testpypi": REHEARSAL, "pypi": PUBLICATION}) == []
+    planted = WORKFLOW.replace("  release:\n    types: [published]\n", "  release:\n")
+
+    problems = module.publish_problems(planted)
+
+    assert any("Editing the notes" in problem for problem in problems), problems
+
+
+def test_a_condition_this_check_cannot_read_is_refused_rather_than_guessed():
+    """Work rule 11, where guessing is expensive. A parser that shrugs answers
+    "every event" or "no event", and both are a confident wrong answer about
+    the only step here that cannot be undone."""
+    module = _release_check()
+
+    planted = WORKFLOW.replace(
+        "    if: github.event_name == 'release'\n",
+        "    if: always() && github.event_name == 'release'\n",
+    )
+
+    with pytest.raises(Exception, match="cannot read"):
+        module.publish_problems(planted)
+
+
+def test_the_job_reader_stays_inside_the_jobs_block():
+    """It did not, at first: `release:` and `workflow_dispatch:` under `on:`
+    are two more names at the same indentation, and it read them as jobs. Every
+    assertion downstream stayed true, because neither uploads anything and
+    nothing needs them - a reader right by luck."""
+    module = _release_check()
+
+    assert sorted(module.workflow_jobs(WORKFLOW)) == ["attach", "build", "pypi", "testpypi"]

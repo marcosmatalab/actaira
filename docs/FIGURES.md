@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-22T18:37:47+00:00 for actaira 3.0.0, at commit 9620966.
+Generated 2026-09-22T19:23:49+00:00 for actaira 3.0.0, at commit c12ea80.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, pytest-cov>=5, ruff>=0.6, jsonschema>=4.18
-- 58 commits, most recent 2026-09-22
+- 60 commits, most recent 2026-09-22
 
 ## Tests
 
-**2644** tests collected by pytest across 45 files.
+**2650** tests collected by pytest across 45 files.
 
 | file | tests |
 |---|---:|
@@ -52,7 +52,7 @@ Generated 2026-09-22T18:37:47+00:00 for actaira 3.0.0, at commit 9620966.
 | `tests/test_proxy_transports.py` | 28 |
 | `tests/test_reachability.py` | 50 |
 | `tests/test_readme_parity.py` | 30 |
-| `tests/test_release_check.py` | 94 |
+| `tests/test_release_check.py` | 100 |
 | `tests/test_scan_claude_code.py` | 33 |
 | `tests/test_schemas.py` | 24 |
 | `tests/test_seal_and_report.py` | 21 |
@@ -69,7 +69,7 @@ Generated 2026-09-22T18:37:47+00:00 for actaira 3.0.0, at commit 9620966.
 | `tests/test_value_inventory.py` | 7 |
 | `tests/test_verify_strictness.py` | 23 |
 | `tests/test_workflow_shell.py` | 5 |
-| **total** | **2644** |
+| **total** | **2650** |
 
 Statement coverage of `src/actaira`: **90**, measured by `make test-cov`, which fails under 88.
 
@@ -120,9 +120,9 @@ and the modules are the source of truth.
 | schemas | 1 | 126 | 27 | 36 | 43 | 20 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
 | rest | 20 | 6619 | 4270 | 1003 | 477 | 869 |
-| tests | 52 | 20293 | 11317 | 3340 | 1327 | 4309 |
-| scripts | 16 | 6039 | 3713 | 1000 | 551 | 775 |
-| **total** | 116 | 42301 | 24916 | 7085 | 3169 | 7131 |
+| tests | 52 | 20414 | 11384 | 3360 | 1329 | 4341 |
+| scripts | 16 | 6202 | 3815 | 1025 | 567 | 795 |
+| **total** | 116 | 42585 | 25085 | 7130 | 3187 | 7183 |
 
 Documentation, in lines of Markdown:
 

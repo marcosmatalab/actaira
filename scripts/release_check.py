@@ -1835,19 +1835,49 @@ PUBLISH_ACTION = "pypa/gh-action-pypi-publish"
 TEST_INDEX = "test.pypi.org"
 REPEATABLE = "skip-existing"
 
+# Which event is allowed to reach which upload, and this is the half that is
+# irreversible. `skip-existing` decides what a second run does; this decides
+# whether a second run can happen at all. The rehearsal is started by hand, so
+# only `workflow_dispatch` may reach it; the publication follows a release a
+# person wrote, so only `release` may reach that. If the rehearsal could reach
+# PyPI - one `if:` deleted, one `needs:` loosened - step 9 of the runbook would
+# publish 3.0.0 for real, and a version on PyPI is spent for good.
+REACHABLE_FROM = {"rehearsal": "workflow_dispatch", "publication": "release"}
 
-def publishing_jobs(text_of: str) -> dict[str, str]:
-    """job name -> its block, for the jobs that upload to an index.
+# The release activity type that may start it. Without `types:` GitHub sends
+# `created`, `edited`, `deleted`, `prereleased` and more, so editing a typo in
+# the notes after publishing would start the whole thing again.
+RELEASE_ACTIVITY = "published"
+
+
+def workflow_jobs(text_of: str) -> dict[str, str]:
+    """job name -> its block.
 
     Read as text and not as YAML on purpose: `make all` runs with the `dev`
     extra and nothing else, and a gate that needs a parser the package does
     not depend on is a gate that stops running the day somebody installs
     exactly what the project asks for.
     """
+    if not re.search(r"^jobs:\s*$", text_of, re.M):
+        raise DriftError(f"{RELEASE_WORKFLOW} has no `jobs:` block")
     jobs: dict[str, str] = {}
     current: str | None = None
     lines: list[str] = []
+    # INSIDE `jobs:` and nowhere else. Without the bound, `release:` and
+    # `workflow_dispatch:` in the `on:` block are two more names at the same
+    # indentation, and this answered with two jobs that do not exist. Nothing
+    # needed them and neither uploads anything, so every assertion downstream
+    # stayed true - a reader finding something adjacent to what it was looking
+    # for and being right by luck.
+    inside = False
     for line in text_of.splitlines():
+        if re.match(r"^jobs:\s*$", line):
+            inside = True
+            continue
+        if inside and line and not line.startswith((" ", "#")):
+            break
+        if not inside:
+            continue
         started = re.match(r"^  ([a-z][a-z0-9_-]*):\s*$", line)
         if started:
             if current is not None:
@@ -1858,27 +1888,147 @@ def publishing_jobs(text_of: str) -> dict[str, str]:
             lines.append(line)
     if current is not None:
         jobs[current] = "\n".join(lines)
-    return {name: body for name, body in jobs.items() if PUBLISH_ACTION in body}
+    return jobs
 
 
-def publish_problems(jobs: dict[str, str]) -> list[str]:
-    """Pure. The rehearsal may repeat itself; the publication may not."""
+def publishing_jobs(text_of: str) -> dict[str, str]:
+    """The jobs that upload to an index, by name."""
+    return {
+        name: body for name, body in workflow_jobs(text_of).items()
+        if PUBLISH_ACTION in body
+    }
+
+
+def triggering_events(text_of: str) -> dict[str, list[str]]:
+    """event -> its activity types, from the `on:` block."""
+    events: dict[str, list[str]] = {}
+    inside = False
+    current: str | None = None
+    for line in text_of.splitlines():
+        if re.match(r"^on:\s*$", line):
+            inside = True
+            continue
+        if inside and line and not line.startswith(" ") and not line.startswith("#"):
+            break
+        if not inside:
+            continue
+        named = re.match(r"^  ([a-z_]+):\s*$", line)
+        if named:
+            current = named.group(1)
+            events[current] = []
+            continue
+        activity = re.match(r"^    types:\s*\[([^\]]*)\]", line)
+        if activity and current:
+            events[current] = [word.strip() for word in activity.group(1).split(",")]
+    return events
+
+
+def gated_to(body: str) -> set[str] | None:
+    """The events a job's own `if:` admits, or None for "no condition".
+
+    One shape of condition is understood, `github.event_name == 'x'`, and
+    anything else raises rather than being read as "no condition". A parser
+    that shrugs at what it cannot read answers "reachable from everything" or
+    "reachable from nothing", and both are a wrong answer stated confidently
+    about the one thing here that cannot be undone.
+    """
+    found = re.search(r"^    if:\s*(.+?)\s*$", body, re.M)
+    if found is None:
+        return None
+    condition = found.group(1)
+    shape = re.fullmatch(r"github\.event_name\s*==\s*['\"]([a-z_]+)['\"]", condition)
+    if shape is None:
+        raise DriftError(
+            f"{RELEASE_WORKFLOW} has a job condition this check cannot read: "
+            f"`{condition}`. It understands `github.event_name == 'x'` and nothing "
+            "else, and it refuses rather than guessing which events reach a job that "
+            "uploads to an index."
+        )
+    return {shape.group(1)}
+
+
+def needed_by(body: str) -> list[str]:
+    found = re.search(r"^    needs:\s*(.+?)\s*$", body, re.M)
+    if found is None:
+        return []
+    return [word.strip() for word in found.group(1).strip("[]").split(",") if word.strip()]
+
+
+def events_reaching(jobs: dict[str, str], events: set[str]) -> dict[str, set[str]]:
+    """Which of `events` can actually start each job.
+
+    A job runs for an event when its own condition admits it AND every job it
+    needs also ran: GitHub skips a job whose dependency was skipped. That is
+    the whole of the analysis, and it is why `needs: [build, attach]` on the
+    PyPI job is a second lock rather than an ordering detail.
+    """
+    reaching: dict[str, set[str]] = {}
+
+    def resolve(name: str, seen: tuple[str, ...]) -> set[str]:
+        if name in reaching:
+            return reaching[name]
+        if name in seen:
+            raise DriftError(f"{RELEASE_WORKFLOW}: `needs:` goes in a circle at `{name}`")
+        if name not in jobs:
+            raise DriftError(
+                f"{RELEASE_WORKFLOW}: a job needs `{name}`, which is not a job in it"
+            )
+        own = gated_to(jobs[name])
+        answer = set(events) if own is None else set(events) & own
+        for required in needed_by(jobs[name]):
+            answer &= resolve(required, (*seen, name))
+        reaching[name] = answer
+        return answer
+
+    return {name: resolve(name, ()) for name in jobs}
+
+
+def publish_problems(text_of: str) -> list[str]:
+    """Everything that can be wrong about how the two uploads are reached.
+
+    Pure, over the text of a workflow, so a twin can delete a condition and
+    watch the rule refuse it without a workflow file to delete it from.
+    """
     problems: list[str] = []
-    for name, body in sorted(jobs.items()):
-        rehearsal = TEST_INDEX in body
+    events = triggering_events(text_of)
+    jobs = workflow_jobs(text_of)
+    reaching = events_reaching(jobs, set(events))
+    uploads = {name: body for name, body in jobs.items() if PUBLISH_ACTION in body}
+
+    activity = events.get("release")
+    if activity is not None and activity != [RELEASE_ACTIVITY]:
+        problems.append(
+            f"the `release` trigger fires on {activity or 'every activity type'} and not "
+            f"on `{RELEASE_ACTIVITY}` alone. Editing the notes of a release that is "
+            "already out would start the publication again."
+        )
+
+    for name, body in sorted(uploads.items()):
+        kind = "rehearsal" if TEST_INDEX in body else "publication"
         repeatable = REPEATABLE in body
-        if rehearsal and not repeatable:
+        if kind == "rehearsal" and not repeatable:
             problems.append(
                 f"the `{name}` job publishes to the test index and does not carry "
                 f"`{REPEATABLE}`. A rehearsal that has uploaded once cannot upload "
                 "again, so its second run dies at the step the first one passed and "
                 "the error names the index rather than the cause."
             )
-        if not rehearsal and repeatable:
+        if kind == "publication" and repeatable:
             problems.append(
                 f"the `{name}` job publishes to the real index and carries "
                 f"`{REPEATABLE}`, which turns publishing 3.0.0 twice into a green "
                 "build. A version that is already there is a mistake and has to say so."
+            )
+        allowed = {REACHABLE_FROM[kind]}
+        actual = reaching[name]
+        if actual != allowed:
+            problems.append(
+                f"the `{name}` job is the {kind} and can be reached from "
+                f"{sorted(actual) or 'no event at all'}; it may be reached from "
+                f"{sorted(allowed)} and nothing else"
+                + (". A rehearsal that reaches PyPI publishes the version for real, "
+                   "and a version on PyPI is spent for good."
+                   if kind == "publication" and "workflow_dispatch" in actual else ".")
             )
     return problems
 
@@ -1893,6 +2043,14 @@ def publishing_happens_once() -> str:
     again, and the second run gets past the step the first one already did -
     and it is the one thing that must never reach the job beside it, where it
     would make a second publication of the same version look like a success.
+
+    The other half is which event can reach which job, and it is the half that
+    cannot be undone. `skip-existing` decides what a second run does; this
+    decides whether a second run can happen at all. One `if:` deleted from the
+    rehearsal's neighbour and step 9 of the runbook - a `workflow_dispatch`
+    meant for TestPyPI - would publish to PyPI for real. So the condition and
+    the `needs:` chain are read here and the answer is compared against one
+    event per job, rather than against nothing.
     """
     path = ROOT / RELEASE_WORKFLOW
     if not path.is_file():
@@ -1900,18 +2058,23 @@ def publishing_happens_once() -> str:
             f"{RELEASE_WORKFLOW} is not in the tree, and it is what builds, attests and "
             "publishes the distributions"
         )
-    jobs = publishing_jobs(path.read_text(encoding="utf-8"))
+    workflow = path.read_text(encoding="utf-8")
+    jobs = publishing_jobs(workflow)
     if len(jobs) != 2:
         raise DriftError(
             f"{RELEASE_WORKFLOW} has {len(jobs)} job(s) using `{PUBLISH_ACTION}` and this "
             f"check knows two, a rehearsal and a publication: {sorted(jobs) or 'none'}"
         )
-    problems = publish_problems(jobs)
+    problems = publish_problems(workflow)
     if problems:
         raise DriftError("\n".join(problems))
+    reaching = events_reaching(workflow_jobs(workflow), set(triggering_events(workflow)))
     return (
-        f"{len(jobs)} publishing jobs: the one that uploads to {TEST_INDEX} may repeat "
-        "itself, and the one that uploads to PyPI may not"
+        "2 publishing jobs: the rehearsal is reachable only from "
+        f"{sorted(reaching[next(n for n, b in jobs.items() if TEST_INDEX in b)])} and may "
+        "repeat itself, and the publication only from "
+        f"{sorted(reaching[next(n for n, b in jobs.items() if TEST_INDEX not in b)])} and "
+        "may not"
     )
 
 
