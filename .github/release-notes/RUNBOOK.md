@@ -220,19 +220,23 @@ so the rehearsal is not optional. It rehearses the same files that are already
 attached to the release above, which is the right way round: a release asset
 can be replaced and a PyPI version cannot.
 
+The token goes where the upload runs. These run in WSL, because that is where
+`dist/` was built, so the token belongs in `~/.pypirc` inside WSL or in
+`TWINE_USERNAME=__token__ TWINE_PASSWORD=pypi-...` in front of the command.
+
 ```bash
-python -m twine upload --repository testpypi dist/*.whl dist/*.tar.gz
-python -m venv /tmp/rehearsal
-/tmp/rehearsal/bin/pip install --index-url https://test.pypi.org/simple/ \
-    --extra-index-url https://pypi.org/simple/ actaira
-/tmp/rehearsal/bin/actaira --version     # actaira 3.0.0
-cd /tmp && /tmp/rehearsal/bin/actaira scan --demo
+wsl -e bash -lc 'cd /mnt/c/Users/Usuario/Desktop/actaira && /tmp/actaira-venv/bin/python -m twine upload --repository testpypi dist/*.whl dist/*.tar.gz'
+wsl -e bash -lc 'rm -rf /tmp/rehearsal && python3 -m venv /tmp/rehearsal && /tmp/rehearsal/bin/pip install --quiet --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ actaira'
+wsl -e bash -lc '/tmp/rehearsal/bin/actaira --version'
+wsl -e bash -lc 'cd /tmp && /tmp/rehearsal/bin/actaira scan --demo'
 ```
 
-Then, and only if that worked:
+The third command prints `actaira 3.0.0` and the fourth reads the demo session
+out of the installed package, with no checkout and nothing configured. Then,
+and only if both did that:
 
 ```bash
-python -m twine upload dist/*.whl dist/*.tar.gz
+wsl -e bash -lc 'cd /mnt/c/Users/Usuario/Desktop/actaira && /tmp/actaira-venv/bin/python -m twine upload dist/*.whl dist/*.tar.gz'
 ```
 
 ## 12. About, topics and website
