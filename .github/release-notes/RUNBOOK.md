@@ -25,6 +25,13 @@ thing about this file that is not a preference.
   stops being checkable the moment `main` is rebuilt.
 - **The backup branch goes last**, after everything that could send you back to
   it has already succeeded.
+- **The distributions are built by the runner and not here**, so the build has
+  an identity a reader can check rather than a laptop's word. That moves the
+  build after the release exists, which is why step 11 creates a release with
+  nothing attached and the workflow attaches what it built.
+- **The rehearsal comes before the tag.** It runs the same workflow against
+  TestPyPI, so what is rehearsed is the thing that will run, and a tag is not
+  spent finding out that the publisher form has a typo in it.
 
 `origin/main` is behind this branch by the whole of this piece of work, so the
 force-push in step 6 is also the first publication of it. Count it with
@@ -186,67 +193,162 @@ gate, zizmor, the Action used two ways, and the dogfood job that uploads this
 repository's own SARIF to code scanning. A red one here is a red one on the
 commit everything below is about to be cut from.
 
-## 8. The tag
+## 8. Before the first release only: the signing key and the two environments
+
+Three settings, once. Everything after this assumes them.
+
+**The key that signs the tag.** SSH rather than GPG, because this machine
+already has an SSH key for pushing and a second key type is a second thing to
+lose. If there is no key yet, make one; if there is, skip the first line.
 
 ```bash
-git tag -a v3.0.0 -m "Actaira 3.0.0: change control for what your AI agents can do"
-git push origin v3.0.0
+ssh-keygen -t ed25519 -C "matagarciamarcos@gmail.com" -f ~/.ssh/id_ed25519
+git config --global gpg.format ssh
+git config --global user.signingkey ~/.ssh/id_ed25519.pub
+gh ssh-key add ~/.ssh/id_ed25519.pub --type signing --title "actaira release signing"
 ```
 
-## 9. The distributions, built after the rewrite
+`--type signing` is not decoration: a key registered only for authentication
+lets you push and does not make GitHub write **Verified** on anything. The two
+lists are separate on the account, and the same public key can be in both.
 
-Built now and not earlier, because the sdist carries the README and the README
-carries the commits the rewrite moved.
+For `git tag -v` to answer on this machine, git needs to know which keys it is
+willing to believe. Without this file, verification says "no principal matched"
+on a tag it signed itself a minute earlier:
 
 ```bash
-wsl -e bash -lc 'cd /mnt/c/Users/Usuario/Desktop/actaira && PY=/tmp/actaira-venv/bin/python make clean && PY=/tmp/actaira-venv/bin/python make package'
-wsl -e bash -lc 'cd /mnt/c/Users/Usuario/Desktop/actaira && /tmp/actaira-venv/bin/python -m twine check dist/*.whl dist/*.tar.gz'
-cat dist/SHA256SUMS          # written by the target, and attached below
+git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers
+printf '%s %s\n' "matagarciamarcos@gmail.com" "$(cat ~/.ssh/id_ed25519.pub)" >> ~/.ssh/allowed_signers
 ```
 
-`make package` needs the `package` extra (`pip install -e ".[package]"`) and
-twine needs `pip install twine`; neither is in `dev`, because a packaging tool
-must not be able to break an install of the package.
+**The two environments the publish jobs run in.** Repository settings →
+Environments → New environment, twice, named exactly `pypi` and `testpypi`. No
+protection rules are required; what they are for is that PyPI's publisher form
+names one of them, so a workflow run that is not the release workflow cannot
+mint a token for it.
 
-## 10. The release
+**The two trusted publishers.** On PyPI and on TestPyPI, under the account's
+Publishing page, add a *pending publisher* (the project does not exist yet and
+that is what pending means), with exactly:
+
+| field | value |
+|---|---|
+| PyPI project name | `actaira` |
+| Owner | `marcosmatalab` |
+| Repository name | `actaira` |
+| Workflow name | `release.yml` |
+| Environment name | `pypi` on PyPI, `testpypi` on TestPyPI |
+
+The workflow's FILENAME is part of the trust, so renaming
+`.github/workflows/release.yml` later breaks publishing until the form is
+changed. That is written here because the failure arrives at upload time and
+reads like a permissions problem.
+
+## 9. The rehearsal, to TestPyPI, from the workflow that will do it for real
+
+Not `twine` from a laptop: the point of a rehearsal is to exercise the thing
+that will run, and what will run is the workflow.
 
 ```bash
-gh release create v3.0.0 --title "Actaira 3.0.0" \
-    --notes-file .github/release-notes/v3.0.0.md \
-    dist/actaira-3.0.0-py3-none-any.whl dist/actaira-3.0.0.tar.gz dist/SHA256SUMS
+gh workflow run release.yml
+gh run watch "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')"
 ```
 
-## 11. TestPyPI, then PyPI
-
-The name is free: `curl -s -o /dev/null -w "%{http_code}" https://pypi.org/pypi/actaira/json`
-answered 404 on 2026-09-22.
-
-TestPyPI first, and install from there into an empty environment before
-touching the real index. **A version uploaded to PyPI can never be replaced**,
-so the rehearsal is not optional. It rehearses the same files that are already
-attached to the release above, which is the right way round: a release asset
-can be replaced and a PyPI version cannot.
-
-The token goes where the upload runs. These run in WSL, because that is where
-`dist/` was built, so the token belongs in `~/.pypirc` inside WSL or in
-`TWINE_USERNAME=__token__ TWINE_PASSWORD=pypi-...` in front of the command.
+It builds on the runner, attests the two distributions, and publishes them to
+TestPyPI through Trusted Publishing. Then install from there into an empty
+environment, with nothing from this checkout:
 
 ```bash
-wsl -e bash -lc 'cd /mnt/c/Users/Usuario/Desktop/actaira && /tmp/actaira-venv/bin/python -m twine upload --repository testpypi dist/*.whl dist/*.tar.gz'
 wsl -e bash -lc 'rm -rf /tmp/rehearsal && python3 -m venv /tmp/rehearsal && /tmp/rehearsal/bin/pip install --quiet --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ actaira'
 wsl -e bash -lc '/tmp/rehearsal/bin/actaira --version'
 wsl -e bash -lc 'cd /tmp && /tmp/rehearsal/bin/actaira scan --demo'
 ```
 
-The third command prints `actaira 3.0.0` and the fourth reads the demo session
-out of the installed package, with no checkout and nothing configured. Then,
-and only if both did that:
+`actaira 3.0.0`, and then the demo session read out of the installed package
+with no agent on the machine. **A version uploaded to PyPI can never be
+replaced**, so this is not optional.
+
+`gh workflow run` only offers a workflow that is already on the default
+branch, which is why this comes after the force-push and not before it.
+
+What the rehearsal does NOT exercise is the `attach` job: uploading the
+assets to a release needs a release, and there is not one yet. That is the one
+step of step 11 that runs for the first time when it runs for real, and it is
+also the only one that is repeatable - `gh release upload --clobber` replaces
+what is there, so a failure is a re-run rather than a burnt version.
+
+## 10. The tag, signed
 
 ```bash
-wsl -e bash -lc 'cd /mnt/c/Users/Usuario/Desktop/actaira && /tmp/actaira-venv/bin/python -m twine upload dist/*.whl dist/*.tar.gz'
+git tag -s v3.0.0 -m "Actaira 3.0.0: change control for what your AI agents can do"
+git tag -v v3.0.0          # "Good \"git\" signature for matagarciamarcos@gmail.com"
+git push origin v3.0.0
 ```
 
-## 12. About, topics and website
+`-s` and not `-a`. An annotated tag says who claims to have cut it; a signed
+one lets somebody else check the claim, and GitHub puts **Verified** beside it
+on the tag and on the release.
+
+## 11. The release, and the build that comes from the runner
+
+Create it from the notes in this directory, with **no files attached**:
+
+```bash
+gh release create v3.0.0 --title "Actaira 3.0.0" \
+    --notes-file .github/release-notes/v3.0.0.md \
+    --verify-tag
+```
+
+Publishing it starts `.github/workflows/release.yml`, which builds the wheel
+and the sdist on the runner with the same `make package` a laptop runs, signs a
+provenance attestation for both, attaches them and `SHA256SUMS` to the release,
+and then publishes to PyPI. Watch it to the end:
+
+```bash
+gh run watch "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')"
+```
+
+**Why the runner and not this machine.** The attestation is worth something
+because the identity that signs it belongs to a workflow in this repository and
+cannot be borrowed by whoever is typing. A laptop build can be checksummed and
+not attested, and a repository whose subject is supply chains publishing a
+wheel that nobody can trace back to a commit is the thing a hostile reader
+looks for first.
+
+**Why Trusted Publishing and not a token.** Decided rather than defaulted:
+
+- it removes the long-lived credential. A `~/.pypirc` on a laptop is exactly
+  the standing secret this repository tells other people to look for;
+- it is what makes the PyPI side verifiable at all. `gh-action-pypi-publish`
+  mints PEP 740 attestations when it publishes through Trusted Publishing and
+  cannot when it publishes with a token, so with a token the release would
+  carry provenance and the index would carry none;
+- the failure mode is cheap. A misconfigured publisher is rejected by PyPI
+  before anything is uploaded: nothing is published, the version is not
+  consumed, you fix the form and re-run. The irreversible step - a version name
+  being taken - happens only on a successful upload, which is equally true of
+  twine.
+
+What it costs is two forms filled in before the first upload, which is step 8.
+A token upload (`twine upload`) still works and is what to fall back to if PyPI's
+publisher form cannot be used on the day; if that happens, the line in the
+release notes about verifying the PyPI artifact has to come out, because it
+would no longer be true.
+
+## 12. Verify what was published, the way a stranger would
+
+```bash
+gh release download v3.0.0 --dir /tmp/verify --repo marcosmatalab/actaira
+cd /tmp/verify && sha256sum -c SHA256SUMS
+gh attestation verify actaira-3.0.0-py3-none-any.whl --repo marcosmatalab/actaira
+gh attestation verify actaira-3.0.0.tar.gz --repo marcosmatalab/actaira
+git tag -v v3.0.0
+```
+
+Each of those four is in the release notes, word for word, so that a reader
+does not have to be told they exist.
+
+## 13. About, topics and website
 
 Repository settings, About:
 
@@ -265,14 +367,14 @@ Website: `https://pypi.org/project/actaira/`. No page of its own: a report of
 this repository fires no rule, so a published demo would be a demo where
 nothing happens.
 
-## 13. Marketplace
+## 14. Marketplace
 
-It pins the tag, and the tag is only final once step 8 has survived everything
+It pins the tag, and the tag is only final once step 10 has survived everything
 after it. GitHub releases page, "Publish this Action to the GitHub
 Marketplace", accept the terms, pick the category. `action.yml` already carries
 the `branding` block it asks for.
 
-## 14. The backup
+## 15. The backup
 
 Last. Everything that could send you back to it has already succeeded.
 

@@ -1,0 +1,173 @@
+# The distributions are built here and nowhere else, and they carry a
+# statement of where they came from.
+#
+# WHY THIS FILE EXISTS, when `ci.yml` says in its own comments that a release
+# job is deliberately absent. That comment was about a workflow that DECIDES to
+# publish, and it still holds: nothing here starts by itself. A person creates
+# the release, which is the deliberate act, and what follows is a machine doing
+# the part a person cannot: signing a statement that these exact bytes were
+# built from this exact commit by this exact workflow.
+#
+# A laptop cannot produce that statement. `actions/attest-build-provenance`
+# signs a SLSA provenance predicate with a certificate minted for this
+# repository's OIDC identity, and the signature is only worth anything because
+# the identity belongs to the runner rather than to whoever is typing. So the
+# build moved off the laptop, and `.github/release-notes/RUNBOOK.md` changed
+# with it: the person tags, writes the release, and reads the result.
+#
+# It is the same argument as the `dogfood` job in `ci.yml`. A repository about
+# supply chains that published an unsigned wheel with no provenance, from a
+# personal machine, would be the thing a hostile reader looks for first.
+#
+# ON PINNING. Every action is pinned to a commit SHA with the tag it resolved
+# from beside it. Resolved on 2026-09-22 with
+#   gh api repos/<owner>/<repo>/git/ref/tags/<tag> --jq .object.sha
+# dereferencing the tag object where the ref is an annotated tag, because
+# `uses:` takes a commit and an annotated tag's sha is the tag object. The
+# checkout and setup-python pins are the ones `ci.yml` already carries.
+name: release
+
+on:
+  # The release exists before this runs: a person wrote it and pressed the
+  # button. What this adds is the attested build and the upload to the index.
+  release:
+    types: [published]
+  # The rehearsal. TestPyPI, from the same job that publishes to PyPI, so the
+  # thing being rehearsed is the thing that will run.
+  workflow_dispatch:
+
+# Nothing by default. Every job asks for what it needs and no more.
+permissions: {}
+
+# One release at a time, and never cancelled. A publish half-done is the one
+# state this whole file is arranged to avoid: `cancel-in-progress` on a job
+# that uploads to an index would mean stopping between two files.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  build:
+    name: build on a runner, and attest what the bytes were built from
+    runs-on: ubuntu-latest
+    permissions:
+      # Read the tree, mint an OIDC token to prove which workflow this is, and
+      # write the attestation that says so. No write to the repository itself:
+      # this job produces bytes and a statement about them, nothing else.
+      contents: read  # check the tree out
+      id-token: write  # mint the OIDC identity the attestation is signed against
+      attestations: write  # write that attestation to this repository
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.12"
+      - name: build the distributions with the same target a laptop runs
+        # `make package` and not `python -m build`: one definition of how this
+        # package is built, which `scripts/release_check.py` refuses to let
+        # come apart. The target cleans dist/ first and asserts what went into
+        # both artifacts.
+        run: |
+          set -euo pipefail
+          python -m pip install build twine
+          make package
+          python -m twine check dist/*.whl dist/*.tar.gz
+      - name: what these bytes were built from
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a  # v3
+        with:
+          # The wheel and the sdist. NOT `dist/SHA256SUMS`: attesting a list of
+          # checksums says nothing that attesting the files themselves does not
+          # already say, and it invites a reader to verify the wrong thing.
+          subject-path: "dist/*.whl,dist/*.tar.gz"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: dist
+          path: dist/*
+          if-no-files-found: error
+
+  attach:
+    name: attach the attested distributions to the release
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      # Write, because attaching an asset to a release is a write to the
+      # repository. It is the only job here that has one.
+      contents: write  # attaching an asset to a release is a write to the repository
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        with:
+          name: dist
+          path: dist
+      - name: upload them to the release a person wrote
+        # `--clobber` so that re-running this job replaces the assets instead
+        # of failing halfway. A release asset can be replaced; a PyPI version
+        # cannot, which is why the order in the runbook is this one.
+        #
+        # The tag goes through `env:` and is quoted in the command. A tag name
+        # is somebody else's string the moment this repository has more than
+        # one person with push access, and a `${{ }}` pasted into a shell is
+        # the class of defect this repository tells other people to care about.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" dist/* --clobber --repo "$REPOSITORY"
+
+  testpypi:
+    name: the rehearsal, to TestPyPI
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    # The environment is half of what makes Trusted Publishing safe: PyPI's
+    # publisher form names this environment, so a workflow run that is not this
+    # one cannot mint a token for it even if it lives in this repository.
+    environment: testpypi
+    permissions:
+      id-token: write  # the identity TestPyPI trusts; there is no token and no secret here
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        with:
+          name: dist
+          path: dist
+      - name: leave only what an index takes
+        # `dist/SHA256SUMS` belongs to the release, not to PyPI: twine refuses
+        # a file it cannot recognise as a distribution, and a job that dies at
+        # the upload step because of a checksum file would die AFTER the
+        # rehearsal was supposed to have proved the upload works.
+        run: rm -f dist/SHA256SUMS
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # v1.14.2
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist
+          # A rehearsal is re-run, and TestPyPI keeps what it was given the
+          # first time. On PyPI below there is no such line: a version that is
+          # already there is a mistake and has to say so.
+          skip-existing: true
+
+  pypi:
+    name: publish to PyPI, with no token anywhere
+    needs: [build, attach]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write  # the identity PyPI trusts; this is the whole of what replaces a token
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        with:
+          name: dist
+          path: dist
+      - name: leave only what an index takes
+        run: rm -f dist/SHA256SUMS
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # v1.14.2
+        with:
+          packages-dir: dist

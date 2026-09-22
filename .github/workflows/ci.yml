@@ -36,6 +36,14 @@
 # deliberate. The version agreement it used to check is checked by
 # `scripts/release_check.py`, which runs on a laptop and needs no tag.
 #
+# `.github/workflows/release.yml` arrived later and does not contradict that,
+# which is worth saying because it looks as though it might. It does not fire
+# on a tag: it fires when a PERSON publishes a release, and what it adds is the
+# one thing a laptop cannot produce - a signed statement that these exact bytes
+# were built from this exact commit by this exact workflow. The deliberate act
+# stayed with the person; the part that needs an identity nobody can borrow
+# moved to the runner.
+#
 # `make release-check` and `make figures` ARE here now, in the `consistency`
 # job, and the thing that changed to allow it is in `scripts/figures.py`. They
 # were excluded because both re-measure the working tree and `figures.py`
@@ -262,6 +270,13 @@ jobs:
       - run: python -m pip install -e ".[dev]"
       - name: the parts of the tree agree with each other
         run: python scripts/release_check.py
+      - name: the commit bodies are the ones the history should carry
+        # Here and not in another job because this one already fetches the
+        # whole history: `fetch-depth: 0` above is what makes the question
+        # answerable at all, and a shallow clone would let it pass by having
+        # nothing to read.
+        run: python scripts/history_check.py
+
       - name: the measured figures are the ones committed
         run: |
           set -euo pipefail
@@ -290,8 +305,10 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      security-events: write
+      # Read to check the tree out, and write to nothing but the Security tab:
+      # the job's whole output is a SARIF upload about this repository.
+      contents: read  # the checkout, and nothing more
+      security-events: write  # the SARIF upload to this repository's own Security tab
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
