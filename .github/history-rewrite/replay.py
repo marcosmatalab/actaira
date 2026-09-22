@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """Replay every commit with the same tree and a new message.
 
-    python3 .github/history-rewrite/replay.py            print what it would do
-    python3 .github/history-rewrite/replay.py --apply    do it, one step at a time
+    python .github/history-rewrite/replay.py            print what it would do
+    python .github/history-rewrite/replay.py --apply    do it, one step at a time
+
+Run it with the interpreter that can reach the remote: `--apply` pushes the
+backup branch before it moves anything, and on the machine this was written on
+the credentials for that are in Windows, where `python3` is not a command.
 
 `git commit-tree` and not `git rebase -i`, for one reason: a rebase applies
 patches and can resolve them differently, and the only thing that may change

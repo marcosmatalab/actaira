@@ -26,8 +26,10 @@ thing about this file that is not a preference.
 - **The backup branch goes last**, after everything that could send you back to
   it has already succeeded.
 
-`origin/main` is ten commits behind this branch, so the force-push in step 6 is
-also the first publication of all of this work.
+`origin/main` is behind this branch by the whole of this piece of work, so the
+force-push in step 6 is also the first publication of it. Count it with
+`git rev-list --count origin/main..main` rather than trusting this sentence: a
+number written here would be wrong by the next commit.
 
 Run the gate first. Not `make all` on the working tree, which answers for a
 tree nobody receives:
@@ -103,9 +105,14 @@ each commit's recorded TREE OBJECT rather than applying patches, so the final
 tree is identical by construction, and it carries the author and committer
 dates over untouched. Without `--apply` it moves nothing.
 
+Run it with the interpreter that can reach `origin`, which on this machine is
+the Windows one: `--apply` pushes the backup branch before it moves anything,
+and the credentials for that push are in Windows and not in WSL. `python3` is
+not a command there.
+
 ```bash
-python3 .github/history-rewrite/replay.py            # builds the objects, moves nothing
-python3 .github/history-rewrite/replay.py --apply
+python .github/history-rewrite/replay.py            # builds the objects, moves nothing
+python .github/history-rewrite/replay.py --apply
 ```
 
 `--apply` refuses a dirty tree or the wrong branch before it builds anything,
