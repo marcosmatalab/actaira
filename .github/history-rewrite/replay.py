@@ -53,12 +53,13 @@ ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 MESSAGES = json.loads((HERE / "messages.json").read_text(encoding="utf-8"))
 
-# The message cap the acceptance script measures, as `wc -l` counts it over
-# `git log --format=%B`: the message's own lines plus the newline the format
-# adds. Asserted here rather than trusted, because this file is the last place
-# the cap can be held before the history carries it.
-MAX_LINES = 15
-FORBIDDEN = ("work rule", "budget", "adversarial pass", "a later session")
+# The cap and the vocabulary come from `scripts/history_check.py`, which is the
+# gate that holds them over the history for good. This file is the last place
+# they can be held BEFORE the history carries them, and the two must not be
+# able to disagree about what the cap is: one of them would go on passing over
+# a history the other would refuse, and neither would say so.
+sys.path.insert(0, str(ROOT / "scripts"))
+from history_check import FORBIDDEN, MAX_LINES, problems_in  # noqa: E402
 
 # The documentation this repository publishes with a commit of its own in it.
 # The list is not written twice: `release_check.py` reads the same files to
@@ -98,16 +99,11 @@ def check(resulting: dict[str, str]) -> None:
     was the one that added the map.
 
     So what is measured is what the history would carry: a rewritten message
-    where there is one, and the commit's own message where there is not.
+    where there is one, and the commit's own message where there is not. That
+    is the same thing `scripts/history_check.py` measures on every run of the
+    gate, and it is that function that decides it.
     """
-    problems = []
-    for sha, message in sorted(resulting.items()):
-        lines = message.rstrip("\n").split("\n")
-        if len(lines) + 1 > MAX_LINES:
-            problems.append(f"{sha}: {len(lines) + 1} lines, the cap is {MAX_LINES}")
-        for word in FORBIDDEN:
-            if word in message.lower():
-                problems.append(f"{sha}: says {word!r}, which is the vocabulary this removes")
+    problems = problems_in(resulting)
     if problems:
         raise SystemExit("\n".join(problems))
 

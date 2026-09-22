@@ -23,6 +23,7 @@ make contracts       # the contract index, from the schemas the package ships
 make rules           # docs/RULES.md, from the rule packs the package ships
 make design-notes    # every design-note row against the line that argues it
 make release-check   # refuse a tree whose parts disagree with each other
+make history-check   # hold every commit body to the cap and the vocabulary
 make package         # build the distributions and assert what is inside them
 make all             # the gate a change is held against
 ```
@@ -76,7 +77,15 @@ had:
   it, so the command cannot come apart the way the resource list once did;
 - the demo picture against what a renderer that is not this machine will keep;
 - each landing page against its ceiling and against what its first screen has
-  to carry.
+  to carry;
+- the cheap commands those pages publish, by RUNNING them and reading what came
+  back, with the expensive ones named in a table beside the reason each is not
+  run;
+- the notes for the version in `pyproject.toml` against the figures this tree
+  measures, and no other release note, because a published one is a record.
+
+A fourth, `scripts/history_check.py`, is neither of those: it reads the
+history rather than the tree, and it has a section of its own below.
 
 Three gates live in the suite rather than here, because they are properties of
 the code rather than agreements between documents: `tests/test_reachability.py`
@@ -201,6 +210,45 @@ to somebody who has not been told what the report is of.
 
 ---
 
+## The commit bodies, and why that is a gate and not a tidy-up
+
+Phase 6 of the closing plan cleaned the history: forty-five bodies came down
+under fifteen lines and the vocabulary of working through a plan came out of
+them. A cleanup is a state, and every state this repository cares about has
+something that refuses to leave it. `scripts/history_check.py` is that
+something, it is in `make all`, and CI runs it on the one job that fetches the
+whole history.
+
+What it refuses:
+
+- a body over **15 lines**, counted the way `wc -l` counts
+  `git log --format=%B`: fourteen lines of message plus the newline the format
+  adds. What a long body was arguing belongs in `docs/DESIGN.md`,
+  `docs/defects.json` or `CHANGELOG.md`, where a reader finds it without
+  running `git log`;
+- a body containing **`work rule`**, **`budget`**, **`adversarial pass`** or
+  **`a later session`**. Those four are the criterion of phase 6, in the
+  spelling its `grep -ci` uses. They are not forbidden words in English; they
+  are what this project wrote in commit messages while working through a plan,
+  and they mean nothing to somebody reading the history afterwards.
+
+**What it measures is the body each commit WILL carry.** A commit still named
+in `.github/history-rewrite/messages.json` is measured by its rewritten body,
+which is the same definition `replay.py` uses to refuse to build a history over
+the cap - imported from this module rather than written twice. So the gate is
+green before the rewrite and after it, red the moment somebody writes a body
+the rewrite would not have allowed, and its summary line says how many commits
+are still taking their message from the map. "The rewrite has not been applied
+yet" is a fact printed on every run rather than something a reader infers from
+a green tick.
+
+The commit that the runbook creates AFTER the replay - the one that points the
+documented `uses:` and `rev:` at the commits that replaced them - never passes
+through the replay's own check, because it does not exist when the replay runs.
+This gate is what holds it.
+
+---
+
 ## The defect ledger
 
 [`defects.json`](defects.json) records every defect found in this repository:
@@ -209,10 +257,10 @@ holds it down. `make figures` checks every test the ledger names against what
 pytest actually collects, so a renamed test is reported by name rather than
 leaving a total that still looks healthy.
 
-152 defects have been found here, by 21 distinct mechanisms, and every one of
+154 defects have been found here, by 21 distinct mechanisms, and every one of
 them was found by a mechanism that can fail. 0 still open.
-59 were never in a released build and are marked as such rather than dropped.
-Every entry is held down: 33 pinned by a named test, and 103 by a written note,
+61 were never in a released build and are marked as such rather than dropped.
+Every entry is held down: 34 pinned by a named test, and 104 by a written note,
 where a named test would be a weaker copy of what the linter or the gate
 already does.
 

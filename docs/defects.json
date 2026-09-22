@@ -1533,6 +1533,36 @@
         "tests/test_release_check.py::test_a_figure_pattern_that_matches_nothing_fails"
       ],
       "pinned_note": "Held by the figure machinery itself: a figure in the contract whose pattern matches nothing on a page it declares is refused, and one whose value differs from the source is refused."
+    },
+    {
+      "id": "DEF-135",
+      "title": "both landing pages published a command that prints nothing, under a sentence telling the reader to run it and disagree",
+      "effect": "THE DEFECT. The table headed \"every figure below comes from a command\" published `python -m pytest --collect-only -q` beside the test count, and promised \"the same count\". `pyproject.toml` sets `addopts = -q`, so pytest sees two `-q` and prints per-file totals with no grand total: copied as written, the command prints a list and then a blank line. The figure in the row was correct the whole time.\n\nWHY IT LASTED. `release_check._collect_count` has known about this since the day it was written - it passes `-o addopts=` and its comment explains exactly this trap - and `scripts/figures.py` does the same. The knowledge was in the apparatus and not on the page, and nothing compared the two, because every check in this file compares recorded FACTS and not one of them ran a published COMMAND. A reader copies and pastes; they do not debug.\n\nTHE FIX, which is not the command. The cheap commands in that table are now executed in a subprocess and their output compared against the row on both pages. The expensive ones are named in a table with the reason each is not run, so the executed set is a decision rather than whatever was easy, and a published command in neither table fails the gate - which is what catches the next one.\n\nAND THE FIX'S OWN FIRST BUG, because it is the same disease and it was caught by the check itself before the commit. The reader took the first `N tests collected` anywhere in the output and answered 2606 where the tree had 2639: pytest lists every collected node id, and one of those ids belongs to a parametrised twin of this very check, with the words `2606 tests collected` inside it. A reader matching something adjacent to what it is looking for, in the check written against a page matching something adjacent to what it promised. It is anchored at the start of a line now, which a node id never is, and takes the last match, which is the summary.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "The READMEs travel in the sdist, so it was published; nothing the tool does depended on it. What it cost is the one thing that page is for.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_release_check.py::test_a_row_whose_figure_is_off_by_one_fails",
+        "tests/test_release_check.py::test_a_command_the_check_does_not_know_is_refused_rather_than_skipped",
+        "tests/test_release_check.py::test_the_row_with_a_pipeline_in_it_is_read_as_one_row",
+        "tests/test_release_check.py::test_every_published_command_is_either_run_or_says_why_not",
+        "tests/test_release_check.py::test_each_reader_finds_its_number_or_says_it_did_not"
+      ],
+      "pinned_note": "Four, because the check can fail in four ways and three of them are silent: a row that drifts, a command nobody taught it to verify, a row it drops while reporting that it read everything, and a not-run list that grows until nothing is executed."
+    },
+    {
+      "id": "DEF-136",
+      "title": "the job that lints the workflows would have failed on the first push, on a job added after the last one",
+      "effect": "THE DEFECT. The `workflows` job runs `zizmor --persona=auditor --format plain action.yml .github/workflows/` under `set -euo pipefail`, and zizmor exits non-zero when it has findings. The `dogfood` job, added in this cycle, declares `contents: read` and `security-events: write` with no comment beside them, which the auditor persona reports as `undocumented-permissions`. Exit 12, and a red build.\n\nWHY NOBODY SAW IT. `origin/main` is fourteen commits behind, so every job added by this work - `consistency`, `dogfood`, and the permissions that came with them - has never been run by the CI that lints them. The comment in `ci.yml` quotes a clean auditor run from an earlier phase and was true when it was written. A workflow gate that has not executed since the file changed is the same thing as no gate, which is the argument that put the `dogfood` job there in the first place.\n\nTHE FIX. Every permission in both workflows carries a trailing comment saying what it is for, and `release.yml` declares a concurrency group. Verified the way the runner will: the pinned zizmor 1.30.1 installed into a throwaway environment and the exact CI command run over both files, which now answers with no findings at all and exits 0. That rehearsal is the mechanism rather than the fix: the fix would have been invisible without it.",
+      "found_by": "rehearsing a published step",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "It is in the integration definition. It would have turned the first push red rather than reaching anybody.",
+      "fixed": true,
+      "pinned_by": [],
+      "pinned_note": "Pinned by the runner rather than by a test: the `workflows` job runs that exact command on every push and every pull request, and a test here would be a second copy of a linter's opinion. What was missing was not a test but a run, and the run is in CI."
     }
   ]
 }

@@ -1827,6 +1827,321 @@ def the_demo_image_renders_anywhere() -> str:
 
 
 # --------------------------------------------------------------------------
+# The notes for the version that has not been released yet
+# --------------------------------------------------------------------------
+
+# What a figure in a release note is read out of, and what it is compared with.
+# Two, because two is what the notes state: everything else in them is prose
+# about what the release contains, which no command can check.
+NOTE_FIGURES = (
+    (re.compile(r"\b([\d,]+) tests\b"), "tests", lambda measured: measured["tests"]["collected"]),
+    (re.compile(r"\b(\d+)% coverage\b"), "coverage",
+     lambda measured: int(measured["coverage"]["percent"])),
+)
+
+
+def note_problems(text_of: str, measured: dict) -> tuple[list[str], int]:
+    """(what is wrong, how many figures were compared). Pure, so a twin can
+    plant a note without writing one into `.github/release-notes/`."""
+    problems: list[str] = []
+    compared = 0
+    for pattern, what, source in NOTE_FIGURES:
+        found = pattern.search(text_of)
+        if found is None:
+            problems.append(
+                f"the notes state no {what} figure, and this check looked for "
+                f"`{pattern.pattern}`. A figure that leaves the guarded set is not "
+                "removed, it is unguarded."
+            )
+            continue
+        compared += 1
+        stated = int(found.group(1).replace(",", ""))
+        if stated != source(measured):
+            problems.append(
+                f"the notes say {found.group(0)} and this tree measures {source(measured)}"
+            )
+    return problems, compared
+
+
+@check("the notes for the version being released state the figures this tree measures")
+def release_notes_are_current() -> str:
+    """Only the notes for the version in `pyproject.toml`, and that is the rule.
+
+    A release note is a record of a moment. Once `v2.3.0` is out, its note is
+    what was true when it was cut and rewriting it later would be falsifying a
+    record - which is the same argument that keeps a published tag where it is.
+    So the notes for the version that has NOT been released yet are held to the
+    tree, and every other file in that directory is left alone.
+
+    It exists because the 3.0.0 notes said "2,487 tests" for as long as they
+    sat unpublished, while the tree moved past 2,600. Nothing compared them:
+    the figures contract guards the pages a reader lands on, and this file is
+    the one a reader lands on ONCE, from an email, at the moment it matters
+    most.
+
+    The remedy is a hand edit and that is deliberate, against D-181. The
+    treadmill argument applies to a page that changes on every commit forever;
+    this one is edited once, at the release, and stops being read by this check
+    the moment the version moves past it. What the failure prints is the number
+    to write.
+    """
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    declared = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, re.M)
+    if not declared:
+        raise DriftError("pyproject.toml declares no version")
+    notes = ROOT / ".github" / "release-notes" / f"v{declared.group(1)}.md"
+    if not notes.is_file():
+        raise DriftError(
+            f"{notes.relative_to(ROOT).as_posix()} does not exist, so the version this "
+            "tree is at has no notes to publish. Write them before the tag, not after."
+        )
+    measured = json.loads((ROOT / "figures.json").read_text(encoding="utf-8"))
+    problems, compared = note_problems(notes.read_text(encoding="utf-8"), measured)
+    if problems:
+        raise DriftError("\n".join(problems))
+    return (
+        f"{compared} figures in {notes.name}, each the one measured; the notes for "
+        "versions already released are records and are not read"
+    )
+
+
+# --------------------------------------------------------------------------
+# The commands the landing pages tell a reader to run
+# --------------------------------------------------------------------------
+
+# The heading of the table each page publishes, and the sentence under it says
+# "run any of them and disagree". Everything below exists because one of those
+# commands, copied as it was written, printed nothing at all: `addopts = -q` in
+# `pyproject.toml` means `--collect-only -q` prints per-file totals and no
+# grand total, which `scripts/release_check.py` had known and worked around
+# inside `_collect_count` since the day it was written, while the page went on
+# publishing the form that does not work. A figure this file compares is not
+# the same thing as a command a reader can run.
+HELD_UP_SECTIONS = {"README.md": "How the repository is held up",
+                    "README.es.md": "Cómo se sostiene el repositorio"}
+
+# The commands that are NOT run here, each with the reason. It is written down
+# rather than implied by what the code happens to handle: an unlisted command
+# is a failure below, so the set that is executed is a decision somebody made
+# and not the remainder after the easy ones.
+HELD_UP_NOT_RUN = {
+    "python scripts/figures.py": (
+        "it re-measures the whole tree, which runs the collection again, and it "
+        "WRITES docs/FIGURES.md and figures.json. A gate that rewrites the tree it "
+        "is checking is not a gate. `make all` runs it one step before this one."
+    ),
+    "python scripts/rules_doc.py": (
+        "it writes docs/RULES.md. The page is already held against the packs by "
+        "`every rule the catalogue defines is translated, and none is undocumented`, "
+        "which compares without writing."
+    ),
+    "make test-cov": (
+        "the whole suite with coverage, minutes rather than seconds. `make all` runs "
+        "it before this, and CI compares the published percentage against what the "
+        "runner measured."
+    ),
+    "python scripts/release_check.py": (
+        "this file. Running it here is a recursion and not a check."
+    ),
+}
+
+
+def _first_number(text_of: str) -> int | None:
+    found = re.search(r"\b([\d][\d,.]*)\b", text_of)
+    return int(found.group(1).replace(",", "").replace(".", "")) if found else None
+
+
+def _collected(output: str) -> int | None:
+    """pytest's own summary line, which is not the only place that phrase appears.
+
+    The first version read the first `N tests collected` anywhere in the
+    output and got 2606 where the answer was 2639: the listing of collected
+    node ids includes the parametrised twins of this very check, and one of
+    them carries `2606 tests collected` inside its id. A reader that matches
+    something adjacent to what it is looking for is the shape this repository
+    keeps finding in itself, and it found it here in the check written to stop
+    a page from publishing a command that prints nothing.
+
+    So: anchored at the start of a line, which a node id never is, and the
+    last one, which is the summary.
+    """
+    found = re.findall(r"^(\d+) tests? collected", output, re.M)
+    return int(found[-1]) if found else None
+
+
+def _only_number(output: str) -> int | None:
+    found = re.search(r"^\s*(\d+)\s*$", output.strip(), re.M)
+    return int(found.group(1)) if found else None
+
+
+def _commands_in_help(output: str) -> int | None:
+    """The subcommand list in `--help`, which is not the first brace group.
+
+    `[--lang {en,es}]` comes first in the usage line, so reading the first one
+    counted two commands and the check reported the page as wrong about a
+    number the page had right. The subcommand list is the widest group, and a
+    tie means the shape changed and this has stopped knowing which is which.
+    """
+    groups = {tuple(found.split(",")) for found in re.findall(r"\{([a-z,_-]+)\}", output)}
+    if not groups:
+        return None
+    widest = max(len(group) for group in groups)
+    # DISTINCT groups: argparse prints the subcommand list twice, once in the
+    # usage line and once above the descriptions, and counting the repetition
+    # as a tie made this answer "I cannot tell" about a help text that says it
+    # perfectly clearly.
+    if sum(1 for group in groups if len(group) == widest) != 1:
+        return None
+    return widest
+
+
+# command -> (how to read a number out of its output, what that number is).
+HELD_UP_RUN = {
+    "python -m pytest --collect-only -q -o addopts=": (_collected, "tests collected"),
+    "find src -name '*.py' | xargs cat | wc -l": (_only_number, "lines of product code"),
+    "actaira --help": (_commands_in_help, "commands in the parser"),
+}
+
+
+def held_up_rows(page: str, text_of: str) -> list[tuple[str, str, str]]:
+    """(claim, command, result) for the table that says to run them.
+
+    Bounded to that one section: the pages carry other tables, and a check
+    that reads them all would be about something the section does not promise.
+    """
+    heading = HELD_UP_SECTIONS[page]
+    start = text_of.find(f"## {heading}")
+    if start < 0:
+        raise DriftError(
+            f"{page} has no section `## {heading}`, and this check exists to run the "
+            "commands that section publishes"
+        )
+    end = text_of.find("\n## ", start + 1)
+    section = text_of[start: end if end > 0 else len(text_of)]
+    rows: list[tuple[str, str, str]] = []
+    for line in section.splitlines():
+        # Split on the pipes that separate cells and not on the ones inside
+        # them. A command with a pipe in it is written `\\|` in markdown, and
+        # splitting on every pipe turned the one row with a pipeline in it into
+        # five cells and dropped it - which is the row most worth running, and
+        # the check would have gone on saying it had compared everything.
+        cells = [cell.strip() for cell in re.split(r"(?<!\\)\|", line.strip().strip("|"))]
+        if len(cells) != 3 or not cells[1].startswith("`") or not cells[1].endswith("`"):
+            continue
+        rows.append((cells[0], cells[1].strip("`").replace("\\|", "|"), cells[2]))
+    if not rows:
+        raise DriftError(f"{page}: the `{heading}` table has no rows with a command in it")
+    return rows
+
+
+def run_published(command: str) -> tuple[str, str]:
+    """Run one published command and hand back (output, what was substituted).
+
+    Through `bash -c` and as written, because the check is about the bytes on
+    the page. Rewriting `find … | xargs cat | wc -l` as three Python calls
+    would be checking something adjacent: a pipeline this file invented, which
+    can agree with the figure while the published one does not run at all.
+
+    Two substitutions, both named in the summary rather than made quietly:
+    `python` becomes the interpreter running this check, because which name
+    python has on a machine is not what the page is claiming; and `actaira`
+    becomes `python -m actaira` where the console script is not on PATH, which
+    is every checkout that has not been installed.
+    """
+    shell = shutil.which("bash")
+    if shell is None:
+        raise DriftError(
+            "there is no bash on this machine, and the commands this section publishes "
+            "are shell pipelines. Nothing was run, which is not the same as nothing "
+            "being wrong."
+        )
+    spelled = command
+    substituted = ""
+    if spelled.startswith("python "):
+        spelled = f'"{sys.executable}" ' + spelled[len("python "):]
+        substituted = "python -> the interpreter running this check"
+    if spelled.startswith("actaira ") and shutil.which("actaira") is None:
+        spelled = f'"{sys.executable}" -m actaira ' + spelled[len("actaira "):]
+        substituted = "actaira -> python -m actaira, the console script is not on PATH"
+    done = subprocess.run(  # noqa: S603 - a fixed argv, and the command is a tracked file of this repository
+        [shell, "-c", spelled], cwd=ROOT, capture_output=True, text=True, timeout=900,
+    )
+    return done.stdout + done.stderr, substituted
+
+
+@check("every command the landing pages publish as runnable prints what the row promises")
+def published_commands_run() -> str:
+    """The other half of a page that says "run any of them and disagree".
+
+    Every other check here compares two recorded facts. This one executes what
+    the page tells a stranger to type and reads what comes back, because the
+    two can come apart in a direction no comparison sees: the figure in the
+    row was right, the command beside it printed nothing, and both of those
+    were true for as long as the page existed.
+    """
+    problems: list[str] = []
+    ran = 0
+    commands_per_page: dict[str, list[str]] = {}
+    claims: dict[str, dict[str, str]] = {}
+    for page, _ in HELD_UP_SECTIONS.items():
+        rows = held_up_rows(page, (ROOT / page).read_text(encoding="utf-8"))
+        commands_per_page[page] = [command for _, command, _ in rows]
+        claims[page] = {command: claim for claim, command, _ in rows}
+
+    pages = list(commands_per_page)
+    if commands_per_page[pages[0]] != commands_per_page[pages[1]]:
+        raise DriftError(
+            "the two landing pages publish different commands in this table, so one of "
+            "them is telling a reader to run something the other does not: "
+            f"{set(commands_per_page[pages[0]]) ^ set(commands_per_page[pages[1]])}"
+        )
+
+    for command in commands_per_page[pages[0]]:
+        if command in HELD_UP_NOT_RUN:
+            continue
+        if command not in HELD_UP_RUN:
+            problems.append(
+                f"`{command}` is published as something to run and this check neither "
+                "runs it nor says why not. Add it to HELD_UP_RUN with how to read its "
+                "output, or to HELD_UP_NOT_RUN with the reason."
+            )
+            continue
+        read, what = HELD_UP_RUN[command]
+        output, substituted = run_published(command)
+        printed = read(output)
+        if printed is None:
+            tail = "\n          ".join(output.strip().splitlines()[-4:])
+            problems.append(
+                f"`{command}` was run and nothing in its output is {what}. That is the "
+                f"defect this check exists for: the row promises it. The last lines "
+                f"were:\n          {tail}"
+            )
+            continue
+        ran += 1
+        for page in pages:
+            stated = _first_number(claims[page][command])
+            if stated is None:
+                problems.append(f"{page}: the claim beside `{command}` states no figure")
+            elif stated != printed:
+                problems.append(
+                    f"{page}: the row says {stated} and `{command}` printed {printed} "
+                    f"{what}" + (f" ({substituted})" if substituted else "")
+                )
+    if problems:
+        raise DriftError("\n".join(problems))
+    if not ran:
+        raise DriftError(
+            "no published command was run at all, so this check compared nothing. It "
+            f"looked for {', '.join(HELD_UP_RUN)}"
+        )
+    return (
+        f"{ran} of {len(commands_per_page[pages[0]])} published commands run and their "
+        f"output compared against both pages; {len(HELD_UP_NOT_RUN)} named as not run, "
+        "each with its reason"
+    )
+
+
+# --------------------------------------------------------------------------
 # One way to build the distributions
 # --------------------------------------------------------------------------
 

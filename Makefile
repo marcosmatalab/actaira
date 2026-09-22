@@ -14,7 +14,7 @@
 PY ?= python3
 
 .PHONY: help install test test-cov lint figures release-check contracts design-notes demo-image report-image \
-        package source-archive types clean all
+        history-check package source-archive types clean all
 
 help:
 	@echo "install    install the package and dev extras"
@@ -28,6 +28,7 @@ help:
 	@echo "contracts  regenerate docs/CONTRACTS.md from the shipped schemas"
 	@echo "design-notes point every design-note row at the line that argues it"
 	@echo "release-check refuse a release whose parts disagree with each other"
+	@echo "history-check hold every commit body to the cap and the vocabulary"
 	@echo "package    build the wheel and the sdist into dist/ and check what is in them"
 	@echo "source-archive  zip the tracked source into dist/, from an allowlist"
 	@echo "clean      remove every generated directory and build artifact"
@@ -113,6 +114,14 @@ design-notes:
 release-check:
 	$(PY) scripts/release_check.py
 
+# The criterion of phase 6, as a command that runs forever rather than a
+# cleanup that happened once. It measures the body each commit WILL carry, so
+# it is green before the history rewrite and after it, and red the moment
+# somebody writes a body the rewrite would not have allowed. `replay.py` reads
+# the cap from the same module.
+history-check:
+	$(PY) scripts/history_check.py
+
 VERSION := $(shell $(PY) -c "import tomllib,pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")
 
 # Design note D-239. Cleans first, builds into dist/ and nowhere else, then
@@ -150,8 +159,9 @@ source-archive:
 
 # The gate, in the order a failure is cheapest to read. CI runs these same
 # steps as separate jobs rather than invoking `all`, so a red build names the
-# stage that failed instead of the word "all".
-all: lint test-cov figures release-check
+# stage that failed instead of the word "all". `history-check` is last because
+# it is the only one that reads something a working tree does not contain.
+all: lint test-cov figures release-check history-check
 
 clean:
 	rm -rf .pytest_cache .ruff_cache build dist

@@ -1182,14 +1182,23 @@ def test_a_comment_naming_the_other_way_is_not_a_second_builder():
 def test_a_workflow_set_that_builds_nothing_fails_rather_than_passing_empty(working_tree, tmp_path):
     """Work rule 11. A check for "nothing builds it the wrong way" is
     satisfied by nothing building it at all, which is the same green as a
-    pattern that matches nothing."""
+    pattern that matches nothing.
+
+    EVERY workflow, not just `ci.yml`. The first version of this twin blinded
+    one file, and the day a second workflow started building the package the
+    twin went on passing while asserting the opposite - the check found the
+    other one and said so, and the test read that as the failure it planted.
+    """
     broken = tmp_path / "no-builder"
     shutil.copytree(working_tree, broken)
-    workflow = _ci(broken)
-    workflow.write_text(
-        workflow.read_text(encoding="utf-8").replace("          make package", "          true"),
-        encoding="utf-8",
-    )
+    blinded = 0
+    for workflow in sorted((broken / ".github" / "workflows").glob("*.yml")):
+        current = workflow.read_text(encoding="utf-8")
+        if "make package" not in current:
+            continue
+        workflow.write_text(current.replace("make package", "true"), encoding="utf-8")
+        blinded += 1
+    assert blinded >= 1, "no workflow in the copy builds the package at all"
 
     section = _section(run(broken).stdout, BUILD_CHECK)
 
@@ -1329,3 +1338,281 @@ def test_the_first_screen_contract_passes_on_both_pages_as_they_are():
     for page in ("README.md", "README.es.md"):
         text_of = (Path(REPO_ROOT) / page).read_text(encoding="utf-8")
         assert module.landing_problems(page, text_of) == [], page
+
+
+# --------------------------------------------------------------------------
+# The commands the landing pages tell a reader to run
+# --------------------------------------------------------------------------
+
+PUBLISHED_CHECK = (
+    "every command the landing pages publish as runnable prints what the row promises"
+)
+
+
+def test_the_row_with_a_pipeline_in_it_is_read_as_one_row():
+    """DEF-135's neighbour. A markdown cell escapes a pipe as `\\|`, and
+    splitting the row on every pipe turned the one row with a pipeline in it
+    into five cells, which the parser then skipped - so the check would have
+    reported that it compared everything while silently dropping the row most
+    worth running."""
+    module = _release_check()
+
+    rows = module.held_up_rows(
+        "README.md", (Path(REPO_ROOT) / "README.md").read_text(encoding="utf-8")
+    )
+    commands = [command for _, command, _ in rows]
+
+    assert "find src -name '*.py' | xargs cat | wc -l" in commands
+    assert len(rows) == 7, commands
+
+
+def test_every_published_command_is_either_run_or_says_why_not():
+    """The explicitness the whole check rests on: the set that is executed is
+    a decision, not the remainder after the easy ones."""
+    module = _release_check()
+
+    rows = module.held_up_rows(
+        "README.md", (Path(REPO_ROOT) / "README.md").read_text(encoding="utf-8")
+    )
+    unaccounted = [
+        command for _, command, _ in rows
+        if command not in module.HELD_UP_RUN and command not in module.HELD_UP_NOT_RUN
+    ]
+
+    assert not unaccounted, unaccounted
+    assert set(module.HELD_UP_RUN) & set(module.HELD_UP_NOT_RUN) == set(), (
+        "a command cannot be both run and not run"
+    )
+    for command, reason in module.HELD_UP_NOT_RUN.items():
+        assert len(reason) > 40, f"{command} is not run and the reason is a shrug"
+
+
+@pytest.mark.parametrize(
+    ("reader", "output", "expected"),
+    [
+        ("_collected", "tests/test_a.py: 3\n2606 tests collected in 0.30s\n", 2606),
+        # The phrase inside a collected node id, which is where the first
+        # version of this reader found its answer: the parametrised cases of
+        # this very test are printed in the collection listing, and one of
+        # them carries the words. A node id is never at the start of a line.
+        (
+            "_collected",
+            "tests/test_x.py::test_y[2606 tests collected in 0.30s]\n"
+            "\n2639 tests collected in 16.02s\n",
+            2639,
+        ),
+        # The defect itself: the form the page published prints per-file
+        # totals and no grand total, so the reader finds nothing and the check
+        # says so rather than passing over it.
+        ("_collected", "tests/test_a.py: 3\ntests/test_b.py: 4\n\n", None),
+        ("_only_number", "15969\n", 15969),
+        ("_only_number", "no number here\n", None),
+        ("_commands_in_help", "usage: actaira [--lang {en,es}]\n {a,b,c} ...\n", 3),
+        # Two different groups of the same width: the shape changed and this
+        # has stopped knowing which one is the commands.
+        ("_commands_in_help", "{a,b} and {c,d}\n", None),
+    ],
+)
+def test_each_reader_finds_its_number_or_says_it_did_not(reader, output, expected):
+    module = _release_check()
+
+    assert getattr(module, reader)(output) == expected
+
+
+def test_a_row_whose_figure_is_off_by_one_fails(working_tree, tmp_path):
+    """The proof that the comparison is against what the command PRINTS and
+    not against another recorded figure: one digit, and the gate is red."""
+    broken = tmp_path / "off-by-one"
+    shutil.copytree(working_tree, broken)
+    # Read the figure off the page rather than writing it here. A literal
+    # would make this twin fail every time a test is added, which is the
+    # treadmill D-181 took out of the figure checks, and it would fail in a
+    # way that looks like the check being broken.
+    collected = json.loads((broken / "figures.json").read_text(encoding="utf-8"))["tests"]["collected"]
+    for name, separator in (("README.md", ","), ("README.es.md", ".")):
+        page = broken / name
+        current = page.read_text(encoding="utf-8")
+        row = f"| {collected:,}".replace(",", separator) + " tests |"
+        assert row in current, f"{name} does not state the test count as `{row}`"
+        wrong = f"| {collected + 1:,}".replace(",", separator) + " tests |"
+        page.write_text(current.replace(row, wrong, 1), encoding="utf-8")
+
+    section = _section(run(broken).stdout, PUBLISHED_CHECK)
+
+    assert section.startswith("  FAIL"), section
+    assert f"printed {collected} tests collected" in section, section
+
+
+def test_a_command_the_check_does_not_know_is_refused_rather_than_skipped(working_tree, tmp_path):
+    """Work rule 11, and the direction that actually caught the defect: the
+    page went back to publishing the command that prints nothing, and the
+    check refuses it because it is not in either table."""
+    broken = tmp_path / "unknown-command"
+    shutil.copytree(working_tree, broken)
+    for name in ("README.md", "README.es.md"):
+        page = broken / name
+        current = page.read_text(encoding="utf-8")
+        page.write_text(
+            current.replace(
+                "`python -m pytest --collect-only -q -o addopts=`",
+                "`python -m pytest --collect-only -q`", 1,
+            ),
+            encoding="utf-8",
+        )
+
+    section = _section(run(broken).stdout, PUBLISHED_CHECK)
+
+    assert section.startswith("  FAIL"), section
+    assert "neither runs it nor says why not" in section, section
+
+
+# --------------------------------------------------------------------------
+# The commit bodies
+# --------------------------------------------------------------------------
+
+
+def _history_check():
+    sys.path.insert(0, str(Path(REPO_ROOT) / "scripts"))
+    import history_check  # noqa: PLC0415
+
+    return history_check
+
+
+def test_the_history_gate_passes_on_the_bodies_this_branch_will_carry():
+    """Non-vacuity, over the real thing: it reads the commits and finds them.
+
+    `resulting_bodies` measures the body each commit WILL carry, which is why
+    this is green before the rewrite as well as after it. A reader who wants
+    to know which is the case reads the count that comes back.
+    """
+    module = _history_check()
+
+    bodies, from_the_map = module.resulting_bodies("HEAD")
+
+    assert len(bodies) > 40, f"only {len(bodies)} commits were read"
+    assert module.problems_in(bodies) == []
+    assert from_the_map >= 0
+
+
+@pytest.mark.parametrize(
+    ("planted", "expected"),
+    [
+        ({"aaaaaaaa": "Subject\n\n" + "\n".join(["body"] * 14)}, "the cap is 15"),
+        ({"bbbbbbbb": "Subject\n\nThis closes the work rule 9 twin."}, "'work rule'"),
+        ({"cccccccc": "Subject\n\nThe BUDGET for this phase was four hours."}, "'budget'"),
+        ({"dddddddd": "Subject\n\nFound in the adversarial pass."}, "'adversarial pass'"),
+        ({"eeeeeeee": "Subject\n\nLeft for a later session."}, "'a later session'"),
+    ],
+)
+def test_a_body_the_rewrite_would_not_have_allowed_is_refused(planted, expected):
+    """Work rule 9. Each way the criterion of phase 6 can be broken, planted.
+
+    The cap counts as `wc -l` over `git log --format=%B` counts: fourteen
+    lines of message plus the newline the format adds.
+    """
+    module = _history_check()
+
+    problems = module.problems_in(planted)
+
+    assert any(expected in problem for problem in problems), problems
+
+
+def test_a_body_at_the_cap_exactly_is_allowed():
+    """The other direction: a rule that refuses the boundary is a rule nobody
+    can satisfy, and the twins above would all pass under it."""
+    module = _history_check()
+
+    at_the_cap = {"ffffffff": "Subject\n\n" + "\n".join(["body"] * 12)}
+
+    assert len(at_the_cap["ffffffff"].split("\n")) + 1 == module.MAX_LINES
+    assert module.problems_in(at_the_cap) == []
+
+
+def test_the_replay_and_the_gate_hold_the_same_cap():
+    """Two checks over one property share their definition or they cancel:
+    with two copies of the cap, the replay would build a history the gate
+    refuses, and the failure would arrive after the branch had moved."""
+    module = _history_check()
+    sys.path.insert(0, str(Path(REPO_ROOT) / ".github" / "history-rewrite"))
+    import replay  # noqa: PLC0415
+
+    assert replay.MAX_LINES is module.MAX_LINES
+    assert replay.FORBIDDEN is module.FORBIDDEN
+    assert replay.problems_in is module.problems_in
+
+
+def test_the_words_the_gate_refuses_are_the_ones_the_documentation_names():
+    """A list of refused words that only exists in code is one nobody can
+    argue with, and the page that argues for it is the second copy that goes
+    stale first."""
+    module = _history_check()
+    page = (Path(REPO_ROOT) / "docs" / "ENGINEERING.md").read_text(encoding="utf-8").lower()
+
+    for word in module.FORBIDDEN:
+        assert word in page, (
+            f"{word!r} is refused by the gate and docs/ENGINEERING.md does not name it"
+        )
+    assert str(module.MAX_LINES) in page
+
+
+# --------------------------------------------------------------------------
+# The notes for the version that has not been released yet
+# --------------------------------------------------------------------------
+
+MEASURED = {"tests": {"collected": 2606}, "coverage": {"percent": "90"}}
+
+
+def test_the_notes_this_tree_would_publish_state_what_it_measures():
+    """Non-vacuity over the real file: the check reads the notes that are
+    about to be pasted into a release, and finds both figures in them."""
+    module = _release_check()
+    notes = (
+        Path(REPO_ROOT) / ".github" / "release-notes" / "v3.0.0.md"
+    ).read_text(encoding="utf-8")
+    measured = json.loads((Path(REPO_ROOT) / "figures.json").read_text(encoding="utf-8"))
+
+    problems, compared = module.note_problems(notes, measured)
+
+    assert problems == []
+    assert compared == 2
+
+
+@pytest.mark.parametrize(
+    ("planted", "expected"),
+    [
+        # The state these notes were actually in: written once, true once, and
+        # never compared with anything again.
+        ("Beta. 2,487 tests, 90% coverage.", "and this tree measures 2606"),
+        ("Beta. 2,606 tests, 88% coverage.", "and this tree measures 90"),
+        # A figure taken out of the notes is not a figure that stopped being
+        # checked: it is one nothing is holding.
+        ("Beta. 2,606 tests, green on three interpreters.", "state no coverage figure"),
+        ("Beta. 90% coverage, green everywhere.", "state no tests figure"),
+    ],
+)
+def test_notes_that_say_something_the_tree_does_not_are_refused(planted, expected):
+    module = _release_check()
+
+    problems, _ = module.note_problems(planted, MEASURED)
+
+    assert any(expected in problem for problem in problems), problems
+
+
+def test_notes_for_a_version_already_released_are_left_alone():
+    """The v2.3.0 notes record what was true when the scanner was archived.
+    Holding them to this tree would be falsifying a record, which is the same
+    argument that keeps a published tag where it is."""
+    module = _release_check()
+    old = (
+        Path(REPO_ROOT) / ".github" / "release-notes" / "v2.3.0.md"
+    ).read_text(encoding="utf-8")
+
+    from actaira import __version__  # noqa: PLC0415
+
+    assert __version__ != "2.3.0"
+    # The check reads only the file named after the current version, and this
+    # is the file it therefore never opens.
+    assert module.note_problems(old, MEASURED)[0], (
+        "the archived notes happen to agree with this tree, so this test proves "
+        "nothing; pick another figure"
+    )
