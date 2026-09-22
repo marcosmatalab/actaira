@@ -33,7 +33,7 @@ Y todo lo demás, desde un clon limpio:
 ```bash
 git clone https://github.com/marcosmatalab/actaira && cd actaira
 pip install -e ".[dev]"
-make all        # lint, la suite con su suelo de cobertura, las cifras medidas, la puerta
+make all        # lint, la suite con su suelo de cobertura, las cifras medidas, las dos puertas
 ```
 
 O `make all` está verde o esta página está equivocada. El último paso es el que
@@ -426,7 +426,7 @@ Todas las cifras de abajo salen de un comando. Corre cualquiera y discrepa.
 |---|---|---|
 | 2.640 tests | `python -m pytest --collect-only -q -o addopts=` | la misma cuenta |
 | 15.969 líneas de código de producto | `find src -name '*.py' \| xargs cat \| wc -l` | la misma cuenta |
-| 42.131 líneas de Python en el árbol | `python scripts/figures.py` | `docs/FIGURES.md`, por área |
+| 42.147 líneas de Python en el árbol | `python scripts/figures.py` | `docs/FIGURES.md`, por área |
 | 32 reglas documentadas | `python scripts/rules_doc.py` | `docs/RULES.md`, desde los paquetes |
 | 7 comandos de CLI, y no hay un octavo | `actaira --help` | los siete de arriba |
 | el suelo de cobertura aguanta | `make test-cov` | el suelo es 88 y el árbol mide 90 |
@@ -441,7 +441,7 @@ y por qué. Los nombres de campo siguen las convenciones GenAI de OpenTelemetry;
 no inventamos vocabulario donde ya existe.
 
 ```bash
-make all      # lint, test-cov, figures, release-check
+make all      # lint, test-cov, figures, release-check, history-check
 ```
 
 Dos de esas son puertas y no decoración. `scripts/release_check.py` rechaza un

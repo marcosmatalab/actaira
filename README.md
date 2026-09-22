@@ -33,7 +33,7 @@ And the whole of it, from a clean clone:
 ```bash
 git clone https://github.com/marcosmatalab/actaira && cd actaira
 pip install -e ".[dev]"
-make all        # lint, the suite with its coverage floor, the measured figures, the gate
+make all        # lint, the suite with its coverage floor, the measured figures, the two gates
 ```
 
 `make all` is green or this page is wrong. The last step is the one worth
@@ -419,7 +419,7 @@ Every figure below comes from a command. Run any of them and disagree.
 |---|---|---|
 | 2,640 tests | `python -m pytest --collect-only -q -o addopts=` | the same count |
 | 15,969 lines of product code | `find src -name '*.py' \| xargs cat \| wc -l` | the same count |
-| 42,131 lines of Python in the tree | `python scripts/figures.py` | `docs/FIGURES.md`, per area |
+| 42,147 lines of Python in the tree | `python scripts/figures.py` | `docs/FIGURES.md`, per area |
 | 32 documented rules | `python scripts/rules_doc.py` | `docs/RULES.md`, from the packs |
 | 7 CLI commands, and no eighth | `actaira --help` | the seven above |
 | the coverage floor holds | `make test-cov` | the floor is 88 and the tree measures 90 |
@@ -433,7 +433,7 @@ records what superseded each and why. Field names follow the OpenTelemetry GenAI
 semantic conventions; we do not invent vocabulary where it already exists.
 
 ```bash
-make all      # lint, test-cov, figures, release-check
+make all      # lint, test-cov, figures, release-check, history-check
 ```
 
 Two of those are gates rather than decoration. `scripts/release_check.py`
