@@ -574,7 +574,7 @@ invent vocabulary where it already exists.
 ## How the repository is held up
 
 ```bash
-make all      # lint, test, figures, release-check
+make all      # lint, test-cov, figures, release-check
 ```
 
 The release gate refuses a tree whose parts disagree with each other: a figure
@@ -583,8 +583,8 @@ does not argue it, a schema version written in two places, a document naming a
 test that no longer exists, a flag the documentation shows that the command does
 not have, and a claim on this page that the parser contradicts.
 
-2,504 tests run on every commit over 15,803 lines of product code, part of the
-38,648 lines of Python in the tree once the suite and the scripts are counted.
+2,529 tests run on every commit over 15,803 lines of product code, part of the
+39,223 lines of Python in the tree once the suite and the scripts are counted.
 Every figure here is measured by `make figures` rather than typed: the gate
 refuses a tree where a number in this file disagrees with what the code reports.
 

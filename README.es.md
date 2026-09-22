@@ -593,7 +593,7 @@ No inventamos vocabulario donde ya existe.
 ## Cómo se sostiene el repositorio
 
 ```bash
-make all      # lint, test, figures, release-check
+make all      # lint, test-cov, figures, release-check
 ```
 
 La puerta de release rechaza un árbol cuyas partes se contradicen entre sí: una
@@ -603,8 +603,8 @@ documento que nombra un test que ya no existe, un flag que la documentación
 enseña y el comando no tiene, y una afirmación de esta página que el parser
 contradice.
 
-2.504 tests corren en cada commit sobre 15.803 líneas de código de producto, de
-las 38.648 líneas de Python que hay en el árbol contando la suite y los scripts.
+2.529 tests corren en cada commit sobre 15.803 líneas de código de producto, de
+las 39.223 líneas de Python que hay en el árbol contando la suite y los scripts.
 Cada cifra de aquí la mide `make figures` en vez de escribirse a mano: la puerta
 rechaza un árbol donde un número de este fichero no coincide con lo que el código
 reporta.

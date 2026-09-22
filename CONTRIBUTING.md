@@ -23,7 +23,7 @@ make contracts   # regenerate docs/CONTRACTS.md from the shipped schemas
 make design-notes # point every design-note row at the line that argues it
 make release-check # refuse a tree whose parts disagree with each other
 make package     # build the wheel and sdist into dist/ and check what is in them
-make all         # lint, test, figures, release-check
+make all         # lint, test-cov, figures, release-check
 ```
 
 **`make all` is the gate.** `.github/workflows/ci.yml` runs on every push to

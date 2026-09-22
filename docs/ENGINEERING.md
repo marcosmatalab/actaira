@@ -16,21 +16,30 @@ drifted. They are not repeated here.
 make lint            # ruff
 make types           # mypy, as a ratchet
 make test            # the suite
-make eval            # the policy comparison over the generated corpus
-make eval-marking    # the Article 50(2) survival matrix
-make benchmark       # picklescan, modelscan and fickling on the same artifacts
-make fuzz            # the CI budget; make fuzz-long for ten times more
-make screenshots     # every picture of the interface, from a running server
-make diagrams        # every generated figure, from the code and the measurements
+make test-cov        # the suite, with the coverage floor
+make types           # the mypy ratchet, outside the gate on purpose
 make figures         # regenerate the measurements from the repository itself
+make contracts       # the contract index, from the schemas the package ships
+make rules           # docs/RULES.md, from the rule packs the package ships
+make design-notes    # every design-note row against the line that argues it
 make release-check   # refuse a tree whose parts disagree with each other
+make package         # build the distributions and assert what is inside them
 make all             # the gate a change is held against
 ```
 
 No step is allowed a `|| true`. A step that cannot fail is not a check.
 
+This list carried six more entries for two releases after the targets behind
+them went to tag v2.3.0 with the scanner they measured: `eval`,
+`eval-marking`, `benchmark`, `fuzz`, `screenshots` and `diagrams`. A page
+naming a command the tree does not have is the defect this repository's own
+gate exists to refuse, so the gate refuses it now: `release_check.py` reads
+every make target written inside code on a document and fails on one the
+Makefile does not define.
+
 `.github/workflows/ci.yml` runs the same gates on every push and every pull
-request, across Python 3.11, 3.12 and 3.13.
+request, across Python 3.11, 3.12 and 3.13, plus `release-check` and a
+re-measurement of the figures that has to leave no diff.
 
 ---
 
@@ -54,7 +63,19 @@ had:
 - three CLI commands run twice under different hash seeds, byte for byte;
 - every image in `docs/img/` against the document that displays it;
 - every finished document against the words `score`, `grade`, `rating` and
-  `percent`.
+  `percent`;
+- every path `pyproject.toml` and `MANIFEST.in` name against the tree, because
+  ruff and setuptools both answer a miss with silence;
+- every fixture under `tests/fixtures/` against the suite that is supposed to
+  read it;
+- every `make <target>` a document names against the Makefile.
+
+Two gates live in the suite rather than here, because they are properties of
+the code rather than agreements between documents: `tests/test_reachability.py`
+fails on a module no command can reach, and `tests/test_layering.py` fails on
+an import the architecture does not allow. The second is an ALLOWLIST of edges
+and not a list of prohibitions: a prohibition list is silent about the package
+nobody thought of, and an allowlist fails on the edge it has never seen.
 
 ---
 
@@ -97,10 +118,10 @@ holds it down. `make figures` checks every test the ledger names against what
 pytest actually collects, so a renamed test is reported by name rather than
 leaving a total that still looks healthy.
 
-145 defects have been found here, by 20 distinct mechanisms, and every one of
+147 defects have been found here, by 20 distinct mechanisms, and every one of
 them was found by a mechanism that can fail. 0 still open.
-52 were never in a released build and are marked as such rather than dropped.
-Every entry is held down: 26 pinned by a named test, and 103 by a written note,
+54 were never in a released build and are marked as such rather than dropped.
+Every entry is held down: 28 pinned by a named test, and 103 by a written note,
 where a named test would be a weaker copy of what the linter or the gate
 already does.
 

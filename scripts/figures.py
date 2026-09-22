@@ -593,6 +593,36 @@ def collect() -> Report:
     })
 
 
+# The two blocks that move without the tree moving: a wall clock and whatever
+# HEAD happens to be. Everything else here is a measurement of files on disk.
+STAMPS = ("generated_at", "git")
+
+
+def keep_the_stamps_when_nothing_was_measured_differently(
+    measured: dict[str, Any], existing: dict[str, Any]
+) -> None:
+    """Carry the previous stamp over when every measured block is identical.
+
+    `make figures` rewrote `generated_at` on every run and `git` on every
+    commit, so it always left the tree dirty and `git diff --exit-code` could
+    never be the thing that catches a drifted figure. A generated file that
+    changes without its inputs changing cannot be gated on.
+
+    So the stamp says when these figures were last measured to be DIFFERENT,
+    which is the honest reading of it and the one that makes the file a
+    function of the tree. Rejected: deleting the stamp, which would take
+    `git.commits` and `git.head` out of the artifact; `release_check.py`
+    checks those against the commit they name, and a figure that leaves the
+    guarded set is unguarded rather than moved.
+    """
+    if any(measured.get(block) != existing.get(block)
+           for block in measured if block not in STAMPS):
+        return
+    for block in STAMPS:
+        if block in existing:
+            measured[block] = existing[block]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Measure this repository and write docs/FIGURES.md")
     parser.add_argument("--print", dest="print_only", action="store_true",
@@ -602,6 +632,10 @@ def main() -> int:
     arguments = parser.parse_args()
 
     report = collect()
+    if arguments.json_out.is_file():
+        keep_the_stamps_when_nothing_was_measured_differently(
+            report.figures, json.loads(arguments.json_out.read_text(encoding="utf-8"))
+        )
     markdown = report.markdown()
     if arguments.print_only:
         print(markdown)
