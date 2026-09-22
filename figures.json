@@ -74,21 +74,21 @@
       "note": "this script"
     },
     "tests": {
-      "blank": 4289,
-      "code": 11274,
-      "comment": 1320,
-      "docstring": 3329,
+      "blank": 4290,
+      "code": 11280,
+      "comment": 1324,
+      "docstring": 3334,
       "files": 52,
-      "lines": 20212,
+      "lines": 20228,
       "note": "the test suite"
     },
     "total": {
-      "blank": 7100,
-      "code": 24813,
-      "comment": 3159,
-      "docstring": 7059,
+      "blank": 7101,
+      "code": 24819,
+      "comment": 3163,
+      "docstring": 7064,
       "files": 116,
-      "lines": 42131,
+      "lines": 42147,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -256,12 +256,12 @@
     },
     "total_lines": 850
   },
-  "generated_at": "2026-09-22T17:49:45+00:00",
+  "generated_at": "2026-09-22T18:05:03+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 56,
-    "head": "ab7fe62",
+    "commits": 57,
+    "head": "7cdd60d",
     "head_date": "2026-09-22"
   },
   "package": {

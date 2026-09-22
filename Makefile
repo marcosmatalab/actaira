@@ -32,7 +32,7 @@ help:
 	@echo "package    build the wheel and the sdist into dist/ and check what is in them"
 	@echo "source-archive  zip the tracked source into dist/, from an allowlist"
 	@echo "clean      remove every generated directory and build artifact"
-	@echo "all        lint, test-cov, figures, release-check"
+	@echo "all        lint, test-cov, figures, release-check, history-check"
 
 install:
 	$(PY) -m pip install -e ".[dev]"
