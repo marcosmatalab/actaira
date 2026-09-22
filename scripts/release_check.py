@@ -1827,6 +1827,95 @@ def the_demo_image_renders_anywhere() -> str:
 
 
 # --------------------------------------------------------------------------
+# The publication happens once, the rehearsal as often as it takes
+# --------------------------------------------------------------------------
+
+RELEASE_WORKFLOW = ".github/workflows/release.yml"
+PUBLISH_ACTION = "pypa/gh-action-pypi-publish"
+TEST_INDEX = "test.pypi.org"
+REPEATABLE = "skip-existing"
+
+
+def publishing_jobs(text_of: str) -> dict[str, str]:
+    """job name -> its block, for the jobs that upload to an index.
+
+    Read as text and not as YAML on purpose: `make all` runs with the `dev`
+    extra and nothing else, and a gate that needs a parser the package does
+    not depend on is a gate that stops running the day somebody installs
+    exactly what the project asks for.
+    """
+    jobs: dict[str, str] = {}
+    current: str | None = None
+    lines: list[str] = []
+    for line in text_of.splitlines():
+        started = re.match(r"^  ([a-z][a-z0-9_-]*):\s*$", line)
+        if started:
+            if current is not None:
+                jobs[current] = "\n".join(lines)
+            current, lines = started.group(1), []
+            continue
+        if current is not None:
+            lines.append(line)
+    if current is not None:
+        jobs[current] = "\n".join(lines)
+    return {name: body for name, body in jobs.items() if PUBLISH_ACTION in body}
+
+
+def publish_problems(jobs: dict[str, str]) -> list[str]:
+    """Pure. The rehearsal may repeat itself; the publication may not."""
+    problems: list[str] = []
+    for name, body in sorted(jobs.items()):
+        rehearsal = TEST_INDEX in body
+        repeatable = REPEATABLE in body
+        if rehearsal and not repeatable:
+            problems.append(
+                f"the `{name}` job publishes to the test index and does not carry "
+                f"`{REPEATABLE}`. A rehearsal that has uploaded once cannot upload "
+                "again, so its second run dies at the step the first one passed and "
+                "the error names the index rather than the cause."
+            )
+        if not rehearsal and repeatable:
+            problems.append(
+                f"the `{name}` job publishes to the real index and carries "
+                f"`{REPEATABLE}`, which turns publishing 3.0.0 twice into a green "
+                "build. A version that is already there is a mistake and has to say so."
+            )
+    return problems
+
+
+@check("the rehearsal can be repeated and the publication cannot")
+def publishing_happens_once() -> str:
+    """The asymmetry the whole release order rests on.
+
+    Everything reversible is done before everything that is not, and the last
+    irreversible step is the upload to PyPI. `skip-existing` is what makes the
+    TestPyPI job survivable - a rehearsal that fails after its upload is run
+    again, and the second run gets past the step the first one already did -
+    and it is the one thing that must never reach the job beside it, where it
+    would make a second publication of the same version look like a success.
+    """
+    path = ROOT / RELEASE_WORKFLOW
+    if not path.is_file():
+        raise DriftError(
+            f"{RELEASE_WORKFLOW} is not in the tree, and it is what builds, attests and "
+            "publishes the distributions"
+        )
+    jobs = publishing_jobs(path.read_text(encoding="utf-8"))
+    if len(jobs) != 2:
+        raise DriftError(
+            f"{RELEASE_WORKFLOW} has {len(jobs)} job(s) using `{PUBLISH_ACTION}` and this "
+            f"check knows two, a rehearsal and a publication: {sorted(jobs) or 'none'}"
+        )
+    problems = publish_problems(jobs)
+    if problems:
+        raise DriftError("\n".join(problems))
+    return (
+        f"{len(jobs)} publishing jobs: the one that uploads to {TEST_INDEX} may repeat "
+        "itself, and the one that uploads to PyPI may not"
+    )
+
+
+# --------------------------------------------------------------------------
 # The notes for the version that has not been released yet
 # --------------------------------------------------------------------------
 

@@ -1616,3 +1616,68 @@ def test_notes_for_a_version_already_released_are_left_alone():
         "the archived notes happen to agree with this tree, so this test proves "
         "nothing; pick another figure"
     )
+
+
+# --------------------------------------------------------------------------
+# The publication happens once, the rehearsal as often as it takes
+# --------------------------------------------------------------------------
+
+REHEARSAL = """    name: the rehearsal
+    steps:
+      - uses: pypa/gh-action-pypi-publish@abc
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+"""
+
+PUBLICATION = """    name: publish
+    steps:
+      - uses: pypa/gh-action-pypi-publish@abc
+        with:
+          packages-dir: dist
+"""
+
+
+def test_the_release_workflow_has_one_of_each_and_this_check_reads_them():
+    """Non-vacuity over the real file: two publishing jobs, found by name."""
+    module = _release_check()
+    workflow = (
+        Path(REPO_ROOT) / ".github" / "workflows" / "release.yml"
+    ).read_text(encoding="utf-8")
+
+    jobs = module.publishing_jobs(workflow)
+
+    assert sorted(jobs) == ["pypi", "testpypi"], sorted(jobs)
+    assert module.publish_problems(jobs) == []
+
+
+def test_a_rehearsal_that_cannot_be_repeated_is_refused():
+    """The case the runbook now has three paragraphs about: the upload
+    succeeds, the install fails, and the second run dies at the step the first
+    one already passed."""
+    module = _release_check()
+
+    problems = module.publish_problems(
+        {"testpypi": REHEARSAL.replace("          skip-existing: true\n", "")}
+    )
+
+    assert any("cannot upload" in problem for problem in problems), problems
+
+
+def test_a_publication_that_can_be_repeated_is_refused():
+    """The other direction, and the worse one: `skip-existing` on the job that
+    uploads to PyPI turns publishing a version twice into a green build."""
+    module = _release_check()
+
+    problems = module.publish_problems(
+        {"pypi": PUBLICATION + "          skip-existing: true\n"}
+    )
+
+    assert any("looks like a success" in problem or "green build" in problem
+               for problem in problems), problems
+
+
+def test_the_pair_as_it_stands_is_accepted():
+    module = _release_check()
+
+    assert module.publish_problems({"testpypi": REHEARSAL, "pypi": PUBLICATION}) == []
