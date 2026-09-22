@@ -268,10 +268,34 @@ order mark by default, ssh reads that file as bytes, and the first line then
 matches nobody.
 
 **The two environments the publish jobs run in.** Repository settings →
-Environments → New environment, twice, named exactly `pypi` and `testpypi`. No
-protection rules are required; what they are for is that PyPI's publisher form
-names one of them, so a workflow run that is not the release workflow cannot
-mint a token for it.
+Environments → New environment, twice, named exactly `pypi` and `testpypi`.
+What they are for in the first place is that PyPI's publisher form names one of
+them, so a workflow run that is not the release workflow cannot mint a token
+for it.
+
+**Yes, `pypi` takes required reviewers, and put yourself on it.** Environments
+carry three protection rules - required reviewers (up to six), a wait timer,
+and a deployment branch and tag policy - and required reviewers is available on
+a public repository at no cost. Turn it on for `pypi` and on nothing else:
+
+> Settings → Environments → `pypi` → Required reviewers → add yourself → Save.
+
+What it buys is the thing no check in this tree can buy. The gate refuses a
+workflow where a `workflow_dispatch` could reach the PyPI job, and it refuses
+it here, in a tree somebody has to change and commit. A protection rule refuses
+it at the moment it would happen, on the run, when the workflow is whatever it
+is that day: the job stops before its first step, GitHub notifies you, and the
+run waits. A mistaken trigger becomes a message asking whether you meant it
+instead of a version that is gone.
+
+It costs one click on every real release, which is a click on the one step in
+this file that cannot be taken back.
+
+Leave the wait timer alone - it delays without asking anybody anything - and
+leave the branch policy alone unless you read this first: a run started by
+`release: published` carries `refs/tags/v3.0.0` and not a branch, so a policy
+that allows only `main` blocks the publication rather than protecting it. If
+you want one, it has to be the tag pattern `v*`.
 
 **The two trusted publishers.** On PyPI and on TestPyPI, under the account's
 Publishing page, add a *pending publisher* (the project does not exist yet and
@@ -383,7 +407,12 @@ and then publishes to PyPI.
 
 **The release is public with no files attached for the few minutes that takes,
 and that is the workflow working rather than failing.** Anybody looking at the
-releases page in that window sees notes and no downloads. Watch it to the end:
+releases page in that window sees notes and no downloads.
+
+With required reviewers on the `pypi` environment, the run also stops before
+that last job and waits for you: the assets are attached, the notification
+arrives, and PyPI has not been touched. Approve it on the run page. Watch it to
+the end:
 
 ```bash
 gh run watch "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')"
