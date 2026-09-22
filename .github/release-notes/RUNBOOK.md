@@ -335,7 +335,7 @@ rehearsal is meant to be repeatable and a publication is meant to happen once.
   bytes the runner built and attested:
 
   ```powershell
-  gh run download "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')" --name dist --dir $HOMEctaira-rehearsal
+  gh run download "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')" --name dist --dir $HOME\actaira-rehearsal
   ```
 
   ```bash
@@ -373,9 +373,7 @@ on the tag and on the release.
 Create it from the notes in this directory, with **no files attached**:
 
 ```bash
-gh release create v3.0.0 --title "Actaira 3.0.0" \
-    --notes-file .github/release-notes/v3.0.0.md \
-    --verify-tag
+gh release create v3.0.0 --title "Actaira 3.0.0" --notes-file .github/release-notes/v3.0.0.md --verify-tag
 ```
 
 Publishing it starts `.github/workflows/release.yml`, which builds the wheel
