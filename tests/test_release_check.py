@@ -818,3 +818,46 @@ def test_prose_that_happens_to_say_make_is_left_alone(working_tree, tmp_path):
     section = _section(run(fine).stdout, MAKE_CHECK)
 
     assert section.startswith("  ok"), section
+
+
+LICENCE_CHECK = "the licence is the same one everywhere it is stated"
+
+
+def test_a_page_that_names_the_other_licence_fails(working_tree, tmp_path):
+    """The relicensing reached four files and not the READMEs, once."""
+    broken = tmp_path / "two-licences"
+    shutil.copytree(working_tree, broken)
+    page = broken / "README.md"
+    page.write_text(
+        page.read_text(encoding="utf-8") + "\n" + "Also available under MIT." + "\n",
+        encoding="utf-8",
+    )
+
+    section = _section(run(broken).stdout, LICENCE_CHECK)
+
+    assert section.startswith("  FAIL"), section
+    assert "MIT" in section, section
+
+
+def test_a_word_that_merely_contains_a_licence_name_is_not_one(working_tree, tmp_path):
+    """`docs/LIMITS.md` spells L-I-M-I-T-S, and the check read MIT out of it.
+
+    It compared by substring, so the day the landing page grew a link to the
+    limits page the gate announced that README.md names MIT. A check that finds
+    a licence inside an unrelated word is not stricter, it is wrong in the
+    direction that gets a gate switched off.
+    """
+    fine = tmp_path / "limits-link"
+    shutil.copytree(working_tree, fine)
+    page = fine / "README.md"
+    page.write_text(
+        page.read_text(encoding="utf-8")
+        + "\n"
+        + "See [the limits](docs/LIMITS.md), and the SUMMIT of what it will not claim."
+        + "\n",
+        encoding="utf-8",
+    )
+
+    section = _section(run(fine).stdout, LICENCE_CHECK)
+
+    assert section.startswith("  ok"), section

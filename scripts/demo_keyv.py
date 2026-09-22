@@ -99,6 +99,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--keep", action="store_true",
                         help="leave the repository on disk and print where it is")
     parser.add_argument("--lang", choices=("en", "es"), default="en")
+    # The same run, also written as the self-contained HTML report. It is here
+    # rather than as a second script because the report and the terminal block
+    # have to be of ONE run: two runs is two reconstructions, and the point of
+    # this demo is that the picture on the landing page is the tool's output.
+    parser.add_argument("--html", type=Path, default=None,
+                        help="also write the self-contained HTML report to this path")
     arguments = parser.parse_args(argv)
 
     sys.path.insert(0, str(ROOT / "src"))
@@ -109,9 +115,10 @@ def main(argv: list[str] | None = None) -> int:
         build(where)
         # Through `cli.main`, so what this prints is what the command prints -
         # not a second rendering that could drift from it.
-        code = cli.main([
-            "--lang", arguments.lang, "diff", "--repo", str(where), "--", "HEAD~1", "HEAD",
-        ])
+        argv_out = ["--lang", arguments.lang, "diff", "--repo", str(where)]
+        if arguments.html is not None:
+            argv_out += ["--html", str(arguments.html.resolve())]
+        code = cli.main([*argv_out, "--", "HEAD~1", "HEAD"])
     finally:
         if arguments.keep:
             print(f"\nthe repository is at {where}", file=sys.stderr)

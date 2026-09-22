@@ -112,7 +112,7 @@ inside a section that is otherwise live: **3.4** (CycloneDX ML-BOM) and **3.5**
 | D-298 | A SARIF level is a transliteration of one rule author's label, one result at a time, and never a fold across findings | `src/actaira/report/sarif.py:10` |
 | D-299 | `diff` exits non-zero on what ARRIVED, not on everything in the repository, because a finding that was already there is `check`'s to report | `src/actaira/surface/diff.py:633` |
 | D-300 | The bounded disk primitives live under their own name, because six readers for other vendors were importing them from a manufacturer's module | `src/actaira/surface/disk.py:3` |
-| D-301 | Every claim a README makes about a command, a flag or an exit code resolves against the parser, and a claim block that names no command is refused | `scripts/release_check.py:670` |
+| D-301 | Every claim a README makes about a command, a flag or an exit code resolves against the parser, and a claim block that names no command is refused | `scripts/release_check.py:678` |
 | D-302 | The proxy sends the agent nothing when the server sent nothing, so a client with no deadline of its own waits, because fabricating a reply would put a message the server never sent into the agent's input | `src/actaira/proxy/stdio.py:373` |
 
 Thirty-nine rows left this table in phase A, with the modules they argued

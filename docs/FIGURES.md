@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-22T11:40:32+00:00 for actaira 3.0.0, at commit 8e0285f.
+Generated 2026-09-22T12:32:42+00:00 for actaira 3.0.0, at commit 1883706.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, pytest-cov>=5, ruff>=0.6, jsonschema>=4.18
-- 44 commits, most recent 2026-09-22
+- 45 commits, most recent 2026-09-22
 
 ## Tests
 
-**2537** tests collected by pytest across 44 files.
+**2544** tests collected by pytest across 44 files.
 
 | file | tests |
 |---|---:|
@@ -31,7 +31,7 @@ Generated 2026-09-22T11:40:32+00:00 for actaira 3.0.0, at commit 8e0285f.
 | `tests/test_chain_domain_separation.py` | 14 |
 | `tests/test_cli.py` | 32 |
 | `tests/test_consistency.py` | 285 |
-| `tests/test_defect_ledger.py` | 524 |
+| `tests/test_defect_ledger.py` | 528 |
 | `tests/test_design_notes.py` | 87 |
 | `tests/test_diff.py` | 25 |
 | `tests/test_dsse.py` | 25 |
@@ -50,8 +50,8 @@ Generated 2026-09-22T11:40:32+00:00 for actaira 3.0.0, at commit 8e0285f.
 | `tests/test_proxy_protocol.py` | 17 |
 | `tests/test_proxy_transports.py` | 28 |
 | `tests/test_reachability.py` | 48 |
-| `tests/test_readme_parity.py` | 29 |
-| `tests/test_release_check.py` | 29 |
+| `tests/test_readme_parity.py` | 30 |
+| `tests/test_release_check.py` | 31 |
 | `tests/test_scan_claude_code.py` | 33 |
 | `tests/test_schemas.py` | 24 |
 | `tests/test_seal_and_report.py` | 21 |
@@ -68,11 +68,11 @@ Generated 2026-09-22T11:40:32+00:00 for actaira 3.0.0, at commit 8e0285f.
 | `tests/test_value_inventory.py` | 7 |
 | `tests/test_verify_strictness.py` | 23 |
 | `tests/test_workflow_shell.py` | 5 |
-| **total** | **2537** |
+| **total** | **2544** |
 
 ## Defects found in this repository
 
-**148** defects, from `docs/defects.json` (130 entries), found by **20** different mechanisms. **29** are pinned by a named regression test, across 47 tests. 93 were defects in the shipped tool; the rest were found the same way but lived in the measuring apparatus, and each says so.
+**149** defects, from `docs/defects.json` (131 entries), found by **20** different mechanisms. **30** are pinned by a named regression test, across 49 tests. 93 were defects in the shipped tool; the rest were found the same way but lived in the measuring apparatus, and each says so.
 
 | what found it | defects |
 |---|---:|
@@ -86,8 +86,8 @@ Generated 2026-09-22T11:40:32+00:00 for actaira 3.0.0, at commit 8e0285f.
 | test suite | 7 |
 | using the tool as a person would | 6 |
 | running it on the runner for the first time | 5 |
+| running the gate | 5 |
 | real-serialiser corpus | 4 |
-| running the gate | 4 |
 | running the harness | 3 |
 | benchmark self-tests | 2 |
 | writing a test for an adjacent feature | 2 |
@@ -96,7 +96,7 @@ Generated 2026-09-22T11:40:32+00:00 for actaira 3.0.0, at commit 8e0285f.
 | exhaustive sweep | 1 |
 | reading the vendor's documentation | 1 |
 | running the gate on the development machine | 1 |
-| **total** | **148** |
+| **total** | **149** |
 
 Every test named in the ledger was checked against what pytest collects: all of them are collected.
 Pinned by a note rather than by a test, with the reason stated in the ledger: DEF-01, DEF-03, DEF-04, DEF-05, DEF-06, DEF-07, DEF-08, DEF-09, DEF-10, DEF-13, DEF-15, DEF-16, DEF-17, DEF-18, DEF-19, DEF-20, DEF-21, DEF-22, DEF-23, DEF-24, DEF-25, DEF-26, DEF-27, DEF-28, DEF-29, DEF-30, DEF-31, DEF-32, DEF-33, DEF-34, DEF-35, DEF-36, DEF-37, DEF-40, DEF-43, DEF-44, DEF-45, DEF-46, DEF-47, DEF-48, DEF-49, DEF-50, DEF-51, DEF-52, DEF-54, DEF-55, DEF-56, DEF-57, DEF-58, DEF-59, DEF-60, DEF-61, DEF-62, DEF-65, DEF-66, DEF-67, DEF-68, DEF-69, DEF-70, DEF-71, DEF-72, DEF-73, DEF-74, DEF-75, DEF-76, DEF-77, DEF-78, DEF-79, DEF-80, DEF-81, DEF-82, DEF-83, DEF-84, DEF-85, DEF-86, DEF-87, DEF-88, DEF-89, DEF-90, DEF-91, DEF-92, DEF-93, DEF-94, DEF-95, DEF-97, DEF-98, DEF-99, DEF-101, DEF-102, DEF-103, DEF-104, DEF-105, DEF-106, DEF-107, DEF-108, DEF-109, DEF-110, DEF-111, DEF-112, DEF-113, DEF-114, DEF-115, DEF-116.
@@ -116,9 +116,9 @@ and the modules are the source of truth.
 | schemas | 1 | 126 | 27 | 36 | 43 | 20 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
 | rest | 18 | 6455 | 4254 | 969 | 412 | 820 |
-| tests | 51 | 19139 | 10683 | 3176 | 1217 | 4063 |
-| scripts | 12 | 4372 | 2751 | 676 | 388 | 557 |
-| **total** | 109 | 39314 | 23303 | 6562 | 2831 | 6618 |
+| tests | 51 | 19208 | 10713 | 3183 | 1237 | 4075 |
+| scripts | 14 | 4725 | 2965 | 743 | 414 | 603 |
+| **total** | 111 | 39736 | 23547 | 6636 | 2877 | 6676 |
 
 Documentation, in lines of Markdown:
 

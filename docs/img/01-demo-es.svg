@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="718" viewBox="0 0 920 718" role="img" aria-label="The output of python3 scripts/demo_keyv.py --lang es">
+  <rect width="920" height="718" rx="8" fill="#11151c"/>
+  <path d="M0 8a8 8 0 0 1 8-8h904a8 8 0 0 1 8 8v26H0z" fill="#1b212b"/>
+  <circle cx="20" cy="17" r="5" fill="#ff5f57"/>
+  <circle cx="38" cy="17" r="5" fill="#febc2e"/>
+  <circle cx="56" cy="17" r="5" fill="#28c840"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="14">
+    <text x="22" y="70" fill="#7d8590" xml:space="preserve">$ python3 scripts/demo_keyv.py --lang es</text>
+    <text x="22" y="110" fill="#e6edf3" xml:space="preserve">Que ha cambiado entre HEAD~1 y HEAD</text>
+    <text x="22" y="150" fill="#e6edf3" xml:space="preserve">APARECE: 1</text>
+    <text x="22" y="170" fill="#3fb950" xml:space="preserve">  + claude-code  hook.command  .claude/settings.json  [project]</text>
+    <text x="22" y="190" fill="#c9d1d9" xml:space="preserve">      despues  effective  63a9a33e2cd93139</text>
+    <text x="22" y="210" fill="#f85149" xml:space="preserve">      ! ACT-S001  Un hook ejecuta un comando en un evento de arranque de sesión, así que abrir una</text>
+    <text x="22" y="230" fill="#f85149" xml:space="preserve">        sesión lo ejecuta antes de que nadie haya leído nada.</text>
+    <text x="22" y="250" fill="#c9d1d9" xml:space="preserve">        regla escrita por  Actaira core core / high</text>
+    <text x="22" y="270" fill="#c9d1d9" xml:space="preserve">        sugerido por la regla: Remove the hook, or move it to ~/.claude/settings.json where it is yours</text>
+    <text x="22" y="290" fill="#c9d1d9" xml:space="preserve">          rather than the repository's. A hook on a session-start event runs before you have read</text>
+    <text x="22" y="310" fill="#c9d1d9" xml:space="preserve">          anything.</text>
+    <text x="22" y="330" fill="#f85149" xml:space="preserve">      ! ACT-S003  Un hook ejecuta un script de este repositorio, así que quien pueda meter un commit</text>
+    <text x="22" y="350" fill="#f85149" xml:space="preserve">        decide qué se ejecuta.</text>
+    <text x="22" y="370" fill="#c9d1d9" xml:space="preserve">        regla escrita por  Actaira core core / medium</text>
+    <text x="22" y="390" fill="#c9d1d9" xml:space="preserve">        sugerido por la regla: Tie your approval to the script's sha256 rather than its path: the file</text>
+    <text x="22" y="410" fill="#c9d1d9" xml:space="preserve">          at that path can change after you read it, and the hook will run whatever is there.</text>
+    <text x="22" y="450" fill="#e6edf3" xml:space="preserve">No se pudo resolver en uno de los dos lados: 2</text>
+    <text x="22" y="470" fill="#d29922" xml:space="preserve">  ? ACT-S016 on task.command</text>
+    <text x="22" y="490" fill="#c9d1d9" xml:space="preserve">      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's</text>
+    <text x="22" y="510" fill="#c9d1d9" xml:space="preserve">        own settings file can set it, and no scope this run read says either way (run with --machine)</text>
+    <text x="22" y="530" fill="#d29922" xml:space="preserve">  ? a change to vscode task.command</text>
+    <text x="22" y="550" fill="#c9d1d9" xml:space="preserve">      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's</text>
+    <text x="22" y="570" fill="#c9d1d9" xml:space="preserve">        own settings file can set it, and no scope this run read says either way (run with --machine)</text>
+    <text x="22" y="610" fill="#e6edf3" xml:space="preserve">Identicas en los dos lados: 0</text>
+    <text x="22" y="630" fill="#e6edf3" xml:space="preserve">Visto y no leído en esta versión: 7</text>
+    <text x="22" y="670" fill="#e6edf3" xml:space="preserve">La configuración DECLARA; no demuestra comportamiento. Un hook escrito no es un hook que se ejecutó, y</text>
+    <text x="22" y="690" fill="#e6edf3" xml:space="preserve">  uno ausente no prueba que no se ejecutara nada (límite publicado 11).</text>
+  </g>
+</svg>

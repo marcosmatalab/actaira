@@ -13,7 +13,7 @@
 # that give them something to measure.
 PY ?= python3
 
-.PHONY: help install test test-cov lint figures release-check contracts design-notes \
+.PHONY: help install test test-cov lint figures release-check contracts design-notes demo-image report-image \
         package source-archive types clean all
 
 help:
@@ -23,6 +23,8 @@ help:
 	@echo "lint       run ruff"
 	@echo "types      hold every mypy-clean module clean; needs the types extra"
 	@echo "figures    measure the repository into docs/FIGURES.md and figures.json"
+	@echo "demo-image draw the demo command output into docs/img/01-demo.svg"
+	@echo "report-image  capture the HTML report into docs/img/02-report.png"
 	@echo "contracts  regenerate docs/CONTRACTS.md from the shipped schemas"
 	@echo "design-notes point every design-note row at the line that argues it"
 	@echo "release-check refuse a release whose parts disagree with each other"
@@ -65,6 +67,23 @@ types:
 figures:
 	$(PY) scripts/figures.py
 	$(PY) scripts/sync_readme_figures.py
+
+# The two pictures the landing page shows, each from the command it shows.
+#
+# `demo-image` is text and the release gate refuses a tree where it has drifted,
+# on the same argument as every figure: a published artifact nobody can
+# regenerate is one nobody can check. Rejected: an asciinema recording rendered
+# to a GIF, which is what a reader expects and which nothing here could ever
+# compare against the tool.
+#
+# `report-image` needs a Chromium and is therefore NOT in `all` and not gated: a
+# gate must not need a browser. What the gate does instead is refuse a
+# `docs/img/` holding a picture no document displays.
+demo-image:
+	$(PY) scripts/terminal_svg.py
+
+report-image:
+	$(PY) scripts/report_image.py
 
 # The index of published contracts, written from the schemas the package
 # ships rather than by hand. An index typed by hand is a fourth place a
