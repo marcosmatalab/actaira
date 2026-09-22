@@ -1,6 +1,6 @@
 # Published limits
 
-What Actaira cannot show you, in the same place every release. These are in the
+What Seamark cannot show you, in the same place every release. These are in the
 report the tool prints, in [`README.md`](../README.md) as a link, and here. They
 do not get softened to sell better, and a claim anywhere in this repository that
 contradicts one of them is a defect in the claim.
@@ -51,6 +51,6 @@ contradicts one of them is a defect in the claim.
 ---
 
 The Spanish text of this page is [`LIMITS.es.md`](LIMITS.es.md), and it is not
-a courtesy: `actaira --lang es` prints the same limits, so both languages have
+a courtesy: `seamark --lang es` prints the same limits, so both languages have
 to state the same number of them and `tests/test_proxy_completeness.py` fails
 when they do not.

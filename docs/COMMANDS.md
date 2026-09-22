@@ -10,13 +10,13 @@ here that the parser does not have, and on one the parser has that nothing
 promises.
 
 ```
-actaira check     read this repo's agent configuration and resolve what it permits
-actaira diff      say what capability changed between two moments
-actaira seal      sign a baseline of the surface, carrying no content
-actaira verify    verify a signed package offline
-actaira keygen    create, rotate or revoke a signing key
-actaira scan      read the sessions an agent already recorded on this machine (L0)
-actaira watch     record a run from outside the agent, through an MCP proxy (L1)
+seamark check     read this repo's agent configuration and resolve what it permits
+seamark diff      say what capability changed between two moments
+seamark seal      sign a baseline of the surface, carrying no content
+seamark verify    verify a signed package offline
+seamark keygen    create, rotate or revoke a signing key
+seamark scan      read the sessions an agent already recorded on this machine (L0)
+seamark watch     record a run from outside the agent, through an MCP proxy (L1)
 ```
 
 The exit codes every one of them can produce are published in
@@ -24,7 +24,7 @@ The exit codes every one of them can produce are published in
 
 ---
 
-## `actaira check` - what an agent can do here
+## `seamark check` - what an agent can do here
 
 `check` reads the agent configuration in this repository, resolves what it
 actually permits across scopes and across vendors, and applies the rule packs.
@@ -45,11 +45,11 @@ synced to members, and Codex's MDM and cloud-delivered requirements. Those are
 INDETERMINATE with the cause named, never reported as absent.
 
 ```
-actaira check                                   # this repository
-actaira check --machine                         # and the user and managed scopes
-actaira check --agent-version claude-code=2.1.257
-actaira check --json                            # a surface/v1 document
-actaira check --html report.html                # one self-contained file, no network
+seamark check                                   # this repository
+seamark check --machine                         # and the user and managed scopes
+seamark check --agent-version claude-code=2.1.257
+seamark check --json                            # a surface/v1 document
+seamark check --html report.html                # one self-contained file, no network
 ```
 
 Three things it will not do. It never runs what it reads: of a script a hook
@@ -63,14 +63,14 @@ INDETERMINATE with the threshold named, counted apart from everything else.
 Exit codes: `0` nothing fired and nothing was unresolved, `1` a rule fired, `3`
 nothing fired and something could not be resolved.
 
-## `actaira diff` - what changed
+## `seamark diff` - what changed
 
 ```
-actaira diff main HEAD                          # two refs in this repository
-actaira diff --repo ../other main feature       # somewhere else
-actaira diff --from-dir a --to-dir b            # two trees, no git
-actaira diff main HEAD --html report.html       # and the same report as a page
-actaira diff main HEAD --sarif actaira.sarif    # SARIF 2.1.0 for a code host
+seamark diff main HEAD                          # two refs in this repository
+seamark diff --repo ../other main feature       # somewhere else
+seamark diff --from-dir a --to-dir b            # two trees, no git
+seamark diff main HEAD --html report.html       # and the same report as a page
+seamark diff main HEAD --sarif seamark.sarif    # SARIF 2.1.0 for a code host
 ```
 
 Neither ref is checked out. The two trees are read with `git ls-tree` and
@@ -105,17 +105,16 @@ something that arrived.
 
 ```console
 $ python3 scripts/demo_keyv.py    # exits 1: a rule fired on something that arrived
-
 What changed between HEAD~1 and HEAD
 
 APPEARED: 1
   + claude-code  hook.command  .claude/settings.json  [project]
-      after  effective  63a9a33e2cd93139
+      after  effective  cdaeb29f3e8ba9ee
       ! ACT-S001  A hook runs a command on a session-start event, so opening a session runs it before anybody has read anything.
-        rule written by  Actaira core core / high
+        rule written by  Seamark core core / high
         suggested by the rule: Remove the hook, or move it to ~/.claude/settings.json where it is yours rather than the repository's. A hook on a session-start event runs before you have read anything.
       ! ACT-S003  A hook runs a script inside this repository, so whoever can land a commit decides what it runs.
-        rule written by  Actaira core core / medium
+        rule written by  Seamark core core / medium
         suggested by the rule: Tie your approval to the script's sha256 rather than its path: the file at that path can change after you read it, and the hook will run whatever is there.
 
 Could not be resolved on one side or the other: 2
@@ -135,17 +134,16 @@ Configuration DECLARES; it does not prove behaviour. A hook that is written is n
 
 ```console
 $ python3 scripts/demo_keyv.py --lang es    # exits 1: una regla disparó sobre algo que llegó
-
 Que ha cambiado entre HEAD~1 y HEAD
 
 APARECE: 1
   + claude-code  hook.command  .claude/settings.json  [project]
-      despues  effective  63a9a33e2cd93139
+      despues  effective  cdaeb29f3e8ba9ee
       ! ACT-S001  Un hook ejecuta un comando en un evento de arranque de sesión, así que abrir una sesión lo ejecuta antes de que nadie haya leído nada.
-        regla escrita por  Actaira core core / high
+        regla escrita por  Seamark core core / high
         sugerido por la regla: Remove the hook, or move it to ~/.claude/settings.json where it is yours rather than the repository's. A hook on a session-start event runs before you have read anything.
       ! ACT-S003  Un hook ejecuta un script de este repositorio, así que quien pueda meter un commit decide qué se ejecuta.
-        regla escrita por  Actaira core core / medium
+        regla escrita por  Seamark core core / medium
         sugerido por la regla: Tie your approval to the script's sha256 rather than its path: the file at that path can change after you read it, and the hook will run whatever is there.
 
 No se pudo resolver en uno de los dos lados: 2
@@ -162,12 +160,12 @@ La configuración DECLARA; no demuestra comportamiento. Un hook escrito no es un
 
 ---
 
-## `actaira seal` - a signed baseline with no content in it
+## `seamark seal` - a signed baseline with no content in it
 
 ```bash
-actaira keygen                                  # once
-actaira seal --repo . --key ~/.actaira/signing-key.pem --out baseline/
-actaira verify baseline/surface-seal.zip
+seamark keygen                                  # once
+seamark seal --repo . --key ~/.seamark/signing-key.pem --out baseline/
+seamark verify baseline/surface-seal.zip
 ```
 
 `seal` writes a signed package holding a `seal/v1` document: every capability's
@@ -187,11 +185,11 @@ The point of it is the surface digest at the top. Approve that, and the approval
 expires by itself the day the surface changes - which is published limit 14 with
 the sign flipped, and the reason nothing here is keyed on a file name or a date.
 
-## `actaira verify` - checking without trusting anyone
+## `seamark verify` - checking without trusting anyone
 
 ```bash
-actaira verify baseline/surface-seal.zip
-actaira verify baseline/surface-seal.zip --trusted-keyring keys.json --require-trust
+seamark verify baseline/surface-seal.zip
+seamark verify baseline/surface-seal.zip --trusted-keyring keys.json --require-trust
 ```
 
 Offline, always. Integrity and identity are separate answers: a package always
@@ -205,24 +203,24 @@ that declares a version this release does not publish fails, rather than being
 reported OK with its meaning guessed at. Packages written by the 2.x model
 scanner still verify, and declare no contract, which is not a defect in them.
 
-## `actaira keygen` - the signing key
+## `seamark keygen` - the signing key
 
 ```bash
-actaira keygen                      # create
-actaira keygen --rotate             # retire the current key, keep verifying old packages
-actaira keygen --revoke <key-id>    # nothing it ever signed is accepted again
+seamark keygen                      # create
+seamark keygen --rotate             # retire the current key, keep verifying old packages
+seamark keygen --revoke <key-id>    # nothing it ever signed is accepted again
 ```
 
-Ed25519. The keyring lives beside the key. This is the key `actaira seal` signs
+Ed25519. The keyring lives beside the key. This is the key `seamark seal` signs
 with; rotation and revocation are exercised end to end by the suite.
 
-## `actaira watch` - recording from outside
+## `seamark watch` - recording from outside
 
 `watch` puts an MCP proxy between the agent and its tool servers, runs your
 command, and assembles what the proxy saw into one trace.
 
 ```console
-$ actaira watch -- python -c "print('agent ran')"
+$ seamark watch -- python -c "print('agent ran')"
 
 agent ran
 Recorded session <session-id> at capture level L1
@@ -236,7 +234,7 @@ Recorded session <session-id> at capture level L1
     tool cannot tell which - so it declares the hole rather than publishing an
     empty clean trace.
   INCOMPLETE: the gaps above are what this run could not observe
-  wrote the trace and its digest to actaira-trace
+  wrote the trace and its digest to seamark-trace
 ```
 
 Read that output again, because it is the design. Nothing was observed, and the
@@ -244,7 +242,7 @@ tool said so three different ways rather than writing a clean empty trace. A
 witness that reports silence as "nothing happened" is worse than no witness,
 because somebody will rely on it.
 
-`actaira-trace/` then holds the trace as JSON, a `.sha256` beside it, and an
+`seamark-trace/` then holds the trace as JSON, a `.sha256` beside it, and an
 `index.json`. `--out` puts them somewhere else. The session id is a fresh uuid
 per run, which is why it is written as `<session-id>` above - every other
 character of that block is compared against the real output by
@@ -254,7 +252,7 @@ Point it at a real agent with an MCP configuration and the same command records
 the tool calls:
 
 ```bash
-actaira watch --mcp-config .mcp.json -- claude -p "refactor the auth module"
+seamark watch --mcp-config .mcp.json -- claude -p "refactor the auth module"
 ```
 
 `--with-content` keeps literal arguments and results. Without it, arguments
@@ -263,16 +261,16 @@ does.
 
 ---
 
-## `actaira scan` - the sessions an agent already wrote
+## `seamark scan` - the sessions an agent already wrote
 
 `scan` reads transcripts the agent saved to disk by itself, which is capture
 level L0 and therefore **cannot claim authenticity**: the audited party wrote
 them. The tool says so on every run rather than leaving it to be worked out.
 
 ```bash
-actaira scan --demo              # a synthetic session that ships in the package
-actaira scan --home ~/.claude    # the agent's own configuration directory
-actaira scan --out traces/       # one canonical trace per session
+seamark scan --demo              # a synthetic session that ships in the package
+seamark scan --home ~/.claude    # the agent's own configuration directory
+seamark scan --out traces/       # one canonical trace per session
 ```
 
 `--demo` exists for the reader with no agent installed: it reads a session

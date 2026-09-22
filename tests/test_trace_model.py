@@ -13,9 +13,9 @@ import json
 
 import pytest
 
-from actaira.model import canonical_json
-from actaira.trace import CaptureLevel
-from actaira.trace.model import (
+from seamark.model import canonical_json
+from seamark.trace import CaptureLevel
+from seamark.trace.model import (
     SCHEMA_VERSION,
     Gap,
     GapReason,
@@ -226,7 +226,7 @@ def test_the_event_uses_the_genai_attribute_names():
 
 def test_every_deviation_from_the_genai_vocabulary_is_written_down():
     """A deviation nobody wrote down is one the next reader has to guess at."""
-    from actaira.trace import model as model_mod
+    from seamark.trace import model as model_mod
 
     for field in model_mod.OUR_OWN_FIELDS:
         assert field in model_mod.WHY_OUR_OWN, f"{field} deviates from OTel with no reason written"
@@ -237,7 +237,7 @@ def test_a_level_whose_blind_spots_nobody_listed_does_not_claim_to_have_none():
     """An empty `blind_spots` is the strongest claim in the document - this
     level sees everything - and it used to be made by an omission. L2 and L3
     are named and unbuilt, so they were the case that would have hit first."""
-    from actaira.trace.model import blind_spots_of
+    from seamark.trace.model import blind_spots_of
 
     for level in (CaptureLevel.L2, CaptureLevel.L3):
         spots = blind_spots_of(level)
@@ -246,7 +246,7 @@ def test_a_level_whose_blind_spots_nobody_listed_does_not_claim_to_have_none():
 
 
 def test_every_level_says_something_about_what_it_cannot_see():
-    from actaira.trace.model import blind_spots_of
+    from seamark.trace.model import blind_spots_of
 
     for level in CaptureLevel:
         assert blind_spots_of(level), level

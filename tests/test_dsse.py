@@ -14,8 +14,8 @@ import json
 
 import pytest
 
-from actaira.attest import signing
-from actaira.attest.dsse import (
+from seamark.attest import signing
+from seamark.attest.dsse import (
     PAYLOAD_TYPE,
     STATEMENT_TYPE,
     Envelope,
@@ -212,7 +212,7 @@ def test_a_keyid_that_disagrees_with_the_key_that_signed_is_reported(reports, ke
     assert any("declares keyid" in problem for problem in problems)
 
 
-def test_a_foreign_predicate_type_is_not_accepted_as_an_actaira_statement(keypair):
+def test_a_foreign_predicate_type_is_not_accepted_as_an_seamark_statement(keypair):
     envelope = to_envelope([], keypair)
     statement = envelope.statement()
     statement["predicateType"] = "https://slsa.dev/provenance/v1"
@@ -298,7 +298,7 @@ def _package_with_envelope(tmp_path, reports, keypair, *, dsse=True, signed_enve
     an envelope is an ordinary package member, covered by the manifest and
     by its own signature - attached to the code that still implements it.
     """
-    from actaira.attest import chain, package
+    from seamark.attest import chain, package
 
     entries: list[chain.Entry] = []
     for report in reports:
@@ -314,14 +314,14 @@ def test_a_package_can_carry_a_signed_envelope(tmp_path, reports, keypair):
     """The defect, as the behaviour that was missing.
 
     `attest/dsse.py` shipped in 2.0 with 27 tests and nothing ever called it.
-    The README advertised `actaira attest --dsse` and `grep -n dsse cli.py`
+    The README advertised `seamark attest --dsse` and `grep -n dsse cli.py`
     returned nothing - the flag had never existed in any commit, so the
     command exited 2 with `unrecognized arguments`. Five hundred lines of
     tested code no user can reach is not interoperability, it is a claim.
     """
     import zipfile
 
-    from actaira.attest.package import DSSE_NAME
+    from seamark.attest.package import DSSE_NAME
 
     out = _package_with_envelope(tmp_path, reports, keypair)
 
@@ -337,7 +337,7 @@ def test_a_package_without_one_carries_no_envelope(tmp_path, reports, keypair):
     because a new option exists."""
     import zipfile
 
-    from actaira.attest.package import DSSE_NAME
+    from seamark.attest.package import DSSE_NAME
 
     out = _package_with_envelope(tmp_path, reports, keypair, dsse=False)
 
@@ -349,7 +349,7 @@ def test_verify_checks_the_envelope_it_finds(tmp_path, reports, keypair):
     """Writing it without reading it back would repeat the same shape one
     layer along: a document in the package that no code in the package has
     ever checked."""
-    from actaira.attest import verify as verify_mod
+    from seamark.attest import verify as verify_mod
 
     out = _package_with_envelope(tmp_path, reports, keypair)
 
@@ -374,8 +374,8 @@ def test_an_edited_envelope_is_caught_twice(tmp_path, reports, keypair):
     """
     import zipfile
 
-    from actaira.attest import verify as verify_mod
-    from actaira.attest.package import DSSE_NAME
+    from seamark.attest import verify as verify_mod
+    from seamark.attest.package import DSSE_NAME
 
     out = _package_with_envelope(tmp_path, reports, keypair)
 
@@ -408,8 +408,8 @@ def test_the_envelopes_own_signature_alone_fails_the_package(tmp_path, reports, 
     """The second half with the first one removed, which is the case that was
     passing with `Result: OK` on the screen: the envelope is exactly the bytes
     the manifest declares, and nobody signed it."""
-    from actaira.attest import verify as verify_mod
-    from actaira.attest.package import DSSE_NAME
+    from seamark.attest import verify as verify_mod
+    from seamark.attest.package import DSSE_NAME
 
     out = _package_with_envelope(tmp_path, reports, keypair, signed_envelope=False)
 

@@ -1,6 +1,6 @@
 """The privacy boundary, as a property over a corpus rather than an example.
 
-`actaira scan` reads files full of somebody's conversations, their home
+`seamark scan` reads files full of somebody's conversations, their home
 directory and, sooner or later, their secrets. So the emitted trace carries
 digests of arguments and results and not the arguments themselves, and the
 guard on that is not "we remembered to hash it here": it is a corpus of
@@ -32,9 +32,9 @@ from pathlib import Path
 
 import pytest
 
-from actaira.proxy.session import WatchSession, rewrite_config
-from actaira.trace import CaptureLevel
-from actaira.trace.claude_code import ClaudeCodeReader
+from seamark.proxy.session import WatchSession, rewrite_config
+from seamark.trace import CaptureLevel
+from seamark.trace.claude_code import ClaudeCodeReader
 
 # Every seeded secret is a sentinel: it is planted in the input so the property
 # below can assert it never comes out. `redact.py` digests everything and matches
@@ -266,7 +266,7 @@ def test_the_demo_fixture_is_synthetic(monkeypatch):
     list of strings somebody remembered to scrub."""
     import re
 
-    from actaira.trace.claude_code import DEMO_SESSION
+    from seamark.trace.claude_code import DEMO_SESSION
 
     text = DEMO_SESSION.read_text(encoding="utf-8")
 
@@ -280,7 +280,7 @@ def test_the_demo_fixture_is_synthetic(monkeypatch):
 
 
 def test_the_demo_fixture_still_parses_into_a_trace():
-    from actaira.trace.claude_code import demo_trace
+    from seamark.trace.claude_code import demo_trace
 
     trace = demo_trace()
 
@@ -421,8 +421,8 @@ def closed_port() -> int:
 def test_a_secret_in_a_server_url_does_not_reach_an_emitted_trace(label, closed_port):
     """MCP directories hand out endpoints with the credential in the query
     string. The transport published the URL entire when a connection failed."""
-    from actaira.proxy import Recorder
-    from actaira.proxy.http import HttpProxy
+    from seamark.proxy import Recorder
+    from seamark.proxy.http import HttpProxy
 
     secret = re.sub(r"[^A-Za-z0-9_.~-]", "-", SECRETS[label])
     recorder = Recorder(session_id="s")
@@ -444,7 +444,7 @@ def test_a_secret_in_a_server_url_does_not_reach_an_emitted_trace(label, closed_
 def test_a_record_file_that_cannot_be_written_does_not_publish_its_path(tmp_path):
     """The recorder's own sidecar. Its failure gap interpolated the absolute
     path of the file it had just failed to write."""
-    from actaira.proxy import Recorder
+    from seamark.proxy import Recorder
 
     recorder = Recorder(session_id="s", record_path=tmp_path / "deep" / "srv.jsonl")
     recorder.record_path.unlink()
@@ -460,8 +460,8 @@ def test_a_record_file_that_cannot_be_written_does_not_publish_its_path(tmp_path
 def test_a_server_command_that_will_not_start_does_not_publish_its_path(tmp_path):
     """The operator's own server command is a path on their machine, and
     `str(OSError)` from `Popen` carries it a second time."""
-    from actaira.proxy import Recorder
-    from actaira.proxy.stdio import StdioProxy
+    from seamark.proxy import Recorder
+    from seamark.proxy.stdio import StdioProxy
 
     recorder = Recorder(session_id="s")
     missing = tmp_path / "Users" / "aurelia.quintero" / "bin" / "server-that-is-not-there"

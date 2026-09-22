@@ -1,4 +1,4 @@
-# Contributing to Actaira
+# Contributing to Seamark
 
 The bar here is not "does it work". It is: can a stranger check that it works,
 and can they see what it does not do? Everything below follows from that.
@@ -50,7 +50,7 @@ the whole tree and run the gate over the copy. The same 18 tests, on one laptop
 on 2026-09-18:
 
 ```
-/tmp/actaira-gate      (WSL, Linux filesystem)      14s
+/tmp/seamark-gate      (WSL, Linux filesystem)      14s
 /mnt/c/...             (WSL, over the Windows mount) 78s
 C:\...                 (Windows Python, on C:)      332s
 ```
@@ -196,8 +196,8 @@ add a note, take the next free number and add the row to the index table in
 ## Rules and the catalogue
 
 Rule identifiers (`ACT-PKL-002` and friends) are the stable interface; the text
-is not. Adding a rule means adding its text to **both** `src/actaira/i18n/en.json`
-and `src/actaira/i18n/es.json`. This is enforced: `tests/test_i18n.py` recovers
+is not. Adding a rule means adding its text to **both** `src/seamark/i18n/en.json`
+and `src/seamark/i18n/es.json`. This is enforced: `tests/test_i18n.py` recovers
 the rule identifiers from the source rather than from the catalogue, so a rule
 the code can emit and the catalogue does not carry fails the suite, and so does
 a catalogue entry for a rule the code can no longer emit. Copying the English
@@ -211,7 +211,7 @@ once.
 
 ## Dependencies
 
-Actaira has **one** runtime dependency, `cryptography`, and that is a design
+Seamark has **one** runtime dependency, `cryptography`, and that is a design
 position: a tool that inspects supply chains should not have a supply chain of
 its own. Adding a second is not forbidden, but the pull request has to argue for
 it, and "it would be less code" is not the argument - the RFC 3161 support in
@@ -225,7 +225,7 @@ be guarded with `pytest.importorskip`.
 
 ## How this was built, and what that asks of a contribution
 
-Actaira was built by one person with heavy use of an AI coding assistant, over
+Seamark was built by one person with heavy use of an AI coding assistant, over
 an intense stretch in September 2026. The commit dates say so.
 [`README.md`](README.md#how-this-was-built) states it in full and is the version
 to read; the short of it is that the product decisions and every rejected

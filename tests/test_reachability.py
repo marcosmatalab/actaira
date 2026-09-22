@@ -45,12 +45,12 @@ import pytest
 
 from conftest import REPO_ROOT, SRC_DIR
 
-PACKAGE = SRC_DIR / "actaira"
+PACKAGE = SRC_DIR / "seamark"
 
 # `cli.py` is every command; `mcp.py` is the MCP server; `__main__.py` is
-# `python -m actaira`. There is no fourth way in, and a new one would be a new
+# `python -m seamark`. There is no fourth way in, and a new one would be a new
 # way for this tree to be entered, which is a decision rather than an oversight.
-ROOTS = ("actaira.cli", "actaira.mcp", "actaira.__main__")
+ROOTS = ("seamark.cli", "seamark.mcp", "seamark.__main__")
 
 
 def module_name(path: Path) -> str:
@@ -154,7 +154,7 @@ def test_the_entry_points_are_the_ones_this_test_thinks_they_are():
     for root in ROOTS:
         assert root in MODULES, f"{root} is not a module; the root set is stale"
 
-    from actaira.cli import build_parser
+    from seamark.cli import build_parser
 
     commands = set(build_parser()._subparsers._group_actions[0].choices)
     assert commands == {"check", "diff", "seal", "scan", "watch", "verify", "keygen"}, (
@@ -173,8 +173,8 @@ def test_the_graph_is_not_trivially_empty():
 
     assert len(MODULES) > 20, f"only {len(MODULES)} modules found; the walk is not walking"
     assert sum(len(found) for found in graph.values()) > 20, "no import edges were parsed"
-    assert "actaira.trace.model" in graph["actaira.cli"] or any(
-        "actaira.trace" in found for found in graph.values()
+    assert "seamark.trace.model" in graph["seamark.cli"] or any(
+        "seamark.trace" in found for found in graph.values()
     ), "a known edge is missing; the parser is wrong"
     assert len(reachable()) > 1, "nothing but the roots was reached"
 

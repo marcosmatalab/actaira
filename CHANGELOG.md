@@ -1,8 +1,17 @@
 # Changelog
 
-All notable changes to Actaira are recorded here. The format follows
+All notable changes to seamark are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the versions
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+**This project was called Actaira until 3.0.0, and every entry below that
+version still says so.** That is the line between a record and a name in use,
+and it is drawn here rather than left to whoever reads this next: a release
+that has been published keeps the name it was published under, because the
+version, the tag and the artifacts that went out under it cannot be renamed
+afterwards; the release being prepared takes the new one. The same line runs
+through the rest of the tree, and `docs/ENGINEERING.md` says where, with the
+check that holds it.
 
 Two conventions specific to this project:
 
@@ -227,6 +236,41 @@ None was caught by a gate, and each says something about why:
   which is the one thing a backlog must not do to an inherited line.
 
 ## [3.0.0] - 2026-09-15
+
+### Renamed
+
+**The project is called seamark.** `Actaira` is a different product of the same
+author - the AI Act platform, which lives in its own repository and at
+actaira.com - and two unrelated things under one name is a confusion a reader
+cannot resolve from the outside. This one moved, because it is the one that had
+not been published under its name yet.
+
+What changed with it: the distribution on PyPI (`seamark`), the command
+(`seamark`), the import path (`import seamark`), the package directory
+(`src/seamark/`), the repository (`github.com/marcosmatalab/seamark`), the
+identifiers of the four live contracts, the author label on the rule packs, and
+every page in the tree that is about the product rather than about what
+happened.
+
+What deliberately did not change, each because renaming it would break
+something rather than rename it: the entries of this file below 3.0.0, the
+documentation of the archived scanner under `docs/archive/`, the locators of
+the form `v2.3.0:<path>` that point into a tag whose tree has the old paths,
+the DSSE `predicateType` this tool verifies and never writes, and the
+distinguished names inside the recorded RFC 3161 certificates. The rule ids
+keep their `ACT-` prefix: they are published identifiers that do not spell the
+name, and renaming them would rewrite the expectations of 54 third-party
+repositories in the corpus. `scripts/release_check.py` holds all of it, and
+fails on an occurrence nobody wrote down as well as on a record that has gone.
+
+**Why the version did not restart at 1.0.0.** The repository is the same
+object: it keeps its history, its tags, its releases and this file, and 1.0.0
+is already in it, further down. A second 1.0.0 would collide inside one
+CHANGELOG to spare a stranger the surprise of meeting a project at 3.0.0, and
+the surprise is the honest one - the rename is a breaking change for anybody
+who had installed the last release, which is exactly what a major version is
+for. Rejected: starting at 1.0.0 as a new product, which would claim a first
+release in a repository whose own record contradicts it.
 
 **Why a major, decided rather than inherited.** Semantic versioning asks whether
 a consumer written against the last release still works, and none does: ten

@@ -27,7 +27,7 @@ def _required() -> tuple[str, ...]:
 
 
 def data_files() -> set[str]:
-    package = Path(SRC_DIR) / "actaira"
+    package = Path(SRC_DIR) / "seamark"
     return {
         path.relative_to(Path(SRC_DIR)).as_posix()
         for path in package.rglob("*")
@@ -59,7 +59,7 @@ def test_the_requirement_list_would_notice_a_resource_that_stopped_shipping(tmp_
     difference between a list that is derived and a list that merely agrees
     with the tree right now.
     """
-    package = Path(SRC_DIR) / "actaira"
+    package = Path(SRC_DIR) / "seamark"
     planted = package / "i18n" / "zz-planted-by-the-suite.json"
     planted.write_text("{}\n", encoding="utf-8")
     try:

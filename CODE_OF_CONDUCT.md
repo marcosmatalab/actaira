@@ -57,7 +57,7 @@ posting via an official social media account, or acting as an appointed
 representative at an online or offline event.
 
 For this project, "community spaces" means wherever work on this tree is
-discussed and reviewed. That is now the repository at https://github.com/marcosmatalab/actaira and its issue
+discussed and reviewed. That is now the repository at https://github.com/marcosmatalab/seamark and its issue
 tracker, together with whatever channel you received this tree through. There
 is no discussion forum and no mailing list, and this file will say so until
 there is.

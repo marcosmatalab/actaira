@@ -1,6 +1,6 @@
 # Límites publicados
 
-Lo que Actaira no puede enseñarte, en el mismo sitio en cada release. Están en
+Lo que Seamark no puede enseñarte, en el mismo sitio en cada release. Están en
 el informe que imprime la herramienta, en [`README.es.md`](../README.es.md) como
 enlace, y aquí. No se ablandan para vender mejor, y una afirmación de cualquier
 parte de este repositorio que contradiga uno de ellos es un defecto de la
@@ -54,6 +54,6 @@ afirmación.
 ---
 
 El texto inglés de esta página es [`LIMITS.md`](LIMITS.md), y no es una
-cortesía: `actaira --lang es` imprime los mismos límites, así que las dos
+cortesía: `seamark --lang es` imprime los mismos límites, así que las dos
 lenguas tienen que enunciar la misma cantidad y `tests/test_proxy_completeness.py`
 falla cuando no lo hacen.

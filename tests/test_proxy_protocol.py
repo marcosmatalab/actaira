@@ -18,9 +18,9 @@ import sys
 
 import pytest
 
-from actaira.proxy import Recorder
-from actaira.proxy.stdio import StdioProxy
-from actaira.trace.model import GapReason
+from seamark.proxy import Recorder
+from seamark.proxy.stdio import StdioProxy
+from seamark.trace.model import GapReason
 
 CURRENT = "2026-07-28"
 PREVIOUS = "2025-11-25"
@@ -32,7 +32,7 @@ def call(identifier: int, name: str, revision: str | None = CURRENT, trace: str 
     meta: dict = {}
     if revision is not None:
         meta["io.modelcontextprotocol/protocolVersion"] = revision
-        meta["io.modelcontextprotocol/clientInfo"] = {"name": "actaira-test", "version": "1"}
+        meta["io.modelcontextprotocol/clientInfo"] = {"name": "seamark-test", "version": "1"}
     if trace is not None:
         meta["traceparent"] = trace
     params: dict = {"name": name, "arguments": {}}
@@ -136,9 +136,9 @@ def test_the_revision_a_message_declares_is_published_on_the_event(tmp_path):
     # reader matches the whole of it. The client and the server are names their
     # own authors chose, so they travel as references (D-268), and the map on
     # the operator's disk is what turns them back into names.
-    assert resolves[event["mcp.client"]] == "actaira-test@1"
+    assert resolves[event["mcp.client"]] == "seamark-test@1"
     assert resolves[event["mcp.server"]] == "fixture@2"
-    assert "actaira-test" not in json.dumps(document)
+    assert "seamark-test" not in json.dumps(document)
     assert event["traceparent"] == TRACEPARENT
     assert document["mcp"]["protocol_revisions_observed"] == [CURRENT]
 
@@ -219,7 +219,7 @@ def test_a_server_that_was_never_asked_leaves_the_inventory_unobserved(tmp_path)
     client, so a run in which nobody asked observes no inventory. The hole is
     the honest answer; issuing the request ourselves is not - see
     `Recorder.discover`."""
-    from actaira.proxy.session import WatchSession, rewrite_config
+    from seamark.proxy.session import WatchSession, rewrite_config
 
     records = tmp_path / "records"
     command = server(tmp_path, CURRENT_SERVER)
@@ -361,7 +361,7 @@ def test_a_server_name_that_is_not_a_software_name_is_dropped_not_published(valu
     `redact.endpoint` keep a host. A field is only as safe as the value space
     it is matched against, so anything that is not shaped like a software name
     is dropped rather than published."""
-    from actaira.proxy import protocol
+    from seamark.proxy import protocol
 
     message = {
         "result": {"_meta": {"io.modelcontextprotocol/serverInfo": {"name": value}}}
@@ -371,7 +371,7 @@ def test_a_server_name_that_is_not_a_software_name_is_dropped_not_published(valu
 
 
 def test_a_traceparent_that_is_not_one_is_dropped_not_published():
-    from actaira.proxy import protocol
+    from seamark.proxy import protocol
 
     message = {"params": {"_meta": {"traceparent": "/home/aurelia/secrets"}}}
 

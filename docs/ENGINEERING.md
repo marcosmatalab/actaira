@@ -51,7 +51,7 @@ have come apart. Each drift it looks for is one this repository has actually
 had:
 
 - the version against the changelog, the citation file and what
-  `actaira --version` says from the installed distribution;
+  `seamark --version` says from the installed distribution;
 - every figure the READMEs state against the code or harness that produces it;
 - every rule against both language catalogues and the format table;
 - every schema against the module that emits it, and every schema file on disk
@@ -83,6 +83,8 @@ had:
   run;
 - the notes for the version in `pyproject.toml` against the figures this tree
   measures, and no other release note, because a published one is a record;
+- every tracked file against the name this product had until 3.0.0, which may
+  appear only where a table says how often and why;
 - the two publishing jobs against the asymmetry the release order rests on:
   the rehearsal may repeat itself and the publication may not, and each is
   reachable from one event and no other - the condition and the `needs:` chain
@@ -146,9 +148,9 @@ its reason and with the size it was when it was allowed:
 
 | file | lines | why it is not split |
 |---|---:|---|
-| `src/actaira/attest/timestamp.py` | 1129 | RFC 3161 end to end: the ASN.1 for the request, the parse of the response, the exchange with the authority and the verification of what came back. Splitting the codec from the verifier that uses it puts one wire format in two files. |
-| `src/actaira/cli.py` | 1086 | The parser and the seven command bodies. It is the top of the import graph and the one file where a reader expects everything the tool can do. |
-| `src/actaira/attest/verify.py` | 976 | The plan that set the cap also protects this file by name: `verify_package` is where every signature path in the package ends. |
+| `src/seamark/attest/timestamp.py` | 1129 | RFC 3161 end to end: the ASN.1 for the request, the parse of the response, the exchange with the authority and the verification of what came back. Splitting the codec from the verifier that uses it puts one wire format in two files. |
+| `src/seamark/cli.py` | 1086 | The parser and the seven command bodies. It is the top of the import graph and the one file where a reader expects everything the tool can do. |
+| `src/seamark/attest/verify.py` | 976 | The plan that set the cap also protects this file by name: `verify_package` is where every signature path in the package ends. |
 
 **The trade-off, stated rather than implied.** Three files stay long, so the
 criterion is not met as written. What is bought is that none of the three is
@@ -250,6 +252,54 @@ The commit that the runbook creates AFTER the replay - the one that points the
 documented `uses:` and `rev:` at the commits that replaced them - never passes
 through the replay's own check, because it does not exist when the replay runs.
 This gate is what holds it.
+
+---
+
+## The old name, and where history stops
+
+This project was called Actaira until 3.0.0. The name belongs to a different
+product by the same author, so this one moved; `README.md` says so where a
+reader meets it, and `CHANGELOG.md` records it where a version is recorded.
+What is here is the rule the tree is held to, and the check that holds it.
+
+**The rule.** The old name is gone from everything that is the product, and
+left in place wherever changing it would break something rather than rename
+it. Those are not the same category, and the difference is not taste:
+
+- **bytes somebody signed.** `tests/fixtures/rfc3161/subject.bin` is what an
+  OpenSSL timestamp authority put its signature over, and the distinguished
+  names in the recorded certificates are inside those certificates. Rename
+  them and every recorded token stops verifying, which is a worse lie than an
+  old name;
+- **identifiers something else matches on.** The DSSE `predicateType` is what
+  this tool compares an envelope against. It writes none and verifies any, so
+  renaming it would not rename a thing: it would make this refuse every
+  envelope the archived product signed;
+- **locators into a tag.** `v2.3.0:src/actaira/model.py` resolves because that
+  tree has that path. Renamed, it points at nothing;
+- **records of what happened.** The entries of `CHANGELOG.md` below 3.0.0, the
+  archived scanner documentation under `docs/archive/`, the note on the 2.3.0
+  release, and the rewritten commit messages in
+  `.github/history-rewrite/messages.json`, each of which describes a commit
+  whose tree carries the old path. A record renamed afterwards is a record of
+  something that did not happen.
+
+Everything else moved: the distribution, the command, the import path, the
+package directory, the repository URL, the four live contract identifiers, the
+author label on the rule packs, and every page about the product.
+
+**What did not move and is not in either list: the `ACT-` rule ids.** They are
+published identifiers, they do not spell the name, and 54 of the repositories
+in the corpus carry them inside expectations this project does not own.
+Renaming them would rewrite somebody else's fixture to change a prefix.
+
+**The check.** `scripts/release_check.py` reads every tracked file and refuses
+the old name anywhere except two tables: one of line shapes that are somebody
+else's bytes, and one of files with the number of times each may say it and
+why. Both fail in both directions - a new occurrence is a rename left half
+done, and an entry that has stopped being true is an exemption nobody is
+watching. The count is the ratchet, so the failure names the file and the
+number rather than asking somebody to go and look.
 
 ---
 

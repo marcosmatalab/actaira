@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "actaira"
+name = "seamark"
 version = "3.0.0"
 description = "Change control for what AI coding agents can do: read the configuration they load, resolve the effective surface across scopes and vendors, and say what changed between two moments. Every finding cites a rule with an author; nothing is ever scored. Seven commands: check, diff, seal, verify, keygen, scan and watch."
 readme = "README.md"
@@ -58,11 +58,11 @@ types = ["mypy>=1.11"]
 package = ["build>=1.2"]
 
 [project.scripts]
-actaira = "actaira.cli:main"
+seamark = "seamark.cli:main"
 # The MCP server is a second entry point rather than a ninth subcommand:
-# `docs/PRINCIPLES.md` caps `actaira` at eight commands, and a server is not a command
+# `docs/PRINCIPLES.md` caps `seamark` at eight commands, and a server is not a command
 # anybody types. This is the string that goes in somebody's .mcp.json.
-actaira-mcp = "actaira.mcp:main"
+seamark-mcp = "seamark.mcp:main"
 
 # Two entries, and only the two that exist. The block used to say there was
 # no repository and no issue tracker, which was true of a local snapshot and
@@ -74,14 +74,14 @@ actaira-mcp = "actaira.mcp:main"
 # beside this file, and a metadata field pointing at a URL that 404s is worse
 # than one that is not there.
 [project.urls]
-Repository = "https://github.com/marcosmatalab/actaira"
-Issues = "https://github.com/marcosmatalab/actaira/issues"
+Repository = "https://github.com/marcosmatalab/seamark"
+Issues = "https://github.com/marcosmatalab/seamark/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-actaira = [
+seamark = [
     "i18n/*.json",
     "schemas/*.json",
     "trace/*.jsonl",
@@ -116,7 +116,7 @@ ignore = ["E501", "S101"]
 # S105: `PASS = "pass"` is an enum member for a verdict, not a credential.
 # UP042: str+Enum is kept over StrEnum so the module stays readable on 3.11
 # without a version-gated import; the .value semantics are identical.
-"src/actaira/model.py" = ["S105", "UP042"]
+"src/seamark/model.py" = ["S105", "UP042"]
 # N818 again: `NetworkRefused` is raised by the suite's network guard and
 # caught by name in exactly one place, `tests/test_netguard.py`. The rule
 # exists so an unfamiliar exception reads as one at the call site, and this
@@ -126,13 +126,13 @@ ignore = ["E501", "S101"]
 # S112: a malformed key in a package keyring must not abort verification. The
 # loop tries the next key and, if none verifies, the caller gets an explicit
 # "signature does not verify" problem rather than a stack trace.
-"src/actaira/attest/verify.py" = ["S112"]
+"src/seamark/attest/verify.py" = ["S112"]
 # UP042 again, and for the same reason as every other enum here: both of
 # these serialise with `.value` into `trace/v1`, which is a published
 # contract a third party reads back. How they spell is part of it.
-"src/actaira/trace/__init__.py" = ["UP042"]
-"src/actaira/trace/model.py" = ["UP042"]
+"src/seamark/trace/__init__.py" = ["UP042"]
+"src/seamark/trace/model.py" = ["UP042"]
 # UP042 once more. `Writer` and `Travel` are compared with `is` and read with
 # `.value` exactly like the rest, and the provenance table is meant to read
 # like the contracts it classifies rather than like an exception to them.
-"src/actaira/trace/provenance.py" = ["UP042"]
+"src/seamark/trace/provenance.py" = ["UP042"]

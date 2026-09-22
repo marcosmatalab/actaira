@@ -41,7 +41,7 @@ def required() -> tuple[str, ...]:
     always the same shape: the tool imports, runs, and then cannot find a
     schema, a translation or a demo session.
 
-    It WAS typed, and it named `actaira/web/static/index.html`, two more files
+    It WAS typed, and it named `seamark/web/static/index.html`, two more files
     beside it, a cassette and `report-v1.json` - all of which went to tag
     v2.3.0 with the scanner. So `make package` failed on every run from the
     pivot onwards, and nothing said so because `make package` is deliberately
@@ -52,7 +52,7 @@ def required() -> tuple[str, ...]:
     package directory is a file the package ships. Rejected: extending the
     literal list, which is how it came to describe a tree that is not there.
     """
-    package = ROOT / "src" / "actaira"
+    package = ROOT / "src" / "seamark"
     found = tuple(sorted(
         path.relative_to(ROOT / "src").as_posix()
         for path in package.rglob("*")
@@ -60,7 +60,7 @@ def required() -> tuple[str, ...]:
     ))
     if not found:
         raise SystemExit(
-            "no data file was found under src/actaira, so this build would be checked "
+            "no data file was found under src/seamark, so this build would be checked "
             "against nothing. Work rule 11: a check that finds nothing has not passed."
         )
     return found
@@ -120,7 +120,7 @@ def members(path: Path) -> list[str]:
         with zipfile.ZipFile(path) as handle:
             return handle.namelist()
     with tarfile.open(path) as handle:
-        # The sdist's top-level directory is `actaira-<version>/`; strip it so
+        # The sdist's top-level directory is `seamark-<version>/`; strip it so
         # the rules below read the same for both artifacts.
         return [name.split("/", 1)[1] for name in handle.getnames() if "/" in name]
 
@@ -162,9 +162,9 @@ def install_and_run(wheel: Path) -> None:
     """The check no inspection of the archive can make: does it work.
 
     A wheel whose contents are right and whose entry point is wrong installs
-    cleanly and then has no `actaira` command, and nothing above would notice.
+    cleanly and then has no `seamark` command, and nothing above would notice.
     """
-    with tempfile.TemporaryDirectory(prefix="actaira-wheel-") as scratch:
+    with tempfile.TemporaryDirectory(prefix="seamark-wheel-") as scratch:
         env = Path(scratch) / "venv"
         subprocess.run(  # noqa: S603 - a fixed argv, no shell
             [sys.executable, "-m", "venv", str(env)], check=True, capture_output=True,
@@ -180,24 +180,24 @@ def install_and_run(wheel: Path) -> None:
         )
         for argv in (["--version"], ["--help"], ["schema"]):
             run = subprocess.run(  # noqa: S603 - a fixed argv, no shell
-                [str(python), "-m", "actaira", *argv],
+                [str(python), "-m", "seamark", *argv],
                 capture_output=True, text=True, timeout=180,
             )
             if run.returncode != 0:
                 raise PackagingError(
-                    f"`actaira {' '.join(argv)}` exited {run.returncode} from a clean install "
+                    f"`seamark {' '.join(argv)}` exited {run.returncode} from a clean install "
                     f"of {wheel.name}:\n{run.stdout}{run.stderr}"
                 )
-            print(f"  clean install: actaira {' '.join(argv)} -> exit 0")
+            print(f"  clean install: seamark {' '.join(argv)} -> exit 0")
 
         # The resources, read the way the tool reads them rather than listed.
         probe = (
-            "from actaira.i18n.catalog import Catalog;"
-            "from actaira import schemas;"
+            "from seamark.i18n.catalog import Catalog;"
+            "from seamark import schemas;"
             "import importlib.resources as r;"
             "Catalog('es').rule('ACT-PKL-002');"
             "assert schemas.names();"
-            "assert r.files('actaira.web').joinpath('static/index.html').is_file();"
+            "assert r.files('seamark.web').joinpath('static/index.html').is_file();"
             "print('  clean install: catalogue, schemas and the interface all load')"
         )
         run = subprocess.run(  # noqa: S603 - a fixed argv, no shell

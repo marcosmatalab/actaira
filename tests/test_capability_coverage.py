@@ -31,7 +31,7 @@ That static walk imposes one constraint on the resolvers, and it is a constraint
 worth having: a capability NAME must be a literal in the source. It used to be
 built as `f"hook.{kind}"` from the `type` string in the settings file, so a
 repository could put `"type": "made-up"` in a settings file and name a
-capability in Actaira's own document - unnameable by any rule, by construction.
+capability in Seamark's own document - unnameable by any rule, by construction.
 That is D-290, and it was found by trying to write this test.
 """
 from __future__ import annotations
@@ -40,10 +40,10 @@ import ast
 
 import pytest
 
-from actaira.surface import resolve, rules
 from conftest import SRC_DIR
+from seamark.surface import resolve, rules
 
-SURFACE = SRC_DIR / "actaira" / "surface"
+SURFACE = SRC_DIR / "seamark" / "surface"
 
 # Read, but not resolvers: `emit` is the machinery every resolver calls and
 # names no capability of its own, and the readers and parsers below it emit
@@ -253,7 +253,7 @@ def test_no_capability_name_is_built_at_runtime():
     """D-290, kept shut.
 
     A capability name assembled from a value in the file being read is a name
-    the audited repository chose, in Actaira's document, and no rule can name it
+    the audited repository chose, in Seamark's document, and no rule can name it
     because its spelling is not known until somebody's settings file supplies
     it. Names are literals, and a handler type this release does not know
     becomes a gap instead.
@@ -272,7 +272,7 @@ def test_an_unknown_handler_type_is_a_gap_and_not_a_capability(tmp_path):
     """The behaviour D-290 put in place of the f-string, over a real read."""
     import json
 
-    from actaira.surface import claude_code
+    from seamark.surface import claude_code
 
     (tmp_path / ".claude").mkdir()
     (tmp_path / ".claude" / "settings.json").write_text(

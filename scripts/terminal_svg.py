@@ -17,7 +17,7 @@ WHAT IS THE COMMAND'S AND WHAT IS THIS SCRIPT'S, said plainly because an image
 is the one place a reader cannot check. The characters are
 `scripts/demo_keyv.py`'s, byte for byte, with one transformation: a line longer
 than the column count is wrapped, which is what a terminal does to it anyway.
-The colour is this script's. `actaira` prints no escape sequence at all - it
+The colour is this script's. `seamark` prints no escape sequence at all - it
 writes plain text so that a CI log stays readable - and the palette below is
 applied from the markers the tool itself puts at the start of a line: `+` for a
 capability that appeared, `!` for a rule that fired, `?` for something that
@@ -89,7 +89,7 @@ def classify(line: str) -> str:
 
     Deliberately shallow. A classifier that read the words would be this
     script having an opinion about the output, and the second negative is that
-    Actaira does not have opinions about what it reports.
+    Seamark does not have opinions about what it reports.
     """
     stripped = line.strip()
     if stripped.startswith("+ "):

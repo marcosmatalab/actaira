@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://seamark.dev/schemas/surface-v1.json",
+  "title": "Seamark surface document, v1",
+  "description": "What agents can do in one root, resolved across scopes, with every capability naming the file it came from and the documented merge rule that settled it. Three lists that are never mixed: what was resolved, what could not be, and what this release does not read. Nothing here is a total, an ordering or a summary.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "root", "machine", "surfaces", "findings", "unresolved", "not_read"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "surface/v1"
+    },
+    "root": {
+      "type": "string",
+      "description": "The directory that was read, as the operator named it."
+    },
+    "machine": {
+      "type": "boolean",
+      "description": "Whether the user and managed scopes were read as well as the repository's."
+    },
+    "surfaces": {
+      "type": "array",
+      "description": "One entry per vendor read. Phase S1 reads Claude Code; the others arrive in S2 and appear in not_read until then.",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["vendor", "agent_version", "capabilities"],
+        "properties": {
+          "vendor": { "type": "string" },
+          "agent_version": {
+            "type": ["string", "null"],
+            "description": "Null when nothing stated it. Never inferred: a merge rule that depends on the version is indeterminate without it."
+          },
+          "capabilities": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/capability" }
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "description": "One entry per rule that fired. Each names the rule, its version, its author and its pack; the severity is that author's label and is never combined with another.",
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "unresolved": {
+      "type": "array",
+      "description": "Everything that could not be resolved, with the cause named. Counted apart and never distributed among the answers that could be given.",
+      "items": { "$ref": "#/$defs/gap" }
+    },
+    "not_read": {
+      "type": "array",
+      "description": "Files seen on disk that this release does not read. Named rather than skipped: silence would read as absence.",
+      "items": { "$ref": "#/$defs/unread" }
+    },
+    "merge_rules": {
+      "type": "array",
+      "description": "The documented merge rules used, each with the URL, a digest of that page as retrieved and the date it was read.",
+      "items": { "$ref": "#/$defs/merge_rule" }
+    }
+  },
+  "$defs": {
+    "capability": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["capability", "vendor", "scope", "source", "resolution", "merge_rule"],
+      "properties": {
+        "capability": { "type": "string" },
+        "vendor": { "type": "string" },
+        "scope": {
+          "type": "string",
+          "enum": ["managed", "command-line", "project-local", "project", "user"]
+        },
+        "source": {
+          "type": "string",
+          "description": "The file this came from, relative to the root."
+        },
+        "resolution": {
+          "type": "string",
+          "enum": ["declared", "effective", "indeterminate"],
+          "description": "declared: written in a file. effective: resolved across scopes with the agent version known. indeterminate: not resolved, and `condition` says why."
+        },
+        "merge_rule": {
+          "type": "string",
+          "description": "The documented rule that resolved this, as `page:key`."
+        },
+        "condition": {
+          "type": ["string", "null"],
+          "description": "What is still outstanding for a declared capability, or the cause for an indeterminate one."
+        },
+        "facts": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "What was observed. Carries no literal command, URL or header unless --with-content was passed: by default a literal is reduced to its sha256 at the reader, because a report is pasted into CI logs."
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["rule_id", "rule_version", "author", "pack", "severity", "location"],
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "description": "ACT- plus one category letter plus three digits. Never renumbered and never reused."
+        },
+        "rule_version": { "type": "string" },
+        "author": {
+          "type": "string",
+          "description": "Who wrote the rule. Seamark cites, it does not judge, so a finding that named no author would be Seamark holding the opinion."
+        },
+        "pack": { "type": "string" },
+        "severity": {
+          "type": "string",
+          "description": "The label the rule's author wrote, published verbatim. Not computed here, never summed with another, and never ordered against one."
+        },
+        "location": { "type": "string" },
+        "evidence": { "type": "object", "additionalProperties": true }
+      }
+    },
+    "gap": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["subject", "cause", "source"],
+      "properties": {
+        "subject": { "type": "string" },
+        "cause": { "type": "string" },
+        "source": { "type": "string" }
+      }
+    },
+    "unread": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["path", "reason"],
+      "properties": {
+        "path": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    },
+    "merge_rule": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["keys", "rule", "url", "doc_sha256", "consulted", "quote"],
+      "properties": {
+        "keys": { "type": "array", "items": { "type": "string" } },
+        "rule": { "type": "string" },
+        "url": { "type": "string" },
+        "doc_sha256": {
+          "type": "string",
+          "description": "sha256 of the documentation page as retrieved on `consulted`. These pages publish no version string, so the page itself is the anchor.",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "consulted": { "type": "string" },
+        "quote": { "type": "string" },
+        "since": {
+          "type": ["string", "null"],
+          "description": "The agent version from which this rule holds, when the page states one."
+        }
+      }
+    }
+  }
+}

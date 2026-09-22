@@ -13,8 +13,8 @@ import stat
 
 import pytest
 
-from actaira.attest import chain, signing
 from conftest import POSIX_MODE_BITS
+from seamark.attest import chain, signing
 
 # The DER SubjectPublicKeyInfo prefix for an Ed25519 key: SEQUENCE, AlgorithmId
 # 1.3.101.112, BIT STRING of 32 bytes. Fixed by RFC 8410.

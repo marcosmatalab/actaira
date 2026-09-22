@@ -1,17 +1,17 @@
 <div align="center">
 
-# Actaira
+# Seamark
 
 **Control de cambios de lo que tus agentes de IA pueden hacer.**
 
-Actaira lee la configuración que cargan tus agentes de código, resuelve lo que de verdad les permite hacer, y dice qué cambió entre dos momentos.
+Seamark lee la configuración que cargan tus agentes de código, resuelve lo que de verdad les permite hacer, y dice qué cambió entre dos momentos.
 
-[![ci](https://github.com/marcosmatalab/actaira/actions/workflows/ci.yml/badge.svg)](https://github.com/marcosmatalab/actaira/actions/workflows/ci.yml)
-[![pypi](https://img.shields.io/pypi/v/actaira)](https://pypi.org/project/actaira/)
-[![python](https://img.shields.io/pypi/pyversions/actaira)](https://pypi.org/project/actaira/)
+[![ci](https://github.com/marcosmatalab/seamark/actions/workflows/ci.yml/badge.svg)](https://github.com/marcosmatalab/seamark/actions/workflows/ci.yml)
+[![pypi](https://img.shields.io/pypi/v/seamark)](https://pypi.org/project/seamark/)
+[![python](https://img.shields.io/pypi/pyversions/seamark)](https://pypi.org/project/seamark/)
 [![licencia](https://img.shields.io/badge/licencia-Apache--2.0-blue)](LICENSE)
 
-**Actaira 3.0.0** · Apache-2.0 · una dependencia en tiempo de ejecución · sin conexión, sin telemetría, sin cuenta
+**Seamark 3.0.0** · Apache-2.0 · una dependencia en tiempo de ejecución · sin conexión, sin telemetría, sin cuenta
 
 **[English](README.md)** · [Comprobarlo en 60 segundos](#comprobar-esto-en-60-segundos) · [Quickstart](#quickstart) · [Comandos](docs/COMMANDS.md) · [Límites](docs/LIMITS.es.md)
 
@@ -25,13 +25,13 @@ Todas las cifras de esta página las mide un comando de este repositorio, no
 están escritas a mano. Así se comprueban, sin conexión y sin cuenta:
 
 ```bash
-pip install actaira && actaira scan --demo     # funciona sin ningún agente instalado
+pip install seamark && seamark scan --demo     # funciona sin ningún agente instalado
 ```
 
 Y todo lo demás, desde un clon limpio:
 
 ```bash
-git clone https://github.com/marcosmatalab/actaira && cd actaira
+git clone https://github.com/marcosmatalab/seamark && cd seamark
 pip install -e ".[dev]"
 make all        # lint, la suite con su suelo de cobertura, las cifras medidas, las dos puertas
 ```
@@ -53,7 +53,7 @@ varios ámbitos a la vez (gestión, usuario, proyecto, local) y cada fabricante
 documenta sus propias reglas para mezclarlos. La respuesta a «qué puede hacer
 este agente aquí» no está escrita en ninguno de ellos.
 
-Actaira lee esos ficheros, resuelve a qué suman, nombra cada capacidad con la
+Seamark lee esos ficheros, resuelve a qué suman, nombra cada capacidad con la
 regla que la encontró, y dice qué ha cambiado desde la última vez.
 
 No es un escáner de modelos. No es una plataforma de observabilidad. No es una
@@ -61,7 +61,7 @@ herramienta de cumplimiento. No es un EDR: no vigila en ejecución y no bloquea.
 
 ### Las tres afirmaciones, y dónde está cada una
 
-Actaira afirma exactamente tres cosas y nada más. Cualquier cosa fuera de esas
+Seamark afirma exactamente tres cosas y nada más. Cualquier cosa fuera de esas
 tres es un defecto de producto, aunque sea verdad.
 
 Cada bloque de abajo nombra los comandos sobre los que se sostiene su
@@ -73,9 +73,9 @@ comando que funciona sin que ningún bloque lo reclame también.
 **1. Superficie** - lo que un agente puede hacer aquí, resuelto entre ámbitos y
 fabricantes. Cada capacidad cita el fichero del que sale, la regla de mezcla
 documentada que la resolvió con la URL y la versión de la documentación del
-fabricante que la enuncia, y la regla de Actaira que la nombra.
+fabricante que la enuncia, y la regla de Seamark que la nombra.
 
-> **Construido.** Comandos: `actaira check`.
+> **Construido.** Comandos: `seamark check`.
 > Claude Code, Codex CLI, Cursor, Gemini CLI, los ficheros de tareas y ajustes
 > de VS Code, `devcontainer.json` y los ficheros de instrucciones AGENTS.md /
 > CLAUDE.md / GEMINI.md, cada uno contra su propia precedencia documentada. La
@@ -84,7 +84,7 @@ fabricante que la enuncia, y la regla de Actaira que la nombra.
 **2. Cambio** - qué capacidad aparece, desaparece, se ensancha o se estrecha
 entre dos momentos.
 
-> **Construido.** Comandos: `actaira diff`, `actaira seal`.
+> **Construido.** Comandos: `seamark diff`, `seamark seal`.
 > Dos refs de git, o dos directorios, comparados sin hacer checkout de ninguno.
 > Qué aparece, qué desaparece, qué se ensancha, qué se estrecha, qué cambia con
 > los dos digests, y aparte lo que no se pudo resolver en uno de los dos lados.
@@ -94,7 +94,7 @@ entre dos momentos.
 **3. Vigencia** - si una aprobación o una evidencia sigue describiendo lo que
 hay. Ligada a digests, nunca a nombres y nunca a fechas.
 
-> **Construido en parte.** Comandos: `actaira seal`, `actaira verify`.
+> **Construido en parte.** Comandos: `seamark seal`, `seamark verify`.
 > `seal` firma una línea base que no lleva contenido, ligada al digest de la
 > superficie, y `verify` la comprueba sin conexión y sin fiarse de quien la
 > produjo. O sea que hoy se puede atar una aprobación a un digest y se puede
@@ -112,8 +112,8 @@ nunca se reparte entre las respuestas que sí se pudieron dar.
 Dos comandos leen lo que un agente HIZO y no lo que puede hacer, y uno gestiona
 una clave.
 
-> **Fuera de las tres afirmaciones.** Comandos: `actaira scan`, `actaira watch`,
-> `actaira keygen`.
+> **Fuera de las tres afirmaciones.** Comandos: `seamark scan`, `seamark watch`,
+> `seamark keygen`.
 > `scan` y `watch` son la [escalera de captura](#niveles-de-captura), que va de
 > una ejecución y no de una configuración; `keygen` gestiona la clave con la que
 > firma `seal`. Se conservan porque un cambio en una configuración y las
@@ -124,7 +124,7 @@ una clave.
 ## Quickstart
 
 ```bash
-pip install actaira
+pip install seamark
 ```
 
 Una dependencia en tiempo de ejecución (`cryptography`). Nada más, sin cuenta y
@@ -162,7 +162,7 @@ red, así que se abre en una máquina que no tiene ninguna de las dos cosas:
 Y sin ningún agente instalado y sin nada configurado:
 
 ```console
-$ actaira scan --demo
+$ seamark scan --demo
 
 Reading the synthetic demo session shipped with the package.
   1 session(s), 4 tool call(s), from 2026-03-04T09:15:00.000Z to 2026-03-04T09:15:15.000Z
@@ -170,7 +170,7 @@ Reading the synthetic demo session shipped with the package.
 
 CAPTURE LEVEL L0: this transcript was written by the agent being audited, about
 itself. Authenticity is not evaluated here and cannot be. It is diagnosis and
-retrospective analysis, not evidence a third party can rely on. Use `actaira
+retrospective analysis, not evidence a third party can rely on. Use `seamark
 watch` to record a run from outside the agent.
 ```
 
@@ -184,20 +184,20 @@ la salida sale en español.
 ## Los siete comandos
 
 ```
-actaira check     lee la configuración de agentes de este repo y resuelve qué permite
-actaira diff      dice qué capacidad cambió entre dos momentos
-actaira seal      firma una línea base de la superficie, sin llevar contenido
-actaira verify    verifica un paquete firmado sin conexión
-actaira keygen    crea, rota o revoca una clave de firma
-actaira scan      lee las sesiones que un agente ya grabó en esta máquina (L0)
-actaira watch     graba una ejecución desde fuera del agente, con un proxy MCP (L1)
+seamark check     lee la configuración de agentes de este repo y resuelve qué permite
+seamark diff      dice qué capacidad cambió entre dos momentos
+seamark seal      firma una línea base de la superficie, sin llevar contenido
+seamark verify    verifica un paquete firmado sin conexión
+seamark keygen    crea, rota o revoca una clave de firma
+seamark scan      lee las sesiones que un agente ya grabó en esta máquina (L0)
+seamark watch     graba una ejecución desde fuera del agente, con un proxy MCP (L1)
 ```
 
-Esa es la lista completa de lo que funciona: 7 comandos de CLI, y `actaira
+Esa es la lista completa de lo que funciona: 7 comandos de CLI, y `seamark
 --help` imprime los mismos siete. Los dos de abajo son el producto;
 [`docs/COMMANDS.md`](docs/COMMANDS.md) es la referencia completa de todos ellos.
 
-### `actaira check` - qué puede hacer un agente aquí
+### `seamark check` - qué puede hacer un agente aquí
 
 `check` lee la configuración de agentes de este repositorio, resuelve qué
 permite de verdad entre ámbitos y entre fabricantes, y aplica los paquetes de
@@ -219,11 +219,11 @@ y sincronizados a los miembros, y los requisitos de Codex que llegan por MDM o
 desde la nube. Esos salen INDETERMINADOS con su causa, nunca como ausencia.
 
 ```
-actaira check                                   # este repositorio
-actaira check --machine                         # y los ámbitos de usuario y gestionado
-actaira check --agent-version claude-code=2.1.257
-actaira check --json                            # un documento surface/v1
-actaira check --html informe.html               # un solo fichero, sin red
+seamark check                                   # este repositorio
+seamark check --machine                         # y los ámbitos de usuario y gestionado
+seamark check --agent-version claude-code=2.1.257
+seamark check --json                            # un documento surface/v1
+seamark check --html informe.html               # un solo fichero, sin red
 ```
 
 Tres cosas que no hará. Nunca ejecuta lo que lee: de un script al que apunta un
@@ -237,14 +237,14 @@ sale INDETERMINADA con el umbral nombrado, y se cuenta aparte de todo lo demás.
 Códigos de salida: `0` no disparó nada y no quedó nada sin resolver, `1` disparó
 una regla, `3` no disparó nada y algo no se pudo resolver.
 
-### `actaira diff` - qué ha cambiado
+### `seamark diff` - qué ha cambiado
 
 ```
-actaira diff main HEAD                          # dos refs de este repositorio
-actaira diff --repo ../otro main feature        # de otro sitio
-actaira diff --from-dir a --to-dir b            # dos árboles, sin git
-actaira diff main HEAD --html informe.html      # y el mismo informe como página
-actaira diff main HEAD --sarif actaira.sarif    # SARIF 2.1.0 para un host de código
+seamark diff main HEAD                          # dos refs de este repositorio
+seamark diff --repo ../otro main feature        # de otro sitio
+seamark diff --from-dir a --to-dir b            # dos árboles, sin git
+seamark diff main HEAD --html informe.html      # y el mismo informe como página
+seamark diff main HEAD --sarif seamark.sarif    # SARIF 2.1.0 para un host de código
 ```
 
 De ninguna de las dos refs se hace checkout. Los dos árboles se leen con
@@ -273,12 +273,12 @@ que no cambió.
 
 ### En un pull request: la acción y el hook de pre-commit
 
-La acción es este repositorio. `uses: marcosmatalab/actaira@<sha>` instala la
+La acción es este repositorio. `uses: marcosmatalab/seamark@<sha>` instala la
 herramienta desde el ref que fijaste y ejecuta `diff` entre la base y la cabeza
 del pull request:
 
 ```yaml
-name: actaira
+name: seamark
 on: pull_request
 permissions:
   contents: read
@@ -290,7 +290,7 @@ jobs:
         with:
           fetch-depth: 0       # diff necesita los dos lados, o sea la historia entera
           persist-credentials: false
-      - uses: marcosmatalab/actaira@c0a33675c14b8a622ddb794ab3f516a514e3124d
+      - uses: marcosmatalab/seamark@c0a33675c14b8a622ddb794ab3f516a514e3124d
 ```
 
 **Los dos `uses:` van fijados por SHA de commit, y eso no es decoración.** Una
@@ -301,10 +301,10 @@ mundo sobre sus propios servidores MCP y sus hooks; un ejemplo que te dijera
 digest porque eso es lo que se recomienda. Para volver a resolverlo:
 `gh api repos/<owner>/<repo>/git/ref/tags/<tag> --jq .object.sha`.
 
-Escribe el informe en el resumen del trabajo y SARIF 2.1.0 en `actaira.sarif`.
+Escribe el informe en el resumen del trabajo y SARIF 2.1.0 en `seamark.sarif`.
 Subirlo a code scanning es un paso con `github/codeql-action/upload-sarif`, y
 este repositorio lo da sobre sus propios pushes: el trabajo `dogfood` ejecuta
-esta acción sobre Actaira y manda el resultado a la pestaña Security de Actaira.
+esta acción sobre Seamark y manda el resultado a la pestaña Security de Seamark.
 El código de salida pasa tal cual, así que una regla que disparó sobre algo
 nuevo hace fallar el trabajo; si eso bloquea el merge lo decide tu protección de
 rama. `comment: true` publica el resumen como comentario del pull request y
@@ -321,10 +321,10 @@ Para un hook local, este repositorio publica uno:
 
 ```yaml
 repos:
-  - repo: https://github.com/marcosmatalab/actaira
+  - repo: https://github.com/marcosmatalab/seamark
     rev: c0a33675c14b8a622ddb794ab3f516a514e3124d
     hooks:
-      - id: actaira-check
+      - id: seamark-check
 ```
 
 `check` y no `diff`, porque `pre-commit` tiene un árbol delante y un diff
@@ -352,7 +352,7 @@ estaba en alcance y falló, sí - y lo hace.
 
 ---
 
-## Lo que Actaira se niega a hacer
+## Lo que Seamark se niega a hacer
 
 Cuatro invariantes. Son el argumento, no una guía de estilo. Un cambio que viole
 una se rechaza sin discusión.
@@ -360,9 +360,9 @@ una se rechaza sin discusión.
 **1. Nunca un número.** No hay score, grade, rating, percent, confidence ni
 ranking en ningún documento emitido. Una regla puede traer una `severity`
 escrita por el autor de su paquete: eso es una etiqueta atribuida, no un cálculo
-de Actaira, y nunca se agrega con otra.
+de Seamark, y nunca se agrega con otra.
 
-**2. Nunca juzgar, solo citar.** Actaira no tiene opinión sobre lo que un agente
+**2. Nunca juzgar, solo citar.** Seamark no tiene opinión sobre lo que un agente
 debería haber hecho. Compara lo observado contra una norma **escrita por otro** y
 la nombra, publicando el id de esa regla, su versión, su paquete y su autor. De
 aquí se sigue: ningún modelo en el camino de decisión. Un LLM puede ayudar a
@@ -373,7 +373,7 @@ INDETERMINADO, jamás False. Cada regla declara lo que necesita para responder, 
 por debajo de eso devuelve INDETERMINADO sola, sin que nadie se acuerde de
 comprobarlo.
 
-**4. Nunca actuar sobre lo que se observa.** Actaira *sugiere* la remediación
+**4. Nunca actuar sobre lo que se observa.** Seamark *sugiere* la remediación
 que trae su regla, nunca la aplica. Un testigo que además actúa no puede dar fe
 de sus propios actos, y ese conflicto de interés es lo que nos separa de un
 proveedor de observabilidad. Un código de salida **informa**: si un pull request
@@ -385,6 +385,24 @@ Las cuatro están afirmadas sobre código que existe: la primera en
 segunda en cada hallazgo llevando el autor y el paquete de su regla, la tercera
 en `Clause.holds` devolviendo None ante un hecho que nadie escribió, y la cuarta
 en `diff` leyendo dos árboles sin hacer checkout de ninguno.
+
+---
+
+## De dónde viene esto
+
+Este repositorio se llamó **Actaira** hasta la 3.0.0. Ese nombre es de otro
+producto del mismo autor, la plataforma del AI Act, que vive en su propio
+repositorio y en `actaira.com`; y dos cosas sin relación bajo un mismo nombre
+son una confusión que un lector no puede resolver desde fuera. El que se movió
+es este, porque es el que todavía no se había publicado con su nombre.
+
+Qué significa en la práctica: la distribución es `seamark`, el comando es
+`seamark`, y la ruta de importación es `import seamark`. La etiqueta `v2.3.0`
+es el escáner de modelos que este repositorio fue, archivado entero y con el
+nombre que tenía cuando se publicó. [`CHANGELOG.md`](CHANGELOG.md) traza la
+línea entre los dos, y nada más en el árbol lleva el nombre viejo salvo lo que
+se rompería al cambiarlo: bytes que alguien firmó, un identificador con el que
+algo hace coincidencia, y localizadores dentro de esa etiqueta.
 
 ---
 
@@ -424,11 +442,11 @@ Todas las cifras de abajo salen de un comando. Corre cualquiera y discrepa.
 
 | Afirmación | Comando | Resultado |
 |---|---|---|
-| 2.650 tests | `python -m pytest --collect-only -q -o addopts=` | la misma cuenta |
+| 2.666 tests | `python -m pytest --collect-only -q -o addopts=` | la misma cuenta |
 | 15.969 líneas de código de producto | `find src -name '*.py' \| xargs cat \| wc -l` | la misma cuenta |
-| 42.585 líneas de Python en el árbol | `python scripts/figures.py` | `docs/FIGURES.md`, por área |
+| 42.937 líneas de Python en el árbol | `python scripts/figures.py` | `docs/FIGURES.md`, por área |
 | 32 reglas documentadas | `python scripts/rules_doc.py` | `docs/RULES.md`, desde los paquetes |
-| 7 comandos de CLI, y no hay un octavo | `actaira --help` | los siete de arriba |
+| 7 comandos de CLI, y no hay un octavo | `seamark --help` | los siete de arriba |
 | el suelo de cobertura aguanta | `make test-cov` | el suelo es 88 y el árbol mide 90 |
 | el árbol no se contradice | `python scripts/release_check.py` | cada comprobación nombrada, o un fallo con nombre |
 
@@ -467,8 +485,8 @@ tipos y el ledger de defectos.
 | | |
 |---|---|
 | [`docs/COMMANDS.md`](docs/COMMANDS.md) | Los siete comandos enteros, con sus flags y sus códigos de salida. |
-| [`docs/LIMITS.es.md`](docs/LIMITS.es.md) | Lo que Actaira no puede enseñarte, y por qué nada de ello se ablanda para vender mejor. |
-| [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) | Qué es Actaira, las negativas, y las reglas que sigue el trabajo. El documento de gobierno. |
+| [`docs/LIMITS.es.md`](docs/LIMITS.es.md) | Lo que Seamark no puede enseñarte, y por qué nada de ello se ablanda para vender mejor. |
+| [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) | Qué es Seamark, las negativas, y las reglas que sigue el trabajo. El documento de gobierno. |
 | [`docs/DESIGN.md`](docs/DESIGN.md) | Cada decisión de diseño con su alternativa rechazada, nombrando el fichero y la línea que la implementa. |
 | [`docs/RULES.md`](docs/RULES.md) | Cada regla, con su autor, su versión, los hechos que necesita y su configuración violadora. Generado desde los paquetes. |
 | [`docs/CONTRACTS.md`](docs/CONTRACTS.md) · [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) | Qué prometen los documentos, y qué se promete entre versiones. |

@@ -28,10 +28,10 @@ never over this working directory. A run over the mounted directory is an
 iteration shortcut and answers for a tree nobody receives:
 
 ```bash
-wsl -e bash -lc 'rm -rf /tmp/actaira-gate \
-  && git clone -q /mnt/c/Users/Usuario/Desktop/actaira /tmp/actaira-gate \
-  && cd /tmp/actaira-gate \
-  && PY=/tmp/actaira-venv/bin/python make all'
+wsl -e bash -lc 'rm -rf /tmp/seamark-gate \
+  && git clone -q /mnt/c/Users/Usuario/Desktop/seamark /tmp/seamark-gate \
+  && cd /tmp/seamark-gate \
+  && PY=/tmp/seamark-venv/bin/python make all'
 ```
 
 It is green twice in a row and leaves `git status` empty, or it is not done.

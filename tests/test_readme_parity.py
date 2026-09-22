@@ -220,8 +220,8 @@ DIAGRAMS = (
 # It was one block - `scan --demo` - until phase A.1, which is the same shape of
 # defect this file exists for: the check named the property ("the blocks labelled
 # real output have to be output anybody can get") and asserted it of one of them.
-# The `watch` block beside it said `./actaira-watch` for a tool whose `--out`
-# defaults to `actaira-trace`, and nothing noticed, because nothing looked.
+# The `watch` block beside it said `./seamark-watch` for a tool whose `--out`
+# defaults to `seamark-trace`, and nothing noticed, because nothing looked.
 #
 # So every ```console block in either README is collected, run, and compared.
 # Adding a block to a README with no way to produce it now fails here.
@@ -233,16 +233,16 @@ DIAGRAMS = (
 VOLATILE = ((re.compile('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'), "<session-id>"),)
 
 
-# What a console block's command line may be. `actaira ...` is the product;
+# What a console block's command line may be. `seamark ...` is the product;
 # `python3 scripts/<name>.py ...` is a script in this repository, and phase S3
 # added one - the keyv demo, which needs two COMMITS and so cannot be a fixture
 # directory the way every other block's subject is.
 #
-# The two forms run in different places on purpose. An `actaira` block runs in an
+# The two forms run in different places on purpose. An `seamark` block runs in an
 # empty directory, because that is what a stranger has; a script block runs at
 # the root of this repository, because that is what its own first line tells the
 # reader to do and it reads `tests/fixtures/` on the way.
-RUNNABLE = ("actaira ", "python3 scripts/")
+RUNNABLE = ("seamark ", "python3 scripts/")
 
 # `# exits N` on the command line. Written for the reader first - the keyv demo
 # exits 1 and somebody copying it into CI has to know that - and read by this
@@ -280,10 +280,10 @@ def normalise(text: str) -> str:
 
 
 def run_command(command: str, cwd: Path, expected_exit: int = 0) -> str:
-    """Run one `actaira ...` command in `cwd` and return everything it printed.
+    """Run one `seamark ...` command in `cwd` and return everything it printed.
 
     A subprocess rather than `cli.main` under `redirect_stdout`, and the
-    difference is not cosmetic. `actaira watch` runs a CHILD, and the child
+    difference is not cosmetic. `seamark watch` runs a CHILD, and the child
     writes to file descriptor 1 directly; `redirect_stdout` only rebinds
     `sys.stdout` inside this interpreter, so the child's own output is invisible
     to it. The README block shows `agent ran` because that is what a reader sees
@@ -311,7 +311,7 @@ def run_command(command: str, cwd: Path, expected_exit: int = 0) -> str:
     environment["PATH"] = os.pathsep.join(
         [str(Path(sys.executable).parent), environment.get("PATH", "")]
     )
-    head = [sys.executable, "-m", "actaira"] if spoken[0] == "actaira" else [sys.executable]
+    head = [sys.executable, "-m", "seamark"] if spoken[0] == "seamark" else [sys.executable]
     # `encoding="utf-8"`, not `text=True` alone. `cli._settle_output_encoding`
     # reconfigures stdout to UTF-8 whenever it is redirected, which is always
     # here, and `text=True` on its own decodes with the LOCALE's encoding - cp1252

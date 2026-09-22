@@ -32,8 +32,8 @@ from pathlib import Path
 import pytest
 
 import tsa
-from actaira.attest import timestamp as ts
 from conftest import REPO_ROOT
+from seamark.attest import timestamp as ts
 
 FIXTURES = REPO_ROOT / "tests" / "fixtures" / "rfc3161"
 SUBJECT = (FIXTURES / "subject.bin").read_bytes()
@@ -386,7 +386,7 @@ def test_stamp_refuses_a_rejection_rather_than_writing_an_empty_anchor(authority
 
 
 def test_an_authority_whose_certificate_is_not_for_timestamping_is_flagged():
-    crooked = tsa.FixtureTSA(name="Actaira Not A TSA", eku_timestamping=False)
+    crooked = tsa.FixtureTSA(name="Seamark Not A TSA", eku_timestamping=False)
     digest = hashlib.sha256(b"anything").digest()
     response = crooked.respond(ts.build_request(digest, nonce=5))
 

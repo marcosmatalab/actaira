@@ -43,8 +43,8 @@ from pathlib import Path
 
 import pytest
 
-from actaira import cli
 from conftest import REPO_ROOT
+from seamark import cli
 
 ACTION = Path(REPO_ROOT) / "action.yml"
 BASH = shutil.which("bash")
@@ -148,14 +148,14 @@ def test_the_extractor_found_the_steps_it_thinks_it_did():
     assert len(BLOCKS) >= 3, sorted(BLOCKS)
 
     body = BLOCKS[DIFF_STEP]
-    assert "actaira --lang" in body, "the diff step does not run the tool"
-    assert "actaira-exit-code.txt" in body, "the diff step records no exit code"
+    assert "seamark --lang" in body, "the diff step does not run the tool"
+    assert "seamark-exit-code.txt" in body, "the diff step records no exit code"
     assert BLOCKS[PASSTHROUGH_STEP].count("exit") >= 1
 
 
 @pytest.fixture
 def runner(tmp_path):
-    """A directory with a stub `actaira` on PATH and the runner's files named.
+    """A directory with a stub `seamark` on PATH and the runner's files named.
 
     The stub is a shell script that prints and exits with whatever code the test
     asks for. Nothing here installs anything, and nothing reaches the network:
@@ -166,7 +166,7 @@ def runner(tmp_path):
         workspace = tmp_path / f"exit-{exit_code}"
         binaries = workspace / "bin"
         binaries.mkdir(parents=True)
-        stub = binaries / "actaira"
+        stub = binaries / "seamark"
         stub.write_text(
             f"#!/bin/sh\necho 'a report the stub printed'\nexit {exit_code}\n",
             encoding="utf-8",
@@ -176,14 +176,14 @@ def runner(tmp_path):
         environment = {
             **os.environ,
             "PATH": os.pathsep.join([str(binaries), os.environ.get("PATH", "")]),
-            "ACTAIRA_FROM_DIR": "a",
-            "ACTAIRA_TO_DIR": "b",
-            "ACTAIRA_SARIF": "actaira.sarif",
-            "ACTAIRA_LANG": "en",
-            "ACTAIRA_BASE": "",
-            "ACTAIRA_HEAD": "",
-            "ACTAIRA_EVENT_BASE": "",
-            "ACTAIRA_EVENT_HEAD": "",
+            "SEAMARK_FROM_DIR": "a",
+            "SEAMARK_TO_DIR": "b",
+            "SEAMARK_SARIF": "seamark.sarif",
+            "SEAMARK_LANG": "en",
+            "SEAMARK_BASE": "",
+            "SEAMARK_HEAD": "",
+            "SEAMARK_EVENT_BASE": "",
+            "SEAMARK_EVENT_HEAD": "",
             "GITHUB_OUTPUT": str(workspace / "github_output"),
             "GITHUB_STEP_SUMMARY": str(workspace / "github_step_summary"),
         }
@@ -237,7 +237,7 @@ def test_the_diff_step_records_everything_whatever_the_tool_exits_with(code, run
         f"the diff step died when the tool exited {code}, so nothing after the "
         f"tool call ran.\n{result.stdout}\n{result.stderr}"
     )
-    assert (workspace / "actaira-exit-code.txt").read_text(encoding="utf-8").strip() == str(code)
+    assert (workspace / "seamark-exit-code.txt").read_text(encoding="utf-8").strip() == str(code)
     assert f"exit-code={code}" in (workspace / "github_output").read_text(encoding="utf-8")
     assert "a report the stub printed" in (
         workspace / "github_step_summary"
@@ -252,7 +252,7 @@ def test_the_exit_code_reaches_the_job_unchanged(code, runner):
     way a rewrite cannot quietly undo.
     """
     workspace, environment = runner(code)
-    (workspace / "actaira-exit-code.txt").write_text(f"{code}\n", encoding="utf-8")
+    (workspace / "seamark-exit-code.txt").write_text(f"{code}\n", encoding="utf-8")
 
     result = bash(BLOCKS[PASSTHROUGH_STEP], workspace, environment)
 
@@ -277,7 +277,7 @@ def test_the_check_would_have_caught_the_defect_it_was_written_for(runner):
         "the step survived without `|| code=$?`, so `bash -e` is not being "
         "exercised and this whole file is checking the wrong shell"
     )
-    assert not (workspace / "actaira-exit-code.txt").exists(), (
+    assert not (workspace / "seamark-exit-code.txt").exists(), (
         "the broken spelling still wrote the exit code, so the assertion above "
         "is not about what it says it is about"
     )
@@ -315,7 +315,7 @@ def test_the_comment_stripper_does_not_strip_the_code():
     both would pass over an empty string."""
     body = executable(BLOCKS[DIFF_STEP])
 
-    assert "actaira --lang" in body and "|| code=$?" in body
+    assert "seamark --lang" in body and "|| code=$?" in body
     assert "# `|| true` anywhere" not in body, "the comment survived the strip"
     assert "|| true" in BLOCKS[DIFF_STEP], (
         "action.yml no longer argues the `|| true` rule in a comment, so this "
@@ -328,7 +328,7 @@ def test_the_comment_stripper_does_not_strip_the_code():
 # ---------------------------------------------------------------------------
 #
 # Every test above runs the step against a stub that prints and exits, and a
-# stub that swallows ANY argv is why they were all green over a call `actaira
+# stub that swallows ANY argv is why they were all green over a call `seamark
 # diff` refuses. `--sarif` was written after `"$@"`, so on the refs branch it
 # landed after the `--` that ends option parsing; argparse read it and its path
 # as two more refs, and the DOCUMENTED path - `on: pull_request` with no inputs
@@ -339,7 +339,7 @@ def test_the_comment_stripper_does_not_strip_the_code():
 # refs branch, two directories for the other. One definition of "an argv `diff`
 # accepts", and it is the one a user gets.
 
-RECORD = "ACTAIRA_ARGV_RECORD"
+RECORD = "SEAMARK_ARGV_RECORD"
 
 
 def _recording_stub(binaries: Path) -> None:
@@ -350,7 +350,7 @@ def _recording_stub(binaries: Path) -> None:
     wrong on the platform where the shell is not the system's own.
     """
     binaries.mkdir(parents=True, exist_ok=True)
-    stub = binaries / "actaira"
+    stub = binaries / "seamark"
     stub.write_text(
         "#!/bin/sh\n"
         f': > "${RECORD}"\n'
@@ -385,11 +385,11 @@ def test_the_argv_the_step_builds_is_one_the_cli_accepts(branch, tmp_path, monke
         **os.environ,
         "PATH": os.pathsep.join([str(workspace / "bin"), os.environ.get("PATH", "")]),
         RECORD: str(record),
-        "ACTAIRA_FROM_DIR": "", "ACTAIRA_TO_DIR": "",
-        "ACTAIRA_BASE": "", "ACTAIRA_HEAD": "",
-        "ACTAIRA_EVENT_BASE": "", "ACTAIRA_EVENT_HEAD": "",
-        "ACTAIRA_SARIF": str(workspace / "actaira.sarif"),
-        "ACTAIRA_LANG": "en",
+        "SEAMARK_FROM_DIR": "", "SEAMARK_TO_DIR": "",
+        "SEAMARK_BASE": "", "SEAMARK_HEAD": "",
+        "SEAMARK_EVENT_BASE": "", "SEAMARK_EVENT_HEAD": "",
+        "SEAMARK_SARIF": str(workspace / "seamark.sarif"),
+        "SEAMARK_LANG": "en",
         "GITHUB_OUTPUT": str(workspace / "github_output"),
         "GITHUB_STEP_SUMMARY": str(workspace / "github_step_summary"),
     }
@@ -397,8 +397,8 @@ def test_the_argv_the_step_builds_is_one_the_cli_accepts(branch, tmp_path, monke
     if branch == "dirs":
         for name in ("a", "b"):
             (workspace / name).mkdir()
-        environment["ACTAIRA_FROM_DIR"] = str(workspace / "a")
-        environment["ACTAIRA_TO_DIR"] = str(workspace / "b")
+        environment["SEAMARK_FROM_DIR"] = str(workspace / "a")
+        environment["SEAMARK_TO_DIR"] = str(workspace / "b")
     else:
         _git(workspace, "init", "--quiet", "-b", "main")
         _git(workspace, "config", "user.email", "gate@example.invalid")
@@ -406,10 +406,10 @@ def test_the_argv_the_step_builds_is_one_the_cli_accepts(branch, tmp_path, monke
         (workspace / "README.md").write_text("before\n", encoding="utf-8")
         _git(workspace, "add", "README.md")
         _git(workspace, "commit", "--quiet", "-m", "before")
-        environment["ACTAIRA_EVENT_BASE"] = _git(workspace, "rev-parse", "HEAD")
+        environment["SEAMARK_EVENT_BASE"] = _git(workspace, "rev-parse", "HEAD")
         (workspace / "README.md").write_text("after\n", encoding="utf-8")
         _git(workspace, "commit", "--quiet", "-am", "after")
-        environment["ACTAIRA_EVENT_HEAD"] = _git(workspace, "rev-parse", "HEAD")
+        environment["SEAMARK_EVENT_HEAD"] = _git(workspace, "rev-parse", "HEAD")
 
     bash(BLOCKS[DIFF_STEP], workspace, environment)
 
@@ -422,7 +422,7 @@ def test_the_argv_the_step_builds_is_one_the_cli_accepts(branch, tmp_path, monke
     code = cli.main(argv)
 
     assert code != 2, (
-        f"the {branch} branch builds an argv `actaira diff` refuses as a usage error: "
+        f"the {branch} branch builds an argv `seamark diff` refuses as a usage error: "
         f"{argv}. DEF-123: a stub that accepts anything cannot tell a call the tool "
         "would take from one it would not"
     )

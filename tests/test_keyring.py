@@ -24,11 +24,11 @@ from pathlib import Path
 import pytest
 
 import tsa
-from actaira import cli
-from actaira.attest import chain, keyring, package, signing
-from actaira.attest import timestamp as ts
-from actaira.attest import verify as verify_mod
 from conftest import POSIX_MODE_BITS, requires_posix_modes
+from seamark import cli
+from seamark.attest import chain, keyring, package, signing
+from seamark.attest import timestamp as ts
+from seamark.attest import verify as verify_mod
 from support.reports import write_record
 
 NOW = datetime.now(UTC)
@@ -454,7 +454,7 @@ def test_both_key_files_are_created_restricted_rather_than_restricted_afterwards
     """The half of the permission claim that is observable on every platform.
 
     A kernel that ignores the mode argument is the host's decision and is
-    recorded in `SECURITY.md`. What is Actaira's decision, everywhere, is
+    recorded in `SECURITY.md`. What is Seamark's decision, everywhere, is
     *when* it asks: the mode goes to `os.open` together with `O_CREAT`, before
     any key material is written, rather than to a `chmod` afterwards. The
     difference is a window in which the file exists, is readable by everyone,

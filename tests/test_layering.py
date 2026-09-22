@@ -1,7 +1,7 @@
-"""What each package of `actaira` is allowed to import, written down once.
+"""What each package of `seamark` is allowed to import, written down once.
 
 The graph was already a clean DAG when this was written: nothing under
-`src/actaira/` imports `cli` or `mcp`, and there were exactly three edges that
+`src/seamark/` imports `cli` or `mcp`, and there were exactly three edges that
 cross between sibling packages. So this is not a refactor, it is the assertion
 that was missing. An architecture nobody can fail is one that holds until the
 first afternoon somebody is in a hurry.
@@ -52,7 +52,7 @@ CORE = frozenset({"", "model", "schemas"})
 # The entry points. Nothing below them may import one, and they may import
 # anything: a command is the top of the graph by definition. They may import
 # each other, which is not a loophole but what they are: `__main__` is
-# `python -m actaira` and `mcp` exposes the same commands over a protocol, so
+# `python -m seamark` and `mcp` exposes the same commands over a protocol, so
 # both are thin fronts on `cli` rather than layers of their own.
 ENTRY_POINTS = frozenset({"cli", "mcp", "__main__"})
 
@@ -79,12 +79,12 @@ ALLOWED: dict[str, frozenset[str]] = {
 def package_of(module: str) -> str:
     """The package a module belongs to, as this contract names packages.
 
-    `actaira.surface.resolve` is in `surface`; `actaira.model` is in `model`,
+    `seamark.surface.resolve` is in `surface`; `seamark.model` is in `model`,
     which is its own name because a loose module at the root is not part of
-    anything; `actaira` itself is the empty string.
+    anything; `seamark` itself is the empty string.
     """
     parts = module.split(".")
-    assert parts[0] == "actaira", module
+    assert parts[0] == "seamark", module
     return parts[1] if len(parts) > 1 else ""
 
 
@@ -121,7 +121,7 @@ def test_the_table_names_every_package_that_exists():
     """Work rule 11: a contract that has stopped covering the tree is not a
     contract that passes, it is one that has stopped looking.
 
-    A package added under `src/actaira/` and never added here would fall
+    A package added under `src/seamark/` and never added here would fall
     through to `CORE` and be silently held to the strictest rule, which sounds
     safe and is not: the day it legitimately needs an edge, the failure reads
     as a layering violation rather than as a contract nobody updated.
@@ -129,7 +129,7 @@ def test_the_table_names_every_package_that_exists():
     present = {package_of(module) for module in MODULES}
     missing = sorted(present - set(ALLOWED))
     assert not missing, (
-        "these packages exist under src/actaira and the layering contract does not "
+        "these packages exist under src/seamark and the layering contract does not "
         "name them: " + ", ".join(missing)
     )
     stale = sorted(set(ALLOWED) - present)
@@ -157,14 +157,14 @@ def test_no_module_imports_across_a_layer_the_contract_forbids():
     [
         # The example the acceptance script uses, and the one that would hurt
         # most: configuration resolution reaching into signing.
-        {"actaira.surface.resolve": {"actaira.attest.seal"}},
+        {"seamark.surface.resolve": {"seamark.attest.seal"}},
         # The direction that turns a DAG into a cycle.
-        {"actaira.trace.model": {"actaira.surface.diff"}},
+        {"seamark.trace.model": {"seamark.surface.diff"}},
         # A subpackage reaching up into a command.
-        {"actaira.surface.rules": {"actaira.cli"}},
+        {"seamark.surface.rules": {"seamark.cli"}},
         # `report` is allowed `surface` and not `attest`, which is the pair
         # most likely to be confused by somebody adding a signed report.
-        {"actaira.report.html": {"actaira.attest.verify"}},
+        {"seamark.report.html": {"seamark.attest.verify"}},
     ],
 )
 def test_the_contract_would_notice_a_forbidden_import(planted):
@@ -195,9 +195,9 @@ def test_the_source_of_the_three_crossing_edges_is_where_this_file_says_it_is():
     the sort of documentation this repository's own gate exists to refuse.
     """
     expected = {
-        "src/actaira/attest/seal.py": "from ..trace.redact import",
-        "src/actaira/report/sarif.py": "from ..surface.diff import",
-        "src/actaira/report/html.py": "from ..i18n.catalog import",
+        "src/seamark/attest/seal.py": "from ..trace.redact import",
+        "src/seamark/report/sarif.py": "from ..surface.diff import",
+        "src/seamark/report/html.py": "from ..i18n.catalog import",
     }
     for relative, fragment in expected.items():
         text = (Path(REPO_ROOT) / relative).read_text(encoding="utf-8")

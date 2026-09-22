@@ -45,10 +45,10 @@ VOLATILE = (
 
 
 def transcripts() -> list[dict[str, str]]:
-    from actaira import cli
-    from actaira.attest import chain, package, signing
+    from seamark import cli
+    from seamark.attest import chain, package, signing
 
-    root = Path(tempfile.mkdtemp(prefix="actaira-transcript-"))
+    root = Path(tempfile.mkdtemp(prefix="seamark-transcript-"))
     key = root / "signing-key.pem"
 
     # One entry, one fixed timestamp, one fixed subject digest: the same
@@ -88,10 +88,10 @@ def transcripts() -> list[dict[str, str]]:
     )
 
     runs = [
-        ("actaira keygen", ["keygen", "--key", str(key)]),
-        ("actaira verify attestation.zip", ["verify", str(attestation)]),
-        ("actaira check --repo repo", ["check", "--repo", str(repo)]),
-        ("actaira check --repo repo --json", ["check", "--repo", str(repo), "--json"]),
+        ("seamark keygen", ["keygen", "--key", str(key)]),
+        ("seamark verify attestation.zip", ["verify", str(attestation)]),
+        ("seamark check --repo repo", ["check", "--repo", str(repo)]),
+        ("seamark check --repo repo --json", ["check", "--repo", str(repo), "--json"]),
     ]
 
     captured: list[dict[str, str]] = []

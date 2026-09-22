@@ -1,15 +1,15 @@
 # Compatibility
 
 What this project promises not to break, and what it reserves the right to
-change. Written because until 2.1.0 the only stable thing Actaira emitted was
+change. Written because until 2.1.0 the only stable thing Seamark emitted was
 `rule_id`, its own threat model said so, and that was both honest and a
 ceiling. Nothing can be built on output that may move in any release.
 
 This page was rewritten in phase A because it had become the thing a
 compatibility document must never be. It published fourteen schemas when nine
-were on disk, and it documented seven commands — `actaira receipt issue`,
-`actaira policy check --json`, `actaira schema`, `actaira agent bom`, `actaira
-bundle --json`, `actaira graph export`, `actaira trust check` — **none of which
+were on disk, and it documented seven commands — `seamark receipt issue`,
+`seamark policy check --json`, `seamark schema`, `seamark agent bom`, `seamark
+bundle --json`, `seamark graph export`, `seamark trust check` — **none of which
 parsed**. A promise about a surface that is not there is worse than no promise:
 a consumer builds against it and discovers the gap at runtime.
 
@@ -20,7 +20,7 @@ the contracts on disk, the registry, and this page disagree.
 
 | Surface | Versioned by | Promise |
 |---|---|---|
-| JSON Schemas in `src/actaira/schemas/` | `<name>/vN` in the document | Below |
+| JSON Schemas in `src/seamark/schemas/` | `<name>/vN` in the document | Below |
 | CLI commands, flags and exit codes | The package's SemVer | Below |
 | Rule identifiers (`ACT-*`) | Never renumbered | A rule id means one thing forever |
 
@@ -64,10 +64,10 @@ outside the registry.
 
 | Schema | Version | Emitted by |
 |---|---|---|
-| `surface` | `surface/v1` | `actaira check` |
-| `surface-diff` | `surface-diff/v1` | `actaira diff` |
-| `seal` | `seal/v1` | `actaira seal` |
-| `trace` | `trace/v3` | `actaira scan`, `actaira watch` |
+| `surface` | `surface/v1` | `seamark check` |
+| `surface-diff` | `surface-diff/v1` | `seamark diff` |
+| `seal` | `seal/v1` | `seamark seal` |
+| `trace` | `trace/v3` | `seamark scan`, `seamark watch` |
 
 Four families, one live revision each.
 
@@ -139,17 +139,17 @@ still supported.
 
 ## Commands
 
-Seven, and `actaira --help` prints the same seven.
+Seven, and `seamark --help` prints the same seven.
 
 | Command | What it does |
 |---|---|
-| `actaira check` | Read this repository's (and with `--machine`, this machine's) agent configuration, resolve what it permits across scopes, and apply the rule packs |
-| `actaira diff <A> <B>` | Say what capability appears, disappears, widens, narrows or changes between two refs, or between two directories with `--from-dir` and `--to-dir` |
-| `actaira seal` | Sign a baseline of this repository's surface, carrying no content |
-| `actaira scan` | Read the sessions an agent already recorded on this machine (L0) |
-| `actaira watch -- <command>` | Record a run from outside the agent, through an MCP proxy (L1) |
-| `actaira verify <package>` | Verify a signed package offline |
-| `actaira keygen` | Create, rotate or revoke a signing key |
+| `seamark check` | Read this repository's (and with `--machine`, this machine's) agent configuration, resolve what it permits across scopes, and apply the rule packs |
+| `seamark diff <A> <B>` | Say what capability appears, disappears, widens, narrows or changes between two refs, or between two directories with `--from-dir` and `--to-dir` |
+| `seamark seal` | Sign a baseline of this repository's surface, carrying no content |
+| `seamark scan` | Read the sessions an agent already recorded on this machine (L0) |
+| `seamark watch -- <command>` | Record a run from outside the agent, through an MCP proxy (L1) |
+| `seamark verify <package>` | Verify a signed package offline |
+| `seamark keygen` | Create, rotate or revoke a signing key |
 
 `tests/test_no_aggregate.py::test_the_enumeration_names_every_emitter_this_tree_has`
 and `release_check.py` both fail when this list and the parser disagree.
@@ -240,7 +240,7 @@ your branch protection, which is yours. Exiting non-zero is not acting on what
 was observed; writing in your tree would be, and this tool does not.
 
 One code is deliberately absent from the table, because it is not part of this
-contract: a `verify` whose stdout is closed early — `actaira verify --json |
+contract: a `verify` whose stdout is closed early — `seamark verify --json |
 head -3` — exits `141`, the shell's own convention for a process killed by
 SIGPIPE. It reports a pipe that went away, never a verdict.
 
@@ -265,7 +265,7 @@ in phase A. `tests/test_i18n.py` asserts both directions: a rule the packs defin
 with no catalogue entry fails, and a catalogue entry no pack defines fails.
 
 Every finding publishes `rule_id`, `rule_version`, `author` and `pack` beside its
-`severity`. **The severity is the label the rule's author wrote.** Actaira does
+`severity`. **The severity is the label the rule's author wrote.** Seamark does
 not compute it, does not order it against another author's, and does not sum it.
 A consumer that needs a total is asking this tool for the one thing it refuses.
 
@@ -300,7 +300,7 @@ limit is published.
 ## What is not promised
 
 - Message text, in either language.
-- Module paths and function signatures inside `actaira.*`. The CLI and the
+- Module paths and function signatures inside `seamark.*`. The CLI and the
   schemas are the interface; importing an internal module and calling it is
   using a private API. Phase A moved a great deal of code out of this package
   precisely because nothing reachable used it.

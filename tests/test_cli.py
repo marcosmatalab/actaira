@@ -28,9 +28,9 @@ from pathlib import Path
 
 import pytest
 
-from actaira import cli
-from actaira.attest import chain, package
 from conftest import REPO_ROOT
+from seamark import cli
+from seamark.attest import chain, package
 
 
 @pytest.fixture
@@ -80,7 +80,7 @@ SHIPPED = {"check", "diff", "seal", "verify", "keygen", "scan", "watch"}
 # absence: a name that used to be planned is a name somebody's script may still
 # type, and the answer it gets must be an error rather than something worse.
 # `serve` is in the list and is not one of the seven: the MCP server is a
-# separate entry point, `actaira-mcp`, precisely so that it is not another
+# separate entry point, `seamark-mcp`, precisely so that it is not another
 # command, and this is where that stays true.
 NOT_BUILT_YET: list[str] = []
 RETIRED = ["contract", "verdict", "receipt", "fix"]
@@ -137,13 +137,13 @@ def test_the_help_text_names_those_commands_and_nothing_else(capsys):
 
 
 def test_version_is_the_package_version(capsys):
-    from actaira import __version__
+    from seamark import __version__
 
     with pytest.raises(SystemExit) as exit_info:
         cli.main(["--version"])
 
     assert exit_info.value.code == cli.EXIT_OK
-    assert capsys.readouterr().out.strip() == f"actaira {__version__}"
+    assert capsys.readouterr().out.strip() == f"seamark {__version__}"
 
 
 # ---------------------------------------------------------------------------
@@ -161,7 +161,7 @@ def test_version_is_the_package_version(capsys):
 # It exists because phase S0 rewrote that list without touching a line of the
 # parser. Four names left it and three arrived, and nothing in the tree would
 # have noticed had the three arrived without their phases: a reader meeting
-# `actaira check` in the governance document has no way to tell a shipped
+# `seamark check` in the governance document has no way to tell a shipped
 # command from an intention, and the whole point of the phase before this one
 # was that the tree stops describing intentions in the present tense.
 
@@ -171,14 +171,14 @@ def test_version_is_the_package_version(capsys):
 # because what this checks is the list and not the prose around it.
 DOCTRINE_PAGE = "docs/PRINCIPLES.md"
 CLI_SECTION = re.compile(r"^## The CLI$(.*?)^## ", re.M | re.S)
-CLI_ENTRY = re.compile(r"^ {4}actaira (\S+)(.*?)(?=^ {4}actaira |\Z)", re.M | re.S)
+CLI_ENTRY = re.compile(r"^ {4}seamark (\S+)(.*?)(?=^ {4}seamark |\Z)", re.M | re.S)
 PHASE_MARK = re.compile(r"\(phase [A-Z]\d(?:\.\d)?\)")
 
 
 def doctrine_commands(text: str) -> list[tuple[str, bool]]:
     """(command name, whether its entry states the phase it arrives in).
 
-    An entry is its `    actaira <name>` line plus the continuation lines under
+    An entry is its `    seamark <name>` line plus the continuation lines under
     it, because the phase is written at the end of the description and the
     description wraps.
     """
@@ -222,7 +222,7 @@ def test_every_name_in_the_doctrine_list_either_exists_or_says_when(name, phased
         return
 
     assert phased, (
-        f"{DOCTRINE_PAGE} lists `actaira {name}`, which this parser does not have, and "
+        f"{DOCTRINE_PAGE} lists `seamark {name}`, which this parser does not have, and "
         "does not say which phase it arrives in. A name on that list without a "
         "phase reads as a shipped command to anybody who has not typed it."
     )
@@ -235,9 +235,9 @@ def test_the_check_would_notice_a_planted_command():
     parsed as unphased."""
     real = (Path(REPO_ROOT) / DOCTRINE_PAGE).read_text(encoding="utf-8")
     planted = real.replace(
-        "    actaira keygen ",
-        "    actaira publish              push the record to the registry\n"
-        "    actaira keygen ",
+        "    seamark keygen ",
+        "    seamark publish              push the record to the registry\n"
+        "    seamark keygen ",
         1,
     )
     assert planted != real, "the plant did not apply; the fixture line moved"
@@ -256,9 +256,9 @@ def test_the_check_would_notice_a_planted_command():
     # And the same plant WITH a phase must be accepted, or the check is just a
     # ban on adding a name.
     with_phase = real.replace(
-        "    actaira keygen ",
-        "    actaira publish              push the record to the registry (phase S9)\n"
-        "    actaira keygen ",
+        "    seamark keygen ",
+        "    seamark publish              push the record to the registry (phase S9)\n"
+        "    seamark keygen ",
         1,
     )
     assert dict(doctrine_commands(with_phase))["publish"] is True
@@ -353,7 +353,7 @@ def test_the_default_key_path_is_resolved_when_asked_and_never_at_import():
     """Design note D-240. `Path.home()` raises in a scrubbed environment, and
     a module-level call took `--help` down with it."""
     assert cli.default_key_path().name == "signing-key.pem"
-    assert cli.default_key_path().parent.name == ".actaira"
+    assert cli.default_key_path().parent.name == ".seamark"
 
 
 # ---------------------------------------------------------------------------

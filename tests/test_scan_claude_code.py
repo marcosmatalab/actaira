@@ -18,10 +18,10 @@ from pathlib import Path
 
 import pytest
 
-from actaira import cli
-from actaira.trace import SOURCES, CaptureLevel, reader_for
-from actaira.trace.claude_code import ClaudeCodeReader
-from actaira.trace.model import GapReason
+from seamark import cli
+from seamark.trace import SOURCES, CaptureLevel, reader_for
+from seamark.trace.claude_code import ClaudeCodeReader
+from seamark.trace.model import GapReason
 
 SESSION = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
 
@@ -555,7 +555,7 @@ def test_a_hole_with_no_event_to_anchor_to_says_so_instead_of_inventing_one(tmp_
 def test_no_hole_in_any_emitted_trace_points_outside_the_events(tmp_path, corpus):
     """The property, rather than the three examples above: a cited position
     is a position this document has."""
-    from actaira.trace.claude_code import demo_trace
+    from seamark.trace.claude_code import demo_trace
 
     if corpus == "demo":
         documents = [demo_trace().to_dict()]

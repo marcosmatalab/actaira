@@ -39,7 +39,7 @@ capability that does not carry one comes back INDETERMINATE.
 
 **`severity` is the label the rule's author chose.** It is published beside that
 author's name and is never summed, maximised or compared with another pack's.
-Actaira computes no number about it.
+Seamark computes no number about it.
 
 **A rule identifier means one thing forever.** `docs/COMPATIBILITY.md` promises
 that identifiers are never renumbered and never reused for a different finding.
@@ -68,8 +68,8 @@ COLUMNS = (
 
 
 def render() -> str:
-    from actaira.i18n.catalog import Catalog
-    from actaira.surface import rules as rule_module
+    from seamark.i18n.catalog import Catalog
+    from seamark.surface import rules as rule_module
 
     english = Catalog("en")
     spanish = Catalog("es")
@@ -167,7 +167,7 @@ def main() -> int:
         return 0
 
     PAGE.write_text(wanted, encoding="utf-8")
-    from actaira.surface import rules as rule_module
+    from seamark.surface import rules as rule_module
 
     print(f"wrote docs/RULES.md: {len(rule_module.load())} rules")
     return 0

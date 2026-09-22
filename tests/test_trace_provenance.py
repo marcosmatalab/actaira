@@ -6,7 +6,7 @@ an agent, a server, or somebody else's configuration. Two were fixed with a
 salt; the third was fixed by restricting its punctuation, which is not the same
 fix, because the specification has servers encode their own identifier in it.
 
-`src/actaira/trace/provenance.py` is the one place that classifies every
+`src/seamark/trace/provenance.py` is the one place that classifies every
 published field. This file is what makes that table an invariant rather than a
 document: the first test walks the PUBLISHED CONTRACT and fails when it carries
 a property the table does not name, so a fourth instance of this class cannot
@@ -20,12 +20,12 @@ from pathlib import Path
 
 import pytest
 
-from actaira import schemas
-from actaira.proxy import Recorder
-from actaira.proxy.session import MANIFEST, WatchSession, rewrite_config
-from actaira.trace import provenance
-from actaira.trace.model import SCHEMA_VERSION
-from actaira.trace.provenance import PUBLISHED, REFUSED, Travel, Writer
+from seamark import schemas
+from seamark.proxy import Recorder
+from seamark.proxy.session import MANIFEST, WatchSession, rewrite_config
+from seamark.trace import provenance
+from seamark.trace.model import SCHEMA_VERSION
+from seamark.trace.provenance import PUBLISHED, REFUSED, Travel, Writer
 
 CONTRACT = schemas.stem(SCHEMA_VERSION)
 
@@ -72,7 +72,7 @@ def test_every_field_of_the_published_contract_is_classified():
     missing = sorted(contract_paths() - provenance.paths())
 
     assert not missing, (
-        f"{CONTRACT} publishes field(s) that src/actaira/trace/provenance.py does not "
+        f"{CONTRACT} publishes field(s) that src/seamark/trace/provenance.py does not "
         f"classify: {', '.join(missing)}. Add an entry saying who writes the value and, "
         "if it is a third party, whether it is digested or why it travels literally. "
         "This is the check that stops the fourth version of the alias defect."
@@ -175,7 +175,7 @@ def test_every_key_an_emitted_document_carries_is_classified(tmp_path):
     demo are both walked, and a key in either of them that the table does not
     name fails here even though the schema would have accepted it silently.
     """
-    from actaira.trace.claude_code import demo_trace
+    from seamark.trace.claude_code import demo_trace
 
     session = WatchSession(tmp_path / "records", "s")
     rewrite_config(
@@ -202,7 +202,7 @@ def test_every_key_an_emitted_document_carries_is_classified(tmp_path):
     assert carried, "no document was emitted, so nothing was walked"
     unclassified = sorted(carried - provenance.paths())
     assert not unclassified, (
-        "emitted document(s) carry key(s) that src/actaira/trace/provenance.py does not "
+        "emitted document(s) carry key(s) that src/seamark/trace/provenance.py does not "
         f"classify: {', '.join(unclassified)}. The schema would have accepted them - "
         "additionalProperties is true - which is exactly why this walks the document."
     )
@@ -275,7 +275,7 @@ def planted(tmp_path):
 
     script = tmp_path / "server.py"
     script.write_text(SERVER, encoding="utf-8")
-    from actaira.proxy.stdio import StdioProxy
+    from seamark.proxy.stdio import StdioProxy
 
     recorder = Recorder(
         session_id=PLANTED["session_id"],
@@ -337,7 +337,7 @@ def test_the_planted_corpus_would_catch_a_reader_that_published_everything(plant
 def test_the_correlation_the_value_carried_survives_being_referenced(planted):
     """The cost the salt must NOT have. A reference is useless if two events
     that shared a value stop sharing anything."""
-    from actaira.trace.model import GapReason
+    from seamark.trace.model import GapReason
 
     # A hole recorded after the call, so the anchor is actually exercised: the
     # question is whether a REFERENCED identity still cites the event it names.
@@ -447,11 +447,11 @@ def test_the_protocol_module_writes_no_refused_key_of_its_own():
     A reason is the only thing that makes a refusal survive a rename upstream,
     and the reason is written here, beside the key.
     """
-    from actaira.proxy import protocol
+    from seamark.proxy import protocol
 
     assert set(protocol.REFUSED_KEYS) == {field.path for field in REFUSED}
 
-    source = Path("src/actaira/proxy/protocol.py").read_text(encoding="utf-8")
+    source = Path("src/seamark/proxy/protocol.py").read_text(encoding="utf-8")
     code = [
         line for line in source.splitlines()
         if line.strip() and not line.lstrip().startswith("#")
@@ -490,7 +490,7 @@ def test_the_provenance_table_is_the_only_place_this_is_written_down():
 
 def test_no_reference_map_is_ever_written_into_a_trace_document(tmp_path):
     """The one file that would undo all of this if it were ever inlined."""
-    reader_map = Path("src/actaira/trace/provenance.py")
+    reader_map = Path("src/seamark/trace/provenance.py")
 
     assert reader_map.is_file()
     assert "refs.json" not in json.dumps(schemas.load(CONTRACT)), (

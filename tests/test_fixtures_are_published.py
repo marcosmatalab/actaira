@@ -31,8 +31,8 @@ from pathlib import Path
 
 import pytest
 
-from actaira.surface.disk import git_tracked
 from conftest import REPO_ROOT
+from seamark.surface.disk import git_tracked
 
 FIXTURES = Path(REPO_ROOT) / "tests" / "fixtures"
 

@@ -17,12 +17,12 @@ from pathlib import Path
 
 import pytest
 
-from actaira.proxy import Recorder
-from actaira.proxy.http import HttpProxy
-from actaira.proxy.session import WatchSession, rewrite_config
-from actaira.proxy.stdio import StdioProxy
-from actaira.trace import CaptureLevel
-from actaira.trace.model import GapReason
+from seamark.proxy import Recorder
+from seamark.proxy.http import HttpProxy
+from seamark.proxy.session import WatchSession, rewrite_config
+from seamark.proxy.stdio import StdioProxy
+from seamark.trace import CaptureLevel
+from seamark.trace.model import GapReason
 
 ECHO_SERVER = (
     "import json, sys\n"
@@ -42,7 +42,7 @@ ECHO_SERVER = (
     "            'io.modelcontextprotocol/serverInfo': {'name': 'echo', 'version': '1'}}\n"
     "    if message.get('method') == 'server/discover':\n"
     "        out = {'jsonrpc': '2.0', 'id': message.get('id'),\n"
-    "               'result': {'tools': [{'name': 'actaira_verify'}, {'name': 'boom'}],\n"
+    "               'result': {'tools': [{'name': 'seamark_verify'}, {'name': 'boom'}],\n"
     "                          'resultType': 'complete', '_meta': meta}}\n"
     "    elif name == 'boom':\n"
     "        out = {'jsonrpc': '2.0', 'id': message.get('id'),\n"
@@ -63,7 +63,7 @@ MANIFEST = "interposition.json"
 
 META = {
     "io.modelcontextprotocol/protocolVersion": "2026-07-28",
-    "io.modelcontextprotocol/clientInfo": {"name": "actaira-test", "version": "1"},
+    "io.modelcontextprotocol/clientInfo": {"name": "seamark-test", "version": "1"},
     "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
 }
 
@@ -111,10 +111,10 @@ def test_the_agents_call_reaches_the_server_and_the_answer_comes_back(echo):
     proxy = StdioProxy(echo, recorder)
     proxy.start()
 
-    response = proxy.request(_call(1, "actaira_verify", {"path": "x.zip"}))
+    response = proxy.request(_call(1, "seamark_verify", {"path": "x.zip"}))
     proxy.close()
 
-    assert response["result"]["content"][0]["text"] == "echo actaira_verify"
+    assert response["result"]["content"][0]["text"] == "echo seamark_verify"
     assert recorder.trace().to_dict()["complete"] is True
 
 
@@ -189,7 +189,7 @@ def test_the_serve_loop_routes_a_notification_the_same_way(echo):
     messages = [
         json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}),
         json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}),
-        json.dumps(_call(2, "actaira_verify")),
+        json.dumps(_call(2, "seamark_verify")),
     ]
     written = io.StringIO()
 
@@ -282,7 +282,7 @@ def test_the_recorded_trace_carries_no_argument_content(echo):
     recorder = Recorder(session_id="s", source="mcp-proxy")
     proxy = StdioProxy(echo, recorder)
     proxy.start()
-    proxy.request(_call(1, "actaira_verify", {"path": "/home/someone/secret-plans.zip"}))
+    proxy.request(_call(1, "seamark_verify", {"path": "/home/someone/secret-plans.zip"}))
     proxy.close()
 
     blob = json.dumps(recorder.trace().to_dict())
@@ -337,12 +337,12 @@ def test_the_http_transport_records_the_same_shape_of_event(http_echo):
     recorder = Recorder(session_id="s", source="mcp-proxy")
     proxy = HttpProxy(http_echo, recorder)
     proxy.start()
-    proxy.request(_call(1, "actaira_contract"))
+    proxy.request(_call(1, "seamark_contract"))
     proxy.close()
 
     document = recorder.trace().to_dict()
 
-    assert document["events"][0]["gen_ai.tool.name"] == "actaira_contract"
+    assert document["events"][0]["gen_ai.tool.name"] == "seamark_contract"
     assert document["events"][0]["capture_level"] == CaptureLevel.L1.value
     assert document["complete"] is True
 
@@ -359,7 +359,7 @@ def test_an_agent_talking_to_the_listening_proxy_reaches_the_real_server(http_ec
         host, port = proxy.address
         request = urllib.request.Request(
             f"http://{host}:{port}/mcp",
-            data=json.dumps(_call(1, "actaira_verify")).encode("utf-8"),
+            data=json.dumps(_call(1, "seamark_verify")).encode("utf-8"),
             headers={"Content-Type": "application/json"},
         )
         with urllib.request.urlopen(request, timeout=10) as response:  # noqa: S310 - loopback
@@ -368,7 +368,7 @@ def test_an_agent_talking_to_the_listening_proxy_reaches_the_real_server(http_ec
         proxy.close()
 
     assert answer["result"]["content"][0]["text"] == "http ok"
-    assert recorder.trace().to_dict()["events"][0]["gen_ai.tool.name"] == "actaira_verify"
+    assert recorder.trace().to_dict()["events"][0]["gen_ai.tool.name"] == "seamark_verify"
 
 
 # ---------------------------------------------------------------------------
@@ -383,7 +383,7 @@ def test_a_stdio_server_is_rewritten_to_run_behind_the_proxy(tmp_path):
 
     entry = rewritten["mcpServers"]["files"]
     assert entry["command"] == sys.executable
-    assert "actaira.proxy.stdio" in entry["args"]
+    assert "seamark.proxy.stdio" in entry["args"]
     assert "npx" in entry["args"], "the original command has to still be in there"
 
 
@@ -641,7 +641,7 @@ def test_a_tool_that_reports_its_own_failure_is_recorded_as_a_failure(tmp_path):
     proxy = StdioProxy([sys.executable, str(path)], recorder, timeout=5.0)
     proxy.start()
 
-    response = proxy.request(_call(1, "actaira_verify", {"path": "absent.zip"}))
+    response = proxy.request(_call(1, "seamark_verify", {"path": "absent.zip"}))
     proxy.close()
 
     assert response["result"]["isError"] is True

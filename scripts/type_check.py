@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static type checking over `src/`, as a ratchet rather than an ultimatum.
 
-Design note D-242. **The list is empty: all 95 modules under `src/actaira`
+Design note D-242. **The list is empty: all 95 modules under `src/seamark`
 type-check with no errors.** The machinery below stays, because the list being
 empty is a fact about today and the ratchet is what keeps it true.
 
@@ -36,7 +36,7 @@ look identical in a green build and are opposites.
 The gate fails in both directions, and that is what makes it a ratchet:
 
   * A module NOT on the list must have no errors. With the list empty, that is
-    every module in `src/actaira`.
+    every module in `src/seamark`.
   * A module ON the list must still have errors. A module cleaned up and left
     on the list is a stale exemption, and a stale exemption is how an
     exclusion list becomes a place things go to hide.
@@ -70,7 +70,7 @@ ERROR = re.compile(r"^(?P<file>[^:]+):\d+: error:", re.MULTILINE)
 
 
 def run_mypy() -> str:
-    command = [sys.executable, "-m", "mypy", "src/actaira", "--ignore-missing-imports"]
+    command = [sys.executable, "-m", "mypy", "src/seamark", "--ignore-missing-imports"]
     try:
         run = subprocess.run(  # noqa: S603 - a fixed argv, no shell
             command, cwd=ROOT, capture_output=True, text=True, timeout=900,
@@ -103,7 +103,7 @@ def main() -> int:
     if arguments.list:
         names = sorted(set(counts) | set(KNOWN_UNCLEAN))
         if not names:
-            print("  no module under src/actaira reports a type error")
+            print("  no module under src/seamark reports a type error")
             return 0
         for name in names:
             state = "known" if name in KNOWN_UNCLEAN else "NEW"
@@ -134,7 +134,7 @@ def main() -> int:
         return 1
 
     protected = 0
-    for path in (ROOT / "src" / "actaira").rglob("*.py"):
+    for path in (ROOT / "src" / "seamark").rglob("*.py"):
         relative = path.relative_to(ROOT).as_posix()
         if relative not in KNOWN_UNCLEAN:
             protected += 1

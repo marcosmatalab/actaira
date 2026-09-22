@@ -1,8 +1,8 @@
 """One key signs two things. Each has to say which one it meant.
 
-Ed25519 over a bare 32-byte digest carries no statement of context. Actaira
+Ed25519 over a bare 32-byte digest carries no statement of context. Seamark
 signs the package manifest and DSSE envelopes, and by default both use the
-same key in ~/.actaira. `dsse.py` argues at length
+same key in ~/.seamark. `dsse.py` argues at length
 for PAE precisely because that removes a class of cross-protocol confusion for
 free; the package manifest signed 32 raw bytes and made no such statement, so
 a signature produced in one role was bytes that verified in the other.
@@ -25,8 +25,8 @@ import json
 import zipfile
 from pathlib import Path
 
-from actaira.attest import chain, package, signing
-from actaira.model import canonical_json
+from seamark.attest import chain, package, signing
+from seamark.model import canonical_json
 
 DIGEST = hashlib.sha256(b"the same thirty-two bytes either way").digest()
 
@@ -91,9 +91,9 @@ def test_the_manifest_says_what_its_signature_covers(tmp_path: Path, keypair) ->
 
 
 def test_the_two_contexts_produce_two_different_preimages() -> None:
-    """A shared "actaira" prefix would separate us from other tools, not these
+    """A shared "seamark" prefix would separate us from other tools, not these
     signers from each other. This is the assertion that catches that."""
-    from actaira.attest import dsse
+    from seamark.attest import dsse
 
     manifest = package.MANIFEST_SIGNING_CONTEXT + DIGEST
     envelope = dsse.pae(dsse.PAYLOAD_TYPE, DIGEST)
