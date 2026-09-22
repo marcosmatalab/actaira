@@ -36,32 +36,32 @@ FAMILIES: dict[str, tuple[str, str]] = {
         "naming the file it came from, the documented merge rule that settled it and "
         "how far it resolved. Three lists that are never merged - what resolved, what "
         "could not, and what this release does not read.",
-        "actaira check",
+        "seamark check",
     ),
     "surface-diff": (
         "Which capability appears, disappears, widens, narrows or changes between two "
         "surfaces, each entry carrying both sides' digests and the rules that fired on "
         "what arrived. Five lists, plus a sixth for what could not be resolved on one "
         "side or the other, which is never folded into the five.",
-        "actaira diff",
+        "seamark diff",
     ),
     "seal": (
         "A signed baseline of one surface, carrying no content: paths and the names "
         "somebody else chose are salted references whose salt stays with the operator, "
         "and everything a capability observed is one digest of its facts. An approval "
         "keyed on the surface digest expires by itself when the surface changes.",
-        "actaira seal",
+        "seamark seal",
     ),
     "trace": (
         "What an agent did, in one shape whatever observed it: an ordered list of tool "
         "calls with the digest of each call's arguments and result, the capture level "
         "that produced every one, and the holes that level did not cover.",
-        "actaira scan, actaira watch",
+        "seamark scan, seamark watch",
     ),
     "report": (
         "What one scan found in one artifact: the findings, the detected format, "
         "the digest, and the coverage matrix that bounds the claim.",
-        "actaira scan --format json",
+        "seamark scan --format json",
     ),
     "coverage": (
         "The per-surface matrix on its own, so a consumer can read the scope of a "
@@ -71,53 +71,53 @@ FAMILIES: dict[str, tuple[str, str]] = {
     "policy": (
         "A decision document: rules, their verdicts, exceptions with an owner and an "
         "expiry, and the digest the decision will cite.",
-        "actaira policy show",
+        "seamark policy show",
     ),
     "policy-decision": (
         "What a policy decided about one run, with the rule and the evidence behind "
         "every verdict, including the ones that could not be evaluated.",
-        "actaira policy check --json",
+        "seamark policy check --json",
     ),
     "assurance-receipt": (
         "The one document meant to leave the organisation that produced it: subjects "
         "by digest, coverage, findings, the policy decision and the supply-chain "
         "state, signed over the canonical JSON of itself minus the signature.",
-        "actaira receipt issue",
+        "seamark receipt issue",
     ),
     "agent-bom": (
         "An agent's bill of materials: model, tools with declared effects, MCP "
         "servers, sub-agents, and the digest that covers the system prompt too.",
-        "actaira agent bom",
+        "seamark agent bom",
     ),
     "model-bundle": (
         "A model repository resolved into members, relations and gaps, with "
         "`content_identity` kept separate from `structural_digest`.",
-        "actaira bundle --json",
+        "seamark bundle --json",
     ),
     "attack-paths": (
         "The routes found through an agent declaration, each with what it carries, "
         "what would break it, and any control that already closes it.",
-        "actaira agent paths --json",
+        "seamark agent paths --json",
     ),
     "source-snapshot": (
         "What a connector listed for one source at one moment: members, digests, "
         "the revision, and whether the listing was complete.",
-        "actaira snapshot",
+        "seamark snapshot",
     ),
     "evidence-record": (
         "One observation, bound to the digest of what was observed, with its state "
         "and the collector that made it.",
-        "actaira evidence show --json",
+        "seamark evidence show --json",
     ),
     "asset-graph": (
         "Assets and the declared relations between them, every edge carrying the "
         "manifest, declaration or snapshot that stated it.",
-        "actaira graph export",
+        "seamark graph export",
     ),
     "trust-policy": (
         "What this environment accepts from a signer, kept apart from what "
         "cryptography proved about the bytes.",
-        "written by hand, read by actaira trust check",
+        "written by hand, read by seamark trust check",
     ),
     "subject-manifest": (
         "What a policy or a receipt is about when it is not a list of files: the "
@@ -127,13 +127,13 @@ FAMILIES: dict[str, tuple[str, str]] = {
     "state-export": (
         "The whole store as one deterministic document, so two states can be "
         "diffed. Two runs over the same observation are byte-identical.",
-        "actaira graph export, actaira snapshot",
+        "seamark graph export, seamark snapshot",
     ),
 }
 
 HEADER = """# Contracts
 
-Every JSON document Actaira publishes, what it is for, and whether it is
+Every JSON document Seamark publishes, what it is for, and whether it is
 current or superseded.
 
 **Generated by `scripts/contracts_doc.py` from the schemas the package ships.**
@@ -146,15 +146,15 @@ guessing from the shape. What a version promises, and what is deliberately not
 stable, is in [`COMPATIBILITY.md`](COMPATIBILITY.md).
 
 ```bash
-actaira schema                 # list every contract on disk
-actaira schema report-v1       # print one
+seamark schema                 # list every contract on disk
+seamark schema report-v1       # print one
 ```
 
 """
 
 
 def main() -> int:
-    from actaira import schemas
+    from seamark import schemas
 
     missing = sorted(set(schemas.VERSIONS) - set(FAMILIES))
     if missing:

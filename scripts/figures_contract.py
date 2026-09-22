@@ -83,8 +83,8 @@ class Figure:
 
 def derive() -> dict[str, Any]:
     """Read every canonical source once. Raises rather than guessing."""
-    from actaira import __version__, schemas
-    from actaira.cli import build_parser
+    from seamark import __version__, schemas
+    from seamark.cli import build_parser
 
     def harness(relative: str, how: str) -> dict[str, Any]:
         path = ROOT / relative
@@ -211,10 +211,10 @@ def figures() -> list[Figure]:
         # shields.io badge. The badges are gone: they were images fetched from
         # a third party, so a README opened without a network showed six broken
         # ones, and one of them pointed at CI on a repository this tree does
-        # not have. The header is text now, in the same `**Actaira x.y.z**`
+        # not have. The header is text now, in the same `**Seamark x.y.z**`
         # shape the closing line already used, so one pattern covers both.
-        figure("version", "actaira.__version__",
-               r"(?<=\*\*Actaira )\d+\.\d+\.\d+(?=\*\*)", r"(?<=\*\*Actaira )\d+\.\d+\.\d+(?=\*\*)"),
+        figure("version", "seamark.__version__",
+               r"(?<=\*\*Seamark )\d+\.\d+\.\d+(?=\*\*)", r"(?<=\*\*Seamark )\d+\.\d+\.\d+(?=\*\*)"),
         figure("tests", "figures.json: pytest --collect-only",
                r"\b[\d,.]+(?= tests\b)", r"\b[\d,.]+(?= tests\b)", True),
         figure("lines", "figures.json: line count over src, tests and scripts",
@@ -251,11 +251,11 @@ def figures() -> list[Figure]:
                    r"\b\d+(?= distinct mechanisms)"),
         doc_figure("defects_not_shipped", "docs/defects.json: shipped_defect false",
                    r"\b\d+(?= were never in a released)"),
-        figure("schema_families", "actaira.schemas.VERSIONS",
+        figure("schema_families", "seamark.schemas.VERSIONS",
                r"\b\d+(?= versioned contracts)", r"\b\d+(?= contratos versionados)"),
-        figure("schema_documents", "src/actaira/schemas/*.json",
+        figure("schema_documents", "src/seamark/schemas/*.json",
                r"\b\d+(?= schema documents)", r"\b\d+(?= documentos de esquema)"),
-        figure("schemas_superseded", "actaira.schemas.SUPERSEDED",
+        figure("schemas_superseded", "seamark.schemas.SUPERSEDED",
                r"\b\d+(?= superseded versions)", r"\b\d+(?= versiones sustituidas)"),
         figure("commands", "cli.build_parser",
                r"\b\d+(?= CLI commands)", r"\b\d+(?= comandos de CLI)"),

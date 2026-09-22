@@ -59,7 +59,7 @@ def token() -> str | None:
 
     The second is a convenience for a developer who has the CLI configured. It
     is a subprocess and it is in `scripts/`, not in the package: the rule that
-    Actaira never shells out is about the tool, and this is the operator's own
+    Seamark never shells out is about the tool, and this is the operator's own
     machine doing the operator's own fetch.
     """
     found = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
@@ -85,7 +85,7 @@ def call(path: str, auth: str, params: str = "") -> Any:
         headers={
             "Authorization": f"Bearer {auth}",
             "Accept": "application/vnd.github+json",
-            "User-Agent": "actaira-surface-corpus",
+            "User-Agent": "seamark-surface-corpus",
         },
     )
     with urllib.request.urlopen(request, timeout=60) as response:  # noqa: S310
@@ -311,8 +311,8 @@ def promote(count: int) -> int:
         print("nothing downloaded; run without --promote first", file=sys.stderr)
         return 1
     sys.path.insert(0, str(ROOT / "src"))
-    from actaira.surface import resolve as resolve_mod
-    from actaira.surface import rules as rules_mod
+    from seamark.surface import resolve as resolve_mod
+    from seamark.surface import rules as rules_mod
 
     catalogue = rules_mod.load()
     registry = {vendor: (mod, res) for vendor, mod, res in resolve_mod.vendor_registry()}
@@ -397,8 +397,8 @@ def goldens() -> int:
     where that reading is recorded.
     """
     sys.path.insert(0, str(ROOT / "src"))
-    from actaira.surface import resolve as resolve_mod
-    from actaira.surface import rules as rules_mod
+    from seamark.surface import resolve as resolve_mod
+    from seamark.surface import rules as rules_mod
 
     catalogue = rules_mod.load()
     registry = {vendor: (mod, res) for vendor, mod, res in resolve_mod.vendor_registry()}
@@ -437,8 +437,8 @@ def report() -> int:
     message is where the number goes.
     """
     sys.path.insert(0, str(ROOT / "src"))
-    from actaira.surface import resolve as resolve_mod
-    from actaira.surface import rules as rules_mod
+    from seamark.surface import resolve as resolve_mod
+    from seamark.surface import rules as rules_mod
 
     catalogue = rules_mod.load()
     registry = {vendor: (mod, res) for vendor, mod, res in resolve_mod.vendor_registry()}

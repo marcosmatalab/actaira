@@ -61,7 +61,7 @@ sys.path.insert(0, str(ROOT / "src"))
 # want to see them: what the tool is, then what checks it.
 #
 # Design note D-236, and the reason the last entry exists. This list was
-# written at 1.0, when `src/actaira` was eight packages and five loose
+# written at 1.0, when `src/seamark` was eight packages and five loose
 # modules, and every package added after it - conformance, agents, connectors,
 # controls, governance, policy, state, schemas - plus eleven more loose
 # modules were never added to it. By 2.2 it covered 103 of the 161 Python
@@ -76,14 +76,14 @@ sys.path.insert(0, str(ROOT / "src"))
 # sees it, and `total` is now arithmetic over a partition rather than a sum
 # over whatever somebody remembered.
 AREAS: list[tuple[str, list[str], str]] = [
-    ("attest", ["src/actaira/attest"], "Merkle tree, chain, signing, keyring, RFC 3161, verification"),
-    ("trace", ["src/actaira/trace"], "the trace document, the transcript reader, redaction"),
-    ("proxy", ["src/actaira/proxy"], "the MCP proxy, its two transports and the watch session"),
-    ("core", ["src/actaira/model.py", "src/actaira/cli.py",
-              "src/actaira/__init__.py", "src/actaira/__main__.py"], "the model and the CLI"),
-    ("schemas", ["src/actaira/schemas"], "the published contracts"),
-    ("i18n", ["src/actaira/i18n"], "the bilingual catalogue"),
-    ("rest", ["src/actaira"], "everything in src/ the areas above do not claim"),
+    ("attest", ["src/seamark/attest"], "Merkle tree, chain, signing, keyring, RFC 3161, verification"),
+    ("trace", ["src/seamark/trace"], "the trace document, the transcript reader, redaction"),
+    ("proxy", ["src/seamark/proxy"], "the MCP proxy, its two transports and the watch session"),
+    ("core", ["src/seamark/model.py", "src/seamark/cli.py",
+              "src/seamark/__init__.py", "src/seamark/__main__.py"], "the model and the CLI"),
+    ("schemas", ["src/seamark/schemas"], "the published contracts"),
+    ("i18n", ["src/seamark/i18n"], "the bilingual catalogue"),
+    ("rest", ["src/seamark"], "everything in src/ the areas above do not claim"),
     ("tests", ["tests"], "the test suite"),
     ("scripts", ["scripts"], "this script"),
 ]
@@ -281,7 +281,7 @@ def measure_tests() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 def measure_catalog() -> dict[str, Any]:
-    catalogue = ROOT / "src" / "actaira" / "i18n"
+    catalogue = ROOT / "src" / "seamark" / "i18n"
     english = json.loads((catalogue / "en.json").read_text(encoding="utf-8"))
     spanish = json.loads((catalogue / "es.json").read_text(encoding="utf-8"))
     families = Counter(rule_id.rsplit("-", 1)[0] for rule_id in english["rules"])
@@ -414,7 +414,7 @@ def measure_package() -> dict[str, Any]:
     figure that disagrees with itself and gets noticed. CI checks the same
     pair on every release tag.
     """
-    from actaira import __version__  # noqa: PLC0415
+    from seamark import __version__  # noqa: PLC0415
 
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     runtime = list(project.get("dependencies", []))
@@ -467,7 +467,7 @@ class Report:
 
     def markdown(self) -> str:
         figures = self.figures
-        lines: list[str] = ["# Actaira in numbers", ""]
+        lines: list[str] = ["# Seamark in numbers", ""]
         lines += [
             "Every figure on this page was measured by `scripts/figures.py` from the",
             "repository as it stood at the moment named below. Nothing here is typed by",
@@ -478,7 +478,7 @@ class Report:
             "make figures",
             "```",
             "",
-            f"Generated {figures['generated_at']} for actaira {figures['package']['version']}"
+            f"Generated {figures['generated_at']} for seamark {figures['package']['version']}"
             + (f", at commit {figures['git']['head']}" if figures["git"].get("head") else "")
             + ".",
             "",
@@ -514,7 +514,7 @@ class Report:
         coverage = figures["coverage"]
         if coverage.get("available"):
             lines += [
-                f"Statement coverage of `src/actaira`: **{coverage['percent']}**, measured by "
+                f"Statement coverage of `src/seamark`: **{coverage['percent']}**, measured by "
                 f"`make test-cov`, which fails under {coverage['floor']}.",
                 "",
             ]

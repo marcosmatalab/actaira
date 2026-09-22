@@ -11,7 +11,7 @@ capability that does not carry one comes back INDETERMINATE.
 
 **`severity` is the label the rule's author chose.** It is published beside that
 author's name and is never summed, maximised or compared with another pack's.
-Actaira computes no number about it.
+Seamark computes no number about it.
 
 **A rule identifier means one thing forever.** `docs/COMPATIBILITY.md` promises
 that identifiers are never renumbered and never reused for a different finding.
@@ -35,38 +35,38 @@ searches that came back empty.
 
 | Rule | Capability | Requires | Severity (author's label) | Author | Pack | Version | Violating case |
 |---|---|---|---|---|---|---|---|
-| [`ACT-S001`](#act-s001) | `hook.command` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S002`](#act-s002) | `hook.http` | DECLARED | high | Actaira core | core | 1 | **NO REAL VIOLATION** |
-| [`ACT-S003`](#act-s003) | `hook.command` | DECLARED | medium | Actaira core | core | 1 | real |
-| [`ACT-S004`](#act-s004) | `hook.command` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S005`](#act-s005) | `hook.command` | DECLARED | medium | Actaira core | core | 1 | real |
-| [`ACT-S006`](#act-s006) | `helper.command` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S007`](#act-s007) | `permissions.default_mode` | DECLARED | critical | Actaira core | core | 2 | real |
-| [`ACT-S008`](#act-s008) | `permissions.additional_directory` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S009`](#act-s009) | `permissions.allow` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S010`](#act-s010) | `mcp.approval` | DECLARED | medium | Actaira core | core | 1 | real |
-| [`ACT-S011`](#act-s011) | `mcp.server` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S012`](#act-s012) | `mcp.server` | DECLARED | medium | Actaira core | core | 1 | real |
-| [`ACT-S013`](#act-s013) | `sandbox.network_domain` | DECLARED | high | Actaira core | core | 1 | **NO REAL VIOLATION** |
-| [`ACT-S014`](#act-s014) | `sandbox.excluded_command` | DECLARED | high | Actaira core | core | 1 | **NO REAL VIOLATION** |
-| [`ACT-S015`](#act-s015) | `sandbox.disabled`, `sandbox.unsandboxed_allowed` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S016`](#act-s016) | `task.command` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S017`](#act-s017) | `lifecycle.command` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S018`](#act-s018) | `container.mount` | DECLARED | critical | Actaira core | core | 1 | real |
-| [`ACT-S019`](#act-s019) | `container.isolation` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S020`](#act-s020) | `container.feature` | DECLARED | medium | Actaira core | core | 1 | real |
-| [`ACT-S021`](#act-s021) | `hook.command` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S022`](#act-s022) | `sandbox.mode`, `approval.policy` | DECLARED | critical | Actaira core | core | 1 | real |
-| [`ACT-S023`](#act-s023) | `mcp.server` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S024`](#act-s024) | `hook.command` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S025`](#act-s025) | `mcp.server` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S026`](#act-s026) | `mcp.server` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S027`](#act-s027) | `mcp.server` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S028`](#act-s028) | `instructions.import` | DECLARED | medium | Actaira core | core | 1 | real |
-| [`ACT-S029`](#act-s029) | `instructions.remote_execution` | DECLARED | medium | Actaira core | core | 1 | real |
-| [`ACT-S030`](#act-s030) | `instructions.import` | DECLARED | medium | Actaira core | core | 1 | real |
-| [`ACT-S031`](#act-s031) | `approval.policy` | DECLARED | high | Actaira core | core | 1 | real |
-| [`ACT-S032`](#act-s032) | `hook.mcp_tool` | DECLARED | medium | Actaira core | core | 1 | real |
+| [`ACT-S001`](#act-s001) | `hook.command` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S002`](#act-s002) | `hook.http` | DECLARED | high | Seamark core | core | 1 | **NO REAL VIOLATION** |
+| [`ACT-S003`](#act-s003) | `hook.command` | DECLARED | medium | Seamark core | core | 1 | real |
+| [`ACT-S004`](#act-s004) | `hook.command` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S005`](#act-s005) | `hook.command` | DECLARED | medium | Seamark core | core | 1 | real |
+| [`ACT-S006`](#act-s006) | `helper.command` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S007`](#act-s007) | `permissions.default_mode` | DECLARED | critical | Seamark core | core | 2 | real |
+| [`ACT-S008`](#act-s008) | `permissions.additional_directory` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S009`](#act-s009) | `permissions.allow` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S010`](#act-s010) | `mcp.approval` | DECLARED | medium | Seamark core | core | 1 | real |
+| [`ACT-S011`](#act-s011) | `mcp.server` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S012`](#act-s012) | `mcp.server` | DECLARED | medium | Seamark core | core | 1 | real |
+| [`ACT-S013`](#act-s013) | `sandbox.network_domain` | DECLARED | high | Seamark core | core | 1 | **NO REAL VIOLATION** |
+| [`ACT-S014`](#act-s014) | `sandbox.excluded_command` | DECLARED | high | Seamark core | core | 1 | **NO REAL VIOLATION** |
+| [`ACT-S015`](#act-s015) | `sandbox.disabled`, `sandbox.unsandboxed_allowed` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S016`](#act-s016) | `task.command` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S017`](#act-s017) | `lifecycle.command` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S018`](#act-s018) | `container.mount` | DECLARED | critical | Seamark core | core | 1 | real |
+| [`ACT-S019`](#act-s019) | `container.isolation` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S020`](#act-s020) | `container.feature` | DECLARED | medium | Seamark core | core | 1 | real |
+| [`ACT-S021`](#act-s021) | `hook.command` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S022`](#act-s022) | `sandbox.mode`, `approval.policy` | DECLARED | critical | Seamark core | core | 1 | real |
+| [`ACT-S023`](#act-s023) | `mcp.server` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S024`](#act-s024) | `hook.command` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S025`](#act-s025) | `mcp.server` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S026`](#act-s026) | `mcp.server` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S027`](#act-s027) | `mcp.server` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S028`](#act-s028) | `instructions.import` | DECLARED | medium | Seamark core | core | 1 | real |
+| [`ACT-S029`](#act-s029) | `instructions.remote_execution` | DECLARED | medium | Seamark core | core | 1 | real |
+| [`ACT-S030`](#act-s030) | `instructions.import` | DECLARED | medium | Seamark core | core | 1 | real |
+| [`ACT-S031`](#act-s031) | `approval.policy` | DECLARED | high | Seamark core | core | 1 | real |
+| [`ACT-S032`](#act-s032) | `hook.mcp_tool` | DECLARED | medium | Seamark core | core | 1 | real |
 
 ## Each rule
 
@@ -79,8 +79,8 @@ A hook runs a command on a session-start event, so opening a session runs it bef
 - **Vendor**: `claude-code`
 - **Capability**: `hook.command`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `at_startup`
 - **Remediation it suggests**: Remove the hook, or move it to ~/.claude/settings.json where it is yours rather than the repository's. A hook on a session-start event runs before you have read anything.
 - **Agent Threat Rules**: ATR-T1546
@@ -98,8 +98,8 @@ An HTTP hook posts the event's JSON input to a host that is not the loopback int
 - **Vendor**: `claude-code`
 - **Capability**: `hook.http`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `loopback`
 - **Remediation it suggests**: Point the hook at a loopback address, or remove it. The event's JSON input is posted to this host on every matching event.
 - **NO REAL VIOLATION**: ten recorded searches across three vendors, over 145 public configurations, found no `http` hook. The violating test runs on the configuration the vendor publishes, not on a repository that does this.
@@ -126,8 +126,8 @@ A hook runs a script inside this repository, so whoever can land a commit decide
 - **Vendor**: `claude-code`
 - **Capability**: `hook.command`
 - **Requires**: DECLARED
-- **Severity**: medium — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: medium — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `target_facts.inside_tree`
 - **Remediation it suggests**: Tie your approval to the script's sha256 rather than its path: the file at that path can change after you read it, and the hook will run whatever is there.
 - **References**:
@@ -142,8 +142,8 @@ A hook runs a path outside this tree, which the repository's own history does no
 - **Vendor**: `claude-code`
 - **Capability**: `hook.command`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `target_facts.inside_tree`
 - **Remediation it suggests**: A hook in this repository runs a path outside it. Nothing in the repository's own history records what that file contains.
 - **References**:
@@ -158,8 +158,8 @@ A hook names a script that is not in the tree, so creating that file later needs
 - **Vendor**: `claude-code`
 - **Capability**: `hook.command`
 - **Requires**: DECLARED
-- **Severity**: medium — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: medium — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `target_facts.exists`
 - **Remediation it suggests**: The hook names a script that is not in the tree. Creating that file later is a one-file change that needs no edit to any settings file.
 - **References**:
@@ -174,8 +174,8 @@ A settings key that executes a command is set from a repository file.
 - **Vendor**: `claude-code`
 - **Capability**: `helper.command`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `key`
 - **Remediation it suggests**: This key runs a command. Move it to ~/.claude/settings.json, or remove it: a repository file that sets one runs it on every developer who clones the repository.
 - **References**:
@@ -190,8 +190,8 @@ The permission mode declared in a repository file removes a confirmation the ven
 - **Vendor**: `claude-code`
 - **Capability**: `permissions.default_mode`
 - **Requires**: DECLARED
-- **Severity**: critical — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 2
+- **Severity**: critical — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 2
 - **Facts it needs**: `mode`
 - **Remediation it suggests**: Remove the mode from the repository file. Before Claude Code 2.1.257 a committed settings file could start every session with the prompts skipped; from 2.1.257 it cannot, and the line is now a claim about what the repository wanted.
 - **Agent Threat Rules**: ATR-T1562
@@ -208,8 +208,8 @@ An additional directory grants file access outside this repository.
 - **Vendor**: `claude-code`
 - **Capability**: `permissions.additional_directory`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `inside_tree`
 - **Remediation it suggests**: This entry grants file access outside the repository. It takes effect once somebody accepts the workspace trust dialog for this folder.
 - **References**:
@@ -224,8 +224,8 @@ An allow rule pre-approves shell execution without narrowing it to a command.
 - **Vendor**: `claude-code`
 - **Capability**: `permissions.allow`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `rule`
 - **Remediation it suggests**: Narrow the rule to the commands you meant. `Bash` on its own, or `Bash(*)`, pre-approves every shell command for anyone who trusts this folder.
 - **References**:
@@ -240,8 +240,8 @@ The repository approves its own MCP servers.
 - **Vendor**: `claude-code`
 - **Capability**: `mcp.approval`
 - **Requires**: DECLARED
-- **Severity**: medium — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: medium — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `key`
 - **Remediation it suggests**: The repository approves its own MCP servers. Claude Code ignores this in an untrusted folder; once anyone accepts the trust dialog, every server in .mcp.json connects without a further prompt.
 - **References**:
@@ -256,8 +256,8 @@ An MCP server is launched through npx or uvx with no version pinned, so it fetch
 - **Vendor**: `claude-code`
 - **Capability**: `mcp.server`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `pinned`
 - **Remediation it suggests**: Pin the version. An unpinned npx or uvx launch fetches whatever the registry serves at the moment the server starts.
 - **Agent Threat Rules**: ATR-T1195
@@ -273,8 +273,8 @@ An MCP server is reached over a remote transport, so tool calls and their argume
 - **Vendor**: `claude-code`
 - **Capability**: `mcp.server`
 - **Requires**: DECLARED
-- **Severity**: medium — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: medium — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `loopback`, `remote`
 - **Remediation it suggests**: Tool calls and their arguments reach this host. Confirm it is one you meant to send them to.
 - **References**:
@@ -289,8 +289,8 @@ This repository adds a sandbox network domain the managed policy does not list.
 - **Vendor**: `claude-code`
 - **Capability**: `sandbox.network_domain`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `widens_managed`
 - **Remediation it suggests**: This repository adds a domain the managed policy does not list. Set sandbox.network.allowManagedDomainsOnly in managed settings to stop a repository widening the network allowlist.
 - **NO REAL VIOLATION**: a managed policy file lives outside every repository, so no public sample can exist. The violating test runs on the configuration the vendor publishes, not on a repository that does this.
@@ -307,8 +307,8 @@ This repository excludes a command from the sandbox that the managed policy does
 - **Vendor**: `claude-code`
 - **Capability**: `sandbox.excluded_command`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `widens_managed`
 - **Remediation it suggests**: This repository excludes a command from the sandbox that the managed policy does not exclude. excludedCommands has no managed-only lockdown, so keep the managed list narrow and review additions.
 - **NO REAL VIOLATION**: a managed policy file lives outside every repository, so no public sample can exist. The violating test runs on the configuration the vendor publishes, not on a repository that does this.
@@ -325,8 +325,8 @@ The sandbox is switched off, or a command may retry outside it.
 - **Vendor**: `claude-code`
 - **Capability**: `sandbox.disabled`, `sandbox.unsandboxed_allowed`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `isolation_weakened`
 - **Remediation it suggests**: The sandbox is off, or a command may retry outside it. Set sandbox.allowUnsandboxedCommands to false in managed settings to close the escape hatch.
 - **References**:
@@ -342,8 +342,8 @@ A VS Code task runs when the folder is opened, so cloning the repository and ope
 - **Vendor**: `vscode`
 - **Capability**: `task.command`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `at_startup`
 - **Remediation it suggests**: Remove `runOptions.runOn: folderOpen`, or move the work into a task somebody runs on purpose. Opening the folder is not a decision to run this.
 - **Agent Threat Rules**: ATR-T1546
@@ -361,8 +361,8 @@ A dev container lifecycle command runs on the host machine, outside the containe
 - **Vendor**: `devcontainer`
 - **Capability**: `lifecycle.command`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `on_host`
 - **Remediation it suggests**: This command runs on the host, not in the container. If it only needs to happen inside, move it to onCreateCommand or postCreateCommand.
 - **References**:
@@ -377,8 +377,8 @@ A dev container mounts a directory that holds credentials, so what is inside it 
 - **Vendor**: `devcontainer`
 - **Capability**: `container.mount`
 - **Requires**: DECLARED
-- **Severity**: critical — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: critical — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `names_credential`
 - **Remediation it suggests**: This mount gives the container the developer's credentials. Mount a narrower path, or use a credential helper that does not put the private key inside the container.
 - **Agent Threat Rules**: ATR-T1552
@@ -394,8 +394,8 @@ A dev container is configured with privileged mode, an added capability or a sec
 - **Vendor**: `devcontainer`
 - **Capability**: `container.isolation`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `isolation_weakened`
 - **Remediation it suggests**: This weakens the container boundary. Drop privileged, capAdd or securityOpt unless the container genuinely needs it, and say in the file why if it does.
 - **References**:
@@ -410,8 +410,8 @@ A dev container Feature is named without a version, so the build fetches whateve
 - **Vendor**: `devcontainer`
 - **Capability**: `container.feature`
 - **Requires**: DECLARED
-- **Severity**: medium — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: medium — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `pinned`
 - **Remediation it suggests**: Pin the Feature to a version. Without one, the build fetches whatever the registry serves at the moment it runs.
 - **Agent Threat Rules**: ATR-T1195
@@ -427,8 +427,8 @@ A Codex hook runs a command on a session event, so starting a session runs it be
 - **Vendor**: `codex`
 - **Capability**: `hook.command`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `at_startup`
 - **Remediation it suggests**: Remove the hook, or move it to ~/.codex/config.toml where it is yours rather than the repository's. A hook on a session event runs without anybody asking for it.
 - **Agent Threat Rules**: ATR-T1546
@@ -444,8 +444,8 @@ A Codex setting turns off the sandbox or stops the agent asking before it acts.
 - **Vendor**: `codex`
 - **Capability**: `sandbox.mode`, `approval.policy`
 - **Requires**: DECLARED
-- **Severity**: critical — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: critical — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `guardrail_removed`
 - **Remediation it suggests**: A repository file turns off the sandbox or stops Codex asking. Use read-only or workspace-write, and on-request, and set the exception where you can see it rather than in the repository.
 - **Agent Threat Rules**: ATR-T1562
@@ -461,8 +461,8 @@ A Codex MCP server is launched without a pinned version, so it resolves to whate
 - **Vendor**: `codex`
 - **Capability**: `mcp.server`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `pinned`
 - **Remediation it suggests**: Pin the version. An unpinned npx or uvx launch fetches whatever the registry serves at the moment the server starts.
 - **Agent Threat Rules**: ATR-T1195
@@ -478,8 +478,8 @@ A Cursor hook runs a command when a session starts or a workspace opens, so it r
 - **Vendor**: `cursor`
 - **Capability**: `hook.command`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `at_startup`
 - **Remediation it suggests**: Remove the hook, or move it to ~/.cursor/hooks.json. A hook on sessionStart or workspaceOpen runs before anybody has read the repository.
 - **Agent Threat Rules**: ATR-T1546
@@ -495,8 +495,8 @@ A Cursor MCP server is launched without a pinned version, so it resolves to what
 - **Vendor**: `cursor`
 - **Capability**: `mcp.server`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `pinned`
 - **Remediation it suggests**: Pin the version in .cursor/mcp.json. An unpinned launch fetches whatever the registry serves when the server starts.
 - **Agent Threat Rules**: ATR-T1195
@@ -512,8 +512,8 @@ A Gemini CLI MCP server is launched without a pinned version, so it resolves to 
 - **Vendor**: `gemini-cli`
 - **Capability**: `mcp.server`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `pinned`
 - **Remediation it suggests**: Pin the version in .gemini/settings.json. An unpinned launch fetches whatever the registry serves when the server starts.
 - **Agent Threat Rules**: ATR-T1195
@@ -529,8 +529,8 @@ A Gemini CLI MCP server is marked trusted in the configuration, which bypasses e
 - **Vendor**: `gemini-cli`
 - **Capability**: `mcp.server`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `trusted_by_config`
 - **Remediation it suggests**: Remove `trust: true` from this server, or set it in your own ~/.gemini/settings.json. It bypasses every tool call confirmation for that server.
 - **Agent Threat Rules**: ATR-T1562
@@ -546,8 +546,8 @@ An instructions file imports a path that resolves outside the repository, so wha
 - **Vendor**: `instructions`
 - **Capability**: `instructions.import`
 - **Requires**: DECLARED
-- **Severity**: medium — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: medium — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `outside_tree`
 - **Remediation it suggests**: This import resolves outside the repository, so what it loads is not in the tree you reviewed. Move the file into the repository, or keep the instruction in your own user-scope memory file.
 - **References**:
@@ -562,8 +562,8 @@ An instructions file contains a literal command that downloads a remote script a
 - **Vendor**: `instructions`
 - **Capability**: `instructions.remote_execution`
 - **Requires**: DECLARED
-- **Severity**: medium — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: medium — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `literal_remote_execution`
 - **Remediation it suggests**: This line tells whoever reads it - a person or a model - to fetch a remote script and run it unread. Pin the artifact and verify it before running, or install from a package the repository already depends on.
 - **Agent Threat Rules**: ATR-T1105
@@ -579,8 +579,8 @@ An instructions file names a script by path, so what runs is whatever is at that
 - **Vendor**: `instructions`
 - **Capability**: `instructions.import`
 - **Requires**: DECLARED
-- **Severity**: medium — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: medium — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `is_script`
 - **Remediation it suggests**: The instructions name a script by path. Tie your approval to its sha256 rather than its path: the file at that path can change after you read it.
 - **References**:
@@ -595,8 +595,8 @@ A Gemini CLI settings file in this repository sets an approval mode that auto-ap
 - **Vendor**: `gemini-cli`
 - **Capability**: `approval.policy`
 - **Requires**: DECLARED
-- **Severity**: high — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: high — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `guardrail_removed`
 - **Remediation it suggests**: Remove the approval mode from the repository file, or set it in your own ~/.gemini/settings.json. In Gemini CLI a project settings file overrides the user's, so this chooses for everyone who clones the repository.
 - **Agent Threat Rules**: ATR-T1562
@@ -612,8 +612,8 @@ A hook invokes an MCP tool on a session-start event, so opening a session makes 
 - **Vendor**: `claude-code`
 - **Capability**: `hook.mcp_tool`
 - **Requires**: DECLARED
-- **Severity**: medium — the label written by Actaira core, never combined with another
-- **Author**: Actaira core, pack `core`, rule version 1
+- **Severity**: medium — the label written by Seamark core, never combined with another
+- **Author**: Seamark core, pack `core`, rule version 1
 - **Facts it needs**: `at_startup`
 - **Remediation it suggests**: A hook invokes an MCP tool on a session event. Confirm the server that provides the tool is one you meant to connect, and that the tool call is one you want made before anybody has read the repository.
 - **Agent Threat Rules**: ATR-T1546

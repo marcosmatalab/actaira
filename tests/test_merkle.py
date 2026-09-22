@@ -12,7 +12,7 @@ from dataclasses import replace
 
 import pytest
 
-from actaira.attest import merkle
+from seamark.attest import merkle
 
 TREE_SIZES = list(range(1, 34))
 
@@ -162,7 +162,7 @@ def test_the_classic_second_preimage_collides_without_domain_separation():
     assert honest_root == forged_root
 
 
-def test_actaira_does_not_collide_under_the_same_attack():
+def test_seamark_does_not_collide_under_the_same_attack():
     """Second half: the same forgery against the real implementation.
 
     Leaves are sha256(0x00 || data) and nodes sha256(0x01 || l || r), so the

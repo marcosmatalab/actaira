@@ -26,13 +26,13 @@
 # hook is. Whether that is what you want is your decision and `--hook-stage` and
 # `stages` are yours to set - this file does not decide it for you, and there is
 # no `|| true` anywhere in it.
-- id: actaira-check
-  name: actaira check (what your agents can do in this repository)
+- id: seamark-check
+  name: seamark check (what your agents can do in this repository)
   description: >-
     Read the agent configuration of this repository, resolve what it permits
     across scopes and vendors, and apply the rule packs. Runs nothing it reads,
     opens no socket, and prints no literal command or URL without --with-content.
-  entry: actaira check --repo .
+  entry: seamark check --repo .
   language: python
   pass_filenames: false
   always_run: true

@@ -23,9 +23,9 @@ from pathlib import Path
 
 import pytest
 
-from actaira import cli
-from actaira.surface import diff as diff_mod
 from conftest import REPO_ROOT
+from seamark import cli
+from seamark.surface import diff as diff_mod
 
 FIXTURES = Path(REPO_ROOT) / "tests" / "fixtures" / "surface"
 CORPUS = FIXTURES / "corpus"
@@ -334,7 +334,7 @@ def test_the_document_declares_its_contract_and_never_totals_the_lists(tmp_path)
     empty.mkdir()
     found = diff_of(empty, FIXTURES / "keyv-august")
 
-    from actaira.schemas import VERSIONS
+    from seamark.schemas import VERSIONS
 
     assert found["schema_version"] == VERSIONS["surface-diff"]
     for name in ("added", "removed", "widened", "narrowed", "changed", "indeterminate"):
@@ -379,7 +379,7 @@ def test_the_same_two_trees_produce_the_same_bytes(tmp_path):
     first = diff_of(empty, FIXTURES / "keyv-august")
     second = diff_of(empty, FIXTURES / "keyv-august")
 
-    from actaira.model import canonical_json
+    from seamark.model import canonical_json
 
     assert canonical_json(first) == canonical_json(second)
 
@@ -460,7 +460,7 @@ def test_only_two_git_subcommands_are_ever_run():
     `ls-tree` and `cat-file` apply no filter and run no hook. Any third
     subcommand is a decision, and this is where it gets made deliberately.
     """
-    source = (Path(REPO_ROOT) / "src" / "actaira" / "surface" / "diff.py").read_text("utf-8")
+    source = (Path(REPO_ROOT) / "src" / "seamark" / "surface" / "diff.py").read_text("utf-8")
     called = {
         line.split('_git(repo, "', 1)[1].split('"', 1)[0]
         for line in source.splitlines()

@@ -35,12 +35,12 @@ import pytest
 from cryptography.hazmat.primitives import serialization
 
 import tsa
-from actaira.attest import chain, package, signing
-from actaira.attest import keyring as keyring_mod
-from actaira.attest import timestamp as ts
-from actaira.attest import verify as verify_mod
-from actaira.cli import _print_verify
-from actaira.i18n.catalog import SUPPORTED, Catalog, load
+from seamark.attest import chain, package, signing
+from seamark.attest import keyring as keyring_mod
+from seamark.attest import timestamp as ts
+from seamark.attest import verify as verify_mod
+from seamark.cli import _print_verify
+from seamark.i18n.catalog import SUPPORTED, Catalog, load
 from support.reports import envelope as build_envelope
 from support.reports import record
 

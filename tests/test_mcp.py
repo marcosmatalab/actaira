@@ -20,14 +20,14 @@ import subprocess
 import sys
 import zipfile
 
-from actaira.attest import package, signing
-from actaira.mcp import TOOLS, handle
-from actaira.trace import CaptureLevel
+from seamark.attest import package, signing
+from seamark.mcp import TOOLS, handle
+from seamark.trace import CaptureLevel
 
 # The names the server announced until phase S0, kept so that removing a tool
 # is a thing this file can still fail about. A retired name must be refused as
 # unknown, not answered: an agent that cached an old `tools/list` will call one.
-RETIRED = ("actaira_contract", "actaira_verdict")
+RETIRED = ("seamark_contract", "seamark_verdict")
 
 
 def _request(identifier, method, params=None):
@@ -50,14 +50,14 @@ def _listed():
 def test_the_server_announces_only_the_tools_it_has():
     """Two now, and the second arrived only once it could answer honestly.
 
-    `actaira_check` was buildable in phase S1 and was not built, because it
+    `seamark_check` was buildable in phase S1 and was not built, because it
     would have announced "the configuration surface" and returned one vendor's
     sixth of it - and `tools/list` is the one surface where a reading that has
     already happened cannot be corrected further down (D-256, D-289).
     """
     names = _listed()
 
-    assert names == ["actaira_check", "actaira_verify"]
+    assert names == ["seamark_check", "seamark_verify"]
     assert set(names) == set(TOOLS), "tools/list and TOOLS disagree"
 
 
@@ -97,7 +97,7 @@ def test_a_retired_tool_is_refused_by_name_rather_than_answered():
 
 
 def test_verify_answers_for_real_on_a_healthy_package(tmp_path):
-    from actaira.attest import chain
+    from seamark.attest import chain
     from support.reports import record
 
     report = record(tmp_path / "clean.safetensors")
@@ -105,7 +105,7 @@ def test_verify_answers_for_real_on_a_healthy_package(tmp_path):
     chain.append(entries, report.sha256, report.to_dict(), timestamp="2026-01-01T00:00:00")
     written = package.write_package(tmp_path / "a.zip", entries, signing.generate())
 
-    payload = json.loads(_call("actaira_verify", {"path": str(written.path)})["result"]["content"][0]["text"])
+    payload = json.loads(_call("seamark_verify", {"path": str(written.path)})["result"]["content"][0]["text"])
 
     assert payload["ok"] is True
     assert payload["trust_state"] == "embedded_key_only"
@@ -114,7 +114,7 @@ def test_verify_answers_for_real_on_a_healthy_package(tmp_path):
 
 def test_verify_on_a_path_that_does_not_exist_is_an_error_not_a_pass(tmp_path):
     """The inverted default reaching the one surface other agents call."""
-    response = _call("actaira_verify", {"path": str(tmp_path / "absent.zip")})
+    response = _call("seamark_verify", {"path": str(tmp_path / "absent.zip")})
 
     payload = json.loads(response["result"]["content"][0]["text"])
     assert payload["ok"] is False
@@ -123,14 +123,14 @@ def test_verify_on_a_path_that_does_not_exist_is_an_error_not_a_pass(tmp_path):
 
 
 def test_verify_with_no_path_is_a_usage_error_and_not_a_verdict():
-    response = _call("actaira_verify", {})
+    response = _call("seamark_verify", {})
 
     assert response["result"]["isError"] is True
     assert "path" in response["result"]["content"][0]["text"]
 
 
 def test_an_unknown_tool_is_a_json_rpc_error():
-    response = _call("actaira_do_my_taxes")
+    response = _call("seamark_do_my_taxes")
 
     assert "error" in response
     assert response["error"]["code"] == -32602
@@ -146,7 +146,7 @@ def test_initialize_answers_with_the_protocol_and_the_tool_capability():
     response = handle(_request(1, "initialize", {"protocolVersion": "2025-06-18"}))
 
     assert "tools" in response["result"]["capabilities"]
-    assert response["result"]["serverInfo"]["name"] == "actaira"
+    assert response["result"]["serverInfo"]["name"] == "seamark"
 
 
 def test_a_notification_gets_no_response():
@@ -178,7 +178,7 @@ def test_the_entry_point_speaks_json_rpc_over_stdio():
         json.dumps(_request(2, "tools/list")),
     ]
     run = subprocess.run(  # noqa: S603 - a fixed argv, no shell
-        [sys.executable, "-m", "actaira.mcp"],
+        [sys.executable, "-m", "seamark.mcp"],
         input="\n".join(messages) + "\n",
         capture_output=True,
         text=True,
@@ -198,7 +198,7 @@ def test_the_server_prints_nothing_on_stdout_that_is_not_a_response():
     """stdout is the transport. A stray print corrupts the protocol, which is
     the classic way an MCP server dies in somebody else's client."""
     run = subprocess.run(  # noqa: S603 - a fixed argv, no shell
-        [sys.executable, "-m", "actaira.mcp"],
+        [sys.executable, "-m", "seamark.mcp"],
         input=json.dumps(_request(1, "tools/list")) + "\n",
         capture_output=True,
         text=True,
@@ -216,13 +216,13 @@ def test_the_server_prints_nothing_on_stdout_that_is_not_a_response():
 
 
 def _verify_payloads(tmp_path) -> list[tuple[str, dict]]:
-    """One payload per way `actaira_verify` can come back, named.
+    """One payload per way `seamark_verify` can come back, named.
 
     Built as a corpus rather than asserted one case at a time, for the reason
     `test_the_corpus_is_not_all_failures` gives next door: a property stated
     over three examples is three examples.
     """
-    from actaira.attest import chain
+    from seamark.attest import chain
     from support.reports import record
 
     report = record(tmp_path / "clean.safetensors")
@@ -240,7 +240,7 @@ def _verify_payloads(tmp_path) -> list[tuple[str, dict]]:
         "a path that is not a package at all": str(tmp_path / "absent.zip"),
     }
     return [
-        (name, json.loads(_call("actaira_verify", {"path": path})["result"]["content"][0]["text"]))
+        (name, json.loads(_call("seamark_verify", {"path": path})["result"]["content"][0]["text"]))
         for name, path in cases.items()
     ]
 

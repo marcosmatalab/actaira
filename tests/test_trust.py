@@ -22,9 +22,9 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 
 import tsa
-from actaira.attest import timestamp as ts
-from actaira.attest import trust
 from conftest import REPO_ROOT
+from seamark.attest import timestamp as ts
+from seamark.attest import trust
 
 FIXTURES = REPO_ROOT / "tests" / "fixtures" / "rfc3161"
 SUBJECT_DIGEST = hashlib.sha256((FIXTURES / "subject.bin").read_bytes()).digest()
@@ -268,7 +268,7 @@ def test_a_trust_store_that_cannot_be_read_fails_the_verification(tmp_path):
     """Named and unreadable is a usage error. Falling back to checking
     nothing would silently verify without the anchors somebody asked for,
     which is the shape of failure this module exists to prevent."""
-    from actaira.attest import verify as verify_mod
+    from seamark.attest import verify as verify_mod
 
     missing = tmp_path / "not-here.pem"
     package = tmp_path / "package.zip"

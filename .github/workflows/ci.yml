@@ -16,7 +16,7 @@
 #   fuzz        `fuzz/` went with it, and `make fuzz` is not a Makefile target.
 #   benchmark   installed picklescan, modelscan and fickling to compare against
 #               a scanner this tree does not contain.
-#   attest-self `actaira attest` does not parse. Neither does `--continue`.
+#   attest-self `seamark attest` does not parse. Neither does `--continue`.
 #   figures     consumed the artifacts the eval and benchmark jobs uploaded.
 #
 # A workflow that names a command the tool does not have fails on its first run
@@ -126,7 +126,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: python -m pip install -e ".[dev]"
       - name: tests
-        run: python -m pytest tests --cov=src/actaira --cov-report=term
+        run: python -m pytest tests --cov=src/seamark --cov-report=term
       - name: the coverage floor
         # Measured on all three interpreters, enforced on one. A floor applied
         # per interpreter turns a version-gated branch into a red build on the
@@ -185,7 +185,7 @@ jobs:
         # further down, while `make package` asserted a different set on a
         # laptop. Two definitions of "the package carries what it needs" do not
         # add up, they cancel: the laptop's list named
-        # `actaira/web/static/index.html` and four more files that left with the
+        # `seamark/web/static/index.html` and four more files that left with the
         # scanner, so `make package` failed on every run from the pivot onwards
         # and this job stayed green over the same distributions.
         #
@@ -211,23 +211,23 @@ jobs:
           python -m venv "$RUNNER_TEMP/from-sdist"
           "$RUNNER_TEMP/from-sdist/bin/python" -m pip install --quiet dist/*.tar.gz
           VERSION="$(python -c "import tomllib, pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")"
-          REPORTED="$("$RUNNER_TEMP/from-sdist/bin/actaira" --version)"
+          REPORTED="$("$RUNNER_TEMP/from-sdist/bin/seamark" --version)"
           echo "pyproject says $VERSION, the installed tool says $REPORTED"
-          test "$REPORTED" = "actaira $VERSION"
+          test "$REPORTED" = "seamark $VERSION"
       - name: the installed package imports, in isolation
         run: |
           set -euo pipefail
           # -I: isolated, so the checkout's own directory is off sys.path and
           # these imports say what is installed rather than what is lying
-          # about. `actaira.web` was in this list until phase A.1 and has not
+          # about. `seamark.web` was in this list until phase A.1 and has not
           # existed since 3.0.0, so this step asserted the presence of a module
           # the package does not ship.
           #
           # What is NOT here any more is a hand-written list of resource files.
           # `scripts/build_package.py` reads every non-Python file under
-          # `src/actaira/` and asserts it is in the wheel, which is one
+          # `src/seamark/` and asserts it is in the wheel, which is one
           # definition instead of two that can drift apart.
-          "$RUNNER_TEMP/from-sdist/bin/python" -I -c "import actaira, actaira.mcp, actaira.attest.timestamp"
+          "$RUNNER_TEMP/from-sdist/bin/python" -I -c "import seamark, seamark.mcp, seamark.attest.timestamp"
       - name: the installed tool runs offline, out of the package
         run: |
           set -euo pipefail
@@ -235,14 +235,14 @@ jobs:
           # is the one command that proves an install works with no network, no
           # agent on the machine and nothing from this checkout.
           cd "$RUNNER_TEMP"
-          "$RUNNER_TEMP/from-sdist/bin/actaira" scan --demo
+          "$RUNNER_TEMP/from-sdist/bin/seamark" scan --demo
       - name: install from the wheel and use it
         run: |
           set -euo pipefail
           python -m venv "$RUNNER_TEMP/from-wheel"
           "$RUNNER_TEMP/from-wheel/bin/python" -m pip install --quiet dist/*.whl
-          "$RUNNER_TEMP/from-wheel/bin/actaira" --version
-          "$RUNNER_TEMP/from-wheel/bin/actaira" scan --demo
+          "$RUNNER_TEMP/from-wheel/bin/seamark" --version
+          "$RUNNER_TEMP/from-wheel/bin/seamark" scan --demo
 
   consistency:
     name: the tree does not disagree with itself
@@ -322,21 +322,21 @@ jobs:
       - name: the two sides of this push
         run: |
           set -euo pipefail
-          echo "ACTAIRA_BASE=$(git rev-parse HEAD^)" >> "$GITHUB_ENV"
-          echo "ACTAIRA_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "SEAMARK_BASE=$(git rev-parse HEAD^)" >> "$GITHUB_ENV"
+          echo "SEAMARK_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: what this push changed about what the agents here can do
         id: own
         continue-on-error: true
         uses: $/
         with:
-          base: ${{ env.ACTAIRA_BASE }}
-          head: ${{ env.ACTAIRA_HEAD }}
-          sarif: actaira.sarif
+          base: ${{ env.SEAMARK_BASE }}
+          head: ${{ env.SEAMARK_HEAD }}
+          sarif: seamark.sarif
       - name: the run ended in one of the codes the contract publishes
         run: |
           set -euo pipefail
-          CODE="$(cat actaira-exit-code.txt)"
-          echo "actaira exited $CODE"
+          CODE="$(cat seamark-exit-code.txt)"
+          echo "seamark exited $CODE"
           # 0 nothing fired, 1 a rule fired, 3 something could not be resolved.
           # 2 is the argv being refused and anything else is a crash; both are
           # this repository's problem rather than a finding.
@@ -344,15 +344,15 @@ jobs:
             0|1|3) ;;
             *) echo "exit $CODE is not a finding, it is a break"; exit 1 ;;
           esac
-          test -s actaira.sarif
+          test -s seamark.sarif
       - uses: github/codeql-action/upload-sarif@3ea06614dafe36dec890db3446326e0d40ce53d4  # v3
         # Resolved on 2026-09-22 with
         #   gh api repos/github/codeql-action/git/ref/tags/v3 --jq .object.sha
         # and dereferenced to the commit it points at, because `uses:` takes a
         # commit and an annotated tag's sha is the tag object.
         with:
-          sarif_file: actaira.sarif
-          category: actaira
+          sarif_file: seamark.sarif
+          category: seamark
 
   workflows:
     name: zizmor over action.yml and the workflows
@@ -441,7 +441,7 @@ jobs:
           sarif: clean.sarif
       - name: keep the clean run's exit code before the second run overwrites it
         if: ${{ always() }}
-        run: mv actaira-exit-code.txt clean-exit-code.txt
+        run: mv seamark-exit-code.txt clean-exit-code.txt
       - name: the keyv wave arriving on top of it
         id: keyv
         continue-on-error: true
@@ -452,7 +452,7 @@ jobs:
           sarif: keyv.sarif
       - name: keep the keyv run's exit code
         if: ${{ always() }}
-        run: mv actaira-exit-code.txt keyv-exit-code.txt
+        run: mv seamark-exit-code.txt keyv-exit-code.txt
       - name: the exit codes are the ones the contract publishes
         # Read from the files the Action writes, not from its outputs. A
         # composite action that failed does not map its outputs, so
@@ -483,8 +483,8 @@ jobs:
         run: |
           set -euo pipefail
           git config user.email "ci@example.invalid"
-          git config user.name "actaira ci"
-          git switch --quiet -c actaira-refs-probe
+          git config user.name "seamark ci"
+          git switch --quiet -c seamark-refs-probe
           git commit --quiet --allow-empty -m "the base side of the refs probe"
           echo "REFS_BASE=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
           echo "" >> README.md
@@ -502,7 +502,7 @@ jobs:
       - name: the refs run said what a pull request of that shape has to say
         run: |
           set -euo pipefail
-          REFS="$(cat actaira-exit-code.txt)"
+          REFS="$(cat seamark-exit-code.txt)"
           echo "refs=$REFS"
           # 0 and not 2. This repository carries agent configuration of its own,
           # in fixtures and in `.claude/`, and it is identical on both sides, so
@@ -510,5 +510,5 @@ jobs:
           # being refused, which is DEF-123 coming back.
           test "$REFS" = "0"
           test -s refs.sarif
-          test -s actaira-diff.txt
-          grep -q "Identical on both sides" actaira-diff.txt
+          test -s seamark-diff.txt
+          grep -q "Identical on both sides" seamark-diff.txt

@@ -63,8 +63,8 @@ def write_artifact(tmp_path: Path) -> Callable[[str, bytes], Path]:
 
 @pytest.fixture
 def keypair(tmp_path: Path):
-    """A freshly generated Ed25519 key pair, never touching the user's ~/.actaira."""
-    from actaira.attest import signing
+    """A freshly generated Ed25519 key pair, never touching the user's ~/.seamark."""
+    from seamark.attest import signing
 
     pair, created = signing.load_or_create(tmp_path / "keys" / "signing-key.pem")
     assert created, "fixture must create the key, not reuse one from the machine"
@@ -76,7 +76,7 @@ def keypair(tmp_path: Path):
 # ---------------------------------------------------------------------------
 #
 # Three properties this suite asserts are properties of a POSIX kernel rather
-# than of Actaira: a file's permission bits, a descriptor table with a soft
+# than of Seamark: a file's permission bits, a descriptor table with a soft
 # limit, and a filename allowed to contain `<`, `>` and `|`. Where one of them
 # is unavailable the test says which property it could not observe, in the
 # assertion or in the skip reason, so "passed" never quietly means "was not

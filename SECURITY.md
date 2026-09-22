@@ -14,7 +14,7 @@ exists rather than code that was intended.
 ## Reporting a vulnerability
 
 **This snapshot publishes no disclosure channel, and inventing one here would
-be worse than saying so.** Actaira is a local repository: there is no hosted
+be worse than saying so.** Seamark is a local repository: there is no hosted
 issue tracker, no advisory page and no monitored address that belongs to the
 project rather than to whoever is holding this copy. A security policy that
 printed an address nobody reads would fail in exactly the way this project
@@ -32,7 +32,7 @@ What helps, in rough order of usefulness:
    attached. Please do not attach a working exploit against somebody else's
    repository or machine.
 2. The exact command and the output you got, against the output you expected.
-3. The version: `actaira --version`, and which snapshot of the source you are
+3. The version: `seamark --version`, and which snapshot of the source you are
    running, since there is no commit to name.
 
 **What to expect.** This is a single-maintainer project with no company behind
@@ -64,29 +64,29 @@ current and which are superseded and kept.
 
 Seven commands, and the scope of a report is what they do.
 
-- **`actaira check`** reads agent configuration files out of a repository, and
+- **`seamark check`** reads agent configuration files out of a repository, and
   with `--machine` out of the user and managed scopes too. It executes nothing
   it reads and opens no socket. Its input is the one nobody on your side wrote,
   so it has a threat model of its own
   [below](#threat-model-reading-somebody-elses-repository).
-- **`actaira diff`** reads TWO such inputs and compares them. It is the only
+- **`seamark diff`** reads TWO such inputs and compares them. It is the only
   command here that runs another program, and the programs are `git ls-tree` and
   `git cat-file`: it materialises each ref's tree into a temporary directory it
   made, and it never checks either ref out. It shares the threat model below and
   widens it, because the attacker now also chooses what `git` is asked about and
   what lands in that directory; the rows that are its own say so.
-- **`actaira seal`** writes a signed baseline of a surface. It carries no
+- **`seamark seal`** writes a signed baseline of a surface. It carries no
   content: a path and the names a third party chose travel as
   `H(salt || domain || value)` and the salt stays in the output directory,
   beside the package and never inside it.
-- **`actaira scan`** reads session transcripts an agent already wrote to disk.
+- **`seamark scan`** reads session transcripts an agent already wrote to disk.
   The input is somebody's conversation, so arguments and results travel as
   salted digests unless `--with-content` is passed.
-- **`actaira watch`** runs your command with an MCP proxy interposed and
+- **`seamark watch`** runs your command with an MCP proxy interposed and
   assembles what the proxy saw. It launches a child process that you named.
-- **`actaira verify`** checks an attestation package offline. It opens no
+- **`seamark verify`** checks an attestation package offline. It opens no
   socket, and a test fails the suite if it does.
-- **`actaira keygen`** creates, rotates and revokes an Ed25519 signing key on
+- **`seamark keygen`** creates, rotates and revokes an Ed25519 signing key on
   disk.
 
 Three properties are worth reporting a violation of. **Nothing on the decision
@@ -103,26 +103,26 @@ guarantees above, is a bug rather than a vulnerability, and
 
 ## Threat model: reading somebody else's repository
 
-`actaira check` is the first command whose input nobody on your side wrote. It
+`seamark check` is the first command whose input nobody on your side wrote. It
 runs on a clone of a pull request, on a dependency you vendored, on a repository
 a colleague sent you a link to. Every byte it reads - the settings files, the
 paths inside them, the skill definitions, the git index - is chosen by whoever
 opened that pull request.
 
-**`actaira diff` runs on the same input twice over, and adds two things to it.**
+**`seamark diff` runs on the same input twice over, and adds two things to it.**
 It asks `git` about a repository the attacker contributed to, and it writes that
 repository's blobs into a directory. Neither is in the paragraph above and both
 are in the table below, because a threat model that stopped at the command it
 was first written for is a threat model about the previous release.
 
 The whole argument for how `diff` obtains those trees is in
-`src/actaira/surface/diff.py`, design notes D-293 and D-294, and is not repeated
+`src/seamark/surface/diff.py`, design notes D-293 and D-294, and is not repeated
 here: only `ls-tree` and `cat-file`, argv as a list and never a shell, `--`
 before every ref, `--no-pager --no-optional-locks -c core.fsmonitor=false -c
 core.hooksPath=<nonexistent>`, and no checkout of any kind. What follows is what
 an attacker gets to try against that, and what stops each one.
 
-That inverts the usual reading of this project's refusals. "Actaira never runs
+That inverts the usual reading of this project's refusals. "Seamark never runs
 what it reads" is not only a claim about honesty; it is the control that stops
 this command being the delivery mechanism for the thing it was pointed at.
 
@@ -130,8 +130,8 @@ this command being the delivery mechanism for the thing it was pointed at.
 
 Somebody who can put a file in a repository you will read. They are not
 assumed to have anything else: no account on your machine, no network position,
-no ability to make you type a command other than `actaira check` or
-`actaira diff`. In the `diff` case they additionally choose the CONTENT OF THE
+no ability to make you type a command other than `seamark check` or
+`seamark diff`. In the `diff` case they additionally choose the CONTENT OF THE
 TREE at one of the two refs, and - where you pass a ref from the pull request
 itself, which is what the GitHub Action does - part of the argument list.
 

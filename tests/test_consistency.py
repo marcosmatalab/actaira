@@ -30,11 +30,11 @@ from pathlib import Path
 
 import pytest
 
-from actaira import cli
-from actaira.attest import chain, merkle, package, signing
-from actaira.attest import verify as verify_mod
-from actaira.attest.package import ENTRIES_NAME
-from actaira.model import canonical_json
+from seamark import cli
+from seamark.attest import chain, merkle, package, signing
+from seamark.attest import verify as verify_mod
+from seamark.attest.package import ENTRIES_NAME
+from seamark.model import canonical_json
 from support.reports import write_record
 
 MAX_TREE = 64
@@ -110,7 +110,7 @@ def test_a_power_of_two_old_size_leaves_the_old_root_out_of_the_proof(new_size):
     node. The verifier already holds that value: it is the root it is checking
     against. The reference verifier therefore expects it absent, and
     `build_consistency_proof` strips it
-    (`src/actaira/attest/merkle.py:132`).
+    (`src/seamark/attest/merkle.py:132`).
 
     Asserting only that the proof verifies would not catch a regression that
     put the node back and loosened the verifier to tolerate it, so the absence
@@ -275,7 +275,7 @@ def test_a_proof_with_one_node_too_many_is_refused(old_size, new_size):
 
     Trailing nodes are the room an attacker uses to make one proof fit several
     shapes. `verify_consistency` returns false unless the node list is
-    exhausted (`src/actaira/attest/merkle.py:208`), so a proof with slack is a
+    exhausted (`src/seamark/attest/merkle.py:208`), so a proof with slack is a
     refused proof rather than an ignored suffix.
     """
     _leaves, old_root, new_root, proof = proof_for(new_size, old_size)
@@ -402,7 +402,7 @@ def continued(tmp_path_factory) -> ContinuedChain:
 
     Built through `cli.main` rather than through the library, because
     `--continue` is the only thing that makes a consistency proof between two
-    Actaira packages possible at all (D-26): without it every run starts from
+    Seamark packages possible at all (D-26): without it every run starts from
     genesis and the two logs share no history.
     """
     workspace = tmp_path_factory.mktemp("continued-chain")

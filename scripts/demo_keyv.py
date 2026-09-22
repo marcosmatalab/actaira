@@ -5,7 +5,7 @@
 
 Two commits in a throwaway git repository: a clean one, and the same tree with
 the 4 August 2026 keyv wave's configuration reconstructed on top of it. Then
-`actaira diff` between them, which is the block both READMEs print.
+`seamark diff` between them, which is the block both READMEs print.
 
 WHY A SCRIPT AND NOT A FIXTURE. The `diff` half of this product needs two
 MOMENTS, and a moment is a commit. A fixture directory has one. This is the
@@ -21,7 +21,7 @@ A security repository that shipped the worm's payload in order to demonstrate
 catching the worm would be the worm. `tests/test_surface_rules.py` asserts the
 stubs are inert, so this script cannot quietly start distributing something else.
 
-Nothing here is executed. `git` is asked to make two commits and Actaira is
+Nothing here is executed. `git` is asked to make two commits and Seamark is
 asked to read two trees; the `setup.mjs` the hook points at is hashed and never
 run, which is what `check` and `diff` both promise and what this demo is about.
 """
@@ -45,10 +45,10 @@ FIXTURE = ROOT / "tests" / "fixtures" / "surface" / "keyv-august"
 # have anyway.
 WHEN = "2026-08-04T00:00:00+00:00"
 ENVIRONMENT = {
-    "GIT_AUTHOR_NAME": "actaira demo",
-    "GIT_AUTHOR_EMAIL": "demo@actaira.invalid",
-    "GIT_COMMITTER_NAME": "actaira demo",
-    "GIT_COMMITTER_EMAIL": "demo@actaira.invalid",
+    "GIT_AUTHOR_NAME": "seamark demo",
+    "GIT_AUTHOR_EMAIL": "demo@seamark.invalid",
+    "GIT_COMMITTER_NAME": "seamark demo",
+    "GIT_COMMITTER_EMAIL": "demo@seamark.invalid",
     "GIT_AUTHOR_DATE": WHEN,
     "GIT_COMMITTER_DATE": WHEN,
     "GIT_CONFIG_GLOBAL": os.devnull,
@@ -108,9 +108,9 @@ def main(argv: list[str] | None = None) -> int:
     arguments = parser.parse_args(argv)
 
     sys.path.insert(0, str(ROOT / "src"))
-    from actaira import cli
+    from seamark import cli
 
-    where = Path(tempfile.mkdtemp(prefix="actaira-demo-"))
+    where = Path(tempfile.mkdtemp(prefix="seamark-demo-"))
     try:
         build(where)
         # Through `cli.main`, so what this prints is what the command prints -

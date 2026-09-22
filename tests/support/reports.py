@@ -30,8 +30,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from actaira.attest.dsse import PAYLOAD_TYPE, PREDICATE_TYPE, STATEMENT_TYPE, Envelope
-from actaira.attest.signing import KeyPair
+from seamark.attest.dsse import PAYLOAD_TYPE, PREDICATE_TYPE, STATEMENT_TYPE, Envelope
+from seamark.attest.signing import KeyPair
 
 # Deterministic filler. The attestation layer hashes and packages bytes without
 # reading them, so what these bytes mean is exactly nothing, and saying so here
@@ -154,12 +154,12 @@ __all__ = [
 
 
 def emitted_documents(tmp_path: Path) -> list[tuple[str, dict[str, Any]]]:
-    """(name, document) for every document an Actaira command can write today.
+    """(name, document) for every document an Seamark command can write today.
 
-    Five: the demo trace `actaira scan --demo` prints, a `watch` trace assembled
-    from a recorded session, the `surface/v1` document `actaira check` writes,
-    the `surface-diff/v1` document `actaira diff` writes, and the `seal/v1`
-    document `actaira seal` signs. When a command that emits a sixth arrives, it
+    Five: the demo trace `seamark scan --demo` prints, a `watch` trace assembled
+    from a recorded session, the `surface/v1` document `seamark check` writes,
+    the `surface-diff/v1` document `seamark diff` writes, and the `seal/v1`
+    document `seamark seal` signs. When a command that emits a sixth arrives, it
     is added here and every property over this list starts covering it with no
     edit at the call sites.
 
@@ -179,10 +179,10 @@ def emitted_documents(tmp_path: Path) -> list[tuple[str, dict[str, Any]]]:
     fixture is one of the two reconstructed worms, so the walk runs over a
     document with real findings, real authors and real severities in it.
     """
-    from actaira.proxy import Recorder
-    from actaira.proxy.session import WatchSession
-    from actaira.surface import claude_code, document, merge, resolve, rules
-    from actaira.trace.claude_code import demo_trace
+    from seamark.proxy import Recorder
+    from seamark.proxy.session import WatchSession
+    from seamark.surface import claude_code, document, merge, resolve, rules
+    from seamark.trace.claude_code import demo_trace
 
     session = WatchSession(tmp_path / "records", "s")
     recorder = Recorder(
@@ -208,9 +208,9 @@ def emitted_documents(tmp_path: Path) -> list[tuple[str, dict[str, Any]]]:
         merge_rules=merge.MERGE_TABLE,
     )
 
-    from actaira.attest.seal import References, seal_document
-    from actaira.cli import check_document
-    from actaira.surface.diff import surface_diff
+    from seamark.attest.seal import References, seal_document
+    from seamark.cli import check_document
+    from seamark.surface.diff import surface_diff
 
     empty = tmp_path / "nothing-configured"
     empty.mkdir(parents=True, exist_ok=True)

@@ -16,9 +16,9 @@ from pathlib import Path
 
 import pytest
 
-from actaira.attest import chain, package, signing
-from actaira.attest import verify as verify_mod
-from actaira.model import canonical_json
+from seamark.attest import chain, package, signing
+from seamark.attest import verify as verify_mod
+from seamark.model import canonical_json
 from support.reports import write_record
 
 INTEGRITY_CHECKS = (
@@ -456,7 +456,7 @@ def test_swapping_the_keyring_and_re_signing_passes_integrity_and_fails_identity
     ]
     manifest = json.loads(members["manifest.json"])
     manifest["head_hash"] = forged_entries[-1]["entry_hash"]
-    from actaira.attest import merkle
+    from seamark.attest import merkle
 
     manifest["merkle_root"] = merkle.build_root(
         [merkle.leaf_hash(canonical_json(item)) for item in forged_entries]
@@ -534,7 +534,7 @@ def test_something_that_is_not_a_zip_is_refused_without_raising(tmp_path):
 # `docs/PRINCIPLES.md`, code rules: a format error is caught at load time and is a message,
 # not a traceback. `_read_member` already obeyed that and the three readers
 # after it did not. Each of these came out of `verify_package` as an exception,
-# so `actaira verify` printed a Python stack to stderr on a package anyone can
+# so `seamark verify` printed a Python stack to stderr on a package anyone can
 # build. One test per input, because they fail through three different types.
 
 
@@ -595,7 +595,7 @@ def test_a_manifest_whose_files_is_not_a_list_is_a_verdict(tmp_path, attested):
 def test_no_hostile_package_in_this_file_reaches_the_caller_as_an_exception(tmp_path, attested):
     """The property behind the three above, over a handful more shapes. A
     verifier that crashes has not refused the package: it has told a CI job
-    that Actaira is broken, which is where the operator looks next."""
+    that Seamark is broken, which is where the operator looks next."""
     result_written, _reports, _keypair = attested
     original = read_members(result_written.path)
     manifest = json.loads(original["manifest.json"])

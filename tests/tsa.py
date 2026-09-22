@@ -11,7 +11,7 @@ of a package built during a test hashes to something new every run.
 
 So this file issues tokens over any digest asked of it. It is a second
 implementation on purpose - its DER encoder is written here rather than
-imported from `actaira.attest.timestamp`, because a test that encodes with
+imported from `seamark.attest.timestamp`, because a test that encodes with
 the code under test and then decodes with the code under test proves only
 that the code agrees with itself. And it signs with ECDSA P-256, where the
 OpenSSL fixtures sign with RSA, so the two together cover both branches of
@@ -47,7 +47,7 @@ DEFAULT_POLICY = "1.3.6.1.4.1.99999.2.1"
 
 
 # ---------------------------------------------------------------------------
-# DER, written independently of src/actaira/attest/timestamp.py
+# DER, written independently of src/seamark/attest/timestamp.py
 # ---------------------------------------------------------------------------
 
 def der(tag: int, body: bytes) -> bytes:
@@ -147,7 +147,7 @@ def parse_query(request_der: bytes) -> ParsedQuery:
 class FixtureTSA:
     """A two-certificate chain and a serial counter. No state on disk."""
 
-    def __init__(self, *, name: str = "Actaira Test TSA", eku_timestamping: bool = True) -> None:
+    def __init__(self, *, name: str = "Seamark Test TSA", eku_timestamping: bool = True) -> None:
         self.serial = 0
         self.root_key = ec.generate_private_key(ec.SECP256R1())
         self.tsa_key = ec.generate_private_key(ec.SECP256R1())
@@ -155,7 +155,7 @@ class FixtureTSA:
 
         root_name = x509.Name([
             x509.NameAttribute(NameOID.COUNTRY_NAME, "ES"),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Actaira Test Fixtures"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Seamark Test Fixtures"),
             x509.NameAttribute(NameOID.COMMON_NAME, f"{name} Root"),
         ])
         self.root_cert = (
@@ -180,7 +180,7 @@ class FixtureTSA:
 
         leaf_name = x509.Name([
             x509.NameAttribute(NameOID.COUNTRY_NAME, "ES"),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Actaira Test Fixtures"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Seamark Test Fixtures"),
             x509.NameAttribute(NameOID.COMMON_NAME, name),
         ])
         builder = (

@@ -5,7 +5,7 @@ until phase A. Each named a real defect, by file and line, in code that has now
 been removed:
 
   * `format_confidence` reached the signed bytes from `ArtifactReport`
-    (`src/actaira/model.py`) through `receipt.build` (`src/actaira/receipt.py`),
+    (`src/seamark/model.py`) through `receipt.build` (`src/seamark/receipt.py`),
     putting the sixth word of the first negative inside a signed document.
   * `dsse._aggregate_rules` folded the severities one rule fired at across
     artifacts and kept the worst, using `Severity.rank`.
@@ -48,7 +48,7 @@ from support.reports import emitted_documents, every_string
 # old list omitted, which is how `format_confidence` reached signed bytes.
 FORBIDDEN_WORDS = ("score", "grade", "rating", "percent", "confidence", "ranking")
 
-# Keys that would be a fold Actaira computed rather than a label an author
+# Keys that would be a fold Seamark computed rather than a label an author
 # wrote. `max_severity` is the one that actually shipped.
 FORBIDDEN_KEYS = (
     "max_severity", "worst_severity", "highest_severity", "severity_rank",
@@ -110,7 +110,7 @@ def test_the_enumeration_is_not_empty(emitted):
 def test_the_enumeration_names_every_emitter_this_tree_has(emitted):
     """A document written by a command nobody added here is a document nothing
     in this file ever checks. Seven commands; four of them emit."""
-    from actaira.cli import build_parser
+    from seamark.cli import build_parser
 
     parser = build_parser()
     commands = set(parser._subparsers._group_actions[0].choices)
@@ -175,7 +175,7 @@ def test_no_emitted_document_carries_a_number_shaped_word(emitted, word):
 
 
 def test_no_emitted_document_carries_a_maximum_over_severities(emitted):
-    """An aggregate Actaira computed, not a label an author wrote.
+    """An aggregate Seamark computed, not a label an author wrote.
 
     Was: `test_no_emitted_document_carries_a_maximum_over_severities`, xfail
     because `ArtifactReport.max_severity` was emitted into the DSSE predicate.

@@ -20,10 +20,10 @@ from pathlib import Path
 import pytest
 
 import tsa
-from actaira.attest import chain, package, signing
-from actaira.attest import timestamp as ts
-from actaira.attest import verify as verify_mod
-from actaira.model import canonical_json
+from seamark.attest import chain, package, signing
+from seamark.attest import timestamp as ts
+from seamark.attest import verify as verify_mod
+from seamark.model import canonical_json
 from support.reports import write_record
 
 
@@ -310,7 +310,7 @@ def test_the_json_verify_output_carries_the_anchor_for_a_machine_to_read(
     assert document["time_anchor"] == "rfc3161"
     assert document["time_evidence"] == "rfc3161"
     assert document["timestamp"]["tsa_chain"] == "unknown"
-    assert document["timestamp"]["token"]["tsa_name"].startswith("CN=Actaira Test TSA")
+    assert document["timestamp"]["token"]["tsa_name"].startswith("CN=Seamark Test TSA")
     assert json.dumps(document), "the verify document must stay JSON-serialisable"
 
 
@@ -320,7 +320,7 @@ def test_a_stamp_that_predates_the_signing_key_is_refused(tmp_path, entries, key
     signed it did not exist until today. Believing both is impossible, so the
     package fails rather than being reported as anchored.
 
-    Actaira does not otherwise second-guess a TSA's clock. It reports the
+    Seamark does not otherwise second-guess a TSA's clock. It reports the
     genTime and lets the reader judge it - but a genTime that contradicts the
     package's own keyring is a contradiction inside the package.
     """
@@ -376,7 +376,7 @@ def subject_digest_of(members: dict[str, bytes]) -> bytes:
 def mint(authority: tsa.FixtureTSA, digest: bytes, *, serial: int, gen_time: datetime) -> bytes:
     """A token over `digest`, with a serial and a genTime of the caller's choosing.
 
-    This is what any timestamp authority can do, which is the point: Actaira
+    This is what any timestamp authority can do, which is the point: Seamark
     ships no trust store, so `tsa_chain` is never verified and a token from an
     authority nobody has heard of parses exactly like one from a real TSA.
     The only thing that can tell them apart is a commitment to the token's own

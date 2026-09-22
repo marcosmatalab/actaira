@@ -1,4 +1,4 @@
-name: Actaira
+name: Seamark
 description: >-
   Say what capability your coding agents gained or lost in this pull request.
   Reads the configuration Claude Code, Codex CLI, Cursor, Gemini CLI, VS Code
@@ -71,7 +71,7 @@ inputs:
       yours to do, with `github/codeql-action/upload-sarif` and
       `security-events: write`; this Action writes the file and stops there.
     required: false
-    default: actaira.sarif
+    default: seamark.sarif
   lang:
     description: The output language, `en` or `es`.
     required: false
@@ -87,11 +87,11 @@ inputs:
 outputs:
   exit-code:
     description: >-
-      What `actaira diff` exited with: 0 nothing fired and nothing was
+      What `seamark diff` exited with: 0 nothing fired and nothing was
       unresolved, 1 a rule fired on something added or widened, 3 nothing fired
       and something could not be resolved. Passed through, never swallowed.
 
-      READ IT FROM `actaira-exit-code.txt` IF YOU NEED IT WHEN IT IS NON-ZERO.
+      READ IT FROM `seamark-exit-code.txt` IF YOU NEED IT WHEN IT IS NON-ZERO.
       A composite action whose step failed does not map its outputs, so this
       value is empty in exactly the case a caller cares about most. That is
       GitHub's behaviour and not something this file can fix; what it can do is
@@ -105,7 +105,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: install actaira from this action
+    - name: install seamark from this action
       shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}
@@ -120,18 +120,18 @@ runs:
       id: diff
       shell: bash
       env:
-        ACTAIRA_BASE: ${{ inputs.base }}
-        ACTAIRA_HEAD: ${{ inputs.head }}
-        ACTAIRA_FROM_DIR: ${{ inputs.from-dir }}
-        ACTAIRA_TO_DIR: ${{ inputs.to-dir }}
-        ACTAIRA_SARIF: ${{ inputs.sarif }}
-        ACTAIRA_LANG: ${{ inputs.lang }}
-        ACTAIRA_EVENT_BASE: ${{ github.event.pull_request.base.sha }}
-        ACTAIRA_EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+        SEAMARK_BASE: ${{ inputs.base }}
+        SEAMARK_HEAD: ${{ inputs.head }}
+        SEAMARK_FROM_DIR: ${{ inputs.from-dir }}
+        SEAMARK_TO_DIR: ${{ inputs.to-dir }}
+        SEAMARK_SARIF: ${{ inputs.sarif }}
+        SEAMARK_LANG: ${{ inputs.lang }}
+        SEAMARK_EVENT_BASE: ${{ github.event.pull_request.base.sha }}
+        SEAMARK_EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
       run: |
         set -uo pipefail
-        base="${ACTAIRA_BASE:-$ACTAIRA_EVENT_BASE}"
-        head="${ACTAIRA_HEAD:-$ACTAIRA_EVENT_HEAD}"
+        base="${SEAMARK_BASE:-$SEAMARK_EVENT_BASE}"
+        head="${SEAMARK_HEAD:-$SEAMARK_EVENT_HEAD}"
 
         # DEF-123. EVERY OPTION GOES INTO `$@`, AND NOTHING IS APPENDED AFTER IT
         # AT THE CALL SITE. `--sarif` used to be written after `"$@"`, which put
@@ -140,11 +140,11 @@ runs:
         # wants two, and the documented path exited 2 on every pull request
         # that ever used it. The from-dir branch has no `--`, so it parsed
         # fine - which is the only reason the self-test was green.
-        if [ -n "$ACTAIRA_FROM_DIR" ] || [ -n "$ACTAIRA_TO_DIR" ]; then
-          set -- --from-dir "$ACTAIRA_FROM_DIR" --to-dir "$ACTAIRA_TO_DIR" --sarif "$ACTAIRA_SARIF"
+        if [ -n "$SEAMARK_FROM_DIR" ] || [ -n "$SEAMARK_TO_DIR" ]; then
+          set -- --from-dir "$SEAMARK_FROM_DIR" --to-dir "$SEAMARK_TO_DIR" --sarif "$SEAMARK_SARIF"
         else
           if [ -z "$base" ] || [ -z "$head" ]; then
-            echo "actaira: no base and head to compare." >&2
+            echo "seamark: no base and head to compare." >&2
             echo "This Action reads them from a pull_request event, or you pass" >&2
             echo "base: and head:, or from-dir: and to-dir:." >&2
             exit 2
@@ -153,7 +153,7 @@ runs:
           # its own account as well; this is the outer half of the same refusal.
           # It stays. What moved is `--sarif`, which now goes in FRONT of it,
           # where an option belongs.
-          set -- --repo . --sarif "$ACTAIRA_SARIF" -- "$base" "$head"
+          set -- --repo . --sarif "$SEAMARK_SARIF" -- "$base" "$head"
         fi
 
         # Written to a file and then read back, rather than piped: the exit code
@@ -168,17 +168,17 @@ runs:
         # what it does when the tool exits non-zero. `|| code=$?` handles the
         # failure, which is what stops `-e` acting on it.
         code=0
-        actaira --lang "$ACTAIRA_LANG" diff "$@" > actaira-diff.txt || code=$?
+        seamark --lang "$SEAMARK_LANG" diff "$@" > seamark-diff.txt || code=$?
 
         # The heading is the tool's name and nothing else. Everything under it is
-        # what `actaira diff` printed, in the language the caller asked for; a
+        # what `seamark diff` printed, in the language the caller asked for; a
         # sentence typed here would be the one line of this report that ignores
         # `lang`, in a product that ships two languages and tests both.
         {
-          echo "## Actaira"
+          echo "## Seamark"
           echo
           echo '```'
-          cat actaira-diff.txt
+          cat seamark-diff.txt
           echo '```'
         # `:-/dev/null` because `set -u` is on and this variable is set by the
         # runner rather than by us: a job that ran somewhere without it should
@@ -187,14 +187,14 @@ runs:
         } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 
         echo "exit-code=$code" >> "$GITHUB_OUTPUT"
-        echo "sarif=$ACTAIRA_SARIF" >> "$GITHUB_OUTPUT"
+        echo "sarif=$SEAMARK_SARIF" >> "$GITHUB_OUTPUT"
         # And to a file, because the output above is unreadable in the one case
         # that matters. A composite action that fails does not map its outputs,
         # so a caller branching on `exit-code` gets an empty string precisely
         # when a rule fired. The file is written before anything can fail and is
         # what this repository's own CI job reads.
-        echo "$code" > actaira-exit-code.txt
-        cat actaira-diff.txt
+        echo "$code" > seamark-exit-code.txt
+        cat seamark-diff.txt
 
     - name: pass the tool's exit code through
       # Separate from the step above so that step SUCCEEDS and its outputs are
@@ -204,7 +204,7 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        code="$(cat actaira-exit-code.txt)"
+        code="$(cat seamark-exit-code.txt)"
         exit "$code"
 
     - name: comment on the pull request
@@ -215,22 +215,22 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
-        ACTAIRA_PR: ${{ github.event.pull_request.number }}
-        ACTAIRA_REPO: ${{ github.repository }}
+        SEAMARK_PR: ${{ github.event.pull_request.number }}
+        SEAMARK_REPO: ${{ github.repository }}
       run: |
         set -euo pipefail
-        if [ ! -f actaira-diff.txt ]; then
-          echo "actaira: nothing to comment; the diff step wrote no output." >&2
+        if [ ! -f seamark-diff.txt ]; then
+          echo "seamark: nothing to comment; the diff step wrote no output." >&2
           exit 0
         fi
         {
-          echo "## Actaira"
+          echo "## Seamark"
           echo
           echo '```'
-          cat actaira-diff.txt
+          cat seamark-diff.txt
           echo '```'
-        } > actaira-comment.md
+        } > seamark-comment.md
         # `--body-file` and not `--body "$(cat ...)"`: the body is a report built
         # from files a stranger wrote, and it reaches the API as a file rather
         # than through another round of shell word-splitting.
-        gh pr comment "$ACTAIRA_PR" --repo "$ACTAIRA_REPO" --body-file actaira-comment.md
+        gh pr comment "$SEAMARK_PR" --repo "$SEAMARK_REPO" --body-file seamark-comment.md

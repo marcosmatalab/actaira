@@ -9,11 +9,16 @@ The texts to paste are beside this file: [`v2.3.0.md`](v2.3.0.md) and
 
 ## Why this order
 
-The history rewrite comes BEFORE every act of publication, and that is the one
-thing about this file that is not a preference.
+The rename comes before the rewrite, and the rewrite before every act of
+publication. Neither of those two is a preference.
+
+- **The rename is first** because the replay rebuilds every commit, and a tree
+  renamed afterwards is the same work done twice. The rename landed in the
+  history as ordinary commits; what the replay does to them is what it does to
+  all the others.
 
 - **PyPI cannot be corrected.** The sdist carries `README.md`, and the README
-  carries a `uses: marcosmatalab/actaira@<sha>` and a `rev: <sha>` pointing at
+  carries a `uses: marcosmatalab/seamark@<sha>` and a `rev: <sha>` pointing at
   commits of this repository. The rewrite moves all but one of them. Uploading
   3.0.0 first would publish, permanently and unreplaceably, a page telling
   readers to pin commits that no clone of this repository will have.
@@ -27,14 +32,14 @@ thing about this file that is not a preference.
   it has already succeeded.
 - **The distributions are built by the runner and not here**, so the build has
   an identity a reader can check rather than a laptop's word. That moves the
-  build after the release exists, which is why step 11 creates a release with
+  build after the release exists, which is why step 13 creates a release with
   nothing attached and the workflow attaches what it built.
 - **The rehearsal comes before the tag.** It runs the same workflow against
   TestPyPI, so what is rehearsed is the thing that will run, and a tag is not
   spent finding out that the publisher form has a typo in it.
 
 `origin/main` is behind this branch by the whole of this piece of work, so the
-force-push in step 6 is also the first publication of it. Count it with
+force-push in step 8 is also the first publication of it. Count it with
 `git rev-list --count origin/main..main` rather than trusting this sentence: a
 number written here would be wrong by the next commit.
 
@@ -42,10 +47,56 @@ Run the gate first. Not `make all` on the working tree, which answers for a
 tree nobody receives:
 
 ```bash
-wsl -e bash -lc 'rm -rf /tmp/actaira-gate && git clone -q /mnt/c/Users/Usuario/Desktop/actaira /tmp/actaira-gate && cd /tmp/actaira-gate && PY=/tmp/actaira-venv/bin/python make all'
+wsl -e bash -lc 'rm -rf /tmp/seamark-gate && git clone -q /mnt/c/Users/Usuario/Desktop/seamark /tmp/seamark-gate && cd /tmp/seamark-gate && PY=/tmp/seamark-venv/bin/python make all'
 ```
 
-## 1. The archive branch
+## 1. Rename the repository on GitHub
+
+Settings → General → Repository name → `seamark` → **Rename**.
+
+GitHub keeps everything: the issues, the releases, the tags, the watchers, and
+a redirect from the old URL for both git and the web. Nothing below leans on
+that redirect - every URL in this tree already names the new one - because a
+redirect is a courtesy that stops working the day somebody creates a repository
+with the old name.
+
+Do it first, and the reason is the one that runs through this whole file:
+everything after it is written against the name, and doing it last would mean
+doing the two hours in between twice.
+
+## 2. Move the checkout, with the editor closed
+
+The tree, its tooling and every command below name
+`C:\Users\Usuario\Desktop\seamark`. The folder on this machine is still
+called `actaira`.
+
+**Close Claude Code and any editor that has this folder open before you run
+this.** A process that is holding the directory writes its next file into a
+path that has moved, and what it leaves behind is half of something in a place
+nobody is looking.
+
+```powershell
+Rename-Item C:\Users\Usuario\Desktop\actaira seamark
+cd C:\Users\Usuario\Desktop\seamark
+git remote set-url origin https://github.com/marcosmatalab/seamark.git
+git remote -v
+git status --porcelain
+```
+
+`git remote -v` prints the new URL twice and `git status` prints nothing: the
+move is a rename of a directory, and git keeps no absolute path of its own
+inside a repository.
+
+Then the virtualenv the gate runs out of, which lives in `/tmp` and therefore
+does not survive a restart of WSL. This is the one command in this file that
+has to be re-run after a reboot, and the gate says `No such file or directory`
+if it has not been:
+
+```bash
+wsl -e bash -lc 'rm -rf /tmp/seamark-venv && python3 -m venv /tmp/seamark-venv && /tmp/seamark-venv/bin/pip install --quiet -e "/mnt/c/Users/Usuario/Desktop/seamark[dev]"'
+```
+
+## 3. The archive branch
 
 `archive/model-scanner` points at `b61f6346`, which is the same commit as tag
 `v2.3.0` and is an ancestor of `main`. It conserves nothing that is not already
@@ -63,7 +114,7 @@ git branch -D archive/model-scanner                # the local copy
 
 Recoverable, if it ever has to be: `git push origin v2.3.0^{commit}:refs/heads/archive/model-scanner`.
 
-## 2. The note on the release that exists
+## 4. The note on the release that exists
 
 Edit the existing GitHub Release for `v2.3.0` and paste the body of
 [`v2.3.0.md`](v2.3.0.md). **Do not re-point the tag and do not mark it a
@@ -71,7 +122,7 @@ prerelease.** It was a real release of a real product that was finished and
 archived; re-pointing a published tag is the move ACT-S003 tells everybody else
 not to make, and calling it a prerelease rewrites the past to look tidier.
 
-## 3. Look at the landing page rendered, on a branch nobody is reading
+## 5. Look at the landing page rendered, on a branch nobody is reading
 
 The demo picture is an SVG drawn from the command's own output.
 `scripts/release_check.py` proves it fetches nothing, uses no element a
@@ -84,7 +135,7 @@ anything is permanent:
 git push origin main:refs/heads/readme-preview
 ```
 
-Open `https://github.com/marcosmatalab/actaira/blob/readme-preview/README.md`
+Open `https://github.com/marcosmatalab/seamark/blob/readme-preview/README.md`
 and look at the picture under "Quickstart": the whole width of the longest
 line, the colours, and the rounded frame. Then the Spanish one, in
 `README.es.md`.
@@ -98,7 +149,7 @@ what goes on the page is a PNG rasterised from it by the same command, gated
 the same way. Do not carry on to the rewrite with a broken picture, because
 every step after this one makes the page harder to change.
 
-## 4. The history rewrite
+## 6. The history rewrite
 
 Forty-five commit messages are written and waiting in
 [`../history-rewrite/messages.json`](../history-rewrite/messages.json). They
@@ -144,7 +195,7 @@ remove.
 Then re-measure and commit, in one commit:
 
 ```bash
-wsl -e bash -lc 'cd /mnt/c/Users/Usuario/Desktop/actaira && PY=/tmp/actaira-venv/bin/python make figures'
+wsl -e bash -lc 'cd /mnt/c/Users/Usuario/Desktop/seamark && PY=/tmp/seamark-venv/bin/python make figures'
 git add README.md README.es.md figures.json docs/FIGURES.md .github/history-rewrite/rewritten-shas.tsv
 git commit -m "Point the documented commits at the ones that replaced them"
 ```
@@ -160,17 +211,17 @@ commit the branch no longer has, and the release gate refuses that. The carry
 is conditional on the recorded commit still being on the branch, so this run
 moves it.
 
-## 5. The gate, over the rewritten history
+## 7. The gate, over the rewritten history
 
 ```bash
-wsl -e bash -lc 'rm -rf /tmp/actaira-gate && git clone -q /mnt/c/Users/Usuario/Desktop/actaira /tmp/actaira-gate && cd /tmp/actaira-gate && PY=/tmp/actaira-venv/bin/python make all'
+wsl -e bash -lc 'rm -rf /tmp/seamark-gate && git clone -q /mnt/c/Users/Usuario/Desktop/seamark /tmp/seamark-gate && cd /tmp/seamark-gate && PY=/tmp/seamark-venv/bin/python make all'
 git status --porcelain      # empty but for the plan
 ```
 
 Green, or `git reset --hard backup-pre-rewrite` and nothing has been published.
 This is the last point at which that sentence is true.
 
-## 6. The force-push
+## 8. The force-push
 
 ```bash
 git fetch origin
@@ -179,7 +230,7 @@ git push --force-with-lease origin main
 
 `--force-with-lease` and not `--force`: if anything was pushed in the meantime
 it fails instead of overwriting it. The backup is already on the remote from
-step 4, which is what makes this recoverable by somebody who is not you.
+step 6, which is what makes this recoverable by somebody who is not you.
 
 `git fetch` first, and it is not a formality. `--force-with-lease` compares the
 remote against YOUR `origin/main`, which is a local note of what the remote
@@ -188,7 +239,7 @@ decorative: it would let you overwrite a push you have never seen, which is the
 exact thing the flag is there to refuse. Fetching moves the note, so the
 comparison is against what is actually there.
 
-## 7. CI, green on the rewritten branch
+## 9. CI, green on the rewritten branch
 
 Watch the run to the end before going further:
 
@@ -201,12 +252,12 @@ gate, zizmor, the Action used two ways, and the dogfood job that uploads this
 repository's own SARIF to code scanning. A red one here is a red one on the
 commit everything below is about to be cut from.
 
-## 8. Before the first release only: the signing key and the two environments
+## 10. Before the first release only: the signing key and the two environments
 
 Three settings, once. Everything after this assumes them.
 
 **Where this section runs: PowerShell, on Windows, NOT inside `wsl`.** The tag
-in step 10 is signed by the Windows git, which reads the `.ssh` and
+in step 12 is signed by the Windows git, which reads the `.ssh` and
 `.gitconfig` of the Windows profile. A key made inside WSL lives in the WSL
 home, where that git does not look, and the failure is a missing file rather
 than a wrong one. Every command in this file that belongs in WSL is written
@@ -245,7 +296,7 @@ name the permission:
 
 ```powershell
 gh auth refresh -h github.com -s admin:ssh_signing_key
-gh ssh-key add $HOME\.ssh\id_ed25519_signing.pub --type signing --title "actaira release signing"
+gh ssh-key add $HOME\.ssh\id_ed25519_signing.pub --type signing --title "seamark release signing"
 ```
 
 `--type signing` is not decoration: authentication keys and signing keys are
@@ -308,9 +359,9 @@ that is what pending means), with exactly:
 
 | field | value |
 |---|---|
-| PyPI project name | `actaira` |
+| PyPI project name | `seamark` |
 | Owner | `marcosmatalab` |
-| Repository name | `actaira` |
+| Repository name | `seamark` |
 | Workflow name | `release.yml` |
 | Environment name | `pypi` on PyPI, `testpypi` on TestPyPI |
 
@@ -319,7 +370,7 @@ The workflow's FILENAME is part of the trust, so renaming
 changed. That is written here because the failure arrives at upload time and
 reads like a permissions problem.
 
-## 9. The rehearsal, to TestPyPI, from the workflow that will do it for real
+## 11. The rehearsal, to TestPyPI, from the workflow that will do it for real
 
 Not `twine` from a laptop: the point of a rehearsal is to exercise the thing
 that will run, and what will run is the workflow.
@@ -334,12 +385,12 @@ TestPyPI through Trusted Publishing. Then install from there into an empty
 environment, with nothing from this checkout:
 
 ```bash
-wsl -e bash -lc 'rm -rf /tmp/rehearsal && python3 -m venv /tmp/rehearsal && /tmp/rehearsal/bin/pip install --quiet --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ actaira'
-wsl -e bash -lc '/tmp/rehearsal/bin/actaira --version'
-wsl -e bash -lc 'cd /tmp && /tmp/rehearsal/bin/actaira scan --demo'
+wsl -e bash -lc 'rm -rf /tmp/rehearsal && python3 -m venv /tmp/rehearsal && /tmp/rehearsal/bin/pip install --quiet --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ seamark'
+wsl -e bash -lc '/tmp/rehearsal/bin/seamark --version'
+wsl -e bash -lc 'cd /tmp && /tmp/rehearsal/bin/seamark scan --demo'
 ```
 
-`actaira 3.0.0`, and then the demo session read out of the installed package
+`seamark 3.0.0`, and then the demo session read out of the installed package
 with no agent on the machine. **A version uploaded to PyPI can never be
 replaced**, so this is not optional.
 
@@ -364,16 +415,16 @@ rehearsal is meant to be repeatable and a publication is meant to happen once.
   bytes the runner built and attested:
 
   ```powershell
-  gh run download "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')" --name dist --dir $HOME\actaira-rehearsal
+  gh run download "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')" --name dist --dir $HOME\seamark-rehearsal
   ```
 
   ```bash
-  wsl -e bash -lc 'rm -rf /tmp/rehearsal && python3 -m venv /tmp/rehearsal && /tmp/rehearsal/bin/pip install --quiet /mnt/c/Users/Usuario/actaira-rehearsal/actaira-3.0.0-py3-none-any.whl'
-  wsl -e bash -lc 'cd /tmp && /tmp/rehearsal/bin/actaira scan --demo'
+  wsl -e bash -lc 'rm -rf /tmp/rehearsal && python3 -m venv /tmp/rehearsal && /tmp/rehearsal/bin/pip install --quiet /mnt/c/Users/Usuario/seamark-rehearsal/seamark-3.0.0-py3-none-any.whl'
+  wsl -e bash -lc 'cd /tmp && /tmp/rehearsal/bin/seamark scan --demo'
   ```
 
   Into the home directory and not into the checkout: an untracked folder in
-  the working tree is the one thing step 5 asks you to confirm is not there.
+  the working tree is the one thing step 7 asks you to confirm is not there.
 
   That skips the index round trip and nothing else. PyPI's upload is then the
   first time those bytes are published anywhere, which is exactly what it is,
@@ -381,14 +432,14 @@ rehearsal is meant to be repeatable and a publication is meant to happen once.
 
 What the rehearsal does NOT exercise is the `attach` job: uploading the
 assets to a release needs a release, and there is not one yet. That is the one
-step of step 11 that runs for the first time when it runs for real, and it is
+step of step 13 that runs for the first time when it runs for real, and it is
 also the only one that is repeatable - `gh release upload --clobber` replaces
 what is there, so a failure is a re-run rather than a burnt version.
 
-## 10. The tag, signed
+## 12. The tag, signed
 
 ```bash
-git tag -s v3.0.0 -m "Actaira 3.0.0: change control for what your AI agents can do"
+git tag -s v3.0.0 -m "Seamark 3.0.0: change control for what your AI agents can do"
 git tag -v v3.0.0          # "Good \"git\" signature for matagarciamarcos@gmail.com"
 git push origin v3.0.0
 ```
@@ -397,12 +448,12 @@ git push origin v3.0.0
 one lets somebody else check the claim, and GitHub puts **Verified** beside it
 on the tag and on the release.
 
-## 11. The release, and the build that comes from the runner
+## 13. The release, and the build that comes from the runner
 
 Create it from the notes in this directory, with **no files attached**:
 
 ```bash
-gh release create v3.0.0 --title "Actaira 3.0.0" --notes-file .github/release-notes/v3.0.0.md --verify-tag
+gh release create v3.0.0 --title "Seamark 3.0.0" --notes-file .github/release-notes/v3.0.0.md --verify-tag
 ```
 
 Publishing it starts `.github/workflows/release.yml`, which builds the wheel
@@ -444,34 +495,34 @@ looks for first.
   being taken - happens only on a successful upload, which is equally true of
   twine.
 
-What it costs is two forms filled in before the first upload, which is step 8.
+What it costs is two forms filled in before the first upload, which is step 10.
 A token upload (`twine upload`) still works and is what to fall back to if PyPI's
 publisher form cannot be used on the day; if that happens, the line in the
 release notes about verifying the PyPI artifact has to come out, because it
 would no longer be true.
 
-## 12. Verify what was published, the way a stranger would
+## 14. Verify what was published, the way a stranger would
 
 `gh` and `git` are the Windows ones here, like everywhere else in this file
 that is not marked `wsl -e`; `sha256sum` is not a Windows command, so that one
 line is marked and reads the same directory through `/mnt/c`.
 
 ```powershell
-gh release download v3.0.0 --dir $HOME\actaira-verify --repo marcosmatalab/actaira
-cd $HOME\actaira-verify
-gh attestation verify actaira-3.0.0-py3-none-any.whl --repo marcosmatalab/actaira
-gh attestation verify actaira-3.0.0.tar.gz --repo marcosmatalab/actaira
-git -C C:\Users\Usuario\Desktop\actaira tag -v v3.0.0
+gh release download v3.0.0 --dir $HOME\seamark-verify --repo marcosmatalab/seamark
+cd $HOME\seamark-verify
+gh attestation verify seamark-3.0.0-py3-none-any.whl --repo marcosmatalab/seamark
+gh attestation verify seamark-3.0.0.tar.gz --repo marcosmatalab/seamark
+git -C C:\Users\Usuario\Desktop\seamark tag -v v3.0.0
 ```
 
 ```bash
-wsl -e bash -lc 'cd /mnt/c/Users/Usuario/actaira-verify && sha256sum -c SHA256SUMS'
+wsl -e bash -lc 'cd /mnt/c/Users/Usuario/seamark-verify && sha256sum -c SHA256SUMS'
 ```
 
 The same four checks are in the release notes, in the POSIX spelling a reader
 on any other machine would use, so that nobody has to be told they exist.
 
-## 13. About, topics and website
+## 15. About, topics and website
 
 Repository settings, About:
 
@@ -486,18 +537,33 @@ Topics, twelve, which is where GitHub stops showing them well:
 `static-analysis`, `sarif`, `devsecops`, `github-action`, `pre-commit-hook`,
 `attestation`, `python`.
 
-Website: `https://pypi.org/project/actaira/`. No page of its own: a report of
+Website: `https://pypi.org/project/seamark/`. No page of its own: a report of
 this repository fires no rule, so a published demo would be a demo where
 nothing happens.
 
-## 14. Marketplace
+**Everything else on GitHub that carries a name, so that none of it is found
+later.** The repository name is step 1. The About text and the website field
+are the two above, and neither of them is set by the rename. None of the twelve
+topics names the product, so the list is unchanged. The trusted publishers and
+the two environments name the repository and are step 10. The Marketplace
+listing is created from the repository in step 16 and takes the new name with
+it. There are no Actions secrets to rename, because Trusted Publishing left
+none.
 
-It pins the tag, and the tag is only final once step 10 has survived everything
+The one that looks like a mistake and is not: the Security tab. Code scanning
+files findings under the category the upload declares, and that category is now
+`seamark`. Anything uploaded under the old one stays where it is, as a second
+category with no new results, until GitHub ages it out. Nothing to do; it is
+worth knowing before it looks like two tools.
+
+## 16. Marketplace
+
+It pins the tag, and the tag is only final once step 12 has survived everything
 after it. GitHub releases page, "Publish this Action to the GitHub
 Marketplace", accept the terms, pick the category. `action.yml` already carries
 the `branding` block it asks for.
 
-## 15. The backup
+## 17. The backup
 
 Last. Everything that could send you back to it has already succeeded.
 

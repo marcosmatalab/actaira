@@ -16,9 +16,9 @@ from pathlib import Path
 
 import pytest
 
-from actaira import cli
-from actaira.surface import Resolution, claude_code, disk, merge, resolve, rules
 from conftest import REPO_ROOT
+from seamark import cli
+from seamark.surface import Resolution, claude_code, disk, merge, resolve, rules
 
 FIXTURES = Path(REPO_ROOT) / "tests" / "fixtures" / "surface"
 CORPUS = FIXTURES / "corpus"
@@ -73,7 +73,7 @@ def test_every_claude_code_merge_row_cites_its_source(row):
     """The rule, the URL, the page digest, the date, and the sentence.
 
     A row that cannot say where it came from is an opinion about somebody else's
-    software, and the second negative forbids Actaira having one.
+    software, and the second negative forbids Seamark having one.
 
     This file keeps the Claude Code half, where the host and the consultation
     date are one value each. The other six vendors publish on their own hosts
@@ -539,7 +539,7 @@ def test_the_git_index_is_read_rather_than_git_being_run(monkeypatch, tmp_path):
 
 
 def test_the_document_declares_the_registered_version_and_validates(repo, capsys):
-    from actaira import schemas
+    from seamark import schemas
 
     cli.main(["check", "--repo", str(repo(BYPASS)), "--json"])
     payload = json.loads(capsys.readouterr().out)

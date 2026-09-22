@@ -44,7 +44,7 @@ CAP = 900
 # number above it. A round ceiling is an allowance; this one is a record of
 # what was there, so the first line added over it is red.
 ALLOWED: dict[str, tuple[int, str]] = {
-    "src/actaira/attest/timestamp.py": (
+    "src/seamark/attest/timestamp.py": (
         1129,
         "RFC 3161 end to end: the ASN.1 for the request, the parse of the "
         "response, the exchange with the authority and the verification of "
@@ -52,7 +52,7 @@ ALLOWED: dict[str, tuple[int, str]] = {
         "puts one wire format in two files, which is the two-definitions "
         "shape work rule 10 refuses.",
     ),
-    "src/actaira/cli.py": (
+    "src/seamark/cli.py": (
         1086,
         "The parser and the seven command bodies. It is the top of the import "
         "graph, the one file where a reader expects to find everything the "
@@ -61,7 +61,7 @@ ALLOWED: dict[str, tuple[int, str]] = {
         "not name it, so splitting it here would be work nobody asked for at "
         "the end of a phase.",
     ),
-    "src/actaira/attest/verify.py": (
+    "src/seamark/attest/verify.py": (
         976,
         "Protected by the plan that set the cap: §3.5 names "
         "`verify_package` and says this file is not touched. Every signature "
@@ -171,25 +171,25 @@ def test_removing_an_entry_from_the_allowlist_fails(dropped):
     ("measured", "allowed", "expected"),
     [
         # A new file over the cap that nobody added to the table.
-        ({"src/actaira/report/pdf.py": 1200}, {}, "Split it"),
+        ({"src/seamark/report/pdf.py": 1200}, {}, "Split it"),
         # An allowed file that grew after being allowed.
         (
-            {"src/actaira/cli.py": 1400},
-            {"src/actaira/cli.py": (1086, "as above")},
+            {"src/seamark/cli.py": 1400},
+            {"src/seamark/cli.py": (1086, "as above")},
             "not room to grow",
         ),
         # An allowed file that was split and left on the list.
         (
-            {"src/actaira/cli.py": 300},
-            {"src/actaira/cli.py": (1086, "as above")},
+            {"src/seamark/cli.py": 300},
+            {"src/seamark/cli.py": (1086, "as above")},
             "Take it out",
         ),
         # A table entry for a file that is not in the tree.
-        ({}, {"src/actaira/web/app.py": (1000, "as above")}, "guards nothing"),
+        ({}, {"src/seamark/web/app.py": (1000, "as above")}, "guards nothing"),
         # An exemption with no reason written next to it.
         (
-            {"src/actaira/cli.py": 1000},
-            {"src/actaira/cli.py": (1086, "   ")},
+            {"src/seamark/cli.py": 1000},
+            {"src/seamark/cli.py": (1086, "   ")},
             "states no reason",
         ),
     ],
@@ -204,10 +204,10 @@ def test_the_rule_refuses_each_way_it_can_be_broken(measured, allowed, expected)
 def test_the_rule_is_not_vacuous():
     """A cap so high that nothing can reach it is a green tick with nothing
     behind it."""
-    assert violations({"src/actaira/model.py": CAP + 1}, {}), (
+    assert violations({"src/seamark/model.py": CAP + 1}, {}), (
         f"a file one line over {CAP} passed the cap"
     )
-    assert not violations({"src/actaira/model.py": CAP}, {}), (
+    assert not violations({"src/seamark/model.py": CAP}, {}), (
         f"a file of exactly {CAP} lines was refused; the cap is inclusive"
     )
 
@@ -224,7 +224,7 @@ def test_the_three_allowed_files_are_the_ones_the_documentation_names():
     named = {
         line.split("`")[1]
         for line in page.splitlines()
-        if line.startswith("| `src/actaira/") and "`" in line
+        if line.startswith("| `src/seamark/") and "`" in line
     }
     assert named == set(ALLOWED), (
         "the table in docs/ENGINEERING.md and the table in this file name different "

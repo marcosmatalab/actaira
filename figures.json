@@ -65,30 +65,30 @@
       "note": "the published contracts"
     },
     "scripts": {
-      "blank": 795,
-      "code": 3815,
-      "comment": 567,
-      "docstring": 1025,
+      "blank": 816,
+      "code": 3971,
+      "comment": 584,
+      "docstring": 1053,
       "files": 16,
-      "lines": 6202,
+      "lines": 6424,
       "note": "this script"
     },
     "tests": {
-      "blank": 4341,
-      "code": 11384,
-      "comment": 1329,
-      "docstring": 3360,
+      "blank": 4381,
+      "code": 11451,
+      "comment": 1336,
+      "docstring": 3376,
       "files": 52,
-      "lines": 20414,
+      "lines": 20544,
       "note": "the test suite"
     },
     "total": {
-      "blank": 7183,
-      "code": 25085,
-      "comment": 3187,
-      "docstring": 7130,
+      "blank": 7244,
+      "code": 25308,
+      "comment": 3211,
+      "docstring": 7174,
       "files": 116,
-      "lines": 42585,
+      "lines": 42937,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -256,12 +256,12 @@
     },
     "total_lines": 850
   },
-  "generated_at": "2026-09-22T19:23:49+00:00",
+  "generated_at": "2026-09-22T22:02:19+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 60,
-    "head": "c12ea80",
+    "commits": 62,
+    "head": "8ac1d2b",
     "head_date": "2026-09-22"
   },
   "package": {
@@ -282,7 +282,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 2650,
+    "collected": 2666,
     "files": 45,
     "per_file": {
       "tests/test_action_yml.py": 13,
@@ -313,7 +313,7 @@
       "tests/test_proxy_transports.py": 28,
       "tests/test_reachability.py": 50,
       "tests/test_readme_parity.py": 30,
-      "tests/test_release_check.py": 100,
+      "tests/test_release_check.py": 116,
       "tests/test_scan_claude_code.py": 33,
       "tests/test_schemas.py": 24,
       "tests/test_seal_and_report.py": 21,

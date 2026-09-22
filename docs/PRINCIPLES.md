@@ -1,6 +1,6 @@
 # Principles
 
-What Actaira is, what it refuses to do, and the rules the work follows. This is
+What Seamark is, what it refuses to do, and the rules the work follows. This is
 the governance document, and it is the only one: a second page of principles is
 a second place a principle can be written down differently.
 
@@ -16,7 +16,7 @@ pointing here for everything else.
 
 ## What this is
 
-Actaira is change control for what coding agents can do. It reads the
+Seamark is change control for what coding agents can do. It reads the
 configuration Claude Code, Codex, Cursor, Gemini CLI, VS Code and the
 devcontainer load; resolves across scopes and vendors what they are actually
 allowed to do; says what changed between two moments; and binds approvals to the
@@ -36,12 +36,12 @@ rejection: [`DESIGN.md`](DESIGN.md) §11, design note D-269.
 
 ## The three claims
 
-Actaira claims exactly this and nothing more:
+Seamark claims exactly this and nothing more:
 
 1. **SURFACE.** What an agent can do in this repository or on this machine,
    resolved across scopes and vendors. Every capability cites the file it comes
    from, the documented merge rule that resolved it (with the URL and the
-   version of the vendor's documentation), and the Actaira rule that names it.
+   version of the vendor's documentation), and the Seamark rule that names it.
 2. **CHANGE.** Which capability appears, disappears, widens or narrows between
    two moments.
 3. **CURRENCY.** Whether an approval or a piece of evidence still describes what
@@ -80,8 +80,8 @@ These are invariants. A change that violates one is rejected without discussion.
    in any emitted document. The test that greps for those words stays and is
    only ever widened, never relaxed. A rule may carry a `severity` written by
    the author of its pack: that is an attributed label, not a calculation
-   Actaira performed, and it is NEVER aggregated or summed with another.
-2. **NEVER JUDGE, ONLY CITE.** Actaira has no opinion about what an agent should
+   Seamark performed, and it is NEVER aggregated or summed with another.
+2. **NEVER JUDGE, ONLY CITE.** Seamark has no opinion about what an agent should
    have done. It only compares what was observed against a norm WRITTEN BY
    SOMEBODY ELSE, and names it. Every finding publishes the rule's id, its
    version, its pack and its author. From which the usual follows: calling a
@@ -91,11 +91,11 @@ These are invariants. A change that violates one is rejected without discussion.
    report says so. A predicate with no information returns INDETERMINATE, never
    False. Every rule declares what it needs in order to answer; below that, the
    rule returns INDETERMINATE on its own, without anybody remembering to check.
-4. **NEVER ACT ON WHAT IS OBSERVED.** Actaira SUGGESTS the remediation its rule
+4. **NEVER ACT ON WHAT IS OBSERVED.** Seamark SUGGESTS the remediation its rule
    carries, and never applies it. A witness that also acts cannot attest to its
    own acts, and that conflict of interest is exactly what separates this from
    an observability vendor. If an `--apply` ever exists, the change is recorded
-   as one more finding, attributed to Actaira, and the engine evaluates it like
+   as one more finding, attributed to Seamark, and the engine evaluates it like
    any other. Never silently. An exit code INFORMS: whether it blocks is decided
    by the user's own branch protection, which is theirs. Leaving with a non-zero
    status is not acting; writing in the user's tree is.
@@ -106,7 +106,7 @@ These are invariants. A change that violates one is rejected without discussion.
 
 They are in the README, on the site and in the report itself. They do not get
 softened to sell better. The sixteen of them are in [`LIMITS.md`](LIMITS.md),
-with [`LIMITS.es.md`](LIMITS.es.md) beside it because `actaira --lang es` prints
+with [`LIMITS.es.md`](LIMITS.es.md) beside it because `seamark --lang es` prints
 the same limits. Ten are about what looking at a RUN can show, which is `scan`
 and `watch`; four are about what looking at a CONFIGURATION can show, and
 arrived with the surface; the last two are about `watch` again, and limit 15 is
@@ -190,10 +190,10 @@ scope and failed, can.
    red arrived in the first CI run, which was the first clean clone that ever
    existed. A gate that runs where those files are does not measure what is
    delivered, it measures this machine. Ubuntu 24.04, GNU Make 4.3, a venv at
-   `/tmp/actaira-venv` with `pip install -e ".[dev]"`:
+   `/tmp/seamark-venv` with `pip install -e ".[dev]"`:
 
    ```bash
-   wsl -e bash -lc 'rm -rf /tmp/actaira-gate && git clone -q <this tree> /tmp/actaira-gate && cd /tmp/actaira-gate && PY=/tmp/actaira-venv/bin/python make all'
+   wsl -e bash -lc 'rm -rf /tmp/seamark-gate && git clone -q <this tree> /tmp/seamark-gate && cd /tmp/seamark-gate && PY=/tmp/seamark-venv/bin/python make all'
    ```
 
    The variant over the mounted directory is an ITERATION SHORTCUT and never the
@@ -308,7 +308,7 @@ nobody thought of.
   does not exist. A security repository that shipped the worm it detects is the
   worm.
 - Readers touch disk and do nothing else. Scope resolution and the rules are
-  pure functions over what the readers read. Actaira NEVER runs an agent binary
+  pure functions over what the readers read. Seamark NEVER runs an agent binary
   or a referenced script to find something out: asking the audited tool what it
   would do is trusting it, and running what we are analysing is being the
   vector.
@@ -323,17 +323,17 @@ nobody thought of.
 Seven commands. The cap is eight: adding an eighth is a decision, and a ninth
 requires removing one.
 
-    actaira check                read this repository's and this machine's agent
+    seamark check                read this repository's and this machine's agent
                                  configuration, resolve the effective surface and
                                  apply the rules
-    actaira diff A B             which capability appears, disappears, widens or
+    seamark diff A B             which capability appears, disappears, widens or
                                  narrows between two moments
-    actaira seal                 seal a signed baseline of the surface, which is
+    seamark seal                 seal a signed baseline of the surface, which is
                                  what `verify` verifies
-    actaira verify <seal.zip>    verify a seal, offline
-    actaira keygen               create, rotate or revoke a key
-    actaira scan                 read sessions the agent already recorded (L0)
-    actaira watch -- <command>   record a run from the edge (L1 or higher)
+    seamark verify <seal.zip>    verify a seal, offline
+    seamark keygen               create, rotate or revoke a key
+    seamark scan                 read sessions the agent already recorded (L0)
+    seamark watch -- <command>   record a run from the edge (L1 or higher)
 
 `tests/test_cli.py` checks that in both directions: a command on this list that
 neither exists in the parser nor carries its phase breaks the gate, and one that
@@ -346,7 +346,7 @@ the conformance product, which the plan retired; `fix` printed remediations, and
 the remediation is now a field `check` prints beside its finding rather than a
 command of its own.
 
-`actaira scan --demo` runs over a fixture that ships inside the package, for
+`seamark scan --demo` runs over a fixture that ships inside the package, for
 somebody with no agent installed.
 
 ---

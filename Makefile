@@ -6,8 +6,8 @@
 #
 # What went to tag v2.3.0 with the scanner, and why no target here calls it:
 # `eval`, `benchmark`, `eval-marking`, `real-corpus` and `nightly-real` all ran
-# `evals/`, which read `actaira.inspect`; `fuzz` and `fuzz-long` ran `fuzz/`,
-# which read `actaira.formats`; `diagrams` and `screenshots` drew pictures of
+# `evals/`, which read `seamark.inspect`; `fuzz` and `fuzz-long` ran `fuzz/`,
+# which read `seamark.formats`; `diagrams` and `screenshots` drew pictures of
 # the scanner and its web interface; `scan-self`, `discover-self` and `serve`
 # were three of its commands. The trace-era equivalents arrive with the phases
 # that give them something to measure.
@@ -44,12 +44,12 @@ test:
 # pegged to the current value goes red the day somebody adds a legitimate
 # defensive branch, and a gate that breaks on its own gets switched off.
 #
-# `--cov=src/actaira`, with the path, and not `--cov=actaira`. `tests/conftest.py`
+# `--cov=src/seamark`, with the path, and not `--cov=seamark`. `tests/conftest.py`
 # puts `src/` on `sys.path`, so with the module name coverage measures an import
 # it never sees and reports a confident 0%.
 COVERAGE_FLOOR ?= 88
 test-cov:
-	$(PY) -m pytest tests --cov=src/actaira --cov-report=term --cov-fail-under=$(COVERAGE_FLOOR)
+	$(PY) -m pytest tests --cov=src/seamark --cov-report=term --cov-fail-under=$(COVERAGE_FLOOR)
 
 lint:
 	$(PY) -m ruff check src tests scripts
@@ -143,7 +143,7 @@ package:
 # The guard is not paperwork. `git archive HEAD` archives the repository that
 # CONTAINS this directory, and a snapshot of this tree unpacked inside some
 # other checkout has one - so without the check, this target would silently
-# write a zip of somebody else's project under Actaira's name. It refuses
+# write a zip of somebody else's project under Seamark's name. It refuses
 # instead, and says what to do about it. `make package` builds an sdist from
 # this tree's own manifest and needs no repository at all.
 source-archive:
@@ -154,8 +154,8 @@ source-archive:
 	  echo "  an sdist from MANIFEST.in and needs no repository."; \
 	  exit 1; }
 	mkdir -p dist
-	git archive --format=zip --prefix=actaira-$(VERSION)/ -o dist/actaira-$(VERSION)-source.zip HEAD
-	@echo "wrote dist/actaira-$(VERSION)-source.zip from tracked files only"
+	git archive --format=zip --prefix=seamark-$(VERSION)/ -o dist/seamark-$(VERSION)-source.zip HEAD
+	@echo "wrote dist/seamark-$(VERSION)-source.zip from tracked files only"
 
 # The gate, in the order a failure is cheapest to read. CI runs these same
 # steps as separate jobs rather than invoking `all`, so a red build names the

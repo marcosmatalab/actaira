@@ -1,4 +1,4 @@
-# Actaira in a container, for a pipeline that has docker and not python.
+# Seamark in a container, for a pipeline that has docker and not python.
 #
 # What the tool is for, and what this image can actually do, are not the same
 # sentence yet, so they are two. The project is change control for what AI
@@ -7,7 +7,7 @@
 # exists, which reads and records agent runs. README.md says which commands
 # those are and which phase the rest arrive in.
 # Nothing here is published anywhere. This file builds an image locally:
-# `docker build -t actaira . && docker run --rm actaira --version` is the
+# `docker build -t seamark . && docker run --rm seamark --version` is the
 # whole of it.
 #
 # The image carries the tool and nothing else: no tests and no docs. What goes
@@ -26,14 +26,14 @@
 # A digest copied into a repository from somewhere else is a claim the
 # repository cannot check, which is the kind of claim this project does not
 # make. The version of the tool inside the image is not stamped in a label for
-# the same reason: `docker run actaira --version` reads it from the package.
+# the same reason: `docker run seamark --version` reads it from the package.
 FROM python:3.12-slim
 
 # No `org.opencontainers.image.source`. That label is a URL a consumer is
 # expected to be able to fetch the source from, and there is none: this is a
 # local tree. A label pointing at a repository that does not exist is worse
 # than a missing label, because tooling reads it and nothing checks it.
-LABEL org.opencontainers.image.title="actaira" \
+LABEL org.opencontainers.image.title="seamark" \
       org.opencontainers.image.description="Change control for what AI coding agents can do. This image ships the commands that exist today: read the sessions an agent already recorded, record one from outside the agent at a declared capture level, and verify a package offline. Nothing is scored, and nothing is executed to find out what it would do." \
       org.opencontainers.image.licenses="Apache-2.0"
 
@@ -56,8 +56,8 @@ RUN python -m pip install --no-cache-dir /src \
 # A fixed uid, so a workspace bind-mounted from a CI runner has predictable
 # ownership, and a non-root one, because a tool that reads untrusted artifacts
 # should not be able to write to the image it runs from.
-RUN groupadd --gid 10001 actaira \
-    && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin actaira
+RUN groupadd --gid 10001 seamark \
+    && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin seamark
 USER 10001:10001
 
 # Where a caller is expected to mount the workspace. Nothing is written here by
@@ -66,5 +66,5 @@ USER 10001:10001
 # whatever the agent runs against.
 WORKDIR /work
 
-ENTRYPOINT ["actaira"]
+ENTRYPOINT ["seamark"]
 CMD ["--help"]

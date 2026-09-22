@@ -39,8 +39,8 @@ from pathlib import Path
 
 import pytest
 
-from actaira.surface import Resolution, Scope, claude_code, resolve, rules
 from conftest import REPO_ROOT
+from seamark.surface import Resolution, Scope, claude_code, resolve, rules
 
 FIXTURES = Path(REPO_ROOT) / "tests" / "fixtures" / "surface"
 CORPUS = FIXTURES / "corpus"
@@ -277,7 +277,7 @@ def test_the_violating_case_is_a_real_configuration(rule_id):
 
     assert hit, "{} does not fire on {} ({})".format(rule_id, root.name, record["repo"])
     # Every finding names its author, its pack and its rule's version. A finding
-    # that did not would be Actaira holding the opinion (the second negative).
+    # that did not would be Seamark holding the opinion (the second negative).
     for item in hit:
         assert item.author and item.pack and item.rule_version
         assert item.severity

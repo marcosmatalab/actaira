@@ -14,8 +14,8 @@ from pathlib import Path
 
 import pytest
 
-from actaira.i18n.catalog import SUPPORTED, Catalog, load
 from conftest import REPO_ROOT, SRC_DIR
+from seamark.i18n.catalog import SUPPORTED, Catalog, load
 
 # Sections whose values are plain strings. The `governance` and `controls`
 # sections went to tag v2.3.0 with the modules whose ids keyed
@@ -26,7 +26,7 @@ from conftest import REPO_ROOT, SRC_DIR
 # section - would assert the opposite of what is true.
 SECTIONS = ("ui",)
 RULE_SECTIONS = ("rules", "rule_help")
-CATALOGUES = {lang: json.loads((SRC_DIR / "actaira" / "i18n" / f"{lang}.json").read_text("utf-8")) for lang in SUPPORTED}
+CATALOGUES = {lang: json.loads((SRC_DIR / "seamark" / "i18n" / f"{lang}.json").read_text("utf-8")) for lang in SUPPORTED}
 
 # The rules this tree can emit, taken from the rule PACKS rather than from a grep
 # over `src/`. Phase S1 moved rule identifiers out of Python and into TOML, which
@@ -62,7 +62,7 @@ def rule_ids_in_source() -> dict[str, list[str]]:
     shape the scanner's forty-one had.
     """
     found: dict[str, list[str]] = {}
-    for path in sorted((SRC_DIR / "actaira" / "surface" / "packs").rglob("*.toml")):
+    for path in sorted((SRC_DIR / "seamark" / "surface" / "packs").rglob("*.toml")):
         for number, line in enumerate(path.read_text("utf-8").splitlines(), start=1):
             for rule_id in RULE_LITERAL.findall(line):
                 found.setdefault(rule_id, []).append(f"{path.relative_to(REPO_ROOT)}:{number}")
@@ -144,7 +144,7 @@ def test_every_rule_the_packs_define_is_one_the_loader_accepts():
     """The two halves agree: what this file greps out of the packs is what
     `surface/rules.py` loads from them. A grep that drifted from the loader
     would police a set nothing emits."""
-    from actaira.surface import rules as rule_module
+    from seamark.surface import rules as rule_module
 
     loaded = {rule.id for rule in rule_module.load()}
 

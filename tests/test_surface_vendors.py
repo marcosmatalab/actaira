@@ -15,8 +15,9 @@ from pathlib import Path
 
 import pytest
 
-from actaira import cli
-from actaira.surface import (
+from conftest import REPO_ROOT
+from seamark import cli
+from seamark.surface import (
     Resolution,
     Scope,
     codex,
@@ -30,7 +31,6 @@ from actaira.surface import (
     rules,
     vscode,
 )
-from conftest import REPO_ROOT
 
 FIXTURES = Path(REPO_ROOT) / "tests" / "fixtures" / "surface"
 CORPUS = FIXTURES / "corpus"
@@ -430,7 +430,7 @@ def test_a_codex_hook_waits_on_a_trust_level_that_is_not_in_the_repository(tree)
 
 def test_codex_notify_in_a_repository_file_is_declared_and_not_effective(tree):
     """A key the documentation says a project file cannot set. Reporting it as
-    effective would be Actaira contradicting the vendor about its own product."""
+    effective would be Seamark contradicting the vendor about its own product."""
     root = tree({".codex/config.toml": 'notify = ["python3", ".codex/notify.py"]\n'})
 
     surface = codex.codex_surface(codex.read(root))
@@ -642,7 +642,7 @@ def test_no_literal_reaches_the_document_without_with_content(tree, capsys):
 
 def test_check_over_mcp_answers_with_the_same_document_the_command_builds():
     """Gate point 13. One implementation, reachable two ways."""
-    from actaira import mcp
+    from seamark import mcp
 
     answer = mcp.handle(
         {
@@ -650,7 +650,7 @@ def test_check_over_mcp_answers_with_the_same_document_the_command_builds():
             "id": 1,
             "method": "tools/call",
             "params": {
-                "name": "actaira_check",
+                "name": "seamark_check",
                 "arguments": {"repo": str(FIXTURES / "keyv-august")},
             },
         }
@@ -664,14 +664,14 @@ def test_check_over_mcp_answers_with_the_same_document_the_command_builds():
 
 
 def test_check_over_mcp_refuses_a_path_that_is_not_a_directory(tmp_path):
-    from actaira import mcp
+    from seamark import mcp
 
     answer = mcp.handle(
         {
             "jsonrpc": "2.0",
             "id": 1,
             "method": "tools/call",
-            "params": {"name": "actaira_check", "arguments": {"repo": str(tmp_path / "nope")}},
+            "params": {"name": "seamark_check", "arguments": {"repo": str(tmp_path / "nope")}},
         }
     )
 
@@ -704,7 +704,7 @@ def test_a_subagent_frontmatter_hook_is_read_rather_than_named_as_a_gap(tree):
         }
     )
 
-    from actaira.surface import claude_code
+    from seamark.surface import claude_code
 
     reading = claude_code.read(root)
     surface = resolve.resolve(reading)
@@ -725,7 +725,7 @@ def test_frontmatter_outside_the_subset_is_a_named_cause_not_a_guess(tree):
         }
     )
 
-    from actaira.surface import claude_code
+    from seamark.surface import claude_code
 
     reading = claude_code.read(root)
 
@@ -809,7 +809,7 @@ def test_a_plugin_hooks_script_gets_the_same_four_facts_as_any_other(tree):
         }
     )
 
-    from actaira.surface import claude_code
+    from seamark.surface import claude_code
 
     surface = resolve.resolve(claude_code.read(root))
     hook = _capabilities(surface, "hook.command")[0]
@@ -931,7 +931,7 @@ def test_the_same_key_in_a_repository_file_is_not_a_managed_policy(tree, tmp_pat
 
     The documentation is explicit that `allow_managed_hooks_only` is "only
     supported in requirements.toml". A repository that writes it has not set it,
-    and reporting it as a policy would be Actaira telling a reader their tree is
+    and reporting it as a policy would be Seamark telling a reader their tree is
     locked down by a line the vendor ignores.
     """
     root = tree({".codex/config.toml": "allow_managed_hooks_only = true\n"})

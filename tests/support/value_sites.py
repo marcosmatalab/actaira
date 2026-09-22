@@ -48,18 +48,18 @@ from pathlib import Path
 
 from conftest import REPO_ROOT
 
-RESOLVERS = Path(REPO_ROOT) / "src" / "actaira" / "surface"
+RESOLVERS = Path(REPO_ROOT) / "src" / "seamark" / "surface"
 
 # Not resolvers of a vendor's file, each with its reason. The parsers turn
 # bytes into documents and decide nothing about what a value means; `diff` and
-# `rules` read ACTAIRA'S OWN documents, so their comparisons are about this
+# `rules` read SEAMARK'S OWN documents, so their comparisons are about this
 # tool's vocabulary and belong to no vendor.
 NOT_A_RESOLVER = {
     "jsonc.py": "a parser: every comparison in it is about syntax",
     "miniyaml.py": "a parser: every comparison in it is about syntax",
     "__init__.py": "re-exports",
-    "diff.py": "reads Actaira's own capability documents, not a vendor's file",
-    "rules.py": "evaluates rules over Actaira's own documents",
+    "diff.py": "reads Seamark's own capability documents, not a vendor's file",
+    "rules.py": "evaluates rules over Seamark's own documents",
 }
 
 # WHERE THIS TOOL SYNTHESISES A DOCUMENT, and therefore where the key names are

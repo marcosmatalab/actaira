@@ -18,8 +18,8 @@ import re
 
 import pytest
 
-from actaira import schemas
 from conftest import REPO_ROOT, SRC_DIR
+from seamark import schemas
 
 jsonschema = pytest.importorskip("jsonschema", reason="the schema checks need jsonschema")
 
@@ -72,7 +72,7 @@ def test_no_module_writes_a_schema_version_of_its_own():
     """
     pattern = re.compile(r"""['"][a-z-]+/v\d+['"]""")
     offenders = []
-    for path in sorted((SRC_DIR / "actaira").rglob("*.py")):
+    for path in sorted((SRC_DIR / "seamark").rglob("*.py")):
         if "__pycache__" in path.parts or path.parent.name == "schemas":
             continue  # the registry is the one place a version may be written
         for number, line in enumerate(path.read_text("utf-8").splitlines(), start=1):
@@ -82,7 +82,7 @@ def test_no_module_writes_a_schema_version_of_its_own():
                 offenders.append(f"{path.relative_to(REPO_ROOT)}:{number}: {hit}")
 
     assert offenders == [], (
-        "a schema version is written outside src/actaira/schemas/:\n"
+        "a schema version is written outside src/seamark/schemas/:\n"
         + "\n".join(offenders)
         + "\nRead it from `schemas.VERSIONS` instead."
     )
@@ -103,7 +103,7 @@ def test_the_scan_above_would_notice_a_version_literal():
 
 def test_the_reader_takes_its_versions_from_the_registry():
     """The other direction: the one copy is the copy the writer actually uses."""
-    from actaira.trace import model as trace_model
+    from seamark.trace import model as trace_model
 
     assert trace_model.SCHEMA_VERSION == schemas.VERSIONS["trace"]
     assert trace_model.READS == schemas.accepted("trace")
@@ -281,7 +281,7 @@ def test_the_schemas_ship_with_the_package():
     from pathlib import Path
 
     pyproject = tomllib.loads((Path(REPO_ROOT) / "pyproject.toml").read_text(encoding="utf-8"))
-    package_data = pyproject["tool"]["setuptools"]["package-data"]["actaira"]
+    package_data = pyproject["tool"]["setuptools"]["package-data"]["seamark"]
 
     assert any("schemas/" in pattern for pattern in package_data), package_data
 
@@ -322,8 +322,8 @@ def test_the_registry_resolves_every_reference():
         "a schema references another again; the assertion above is live now, and "
         "this line is the one to delete"
     )
-    walk({"properties": {"x": {"$ref": "https://actaira.dev/schemas/trace-v3.json"}}})
-    assert referenced == {"https://actaira.dev/schemas/trace-v3.json"}, "the walk does not walk"
+    walk({"properties": {"x": {"$ref": "https://seamark.dev/schemas/trace-v3.json"}}})
+    assert referenced == {"https://seamark.dev/schemas/trace-v3.json"}, "the walk does not walk"
 
 
 def test_every_published_contract_has_its_required_fields_frozen():
@@ -362,7 +362,7 @@ def test_the_superseded_revisions_are_read_and_never_emitted():
     gets wrong when nothing states it. `docs/COMPATIBILITY.md` says which
     revision superseded each and why; this is the machine half of that.
     """
-    from actaira.trace import model as trace_model
+    from seamark.trace import model as trace_model
 
     for old in schemas.SUPERSEDED["trace"]:
         assert old in trace_model.READS, f"{old} is frozen, which means still readable"

@@ -40,7 +40,7 @@ def working_tree(tmp_path_factory) -> Path:
     and figures.json, and a test that corrupts the working tree when it fails
     partway through is worse than no test.
     """
-    destination = tmp_path_factory.mktemp("tree") / "actaira"
+    destination = tmp_path_factory.mktemp("tree") / "seamark"
     shutil.copytree(
         REPO_ROOT,
         destination,
@@ -77,7 +77,7 @@ def test_a_version_with_no_changelog_entry_fails(working_tree, tmp_path):
     broken = tmp_path / "no-changelog"
     shutil.copytree(working_tree, broken)
     changelog = broken / "CHANGELOG.md"
-    from actaira import __version__
+    from seamark import __version__
 
     changelog.write_text(
         changelog.read_text(encoding="utf-8").replace(f"[{__version__}]", "[9.9.9]"), encoding="utf-8"
@@ -110,7 +110,7 @@ def test_an_undocumented_rule_fails(working_tree, tmp_path):
     broken = tmp_path / "undocumented-rule"
     shutil.copytree(working_tree, broken)
     for lang in ("en", "es"):
-        path = broken / "src" / "actaira" / "i18n" / f"{lang}.json"
+        path = broken / "src" / "seamark" / "i18n" / f"{lang}.json"
         catalogue = json.loads(path.read_text(encoding="utf-8"))
         catalogue["rules"]["ACT-NEW-001"] = "a rule nobody documented"
         path.write_text(json.dumps(catalogue, ensure_ascii=False), encoding="utf-8")
@@ -125,7 +125,7 @@ def test_a_rule_with_no_spanish_text_fails(working_tree, tmp_path):
     """The normal fate of a second language is to rot. This is what stops it."""
     broken = tmp_path / "untranslated"
     shutil.copytree(working_tree, broken)
-    path = broken / "src" / "actaira" / "i18n" / "en.json"
+    path = broken / "src" / "seamark" / "i18n" / "en.json"
     catalogue = json.loads(path.read_text(encoding="utf-8"))
     catalogue["rules"]["ACT-NEW-002"] = "english only"
     path.write_text(json.dumps(catalogue, ensure_ascii=False), encoding="utf-8")
@@ -140,7 +140,7 @@ def test_a_second_copy_of_a_schema_version_fails(working_tree, tmp_path):
     """A version written anywhere but the registry is a second copy.
 
     This used to plant a disagreement between `coverage-v1.json` and
-    `actaira.coverage.SCHEMA_VERSION` and assert the gate refereed between them.
+    `seamark.coverage.SCHEMA_VERSION` and assert the gate refereed between them.
     Phase A removed the referee along with the second copies: the version lives
     in `schemas.VERSIONS`, `trace/model.py` reads it, and the check now fails on
     a version literal under `src/` rather than on two that disagree.
@@ -151,7 +151,7 @@ def test_a_second_copy_of_a_schema_version_fails(working_tree, tmp_path):
     """
     broken = tmp_path / "second-copy"
     shutil.copytree(working_tree, broken)
-    path = broken / "src" / "actaira" / "trace" / "model.py"
+    path = broken / "src" / "seamark" / "trace" / "model.py"
     source = path.read_text(encoding="utf-8")
     planted = source.replace(
         'SCHEMA_VERSION = schemas.VERSIONS["trace"]',
@@ -183,7 +183,7 @@ def test_a_command_the_documentation_never_mentions_fails(working_tree, tmp_path
     shutil.copytree(working_tree, broken)
     page = broken / "README.md"
     page.write_text(
-        page.read_text(encoding="utf-8").replace("actaira verify", "actaira verfiy"),
+        page.read_text(encoding="utf-8").replace("seamark verify", "seamark verfiy"),
         encoding="utf-8",
     )
 
@@ -377,7 +377,7 @@ def test_a_dropped_ignore_rule_for_another_tool_s_run_log_fails(working_tree, tm
 #
 # These four are the check phase S2 asked for by name, and the reason it asked
 # is worth keeping in front of whoever reads this file: after phase S1 shipped
-# `actaira check`, both READMEs went on publishing "Does not exist" under the
+# `seamark check`, both READMEs went on publishing "Does not exist" under the
 # claim that command implements, for a whole phase, and the gate was green the
 # entire time. `readme_documents_the_commands` asked only whether the command was
 # NAMED somewhere on the page. What it could not ask is whether what the page
@@ -424,13 +424,13 @@ def gate_of(tree: Path, edits: list[tuple[str, str, str]]):
 
 def test_a_claim_block_that_says_a_built_command_does_not_exist_fails(working_tree, tmp_path):
     """The phase S1 defect, planted. The Change claim is flipped back to "Does
-    not exist" while `actaira diff` is in the parser."""
+    not exist" while `seamark diff` is in the parser."""
     broken = tmp_path / "false-claim"
     shutil.copytree(working_tree, broken)
     page = broken / "README.md"
     page.write_text(
         page.read_text(encoding="utf-8").replace(
-            "> **Built.** Commands: `actaira diff`, `actaira seal`.",
+            "> **Built.** Commands: `seamark diff`, `seamark seal`.",
             "> **Does not exist.** Commands: none.",
             1,
         ),
@@ -452,7 +452,7 @@ def test_a_claim_block_with_no_commands_line_fails(working_tree, tmp_path):
     shutil.copytree(working_tree, broken)
     gate = gate_of(broken, [(
         "README.md",
-        "> **Built.** Commands: `actaira check`.",
+        "> **Built.** Commands: `seamark check`.",
         "> **Built.** It reads everything worth reading.",
     )])
 
@@ -470,8 +470,8 @@ def test_a_command_no_claim_block_accounts_for_fails(working_tree, tmp_path):
     shutil.copytree(working_tree, broken)
     gate = gate_of(broken, [(
         "README.md",
-        "> **Built.** Commands: `actaira check`.",
-        "> **Built.** Commands: `actaira seal`.",
+        "> **Built.** Commands: `seamark check`.",
+        "> **Built.** Commands: `seamark seal`.",
     )])
 
     with pytest.raises(gate.DriftError) as raised:
@@ -486,7 +486,7 @@ def test_a_flag_the_command_does_not_have_fails(working_tree, tmp_path):
     broken = tmp_path / "invented-flag"
     shutil.copytree(working_tree, broken)
     gate = gate_of(broken, [(
-        "README.md", "actaira check --json", "actaira check --fail-on high",
+        "README.md", "seamark check --json", "seamark check --fail-on high",
     )])
 
     with pytest.raises(gate.DriftError) as raised:
@@ -605,7 +605,7 @@ def test_a_per_file_ignore_for_a_module_that_is_gone_fails(working_tree, tmp_pat
     pyproject.write_text(
         pyproject.read_text(encoding="utf-8").replace(
             '[tool.ruff.lint.per-file-ignores]',
-            '[tool.ruff.lint.per-file-ignores]\n"src/actaira/coverage.py" = ["UP042"]',
+            '[tool.ruff.lint.per-file-ignores]\n"src/seamark/coverage.py" = ["UP042"]',
             1,
         ),
         encoding="utf-8",
@@ -614,7 +614,7 @@ def test_a_per_file_ignore_for_a_module_that_is_gone_fails(working_tree, tmp_pat
     result = run(broken)
 
     assert result.returncode == 1
-    assert "src/actaira/coverage.py" in result.stdout
+    assert "src/seamark/coverage.py" in result.stdout
     assert "not in the tree" in result.stdout
 
 
@@ -1015,7 +1015,7 @@ def _release_check():
     return release_check
 
 
-OURS = "marcosmatalab/actaira"
+OURS = "marcosmatalab/seamark"
 DEAD = "0123456789abcdef0123456789abcdef01234567"
 
 
@@ -1088,7 +1088,7 @@ def test_a_pre_commit_rev_is_attributed_to_the_repo_line_above_it():
         f"  - repo: https://github.com/{OURS}\n"
         f"    rev: {DEAD}\n"
         "    hooks:\n"
-        "      - id: actaira-check\n"
+        "      - id: seamark-check\n"
     )
 
     citations = module.sha_citations("README.md", text)
@@ -1217,7 +1217,7 @@ PICTURE = (
     'viewBox="0 0 980 60" role="img" aria-label="a picture">'
     '<rect width="980" height="60" fill="#11151c"/>'
     '<g font-family="Menlo, monospace" font-size="14">'
-    '<text x="22" y="30" fill="#c9d1d9">actaira check</text>'
+    '<text x="22" y="30" fill="#c9d1d9">seamark check</text>'
     "</g></svg>"
 )
 
@@ -1265,7 +1265,7 @@ def test_a_line_wider_than_the_canvas_is_refused_at_a_strangers_glyph_width():
     whose monospace is wider."""
     module = _release_check()
     long_line = "x" * 120
-    planted = PICTURE.replace("actaira check", long_line)
+    planted = PICTURE.replace("seamark check", long_line)
 
     problems = module.svg_problems(planted)
 
@@ -1304,9 +1304,9 @@ def test_a_landing_page_that_grew_past_its_ceiling_is_named():
 @pytest.mark.parametrize(
     ("planted", "expected"),
     [
-        ("# Actaira\n\n**What it is.**\n\n```bash\nx\n```\n", "badges above the fold"),
+        ("# Seamark\n\n**What it is.**\n\n```bash\nx\n```\n", "badges above the fold"),
         (
-            "# Actaira\n\n[![a](x)](http://a)\n[![b](x)](http://b)\n[![c](x)](http://c)\n"
+            "# Seamark\n\n[![a](x)](http://a)\n[![b](x)](http://b)\n[![c](x)](http://c)\n"
             "\n```bash\nx\n```\n",
             "one bold sentence",
         ),
@@ -1316,7 +1316,7 @@ def test_a_landing_page_that_grew_past_its_ceiling_is_named():
             "no H1",
         ),
         (
-            "# Actaira\n\n**What it is, in one sentence that is long enough.**\n"
+            "# Seamark\n\n**What it is, in one sentence that is long enough.**\n"
             "[![a](x)](http://a)\n[![b](x)](http://b)\n[![c](x)](http://c)\n",
             "no command to run",
         ),
@@ -1407,7 +1407,7 @@ def test_every_published_command_is_either_run_or_says_why_not():
         ("_collected", "tests/test_a.py: 3\ntests/test_b.py: 4\n\n", None),
         ("_only_number", "15969\n", 15969),
         ("_only_number", "no number here\n", None),
-        ("_commands_in_help", "usage: actaira [--lang {en,es}]\n {a,b,c} ...\n", 3),
+        ("_commands_in_help", "usage: seamark [--lang {en,es}]\n {a,b,c} ...\n", 3),
         # Two different groups of the same width: the shape changed and this
         # has stopped knowing which one is the commands.
         ("_commands_in_help", "{a,b} and {c,d}\n", None),
@@ -1607,7 +1607,7 @@ def test_notes_for_a_version_already_released_are_left_alone():
         Path(REPO_ROOT) / ".github" / "release-notes" / "v2.3.0.md"
     ).read_text(encoding="utf-8")
 
-    from actaira import __version__  # noqa: PLC0415
+    from seamark import __version__  # noqa: PLC0415
 
     assert __version__ != "2.3.0"
     # The check reads only the file named after the current version, and this
@@ -1802,3 +1802,133 @@ def test_the_job_reader_stays_inside_the_jobs_block():
     module = _release_check()
 
     assert sorted(module.workflow_jobs(WORKFLOW)) == ["attach", "build", "pypi", "testpypi"]
+
+
+# --------------------------------------------------------------------------
+# The name this product had until 3.0.0
+# --------------------------------------------------------------------------
+#
+# Built from halves here too. A test file that named the old product would have
+# to be in the table it is testing, and an entry for the test is the same hole
+# as an entry for the checker.
+
+OLD = "act" + "aira"
+NAME_CHECK = "the old product name appears nowhere the tree has not written down"
+
+
+def test_the_tree_keeps_the_old_name_only_where_the_table_says():
+    """Non-vacuity, over the tree as it stands: the check reads every tracked
+    file, finds the name in the ones the table names, and in no others."""
+    module = _release_check()
+
+    detail = module.the_rename_is_not_half_done()
+
+    assert "not a checkout" not in detail, detail
+    assert "files read" in detail
+    assert module.NAME_IN_FILES, "the table is empty, so the check compares nothing"
+
+
+def test_a_new_occurrence_outside_the_table_fails():
+    """One rename left half done, in a file nobody thought about."""
+    module = _release_check()
+
+    problems = module.name_problems({"src/seamark/cli.py": 1}, {})
+
+    assert any("rename left half done" in problem for problem in problems), problems
+
+
+def test_an_entry_that_has_stopped_being_true_fails():
+    """The other direction, and the one an allowlist dies of: the file was
+    cleaned up and the exemption stayed, so the next occurrence in it would be
+    invisible."""
+    module = _release_check()
+
+    problems = module.name_problems({"CHANGELOG.md": 0}, {"CHANGELOG.md": (56, "history")})
+
+    assert any("stale exemption" in problem for problem in problems), problems
+
+
+def test_an_entry_for_a_file_that_is_gone_fails():
+    module = _release_check()
+
+    problems = module.name_problems({}, {"docs/GONE.md": (3, "history")})
+
+    assert any("guards nothing" in problem for problem in problems), problems
+
+
+def test_a_count_that_moved_fails_and_says_which_way():
+    """The ratchet. A file that may say it four times may not say it five, and
+    one that has stopped saying it four times is an entry to update."""
+    module = _release_check()
+
+    grew = module.name_problems({".gitignore": 5}, {".gitignore": (4, "filenames")})
+    shrank = module.name_problems({".gitignore": 3}, {".gitignore": (4, "filenames")})
+
+    assert any("Something new was written" in problem for problem in grew), grew
+    assert any("Fewer is not better" in problem for problem in shrank), shrank
+
+
+def test_an_exemption_with_no_reason_fails():
+    module = _release_check()
+
+    problems = module.name_problems({"CHANGELOG.md": 1}, {"CHANGELOG.md": (1, "   ")})
+
+    assert any("states no reason" in problem for problem in problems), problems
+
+
+@pytest.mark.parametrize(
+    ("line", "free"),
+    [
+        (f"Recover it from `v2.3.0:src/{OLD}/model.py` if you need it.", True),
+        (f'PREDICATE_TYPE = "https://{OLD}.dev/predicates/inspection/v1"', True),
+        ('assert name.startswith("CN=' + "Act" + 'aira Fixture TSA")', True),
+        (f"printf '{OLD} rfc3161 test subject'", True),
+        (f"from {OLD} import cli", False),
+        (f"pip install {OLD}", False),
+        (f"# {OLD.capitalize()} reads the configuration your agents load", False),
+    ],
+)
+def test_only_the_four_kinds_of_line_carry_the_name_for_free(line, free):
+    """Each pattern is a shape of line where renaming breaks something. A line
+    that merely mentions the product is not one of them, whatever its case."""
+    module = _release_check()
+
+    assert (module.name_occurrences(line) == 0) is free, line
+
+
+def test_the_reader_is_blind_to_case():
+    """The lower, the capitalised and the shouted spelling are one name, and a
+    sweep that missed one of them is the half-done rename this refuses."""
+    module = _release_check()
+
+    for spelling in (OLD, OLD.capitalize(), OLD.upper()):
+        assert module.name_occurrences(f"the {spelling} package") == 1, spelling
+
+
+def test_a_line_pattern_that_matches_nothing_any_more_fails():
+    """Work rule 11 over the allowances themselves. Planted rather than
+    described: the allowance is kept and the case it was written for is gone."""
+    module = _release_check()
+
+    problems = module.unused_line_patterns(
+        ((OLD + r" rfc3161 test subject", "the bytes a timestamp authority signed"),),
+        {"a.py": "nothing in here says it"},
+    )
+
+    assert any("matches nothing" in problem for problem in problems), problems
+
+
+def test_the_line_patterns_in_use_all_match_something_in_this_tree():
+    """And the other direction, over the real files, so the twin above cannot
+    be satisfied by a pattern set that never matched anything."""
+    module = _release_check()
+    tracked = module.tracked_files()
+    assert tracked, "this tree is not a checkout, so this test would prove nothing"
+    texts = {}
+    for name in tracked:
+        try:
+            texts[name] = (Path(REPO_ROOT) / name).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+
+    assert module.unused_line_patterns(module.NAME_ON_LINES, texts) == []

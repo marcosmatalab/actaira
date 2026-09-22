@@ -76,11 +76,11 @@ together with the reason for not touching it. Work rule 2 of
   schema is no longer published: the module emits a document against a contract
   that is not in `schemas/`. **Closed by disappearance**: `conformance/` went
   whole to tag `v2.3.0` in 3.0.0, and the product that would have needed it
-  leaves the plan in S0. Reproduction: `ls src/actaira/conformance` does not
+  leaves the plan in S0. Reproduction: `ls src/seamark/conformance` does not
   exist.
 - `statecli._record_manifest` recorded a manifest of subjects in the state
   graph. It left with `statecli.py`, and `manifest.py` and `state/` left after
-  it with phase A. `actaira contract`, which was to bring it back, leaves the
+  it with phase A. `seamark contract`, which was to bring it back, leaves the
   plan in S0. If it returns, it returns with currency, and its subject is a
   surface rather than an artifact. **Phase P1.**
 - Three tests in `test_state_graph.py` that covered that function were deleted
@@ -105,7 +105,7 @@ together with the reason for not touching it. Work rule 2 of
   exist (`policy check --subjects`, `graph build --subjects`). **Closed by
   disappearance** in phase A: `examples/` ended up empty and left.
   Reproduction: `ls examples` does not exist.
-- `.github/actions/actaira-scan/` still points at the scanner, by instruction.
+- `.github/actions/seamark-scan/` still points at the scanner, by instruction.
   **Closed in A.1**, which deleted it. Reproduction: `ls .github/actions` does
   not exist. The GitHub Action that arrives in S3 is a different one and
   inherits nothing from this.
@@ -127,7 +127,7 @@ together with the reason for not touching it. Work rule 2 of
 
 ## Phase 1 — read and record the trace
 
-- `actaira.mcp.serve` silently discards a line of stdin that is not JSON,
+- `seamark.mcp.serve` silently discards a line of stdin that is not JSON,
   instead of answering the `-32700` parse error JSON-RPC requires. The client
   that sent it waits for a reply that never comes. It is not a fail-open of the
   evidence (the server claims nothing about that line), but it is a hung
@@ -137,18 +137,18 @@ together with the reason for not touching it. Work rule 2 of
   saying so. None has been seen: the 420 files on the machine where this was
   written all read cleanly. When one appears, the replacement has to be a
   declared gap and not a silent substitution. **No phase.**
-- `actaira scan --out` names each file by the `session_id` the transcript
+- `seamark scan --out` names each file by the `session_id` the transcript
   declares. Two sessions from different projects declaring the same id would
   overwrite each other without a word. Not observed; the fix is to refuse the
   second or to name by path, and both change the published file name, which is
   what makes this not a one-line fix. **No phase.**
-- ~~`scripts/build_package.py` still requires `actaira/web/static/index.html`,
-  `actaira/agents/cassettes/judged-gold.json` and
-  `actaira/schemas/report-v1.json`, which went to tag `v2.3.0` in 3.0.0.~~
+- ~~`scripts/build_package.py` still requires `seamark/web/static/index.html`,
+  `seamark/agents/cassettes/judged-gold.json` and
+  `seamark/schemas/report-v1.json`, which went to tag `v2.3.0` in 3.0.0.~~
   **Closed as DEF-130.** It had been failing on every run since the pivot, and
   the CI job that builds the same distributions asserted a different pair of
   its own, so each looked like it covered the other: work rule 10 exactly. The
-  list is read off `src/actaira` now, and CI calls the script instead of
+  list is read off `src/seamark` now, and CI calls the script instead of
   repeating it.
 
 ## Phase 1.1b — the session the protocol no longer has
@@ -168,7 +168,7 @@ together with the reason for not touching it. Work rule 2 of
   configured one. The contract deriver, which was to arbitrate this, leaves the
   plan in S0. The new arbiter is `check`, which reads from disk which MCP
   servers are configured and does not have to ask anybody. **Phase S1.**
-- `actaira scan` with no `--out` has nowhere to keep the salt, so a gap about
+- `seamark scan` with no `--out` has nowhere to keep the salt, so a gap about
   an unreadable file names no reference at all. An operator diagnosing from the
   terminal loses which of their files failed. The obvious fix, printing the
   salt, makes it public and undoes D-263. **No phase.**
@@ -193,7 +193,7 @@ together with the reason for not touching it. Work rule 2 of
   It is accepted because its only use is to cross the record with the
   OpenTelemetry traces the operator already emits, and a reference nobody else
   has the map for crosses with nothing. **No phase.**
-- `actaira scan` with no `--out` has nowhere to keep the salt, so the reader
+- `seamark scan` with no `--out` has nowhere to keep the salt, so the reader
   mints one per run and two runs over the same sessions produce different
   references. With `--out` the salt is kept in `index.json` and the bytes are
   stable. Whoever captures `--json` without `--out` does not get a reproducible
@@ -202,7 +202,7 @@ together with the reason for not touching it. Work rule 2 of
   `interposition.json` (alias and session), `<server>.refs.json` (what each
   proxy recorded) and `index.json` (what `scan` read). Three because three
   different processes write them, and merging them would require somebody
-  writing after all of them have finished. A single `actaira resolve` that read
+  writing after all of them have finished. A single `seamark resolve` that read
   all three would be better than three formats the operator has to know, and it
   would be an eighth command. The list has seven of eight, so it fits without
   removing anything, which turns this from impossible into a decision. **Phase
@@ -247,7 +247,7 @@ phase. Each is in a file some command does reach.
   `src/`. They are the shape S1 is written against (the rule packs raise a
   `Finding`), which is why they are kept rather than deleted, but as of today
   they are present and unused. Reproduction:
-  `grep -rn 'Severity\|Verdict\|Finding' src/ | grep -v src/actaira/model.py`
+  `grep -rn 'Severity\|Verdict\|Finding' src/ | grep -v src/seamark/model.py`
   returns nothing. **Phase S1**, which is when they get a caller or go:
   `Finding` is the natural shape of a cited finding and `check` uses it or
   replaces it. `Verdict` is conformance vocabulary and has the weakest case.
@@ -302,7 +302,7 @@ it was.
 ## Phase A.1 — what the reachability measurement does not measure
 
 - ~~**`test_reachability` measures modules, not whether the product's chain
-  closes.**~~ **Closed in S3.** `actaira seal` is the producer: it writes a
+  closes.**~~ **Closed in S3.** `seamark seal` is the producer: it writes a
   package with a `seal/v1` document inside, and `verify` verifies it and also
   NAMES the contract it just verified rather than checking bytes and saying
   nothing about them. The check the line asked for, "for every format this tree
@@ -331,11 +331,11 @@ it was.
   question stops being rhetorical.
 
 - **`.pre-commit-hooks.yaml` publishes two hooks that cannot run.** Both call
-  `actaira scan --fail-on high` over `.pkl`, `.onnx`, `.h5` and company.
+  `seamark scan --fail-on high` over `.pkl`, `.onnx`, `.h5` and company.
   Neither `--fail-on` nor exit code 3 has existed since 3.0, and `scan` no
   longer reads artifacts: it reads agent sessions. It is exactly the defect
-  `.github/actions/actaira-scan` had, which A.1 deleted. Reproduction:
-  `actaira scan --fail-on high` exits 2. It was not deleted in A.1 because the
+  `.github/actions/seamark-scan` had, which A.1 deleted. Reproduction:
+  `seamark scan --fail-on high` exits 2. It was not deleted in A.1 because the
   scope named the GitHub Action and not this file, and deciding on my own which
   integrations the project publishes is not mine to do. **Closed in S0**, with
   that decision taken: the file was deleted. The S0 entry below says how.
@@ -399,7 +399,7 @@ and that part is still true.
   a doctrine decision, about WHAT is built, is implemented by
   `docs/PRINCIPLES.md`, and nothing else may point there. `docs/DESIGN.md`
   §11.3 argues it and D-269 is the only row of the second class.
-- `src/actaira/mcp.py` announced two tools of the retired product in
+- `src/seamark/mcp.py` announced two tools of the retired product in
   `tools/list`. It no longer does. It was checked before touching them that
   neither did anything: both fell through to `_unbuilt`, which returned a
   constant. D-256 changes its answer and is rewritten with the change: a tool
@@ -418,23 +418,23 @@ and that part is still true.
   with six targets the `Makefile` does not have, and a `dev` extra two
   dependencies short. Cut back the same way, writing nothing new.
 - `.pre-commit-hooks.yaml` published two hooks that could not run
-  (`actaira scan --fail-on high` over `.pkl`, `.onnx`, `.h5`). A.1 found it and
+  (`seamark scan --fail-on high` over `.pkl`, `.onnx`, `.h5`). A.1 found it and
   did not delete it because deciding which integrations the project publishes
   was not its call. Deleted. `release_check` already tolerated its absence
   (`if not path.is_file(): continue`), so the pin count goes from 1 to 0
   without anything breaking, which is the same shape deleting
-  `.github/actions/actaira-scan` had.
+  `.github/actions/seamark-scan` had.
 
 ### Still open
 
 - **"phase B" and "phase 2" survive in five code and gate files.**
-  `src/actaira/model.py` (twice), `src/actaira/trace/redact.py`,
+  `src/seamark/model.py` (twice), `src/seamark/trace/redact.py`,
   `scripts/release_check.py`, `tests/test_i18n.py` (twice) and
   `tests/test_no_aggregate.py`. All of them mean S1, the phase that brings the
   rule packs. They do not meet S0's fix criterion: they are comments and
   docstrings, not published documents, and no reader of the product sees them.
   Reproduction: `grep -rn 'phase B\|phase 2' src/ scripts/ tests/`.
-  `tests/test_cli.py` and `src/actaira/mcp.py` were on this list and left it
+  `tests/test_cli.py` and `src/seamark/mcp.py` were on this list and left it
   when they were fixed in S0. **Phase S1**, with the phase that makes them true
   rather than rewriting them twice.
 
@@ -455,10 +455,10 @@ and that part is still true.
 
 ### Closed in this phase, checked against the tree
 
-- **"phase B" and "phase 2" in five files.** Resolved. `src/actaira/model.py`
+- **"phase B" and "phase 2" in five files.** Resolved. `src/seamark/model.py`
   (twice) was rewritten when `Finding` was reused and `Severity` and `Verdict`
   deleted; `tests/test_i18n.py` and `tests/test_no_aggregate.py` were
-  repointed at S1 and the rule packs; `src/actaira/trace/redact.py` now says
+  repointed at S1 and the rule packs; `src/seamark/trace/redact.py` now says
   what a rule needs, with no phase. ONE live mention is left and it is
   deliberate: `scripts/release_check.py` QUOTES the old docstring it replaced,
   because the argument for why the check was open is what explains why it is
@@ -485,7 +485,7 @@ and that part is still true.
 ### Open, with their phase
 
 - ~~**`check` is not exposed by the MCP server.**~~ **Closed in S2.**
-  `actaira_check` is in `TOOLS` and calls `cli.check_document`, the same
+  `seamark_check` is in `TOOLS` and calls `cli.check_document`, the same
   function the command prints: a second implementation behind the tool would be
   a second place the answer is computed and the one that goes stale without
   anybody noticing. It does not expose `--with-content` or `--machine`, and the
@@ -612,7 +612,7 @@ and that part is still true.
   exactly what it was written for.
 - ~~**A capability's name was built with `f"hook.{kind}"`.**~~ **Closed
   (D-290).** A `.claude/settings.json` with `"type": "madeup"` produced the
-  capability `hook.madeup`: the audited repository choosing a name in Actaira's
+  capability `hook.madeup`: the audited repository choosing a name in Seamark's
   vocabulary, and one no rule could ever name. Only the three documented types
   give a capability now, and anything else comes out INDETERMINATE with the
   type written into the cause.
@@ -641,7 +641,7 @@ and that part is still true.
   come out in English.** The rule's text is translated; those two fields are
   not. It is correct that `remediation` is not: the rule pack's author writes
   it and translating it would be rewriting what somebody else said, which is
-  the second negative. `condition` is a different thing: Actaira's resolver
+  the second negative. `condition` is a different thing: Seamark's resolver
   generates it, so it is our text with no catalogue entry. Fixing it properly
   requires turning every condition into a key with parameters, which touches
   `resolve.py` whole. **No phase**, and not in S1's scope: an adversarial pass
@@ -746,7 +746,7 @@ and that part is still true.
   out `null` with its cause written, on BOTH sides of the diff. No rule reads
   that fact, so no finding changes, and because it is symmetric it produces no
   false change either. Rejected: fabricating a `.git/index` so the fact would
-  read `true`, which would be Actaira writing a git artifact so that its own
+  read `true`, which would be Seamark writing a git artifact so that its own
   answer looked more complete, and besides the fact is not "it was in that
   ref's index" but "it was in the index of the tree that was read". **No
   phase.**
@@ -764,7 +764,7 @@ and that part is still true.
   the fact and not only the sentence about the fact. **No phase.**
 - **What `uses: $/` resolves to on a `pull_request` event has not been
   checked.** On a push to `main` it has: the log of run 35384556901 says
-  `Download action repository 'marcosmatalab/actaira@bba5403...' (SHA:bba5403...)`,
+  `Download action repository 'marcosmatalab/seamark@bba5403...' (SHA:bba5403...)`,
   that is the commit being tested. On a pull request it has not been looked at,
   and there is a concrete reason to suspect: a `pull_request`'s workflow file
   is taken from the BASE, so if `$/` also resolved to the base, a PR that
@@ -929,8 +929,8 @@ now held by something that can fail; what is here is the part that is a
 decision rather than a check.
 
 - **Two files stay over the 900-line cap and have no phase to split them.**
-  `src/actaira/cli.py` (1086) and `src/actaira/attest/timestamp.py` (1129) are
-  not in the plan's change inventory, and `src/actaira/attest/verify.py` (976)
+  `src/seamark/cli.py` (1086) and `src/seamark/attest/timestamp.py` (1129) are
+  not in the plan's change inventory, and `src/seamark/attest/verify.py` (976)
   is protected by it by name. `tests/test_file_size.py` holds the cap over
   every other file in `src/` and holds these three at the size they are, so
   none of them can grow and a fourth cannot appear. Splitting `cli.py` behind

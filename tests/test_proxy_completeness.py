@@ -24,11 +24,11 @@ from pathlib import Path
 
 import pytest
 
-from actaira.proxy import Recorder
-from actaira.proxy.http import HttpProxy
-from actaira.proxy.stdio import WINDOWS_TRANSPORT_CLOSED_LIMIT, StdioProxy
-from actaira.trace import CaptureLevel
-from actaira.trace.model import GapReason, Trace
+from seamark.proxy import Recorder
+from seamark.proxy.http import HttpProxy
+from seamark.proxy.stdio import WINDOWS_TRANSPORT_CLOSED_LIMIT, StdioProxy
+from seamark.trace import CaptureLevel
+from seamark.trace.model import GapReason, Trace
 
 # What a client speaking MCP 2026-07-28 sends. The `_meta` block is not
 # decoration: SEP-2575 removed the handshake, so the protocol revision and the
@@ -37,7 +37,7 @@ from actaira.trace.model import GapReason, Trace
 # it is `BARE_CALL` below, and it is a scenario of its own.
 META = {
     "io.modelcontextprotocol/protocolVersion": "2026-07-28",
-    "io.modelcontextprotocol/clientInfo": {"name": "actaira-test", "version": "1"},
+    "io.modelcontextprotocol/clientInfo": {"name": "seamark-test", "version": "1"},
     "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
 }
 CALL = {
@@ -45,7 +45,7 @@ CALL = {
     "id": 1,
     "method": "tools/call",
     "params": {
-        "name": "actaira_verify",
+        "name": "seamark_verify",
         "arguments": {"path": "receipt.zip"},
         "_meta": META,
     },
@@ -57,7 +57,7 @@ BARE_CALL = {
     "jsonrpc": "2.0",
     "id": 1,
     "method": "tools/call",
-    "params": {"name": "actaira_verify", "arguments": {"path": "receipt.zip"}},
+    "params": {"name": "seamark_verify", "arguments": {"path": "receipt.zip"}},
 }
 # One with a revision but no correlation key: the half of the loss that
 # SEP-2567 causes on its own.
@@ -66,7 +66,7 @@ UNCORRELATED_CALL = {
     "id": 1,
     "method": "tools/call",
     "params": {
-        "name": "actaira_verify",
+        "name": "seamark_verify",
         "arguments": {"path": "receipt.zip"},
         "_meta": {"io.modelcontextprotocol/protocolVersion": "2026-07-28"},
     },
@@ -495,7 +495,7 @@ def test_the_windows_limit_is_published_and_says_what_the_skip_says():
     # both sides is the `design_notes` error of DEF-122 - so both the count and
     # the presence of the two new numbers are asserted.
     counts = {}
-    # Both languages, because `actaira --lang es` prints the same limits. That
+    # Both languages, because `seamark --lang es` prints the same limits. That
     # is why the Spanish page exists at all and why it is not optional: a
     # parity check that passes because a thing is missing from both sides is
     # the `design_notes` error of DEF-122.

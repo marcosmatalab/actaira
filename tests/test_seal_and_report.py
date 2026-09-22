@@ -30,14 +30,14 @@ from pathlib import Path
 import jsonschema
 import pytest
 
-from actaira import cli
-from actaira.attest import seal as seal_mod
-from actaira.attest import verify as verify_mod
-from actaira.i18n.catalog import Catalog
-from actaira.report import html as html_mod
-from actaira.report import sarif as sarif_mod
-from actaira.surface.diff import surface_diff
 from conftest import REPO_ROOT
+from seamark import cli
+from seamark.attest import seal as seal_mod
+from seamark.attest import verify as verify_mod
+from seamark.i18n.catalog import Catalog
+from seamark.report import html as html_mod
+from seamark.report import sarif as sarif_mod
+from seamark.surface.diff import surface_diff
 
 FIXTURES = Path(REPO_ROOT) / "tests" / "fixtures" / "surface"
 WORM = FIXTURES / "keyv-august"
@@ -160,7 +160,7 @@ def test_nothing_in_a_seal_is_content(tmp_path):
 
     out = tmp_path / "baseline"
     surface = cli.check_document(repo)
-    from actaira.attest import keyring
+    from seamark.attest import keyring
 
     package_path, document = seal_mod.write_seal(
         surface, out, keyring.load_local(tmp_path / "key.pem").keypair, salt="a" * 32
@@ -198,7 +198,7 @@ def test_nothing_in_a_seal_is_content(tmp_path):
 
 def test_the_salt_and_the_map_stay_beside_the_package_and_not_in_it(tmp_path):
     out = tmp_path / "baseline"
-    from actaira.attest import keyring
+    from seamark.attest import keyring
 
     package_path, _ = seal_mod.write_seal(
         cli.check_document(WORM), out, keyring.load_local(tmp_path / "key.pem").keypair,
@@ -218,7 +218,7 @@ def test_the_salt_and_the_map_stay_beside_the_package_and_not_in_it(tmp_path):
 def test_the_seal_is_the_same_bytes_for_the_same_repository_and_salt():
     """An approval bound to a digest is worth nothing if the digest moves on its
     own. Same surface, same salt, same document."""
-    from actaira.model import canonical_json
+    from seamark.model import canonical_json
 
     surface = cli.check_document(WORM)
     first = seal_mod.seal_document(surface, seal_mod.References("c" * 32))
@@ -304,7 +304,7 @@ def test_the_report_shows_the_findings_the_gaps_and_what_was_not_read(surface):
     page = html_mod.check_page(surface, Catalog("en"))
 
     assert "ACT-S001" in page and "ACT-S003" in page
-    assert "Actaira core" in page, "a finding with no author is Actaira holding the opinion"
+    assert "Seamark core" in page, "a finding with no author is Seamark holding the opinion"
     assert "allowAutomaticTasks" in page, "the unresolved half is not shown"
     assert "Cursor team hooks" in page, "what this release does not read is not shown"
 
@@ -458,7 +458,7 @@ def test_only_what_arrived_reaches_the_log(tmp_path):
 def test_the_sarif_flag_writes_the_file(tmp_path, capsys):
     empty = tmp_path / "nothing"
     empty.mkdir()
-    where = tmp_path / "out" / "actaira.sarif"
+    where = tmp_path / "out" / "seamark.sarif"
 
     code = cli.main([
         "diff", "--from-dir", str(empty), "--to-dir", str(WORM), "--sarif", str(where),

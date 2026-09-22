@@ -21,7 +21,7 @@ import hashlib
 
 import pytest
 
-from actaira.attest import chain
+from seamark.attest import chain
 
 PREV = "0" * 64
 PAYLOAD = "a" * 64

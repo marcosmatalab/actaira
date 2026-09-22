@@ -9,7 +9,7 @@ it, and that caller was a test. So every HTTP and SSE server in every real
 authenticity over it, correctly, and the product was missing the half of its
 value that remote servers are. The first half of this file is the same
 configuration run twice: `not_interposed` without the listener, `established`
-with it, both through `actaira watch`.
+with it, both through `seamark watch`.
 
 The second half is about the RECORDS rather than about one message: several
 threads writing one file at once, a directory holding another run's leftovers,
@@ -30,18 +30,18 @@ from pathlib import Path
 
 import pytest
 
-from actaira import cli
-from actaira.proxy import Recorder
-from actaira.proxy.http import METHOD_HEADER, NAME_HEADER, HttpProxy
-from actaira.proxy.session import MANIFEST, WatchSession, rewrite_config
-from actaira.trace import CaptureLevel
-from actaira.trace.model import GapReason, TraceEvent
+from seamark import cli
+from seamark.proxy import Recorder
+from seamark.proxy.http import METHOD_HEADER, NAME_HEADER, HttpProxy
+from seamark.proxy.session import MANIFEST, WatchSession, rewrite_config
+from seamark.trace import CaptureLevel
+from seamark.trace.model import GapReason, TraceEvent
 
 CURRENT = "2026-07-28"
 TRACEPARENT = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
 META = {
     "io.modelcontextprotocol/protocolVersion": CURRENT,
-    "io.modelcontextprotocol/clientInfo": {"name": "actaira-test", "version": "1"},
+    "io.modelcontextprotocol/clientInfo": {"name": "seamark-test", "version": "1"},
     "traceparent": TRACEPARENT,
 }
 SERVER_META = {
@@ -139,7 +139,7 @@ def remote():
 AGENT = """
 import json, os, sys, urllib.request
 
-config = json.load(open(os.environ["ACTAIRA_MCP_CONFIG"], encoding="utf-8"))
+config = json.load(open(os.environ["SEAMARK_MCP_CONFIG"], encoding="utf-8"))
 url = config["mcpServers"]["remote"]["url"]
 META = json.loads(sys.argv[1])
 for message in (
@@ -277,7 +277,7 @@ def test_two_concurrent_calls_do_not_pair_by_the_order_they_came_back(tmp_path, 
     what matched them."""
     import hashlib
 
-    from actaira.model import canonical_json
+    from seamark.model import canonical_json
 
     _handler, url = remote
     recorder = Recorder(session_id="s", source="mcp-proxy")
@@ -349,7 +349,7 @@ def test_tls_verification_is_never_switched_off(tmp_path):
     """A witness that will talk to anyone holding the right IP address is not a
     witness. Asserted against the source because the property is the ABSENCE of
     a call, and an absence has no run to observe it in."""
-    source = Path(__file__).resolve().parents[1] / "src" / "actaira" / "proxy" / "http.py"
+    source = Path(__file__).resolve().parents[1] / "src" / "seamark" / "proxy" / "http.py"
     text = source.read_text(encoding="utf-8")
 
     for forbidden in ("_create_unverified_context", "CERT_NONE", "check_hostname = False"):

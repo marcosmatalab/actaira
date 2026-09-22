@@ -19,7 +19,7 @@ document displays.
 WHAT IS NOT DETERMINISTIC, said rather than hidden: the pixels. Font
 rasterisation and the browser version decide them, so two machines produce two
 files that show the same report. The CONTENT is deterministic - the demo builds
-the same two commits and `actaira diff` prints the same bytes twice, which
+the same two commits and `seamark diff` prints the same bytes twice, which
 `release_check.py` checks - and that is the part a reader is being shown.
 """
 from __future__ import annotations
@@ -68,7 +68,7 @@ def main() -> int:
                         help="how much of the report the capture shows")
     arguments = parser.parse_args()
 
-    workspace = Path(tempfile.mkdtemp(prefix="actaira-report-"))
+    workspace = Path(tempfile.mkdtemp(prefix="seamark-report-"))
     try:
         report = workspace / "report.html"
         demo = subprocess.run(  # noqa: S603 - a fixed argv, no shell

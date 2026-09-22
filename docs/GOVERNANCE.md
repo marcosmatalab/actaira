@@ -4,7 +4,7 @@ Where the line runs between this repository and a hosted product, if one is ever
 built, and what would be allowed to cross it.
 
 This page used to model obligations from Regulation (EU) 2024/1689 and describe
-an `actaira governance` command. Both went with the model scanner: the
+an `seamark governance` command. Both went with the model scanner: the
 obligation catalogue had no reader in Python, the command did not parse, and a
 governance page describing a surface that is not there is the same defect as a
 compatibility page doing it. That material is at tag `v2.3.0`.
@@ -37,7 +37,7 @@ What lives here, and stays here:
   resolution with the merge rule each step cites, and the surface, diff and seal
   schemas.
 - **The rule packages.** A rule's id, version, package, author, the capture
-  level it requires, and its human-written remediation. A rule Actaira cannot
+  level it requires, and its human-written remediation. A rule Seamark cannot
   show you is a rule you cannot argue with, and the second negative makes the
   norm somebody else's to write.
 - **The report.** What a human reads after a check or after a run.
@@ -59,7 +59,7 @@ point of writing it now is that it is cheap now and expensive later.
 The commitment, should one be built: **a separate repository, a separate
 licence, and none of this in it.** It would consume the records this repository
 produces. It would not extend them, fork them, or hold a privileged copy of
-them: a record verified by a hosted platform and a record verified by `actaira
+them: a record verified by a hosted platform and a record verified by `seamark
 verify` on a laptop with no network would be checked by the same rules, and
 neither answer would outrank the other.
 
@@ -70,7 +70,7 @@ negative forbids: stating what was not observed.
 
 This matters more than it looks. The whole product argument is that a third
 party can check a record **without trusting the operator and without trusting
-Actaira**. A hosted service that was the only thing able to verify a record
+Seamark**. A hosted service that was the only thing able to verify a record
 would have quietly made itself the trusted party, which is the position this
 tool exists to remove.
 

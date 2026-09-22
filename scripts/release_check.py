@@ -32,6 +32,27 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 
+def tracked_files() -> list[str] | None:
+    """What git tracks here, or None when this tree is not a checkout.
+
+    None and not an empty list, and the difference is the whole point:
+    `tests/test_release_check.py` runs this gate against a copy of the tree
+    with `.git` left out, and a check that read an empty listing there as "no
+    files match" would pass on no evidence. Every caller says which of the two
+    happened.
+    """
+    git = shutil.which("git")
+    if git is None:
+        return None
+    listing = subprocess.run(  # noqa: S603 - a resolved path and a fixed argv, no shell
+        [git, "ls-files"], cwd=ROOT, capture_output=True, text=True, timeout=120,
+    )
+    if listing.returncode != 0:
+        return None
+    names = listing.stdout.splitlines()
+    return names or None
+
+
 class DriftError(Exception):
     """Two places recorded one fact and they no longer agree."""
 
@@ -60,13 +81,13 @@ def version_is_consistent() -> str:
         raise DriftError("pyproject.toml declares no version")
     version = declared.group(1)
 
-    init = (ROOT / "src" / "actaira" / "__init__.py").read_text(encoding="utf-8")
+    init = (ROOT / "src" / "seamark" / "__init__.py").read_text(encoding="utf-8")
     module = re.search(r'__version__\s*=\s*"([^"]+)"', init)
     if not module:
-        raise DriftError("src/actaira/__init__.py declares no __version__")
+        raise DriftError("src/seamark/__init__.py declares no __version__")
     if module.group(1) != version:
         raise DriftError(
-            f"pyproject.toml says {version}, src/actaira/__init__.py says {module.group(1)}"
+            f"pyproject.toml says {version}, src/seamark/__init__.py says {module.group(1)}"
         )
 
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
@@ -82,21 +103,21 @@ def version_is_consistent() -> str:
         if cited and cited.group(1).strip().strip('"') != version:
             raise DriftError(f"CITATION.cff says {cited.group(1).strip()}, the package says {version}")
 
-    # What the user actually sees. `actaira --version` reads the installed
+    # What the user actually sees. `seamark --version` reads the installed
     # distribution's metadata, not `__version__`, so an editable install left
     # over from an earlier release reports the earlier number while every file
     # above says the new one. That is the exact drift §2.1 asks the gate to
     # refuse, and it is invisible to a check that only reads files.
     spoken = subprocess.run(  # noqa: S603 - a fixed argv, no shell
-        [sys.executable, "-m", "actaira", "--version"],
+        [sys.executable, "-m", "seamark", "--version"],
         capture_output=True, text=True, cwd=ROOT, timeout=120,
     )
     if spoken.returncode != 0:
-        raise DriftError(f"`actaira --version` exited {spoken.returncode}: {spoken.stderr.strip()}")
+        raise DriftError(f"`seamark --version` exited {spoken.returncode}: {spoken.stderr.strip()}")
     said = spoken.stdout.strip().split()[-1]
     if said != version:
         raise DriftError(
-            f"`actaira --version` says {said}, the package says {version}. "
+            f"`seamark --version` says {said}, the package says {version}. "
             "Reinstall with `pip install -e .` if this is a stale editable install."
         )
 
@@ -115,12 +136,12 @@ def version_is_consistent() -> str:
                 raise DriftError(f"{name} pins v{found}, the package says {version}")
 
     # Counted rather than typed. This line said "the two tag pins" for a commit
-    # after `.github/actions/actaira-scan` was deleted, which is a gate reporting
+    # after `.github/actions/seamark-scan` was deleted, which is a gate reporting
     # a comparison it did not make - the defect this whole script exists to
     # refuse, in the script's own success message.
     return (
         f"{version}, in pyproject.toml, __init__.py, CHANGELOG.md, CITATION.cff, "
-        f"`actaira --version` and {checked_pins} tag pin(s)"
+        f"`seamark --version` and {checked_pins} tag pin(s)"
     )
 
 
@@ -495,15 +516,15 @@ def rules_are_documented() -> str:
     makes at the top of its own file.
     """
     sys.path.insert(0, str(ROOT / "src"))
-    from actaira.surface import rules as rule_module
+    from seamark.surface import rules as rule_module
 
-    en = json.loads((ROOT / "src" / "actaira" / "i18n" / "en.json").read_text(encoding="utf-8"))
-    es = json.loads((ROOT / "src" / "actaira" / "i18n" / "es.json").read_text(encoding="utf-8"))
+    en = json.loads((ROOT / "src" / "seamark" / "i18n" / "en.json").read_text(encoding="utf-8"))
+    es = json.loads((ROOT / "src" / "seamark" / "i18n" / "es.json").read_text(encoding="utf-8"))
     defined = {rule.id for rule in rule_module.load()}
     if not defined:
         raise DriftError(
             "the rule packs define nothing, so every check below passes over an empty set. "
-            "src/actaira/surface/packs/ ships with the package; if it is genuinely empty, "
+            "src/seamark/surface/packs/ ships with the package; if it is genuinely empty, "
             "this check has to be held open again rather than passing."
         )
 
@@ -561,12 +582,12 @@ def the_version_is_recorded_once() -> str:
     version may be written, `trace/model.py` reads `schemas.VERSIONS`, and this
     fails on a version literal anywhere else under `src/`.
     """
-    from actaira import schemas
-    from actaira.trace import model as trace_model
+    from seamark import schemas
+    from seamark.trace import model as trace_model
 
     literal = re.compile(r"""['"][a-z-]+/v\d+['"]""")
     offenders = []
-    for path in sorted((ROOT / "src" / "actaira").rglob("*.py")):
+    for path in sorted((ROOT / "src" / "seamark").rglob("*.py")):
         if "__pycache__" in path.parts or path.parent.name == "schemas":
             continue
         for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
@@ -576,7 +597,7 @@ def the_version_is_recorded_once() -> str:
                 offenders.append(f"{path.relative_to(ROOT)}:{number}: {hit}")
     if offenders:
         raise DriftError(
-            "a schema version is written outside src/actaira/schemas/, so two places "
+            "a schema version is written outside src/seamark/schemas/, so two places "
             "record one fact:\n" + "\n".join(offenders)
             + "\nRead it from `schemas.VERSIONS` instead."
         )
@@ -649,7 +670,7 @@ def readme_documents_the_commands() -> str:
     English and missing in Spanish is the parity failure this repository already
     had once.
     """
-    from actaira.cli import build_parser
+    from seamark.cli import build_parser
 
     parser = build_parser()
     commands: set[str] = set()
@@ -661,7 +682,7 @@ def readme_documents_the_commands() -> str:
         for name in ("README.md", "README.es.md", "docs/COMPATIBILITY.md")
     }
     for page, text in pages.items():
-        undocumented = sorted(name for name in commands if f"actaira {name}" not in text)
+        undocumented = sorted(name for name in commands if f"seamark {name}" not in text)
         if undocumented:
             raise DriftError(
                 f"commands {page} never mentions: {', '.join(undocumented)}. "
@@ -678,7 +699,7 @@ def readme_documents_the_commands() -> str:
 # Design note D-301. `readme_documents_the_commands` above asks one direction and
 # one direction only: is every command that exists NAMED somewhere on the page.
 # It cannot ask whether what the page SAYS about it is true, and that gap let a
-# real defect stand for a whole phase: after phase S1 built `actaira check`, both
+# real defect stand for a whole phase: after phase S1 built `seamark check`, both
 # READMEs went on publishing "Does not exist. No reader, no resolver and no rule
 # package in this tree" under the claim that command implements. `check` was
 # named further down, so the check above was green while the page said the thing
@@ -746,7 +767,7 @@ def _claim_blocks(page: str, text: str) -> list[tuple[str, str, list[str]]]:
             if any(spelling in tail.lower() for spelling in NO_COMMANDS):
                 named = []
             else:
-                named = re.findall(r"`actaira (\w+)`", tail)
+                named = re.findall(r"`seamark (\w+)`", tail)
             break
         found.append((CLAIM_STATUS[page][word], body, named))
     return found
@@ -754,7 +775,7 @@ def _claim_blocks(page: str, text: str) -> list[tuple[str, str, list[str]]]:
 
 @check("every claim the READMEs make resolves against what the tree can do")
 def readme_claims_resolve_against_the_tree() -> str:
-    from actaira.cli import build_parser
+    from seamark.cli import build_parser
 
     parser = build_parser()
     subparsers = parser._subparsers._group_actions[0]  # noqa: SLF001 - argparse has no public API
@@ -800,11 +821,11 @@ def readme_claims_resolve_against_the_tree() -> str:
                         f"{page}: a claim block says it does not exist and names "
                         f"{', '.join(present)}, which the parser has."
                     )
-                spelt = re.search(r"`actaira (" + "|".join(sorted(commands)) + r")`", body)
+                spelt = re.search(r"`seamark (" + "|".join(sorted(commands)) + r")`", body)
                 if spelt:
                     raise DriftError(
                         f"{page}: a claim block says it does not exist and its prose "
-                        f"names `actaira {spelt.group(1)}`, which does. That is the "
+                        f"names `seamark {spelt.group(1)}`, which does. That is the "
                         "phase S1 defect exactly."
                     )
         claimed_to_work[page] = works
@@ -829,12 +850,12 @@ def readme_claims_resolve_against_the_tree() -> str:
 def documented_flags_exist() -> str:
     """The other half of D-301, and the half with the longest history here.
 
-    `.pre-commit-hooks.yaml` published `actaira scan --fail-on high` for a
+    `.pre-commit-hooks.yaml` published `seamark scan --fail-on high` for a
     release in which neither `--fail-on` nor the artefact scanning existed, and
     the README advertised `--dsse` for a flag that had never been implemented in
     any commit. Both were prose nothing compared with anything.
     """
-    from actaira.cli import build_parser
+    from seamark.cli import build_parser
 
     parser = build_parser()
     subparsers = parser._subparsers._group_actions[0]  # noqa: SLF001
@@ -855,7 +876,7 @@ def documented_flags_exist() -> str:
         if not path.is_file():
             raise DriftError(f"{page} is missing, and this check reads it")
         for command, tail in re.findall(
-            r"actaira (\w+)([^\n`]*)", path.read_text(encoding="utf-8")
+            r"seamark (\w+)([^\n`]*)", path.read_text(encoding="utf-8")
         ):
             if command not in options:
                 continue
@@ -863,7 +884,7 @@ def documented_flags_exist() -> str:
                 checked += 1
                 if flag not in options[command]:
                     raise DriftError(
-                        f"{page} shows `actaira {command} {flag}` and that command has "
+                        f"{page} shows `seamark {command} {flag}` and that command has "
                         f"no such option. Known: {', '.join(sorted(options[command]))}"
                     )
     if checked < 10:
@@ -883,7 +904,7 @@ def exit_codes_are_the_published_ones() -> str:
     it is required to be ABSENT from the table and PRESENT in the prose: a code
     left out by accident and one left out on purpose look identical otherwise.
     """
-    from actaira import cli
+    from seamark import cli
 
     published = {
         value
@@ -922,7 +943,7 @@ def package_metadata_names_real_commands() -> str:
     for two phases after `check` shipped. Nothing compared it with anything, and
     it is the one sentence a stranger reads before they install.
     """
-    from actaira.cli import build_parser
+    from seamark.cli import build_parser
 
     commands = set(build_parser()._subparsers._group_actions[0].choices)  # noqa: SLF001
     text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
@@ -1219,14 +1240,14 @@ def superseded_contracts_are_kept_and_not_written() -> str:
     """
     import importlib
 
-    from actaira import schemas
+    from seamark import schemas
 
     for versions in schemas.SUPERSEDED.values():
         for version in versions:
             if schemas.stem(version) not in schemas.names():
                 raise DriftError(f"{version} was published and its schema file is gone")
 
-    emitters = {"trace": ("actaira.trace.model", "SCHEMA_VERSION")}
+    emitters = {"trace": ("seamark.trace.model", "SCHEMA_VERSION")}
     for family, (module_path, constant) in emitters.items():
         stated = getattr(importlib.import_module(module_path), constant)
         if stated in schemas.SUPERSEDED.get(family, ()):
@@ -1262,7 +1283,7 @@ def nothing_scores() -> str:
     a score", and an earlier version of this check read that sentence as a
     violation of itself.
     """
-    from actaira import schemas
+    from seamark import schemas
 
     forbidden = ("score", "grade", "rating", "percent")
     offenders: list[str] = []
@@ -1827,6 +1848,207 @@ def the_demo_image_renders_anywhere() -> str:
 
 
 # --------------------------------------------------------------------------
+# The name this product had until 3.0.0
+# --------------------------------------------------------------------------
+
+# Built from two halves so that this file does not match itself. The same trick
+# holds the orphan-fixture twin, and for the same reason: a checker that counts
+# its own vocabulary needs an exemption for itself, and an exemption for the
+# checker is the first hole in the wall.
+OLD_NAME = "act" + "aira"
+
+# Where the old name may appear ON A LINE, anywhere in the tree, because
+# renaming it there breaks something rather than renaming it. Each of these is
+# a byte somebody else signed, matched, or will look up.
+NAME_ON_LINES = (
+    (r"v2\.3\.0:[^\s`\"']*" + OLD_NAME,
+     "a locator into the tag v2.3.0, whose tree has that path. Renaming it "
+     "would point it at a file that does not exist in that commit."),
+    (OLD_NAME + r"\.dev/predicates/",
+     "the predicateType this tree VERIFIES and never writes. Renaming it would "
+     "not rename anything: it would make this refuse every envelope the "
+     "archived product signed."),
+    (r"Act" + r"aira (?:Fixture|Test Fixtures)",
+     "a distinguished name inside a certificate OpenSSL issued once. The "
+     "recorded token is signed over it, and the tests that read the name out "
+     "of it are reading that certificate."),
+    (OLD_NAME + r" rfc3161 test subject",
+     "the first line of the bytes a timestamp authority signed. Change them "
+     "and every recorded token stops verifying."),
+)
+
+# Where it may appear IN A FILE, how many times, and why. The count is the
+# ratchet: one more occurrence is a rename left half done, and one fewer is an
+# entry that has stopped being about anything.
+NAME_IN_FILES: dict[str, tuple[int, str]] = {
+    # Records. A record renamed afterwards is a record of something that did
+    # not happen.
+    "CHANGELOG.md": (
+        56,
+        "every entry below 3.0.0 is a release that went out under the old name, "
+        "and the header says so: a published version keeps the name it was "
+        "published under, because its tag and its artifacts cannot be renamed.",
+    ),
+    "docs/archive/ARCHITECTURE.md": (8, "the archived scanner's own documentation"),
+    "docs/archive/CONCEPTS.es.md": (77, "the archived scanner's own documentation"),
+    "docs/archive/CONCEPTS.md": (86, "the archived scanner's own documentation"),
+    "docs/archive/DESIGN-scanner.md": (147, "the archived scanner's own documentation"),
+    "docs/archive/EVALUATION.md": (10, "the archived scanner's own documentation"),
+    "docs/archive/FORMATS.md": (177, "the archived scanner's own documentation"),
+    "docs/archive/THREAT-MODEL.md": (123, "the archived scanner's own documentation"),
+    ".github/release-notes/v2.3.0.md": (
+        4,
+        "the note pasted onto the release of the archived product. It went out "
+        "under that name and the note says which name, because the alternative "
+        "is a page describing a release nobody made.",
+    ),
+    ".github/history-rewrite/messages.json": (
+        3,
+        "three of the forty-five rewritten messages cite a path or a command as "
+        "it was in the commit they belong to. The replay keeps each commit's "
+        "tree, and those trees carry the old package directory: renaming the "
+        "message would make it describe a file that is not in the commit.",
+    ),
+    # Explanations. The word is the subject of the sentence.
+    "README.md": (2, "the section that says where this repository comes from"),
+    "README.es.md": (2, "the section that says where this repository comes from"),
+    ".github/release-notes/v3.0.0.md": (
+        1, "the paragraph of the release note that announces the rename"
+    ),
+    "docs/ENGINEERING.md": (
+        1, "the section that writes down where history stops and the product starts"
+    ),
+    # Instructions about the old thing.
+    ".github/release-notes/RUNBOOK.md": (
+        2,
+        "the step that renames the directory on this machine, which has to name "
+        "what it is renaming.",
+    ),
+    ".gitignore": (
+        4,
+        "four planning documents on the author's disk whose filenames contain "
+        "the old name. The pattern is not about the product: changing it would "
+        "stop ignoring a file that exists and is not part of the tree.",
+    ),
+}
+
+
+def name_occurrences(text_of: str) -> int:
+    """How many times the old name appears on lines no pattern allows."""
+    allowed = [re.compile(pattern, re.I) for pattern, _ in NAME_ON_LINES]
+    total = 0
+    for line in text_of.splitlines():
+        masked = line
+        for pattern in allowed:
+            masked = pattern.sub("", masked)
+        total += len(re.findall(OLD_NAME, masked, re.I))
+    return total
+
+
+def unused_line_patterns(patterns, texts: dict[str, str]) -> list[str]:
+    """Patterns that allow the old name and no longer match anything.
+
+    Pure, and separate from the file table, because the two go stale for
+    different reasons: a file is cleaned up, a shape of line disappears. An
+    allowance kept after its case has gone is one nobody would notice widening.
+    """
+    problems: list[str] = []
+    for pattern, reason in patterns:
+        if not reason.strip():
+            problems.append(f"the line pattern `{pattern}` states no reason")
+        if not any(re.search(pattern, text_of, re.I) for text_of in texts.values()):
+            problems.append(
+                f"the line pattern `{pattern}` allows the old name and matches nothing "
+                "in the tree any more. An allowance for a case that has gone is one "
+                "nobody will notice widening."
+            )
+    return problems
+
+
+def name_problems(counted: dict[str, int], allowed: dict[str, tuple[int, str]]) -> list[str]:
+    """Pure, over a mapping of file to occurrences, so the twins can plant one."""
+    problems: list[str] = []
+    for name, count in sorted(counted.items()):
+        if not count:
+            continue
+        if name not in allowed:
+            problems.append(
+                f"{name} names the old product {count} time(s). Either it is a rename "
+                "left half done, or it is a record and belongs in NAME_IN_FILES with "
+                "the reason it is one."
+            )
+            continue
+        expected, reason = allowed[name]
+        if not reason.strip():
+            problems.append(f"{name} keeps the old name and states no reason")
+        if count != expected:
+            problems.append(
+                f"{name} names the old product {count} time(s) and the table records "
+                f"{expected}. " + ("Something new was written with the old name."
+                                   if count > expected else
+                                   "Fewer is not better here: update the table, or the "
+                                   "next one that arrives will be invisible.")
+            )
+    for name in sorted(allowed):
+        if name not in counted:
+            problems.append(
+                f"NAME_IN_FILES names {name}, which is not a file in this tree. An "
+                "exemption for a file that is not there guards nothing."
+            )
+        elif not counted[name]:
+            problems.append(
+                f"NAME_IN_FILES keeps {name} for the old name and it does not appear "
+                "in it any more. A stale exemption is where the next one hides."
+            )
+    return problems
+
+
+@check("the old product name appears nowhere the tree has not written down")
+def the_rename_is_not_half_done() -> str:
+    """3.0.0 renamed this product, and a rename is the kind of change that ends
+    up nine tenths done.
+
+    The name belongs to a different product by the same author, which lives
+    somewhere else; `README.md` says which and where. Two things with one name
+    is a confusion a reader cannot resolve from the inside, so what is left
+    here is only what would be a different kind of wrong if it were changed:
+    bytes somebody signed, identifiers something else matches on, locators into
+    a tag, and the records that say what happened. Each is in one of the two
+    tables below, with its reason, and both tables fail when they stop being
+    true in either direction.
+
+    This file names the old product nowhere, which is why `OLD_NAME` is built
+    from two halves: a checker that needs an exemption for itself has opened
+    the first hole in its own wall.
+    """
+    tracked = tracked_files()
+    if tracked is None:
+        return (
+            "the old name was not looked for: this tree is not a checkout, so there is "
+            "no list of what belongs to it"
+        )
+    texts: dict[str, str] = {}
+    for name in tracked:
+        try:
+            texts[name] = (ROOT / name).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+    counted = {name: name_occurrences(text_of) for name, text_of in texts.items()}
+
+    problems = unused_line_patterns(NAME_ON_LINES, texts)
+    problems += name_problems(counted, NAME_IN_FILES)
+    if problems:
+        raise DriftError("\n".join(problems))
+
+    kept = sum(counted.values())
+    return (
+        f"{len(counted)} files read; the old name is left in {len(NAME_IN_FILES)} of "
+        f"them, {kept} times, each one recorded with its reason, and on "
+        f"{len(NAME_ON_LINES)} kinds of line that are somebody else's bytes"
+    )
+
+
+# --------------------------------------------------------------------------
 # The publication happens once, the rehearsal as often as it takes
 # --------------------------------------------------------------------------
 
@@ -2251,7 +2473,7 @@ def _commands_in_help(output: str) -> int | None:
 HELD_UP_RUN = {
     "python -m pytest --collect-only -q -o addopts=": (_collected, "tests collected"),
     "find src -name '*.py' | xargs cat | wc -l": (_only_number, "lines of product code"),
-    "actaira --help": (_commands_in_help, "commands in the parser"),
+    "seamark --help": (_commands_in_help, "commands in the parser"),
 }
 
 
@@ -2296,8 +2518,8 @@ def run_published(command: str) -> tuple[str, str]:
 
     Two substitutions, both named in the summary rather than made quietly:
     `python` becomes the interpreter running this check, because which name
-    python has on a machine is not what the page is claiming; and `actaira`
-    becomes `python -m actaira` where the console script is not on PATH, which
+    python has on a machine is not what the page is claiming; and `seamark`
+    becomes `python -m seamark` where the console script is not on PATH, which
     is every checkout that has not been installed.
     """
     shell = shutil.which("bash")
@@ -2312,9 +2534,9 @@ def run_published(command: str) -> tuple[str, str]:
     if spelled.startswith("python "):
         spelled = f'"{sys.executable}" ' + spelled[len("python "):]
         substituted = "python -> the interpreter running this check"
-    if spelled.startswith("actaira ") and shutil.which("actaira") is None:
-        spelled = f'"{sys.executable}" -m actaira ' + spelled[len("actaira "):]
-        substituted = "actaira -> python -m actaira, the console script is not on PATH"
+    if spelled.startswith("seamark ") and shutil.which("seamark") is None:
+        spelled = f'"{sys.executable}" -m seamark ' + spelled[len("seamark "):]
+        substituted = "seamark -> python -m seamark, the console script is not on PATH"
     done = subprocess.run(  # noqa: S603 - a fixed argv, and the command is a tracked file of this repository
         [shell, "-c", spelled], cwd=ROOT, capture_output=True, text=True, timeout=900,
     )
@@ -2441,7 +2663,7 @@ def the_package_is_built_one_way() -> str:
     while the CI job asserted a different two, so the target failed on every
     laptop run from the pivot onwards and the job stayed green over the same
     distributions. The list became one definition - every non-Python file
-    under `src/actaira/`, read from the tree - and the COMMAND was still in
+    under `src/seamark/`, read from the tree - and the COMMAND was still in
     two places: the Makefile called `scripts/build_package.py` and so did the
     workflow. A step added to the target would not have reached CI, and the
     two would have come apart again one level up.
@@ -2580,7 +2802,7 @@ def sha_problems(citations: list[dict], ours: str, resolve) -> list[str]:
 def cited_commits_exist() -> str:
     """The rewrite hazard, held where it lands.
 
-    `README.md` tells a reader to write `uses: marcosmatalab/actaira@<sha>` and
+    `README.md` tells a reader to write `uses: marcosmatalab/seamark@<sha>` and
     `.pre-commit-hooks.yaml` is used with a `rev:`, so this repository
     publishes commit SHAs of its own as instructions. A history rewrite moves
     every one of them, and a reader who copies a dead SHA gets a checkout error

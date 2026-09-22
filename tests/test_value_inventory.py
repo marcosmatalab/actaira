@@ -30,8 +30,8 @@ import pathlib
 
 import pytest
 
-from actaira.surface import resolve
 from conftest import REPO_ROOT
+from seamark.surface import resolve
 from support.value_runtime import Recorder, leaf, watched
 from support.value_sites import (
     SYNTHESISED_AT,

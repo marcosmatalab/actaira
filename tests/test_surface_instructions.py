@@ -19,9 +19,9 @@ from pathlib import Path
 
 import pytest
 
-from actaira import cli
-from actaira.surface import Resolution, instructions, rules
 from conftest import REPO_ROOT
+from seamark import cli
+from seamark.surface import Resolution, instructions, rules
 
 FIXTURES = Path(REPO_ROOT) / "tests" / "fixtures" / "surface"
 CORPUS = FIXTURES / "corpus"
@@ -58,7 +58,7 @@ def test_a_prompt_injection_fires_nothing_because_we_do_not_judge_intention(tree
     """The second negative, as a test rather than as a sentence in a docstring.
 
     Every line above is what a person would call an instruction-injection
-    attempt. Actaira has no opinion about any of them, because having one means
+    attempt. Seamark has no opinion about any of them, because having one means
     classifying intention from free text - and a tool that does that is wrong
     about somebody's README the first week it ships.
 
