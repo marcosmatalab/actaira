@@ -45,7 +45,14 @@ def working_tree(tmp_path_factory) -> Path:
         REPO_ROOT,
         destination,
         ignore=shutil.ignore_patterns(
-            "__pycache__", ".git", "*.pyc", ".pytest_cache", "evals/artifacts", "fuzz/runs"
+            "__pycache__", ".git", "*.pyc", ".pytest_cache", "evals/artifacts", "fuzz/runs",
+            # A coverage data file is a record of a session in ANOTHER tree:
+            # it holds absolute paths, and `coverage json` over it here either
+            # reports about files somewhere else or cannot find them at all.
+            # `figures.py` is loud about a data file it cannot read, which is
+            # right - a broken measurement is not an absent one - so the copy
+            # must not carry one.
+            ".coverage", ".coverage.*",
         ),
     )
     return destination
@@ -680,6 +687,133 @@ def test_the_stamp_moves_as_soon_as_one_measured_figure_moves():
     assert measured["git"] == {"commits": 2}
 
 
+def _coverage_figure():
+    sys.path.insert(0, str(Path(REPO_ROOT) / "scripts"))
+    import coverage_figure  # noqa: PLC0415
+
+    return coverage_figure
+
+
+def test_the_published_floor_is_the_one_the_makefile_enforces():
+    """DEF-134. The README stated the floor and the Makefile enforced it, and
+    nothing compared them. It is read from the target that applies it, so the
+    day it is lowered to keep a build green the page says so too."""
+    module = _coverage_figure()
+    makefile = (Path(REPO_ROOT) / "Makefile").read_text(encoding="utf-8")
+
+    assert module.floor() == module.floor_in(makefile)
+    assert module.floor_in("COVERAGE_FLOOR ?= 71\n") == 71
+
+
+def test_a_makefile_with_no_floor_fails_rather_than_defaulting():
+    """The twin. A default would be a third copy of the number, agreeing with
+    the other two until somebody moved one of them."""
+    module = _coverage_figure()
+
+    with pytest.raises(SystemExit, match="not enforced by anything"):
+        module.floor_in("test:\n\tpytest tests\n")
+
+
+def test_the_measured_coverage_is_absent_rather_than_zero_when_nothing_ran():
+    """The third negative, in the measuring apparatus: a figure whose source
+    is missing says so instead of reporting a number."""
+    module = _coverage_figure()
+    sys.path.insert(0, str(Path(REPO_ROOT) / "scripts"))
+    import figures  # noqa: PLC0415
+
+    recorded = json.loads((Path(REPO_ROOT) / "figures.json").read_text(encoding="utf-8"))
+    assert recorded["coverage"]["available"] is True
+    assert recorded["coverage"]["floor"] == module.floor()
+
+    carried = {"coverage": {"available": False, "reason": "no data"}}
+    figures.keep_the_coverage_when_the_suite_did_not_run(carried, recorded)
+    assert carried["coverage"] == recorded["coverage"]
+
+    fresh = {"coverage": {"available": True, "percent": "12", "floor": 88}}
+    figures.keep_the_coverage_when_the_suite_did_not_run(fresh, recorded)
+    assert fresh["coverage"]["percent"] == "12", (
+        "a run that measured coverage must write what it measured, or a drop "
+        "would be carried over by the figure that is supposed to report it"
+    )
+
+
+def test_the_stamp_is_not_carried_when_it_names_a_commit_the_branch_lost():
+    """The history rewrite, and the reason the carry needed a second condition.
+
+    Rewriting the commit messages changes nothing this script measures: the
+    trees are identical by construction. So every measured block agrees, the
+    stamp is carried, and `figures.json` goes on naming a commit that is not
+    on the branch any more - which `release_check.py` refuses and which
+    `make figures` could not fix, because it would carry the same stamp again.
+    """
+    keep = _stamp_keeper()
+    existing = {"generated_at": "2026-01-01T00:00:00+00:00",
+                "git": {"commits": 1, "head": "c3a5cf7"},
+                "code": {"total": {"lines": 10}}}
+    measured = {"generated_at": "2026-09-22T12:00:00+00:00",
+                "git": {"commits": 1, "head": "189c383"},
+                "code": {"total": {"lines": 10}}}
+
+    keep(measured, existing, False)
+
+    assert measured["git"]["head"] == "189c383"
+    assert measured["generated_at"] == "2026-09-22T12:00:00+00:00"
+
+
+def test_a_stamp_naming_a_commit_on_the_branch_is_still_carried():
+    """The other direction, so the condition cannot be satisfied by never
+    carrying anything."""
+    keep = _stamp_keeper()
+    existing = {"generated_at": "2026-01-01T00:00:00+00:00",
+                "git": {"commits": 1, "head": "c3a5cf7"},
+                "code": {"total": {"lines": 10}}}
+    measured = {"generated_at": "2026-09-22T12:00:00+00:00",
+                "git": {"commits": 1, "head": "c3a5cf7"},
+                "code": {"total": {"lines": 10}}}
+
+    keep(measured, existing, True)
+
+    assert measured["generated_at"] == existing["generated_at"]
+
+
+def test_the_stamp_condition_reads_the_repository_it_is_run_in():
+    """Non-vacuity: the predicate has to answer yes about this checkout's own
+    HEAD and no about a commit that is not in it."""
+    sys.path.insert(0, str(Path(REPO_ROOT) / "scripts"))
+    import figures  # noqa: PLC0415
+
+    head = subprocess.run(  # noqa: S603 - a fixed argv, no shell
+        ["git", "rev-parse", "HEAD"],  # noqa: S607 - git from PATH, as every script here
+        cwd=REPO_ROOT, capture_output=True, text=True, check=True,
+    ).stdout.strip()
+
+    assert figures.the_stamp_still_names_this_history({"git": {"head": head}})
+    assert not figures.the_stamp_still_names_this_history(
+        {"git": {"head": "0123456789abcdef0123456789abcdef01234567"}}
+    )
+    assert not figures.the_stamp_still_names_this_history({})
+
+
+def test_a_tree_that_is_not_a_checkout_keeps_its_stamp(tmp_path, monkeypatch):
+    """The case that broke the measurement being repeatable, found by the test
+    that was already there.
+
+    An unpacked sdist has no `.git`, and neither does the copy this suite
+    makes to run `figures.py` twice over one tree. Asking git about ancestry
+    there answers `not a repository`, which read as `that commit is gone`: the
+    stamp moved on every run and the file stopped being a function of the
+    tree. What cannot be answered is not answered no.
+    """
+    sys.path.insert(0, str(Path(REPO_ROOT) / "scripts"))
+    import figures  # noqa: PLC0415
+
+    monkeypatch.setattr(figures, "ROOT", tmp_path)
+
+    assert figures.the_stamp_still_names_this_history(
+        {"git": {"head": "0123456789abcdef0123456789abcdef01234567"}}
+    )
+
+
 def test_running_the_measurement_twice_over_one_tree_writes_the_same_bytes(working_tree):
     """The property the CI step actually depends on, end to end.
 
@@ -861,3 +995,337 @@ def test_a_word_that_merely_contains_a_licence_name_is_not_one(working_tree, tmp
     section = _section(run(fine).stdout, LICENCE_CHECK)
 
     assert section.startswith("  ok"), section
+
+
+# --------------------------------------------------------------------------
+# Commit SHAs cited in the documentation
+# --------------------------------------------------------------------------
+#
+# These read the check's own functions rather than running the script, because
+# `working_tree` copies the repository WITHOUT `.git` and this check's whole
+# subject is what a git repository can answer about a commit. A twin that
+# planted a dead SHA in a copy with no history would be watching the check
+# decline to look, which is the failure it is written against.
+
+
+def _release_check():
+    sys.path.insert(0, str(Path(REPO_ROOT) / "scripts"))
+    import release_check  # noqa: PLC0415
+
+    return release_check
+
+
+OURS = "marcosmatalab/actaira"
+DEAD = "0123456789abcdef0123456789abcdef01234567"
+
+
+def test_a_cited_commit_of_this_repository_that_is_not_on_the_branch_fails():
+    """The rewrite hazard, which is the reason this check exists: 45 messages
+    replayed move every SHA, and the README pins two of them."""
+    module = _release_check()
+    citations = module.sha_citations(
+        "README.md", f"      - uses: {OURS}@{DEAD}\n"
+    )
+
+    problems = module.sha_problems(
+        citations, OURS, lambda sha: "is not a commit in this repository"
+    )
+
+    assert problems, "a dead SHA of this repository was accepted"
+    assert DEAD in problems[0] and "README.md:1" in problems[0]
+
+
+def test_a_cited_commit_that_exists_but_is_not_an_ancestor_is_the_case_that_survives_a_rewrite():
+    """`git cat-file -e` answers yes on the machine that did the rewrite,
+    because the backup ref keeps the old commits reachable. Ancestry is what a
+    fresh clone would ask."""
+    module = _release_check()
+    citations = module.sha_citations("README.md", f"rev: {DEAD}\n")
+
+    assert citations[0]["repository"] is None, (
+        "a `rev:` with no `repo:` above it was attributed to something"
+    )
+
+
+def test_a_forty_hex_string_nobody_can_attribute_fails_rather_than_being_skipped():
+    """Work rule 11. The first version of this check looked only at `uses:`
+    lines, which means a SHA written into a sentence would have been read by
+    nothing and reported as nothing."""
+    module = _release_check()
+    citations = module.sha_citations(
+        "docs/DESIGN.md", f"The fix landed in {DEAD}, which is where it is argued.\n"
+    )
+
+    problems = module.sha_problems(citations, OURS, lambda sha: None)
+
+    assert problems, "an unattributable commit SHA was passed over"
+    assert "nothing on the line says which repository" in problems[0]
+
+
+def test_somebody_else_s_pinned_action_is_not_this_repository_s_to_resolve():
+    """`actions/checkout@<sha>` is pinned correctly and is not a commit in this
+    repository. A check that demanded it resolve here would fail on the one
+    thing the workflow does right."""
+    module = _release_check()
+    text = (
+        f"      - uses: actions/checkout@{DEAD}  # v5\n"
+        f"      - uses: {OURS}@{DEAD}\n"
+    )
+
+    citations = module.sha_citations(".github/workflows/ci.yml", text)
+    problems = module.sha_problems(
+        citations, OURS, lambda sha: "is not a commit in this repository"
+    )
+
+    assert [row["repository"] for row in citations] == ["actions/checkout", OURS]
+    assert len(problems) == 1, problems
+
+
+def test_a_pre_commit_rev_is_attributed_to_the_repo_line_above_it():
+    module = _release_check()
+    text = (
+        "repos:\n"
+        f"  - repo: https://github.com/{OURS}\n"
+        f"    rev: {DEAD}\n"
+        "    hooks:\n"
+        "      - id: actaira-check\n"
+    )
+
+    citations = module.sha_citations("README.md", text)
+
+    assert [row["repository"] for row in citations] == [OURS]
+
+
+def test_the_check_finds_the_citations_that_are_really_on_the_pages():
+    """Non-vacuity, over the tree as it stands. A classifier that found
+    nothing would pass every twin above and guard nothing at all."""
+    module = _release_check()
+    found = []
+    for relative in ("README.md", "README.es.md"):
+        found += module.sha_citations(
+            relative, (Path(REPO_ROOT) / relative).read_text(encoding="utf-8")
+        )
+
+    mine = [row for row in found if row["repository"] == OURS]
+    assert len(mine) == 4, (
+        "both READMEs pin this repository twice, in a `uses:` and in a `rev:`; the "
+        f"reader found {[row['where'] for row in mine]}"
+    )
+    assert all(len(row["sha"]) == 40 for row in found)
+
+
+def test_the_check_passes_on_this_repository_and_says_what_it_read():
+    module = _release_check()
+
+    detail = module.cited_commits_exist()
+
+    assert "of this repository" in detail
+    assert "0 commit SHAs" not in detail
+
+
+# --------------------------------------------------------------------------
+# One way to build the distributions
+# --------------------------------------------------------------------------
+
+BUILD_CHECK = "the distributions are built by one command, and CI runs that command"
+
+
+def _ci(tree: Path) -> Path:
+    return tree / ".github" / "workflows" / "ci.yml"
+
+
+@pytest.mark.parametrize(
+    ("planted", "expected"),
+    [
+        # The shape that cost a release: the job built with `python -m build`
+        # and asserted its own two resource paths while `make package`
+        # asserted five that had left with the scanner. Each was green on its
+        # own terms.
+        ("        run: python -m build\n", "python -m build"),
+        # The subtler one, and the one that was actually here: calling the
+        # script the target calls. The list is shared, the command is not, and
+        # a step added to the target never reaches the runner.
+        ("        run: python scripts/build_package.py\n", "scripts/build_package.py"),
+    ],
+)
+def test_a_workflow_that_builds_the_package_its_own_way_is_named(planted, expected):
+    module = _release_check()
+
+    problems, through = module.build_problems({"ci.yml": planted})
+
+    assert through == 0
+    assert any(expected in problem for problem in problems), problems
+
+
+def test_a_workflow_that_goes_through_the_target_is_accepted():
+    """The other direction, so the check cannot be satisfied by refusing every
+    workflow that builds anything."""
+    module = _release_check()
+
+    problems, through = module.build_problems({"ci.yml": "        run: make package\n"})
+
+    assert (problems, through) == ([], 1)
+
+
+def test_a_comment_naming_the_other_way_is_not_a_second_builder():
+    """The step's own comment explains why it does not use `python -m build`,
+    and a check that read comments would fail on the sentence documenting it."""
+    module = _release_check()
+
+    problems, through = module.build_problems(
+        {"ci.yml": "        # not python -m build, see above\n        run: make package\n"}
+    )
+
+    assert (problems, through) == ([], 1)
+
+
+def test_a_workflow_set_that_builds_nothing_fails_rather_than_passing_empty(working_tree, tmp_path):
+    """Work rule 11. A check for "nothing builds it the wrong way" is
+    satisfied by nothing building it at all, which is the same green as a
+    pattern that matches nothing."""
+    broken = tmp_path / "no-builder"
+    shutil.copytree(working_tree, broken)
+    workflow = _ci(broken)
+    workflow.write_text(
+        workflow.read_text(encoding="utf-8").replace("          make package", "          true"),
+        encoding="utf-8",
+    )
+
+    section = _section(run(broken).stdout, BUILD_CHECK)
+
+    assert section.startswith("  FAIL"), section
+    assert "no workflow builds the distributions" in section, section
+
+
+
+
+# --------------------------------------------------------------------------
+# The demo picture, as somebody else's renderer will see it
+# --------------------------------------------------------------------------
+
+PICTURE = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="980" height="60" '
+    'viewBox="0 0 980 60" role="img" aria-label="a picture">'
+    '<rect width="980" height="60" fill="#11151c"/>'
+    '<g font-family="Menlo, monospace" font-size="14">'
+    '<text x="22" y="30" fill="#c9d1d9">actaira check</text>'
+    "</g></svg>"
+)
+
+
+def test_the_picture_this_repository_publishes_is_accepted():
+    """Non-vacuity in the direction that matters: a check that refuses
+    everything is as useless as one that refuses nothing."""
+    module = _release_check()
+
+    assert module.svg_problems(PICTURE) == []
+
+
+@pytest.mark.parametrize(
+    ("planted", "expected"),
+    [
+        # The one a sanitiser strips, and the reason SVG is treated as code.
+        (PICTURE.replace("<rect", "<script>alert(1)</script><rect"), "<script"),
+        # The one that is silently blank: a font fetched from a third party
+        # under a policy that allows no fetch at all.
+        (
+            PICTURE.replace("<rect", '<image href="https://example.invalid/f.png"/><rect'),
+            "is blank wherever the fetch is blocked",
+        ),
+        # A stack with no generic family at the end: every column stops lining
+        # up on a machine without the named face.
+        (PICTURE.replace("Menlo, monospace", "Menlo"), "does not end at one of"),
+        # No box to size the image with.
+        (PICTURE.replace(' width="980" height="60" viewBox', " viewBox"), "no width and height"),
+        # An element nobody thought of, which is why this is an allowlist.
+        (PICTURE.replace("<rect", "<animate/><rect"), "not in the set of elements"),
+    ],
+)
+def test_a_picture_that_would_not_survive_being_published_is_refused(planted, expected):
+    module = _release_check()
+
+    problems = module.svg_problems(planted)
+
+    assert any(expected in problem for problem in problems), problems
+
+
+def test_a_line_wider_than_the_canvas_is_refused_at_a_strangers_glyph_width():
+    """The defect this check found on its first run: the canvas was measured
+    at the advance width of the font it was written with, so the longest line
+    of the report fitted to the pixel here and was clipped on any machine
+    whose monospace is wider."""
+    module = _release_check()
+    long_line = "x" * 120
+    planted = PICTURE.replace("actaira check", long_line)
+
+    problems = module.svg_problems(planted)
+
+    assert any("reaches" in problem for problem in problems), problems
+
+
+def test_the_published_pictures_are_the_ones_this_check_reads(working_tree, tmp_path):
+    """Work rule 11, end to end: an empty `docs/img` is a green tick."""
+    broken = tmp_path / "no-pictures"
+    shutil.copytree(working_tree, broken)
+    for picture in (broken / "docs" / "img").glob("*.svg"):
+        picture.unlink()
+
+    section = _section(run(broken).stdout, "the demo picture uses only what every renderer of it will keep")
+
+    assert section.startswith("  FAIL"), section
+    assert "holds no .svg" in section, section
+
+
+# --------------------------------------------------------------------------
+# The shape of the landing page
+# --------------------------------------------------------------------------
+
+LANDING_CHECK = "each landing page opens with what it is and stays under its ceiling"
+
+
+def test_a_landing_page_that_grew_past_its_ceiling_is_named():
+    module = _release_check()
+    grown = (Path(REPO_ROOT) / "README.md").read_text(encoding="utf-8") + "\npadding" * 200
+
+    problems = module.landing_problems("README.md", grown)
+
+    assert any("the ceiling is" in problem for problem in problems), problems
+
+
+@pytest.mark.parametrize(
+    ("planted", "expected"),
+    [
+        ("# Actaira\n\n**What it is.**\n\n```bash\nx\n```\n", "badges above the fold"),
+        (
+            "# Actaira\n\n[![a](x)](http://a)\n[![b](x)](http://b)\n[![c](x)](http://c)\n"
+            "\n```bash\nx\n```\n",
+            "one bold sentence",
+        ),
+        (
+            "**What it is, in one sentence that is long enough.**\n"
+            "[![a](x)](http://a)\n[![b](x)](http://b)\n[![c](x)](http://c)\n```bash\nx\n```\n",
+            "no H1",
+        ),
+        (
+            "# Actaira\n\n**What it is, in one sentence that is long enough.**\n"
+            "[![a](x)](http://a)\n[![b](x)](http://b)\n[![c](x)](http://c)\n",
+            "no command to run",
+        ),
+    ],
+)
+def test_a_first_screen_missing_one_of_the_four_things_fails(planted, expected):
+    """The four things a reader needs before deciding whether to read on. Each
+    is planted missing, one at a time, because a check that only ever sees the
+    page as it is cannot tell the property from the page."""
+    module = _release_check()
+
+    problems = module.landing_problems("README.md", planted)
+
+    assert any(expected in problem for problem in problems), problems
+
+
+def test_the_first_screen_contract_passes_on_both_pages_as_they_are():
+    module = _release_check()
+    for page in ("README.md", "README.es.md"):
+        text_of = (Path(REPO_ROOT) / page).read_text(encoding="utf-8")
+        assert module.landing_problems(page, text_of) == [], page

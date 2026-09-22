@@ -15,6 +15,9 @@ What is measured, and how:
                blanks by `tokenize` and `ast`. This project keeps its design
                notes in docstrings, so lumping those in with code would
                overstate the size of the thing being reviewed.
+  coverage     read from the `.coverage` data file `make test-cov` leaves
+               behind, through `coverage json`, so the published percentage is
+               coverage's own rounding. This script never runs the suite.
   rules        the identifiers the message catalogue carries, per family.
   corpus       built for real into a temporary directory, then counted.
   eval,        read from `evals/results.json`, `evals/benchmark.json` and
@@ -382,6 +385,27 @@ def measure_defects(collected_node_ids: set[str] | None) -> dict[str, Any]:
 
 
 
+def measure_coverage() -> dict[str, Any]:
+    """The coverage figure the READMEs state, from the suite's own data file.
+
+    Not measured here: this does not run pytest. `make test-cov` runs the
+    suite and leaves `.coverage` behind, and `make all` runs it immediately
+    before this script for that reason. A tree with no data file reports the
+    figure as unavailable and `main()` carries the previous one over, so
+    `make figures` on its own never silently rewrites a number nothing
+    measured - which is what the CI consistency job depends on, since it does
+    not run the suite.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from coverage_figure import NotMeasuredError, floor, measured  # noqa: PLC0415
+
+    figure: dict[str, Any] = {"floor": floor(), "source": "scripts/coverage_figure.py"}
+    try:
+        return {"available": True, **figure, **measured()}
+    except NotMeasuredError as absent:
+        return {"available": False, "reason": str(absent), "command": "make test-cov", **figure}
+
+
 def measure_package() -> dict[str, Any]:
     """The package metadata, read from the metadata rather than from prose.
 
@@ -487,6 +511,20 @@ class Report:
             lines.append(f"Not available: {tests.get('reason', 'unknown')}. Run `{tests.get('command', 'make test')}`.")
         lines.append("")
 
+        coverage = figures["coverage"]
+        if coverage.get("available"):
+            lines += [
+                f"Statement coverage of `src/actaira`: **{coverage['percent']}**, measured by "
+                f"`make test-cov`, which fails under {coverage['floor']}.",
+                "",
+            ]
+        else:
+            lines += [
+                f"Coverage not available: {coverage.get('reason', 'unknown')}. "
+                f"Run `{coverage.get('command', 'make test-cov')}`.",
+                "",
+            ]
+
         defects = figures["defects"]
         lines += ["## Defects found in this repository", ""]
         if defects.get("available"):
@@ -586,6 +624,7 @@ def collect() -> Report:
         "package": measure_package(),
         "git": measure_git(),
         "tests": tests,
+        "coverage": measure_coverage(),
         "defects": measure_defects(node_ids),
         "code": measure_areas(),
         "docs": measure_docs(),
@@ -598,8 +637,54 @@ def collect() -> Report:
 STAMPS = ("generated_at", "git")
 
 
+def the_stamp_still_names_this_history(existing: dict[str, Any]) -> bool:
+    """Is the commit the recorded stamp names still on this branch?
+
+    The rewrite of the commit messages is what this is for, and it is the
+    shape work rule 12 names rather than a hypothetical. The stamp is carried
+    over when nothing was measured differently, and a history rewrite changes
+    NOTHING that is measured here: the tree is identical by construction. So
+    `figures.json` would go on naming a commit that no longer exists on the
+    branch, `make figures` could not fix it because it would carry the stamp
+    again, and `release_check.py` would fail on an ancestry it has no way to
+    repair. The old commit is still in the object database, held alive by the
+    backup ref, so even "does this commit exist" answers yes.
+
+    A stamp is a record of when these figures were last measured to be
+    different. A record that names a commit the branch does not have is not a
+    record, so it is not carried.
+    """
+    head = (existing.get("git") or {}).get("head")
+    if not head:
+        return False
+    executable = shutil.which("git")
+    if executable is None:  # pragma: no cover - no git on the machine
+        return True
+
+    def git(*arguments: str) -> tuple[int, str]:
+        try:
+            completed = subprocess.run(  # noqa: S603 - resolved path, fixed argv, no shell
+                [executable, *arguments], cwd=ROOT, capture_output=True, text=True, timeout=30
+            )
+        except (OSError, subprocess.SubprocessError):  # pragma: no cover - no git
+            return 1, ""
+        return completed.returncode, completed.stdout.strip()
+
+    # "Is this a checkout" before "is that commit on it", and the order is the
+    # whole of this function's history. Asked the other way round, a tree with
+    # no `.git` - an unpacked sdist, or the copy the suite makes to run the
+    # measurement twice - gets `not a repository` back from git and reads it as
+    # `the commit is gone`, so the stamp moves on every run and the file stops
+    # being a function of the tree. That is the same check-something-adjacent
+    # shape this condition was written to close, one turn later.
+    code, top = git("rev-parse", "--show-toplevel")
+    if code != 0 or Path(top).resolve() != ROOT.resolve():
+        return True
+    return git("merge-base", "--is-ancestor", head, "HEAD")[0] == 0
+
+
 def keep_the_stamps_when_nothing_was_measured_differently(
-    measured: dict[str, Any], existing: dict[str, Any]
+    measured: dict[str, Any], existing: dict[str, Any], names_this_history: bool = True
 ) -> None:
     """Carry the previous stamp over when every measured block is identical.
 
@@ -614,13 +699,39 @@ def keep_the_stamps_when_nothing_was_measured_differently(
     `git.commits` and `git.head` out of the artifact; `release_check.py`
     checks those against the commit they name, and a figure that leaves the
     guarded set is unguarded rather than moved.
+
+    `names_this_history` is the other half, and without it the carry is a
+    trap: see `the_stamp_still_names_this_history`.
     """
+    if not names_this_history:
+        return
     if any(measured.get(block) != existing.get(block)
            for block in measured if block not in STAMPS):
         return
     for block in STAMPS:
         if block in existing:
             measured[block] = existing[block]
+
+
+def keep_the_coverage_when_the_suite_did_not_run(
+    measured: dict[str, Any], existing: dict[str, Any]
+) -> None:
+    """Carry the recorded coverage over when this run measured none.
+
+    `make figures` does not run the suite, and the CI job that re-measures the
+    figures and demands an empty diff does not either. Without this, either
+    that job rewrites the coverage figure to "unavailable" and fails on its own
+    diff, or the figure has to leave the guarded set - and a figure that leaves
+    the guarded set is not moved, it is unguarded.
+
+    The carry is only ever from measured to unmeasured. A run that DID measure
+    coverage writes what it measured, whatever was recorded before, which is
+    what makes `make all` and the CI test job able to notice a drift.
+    """
+    if measured.get("coverage", {}).get("available"):
+        return
+    if existing.get("coverage", {}).get("available"):
+        measured["coverage"] = existing["coverage"]
 
 
 def main() -> int:
@@ -633,8 +744,14 @@ def main() -> int:
 
     report = collect()
     if arguments.json_out.is_file():
+        existing = json.loads(arguments.json_out.read_text(encoding="utf-8"))
+        # In this order. The stamp is carried when every measured block is
+        # identical, so the coverage block has to be settled before that
+        # comparison is made, or a run with no coverage data would move the
+        # stamp by disagreeing with a figure it never measured.
+        keep_the_coverage_when_the_suite_did_not_run(report.figures, existing)
         keep_the_stamps_when_nothing_was_measured_differently(
-            report.figures, json.loads(arguments.json_out.read_text(encoding="utf-8"))
+            report.figures, existing, the_stamp_still_names_this_history(existing)
         )
     markdown = report.markdown()
     if arguments.print_only:

@@ -21,7 +21,8 @@
     "running it on the runner for the first time": "the published integration executed where it actually runs, on a GitHub Actions runner. `make all` on a clean clone deliberately reaches none of it - there is no runner on a laptop - so this is the one mechanism in the list that costs a push to operate",
     "an intermittent failure on one interpreter": "a test that passes almost always failed on one of the three interpreters in a run where the other two passed, so the difference was timing rather than code. It is the kind of red build that gets re-run rather than read, which is why the mechanism is named: the re-run is the bug's best defence",
     "reading the vendor's documentation": "the vendor's own reference read against what this tree does with the key it documents, rather than the tree read against itself. The mechanism is named because two greps of our own constants came back short before it was used: a set of values is a fact about somebody else's software, and a grep of our code can only ever return what we already knew.",
-    "running the gate on the development machine": "the suite run on Windows, where the tree is written, rather than in WSL, where the gate runs. Named because the two are not the same machine and work rule 7 puts the gate in WSL on purpose: anything only Windows sees is outside what the gate measures, which makes it invisible rather than absent."
+    "running the gate on the development machine": "the suite run on Windows, where the tree is written, rather than in WSL, where the gate runs. Named because the two are not the same machine and work rule 7 puts the gate in WSL on purpose: anything only Windows sees is outside what the gate measures, which makes it invisible rather than absent.",
+    "rehearsing a published step": "a step of `.github/release-notes/RUNBOOK.md` run against a throwaway clone and a bare remote of its own, before it is run against the real one. What it finds is the state the step leaves behind, which is the half a dry run cannot show."
   },
   "defects": [
     {
@@ -1486,6 +1487,52 @@
         "tests/test_release_check.py::test_a_word_that_merely_contains_a_licence_name_is_not_one"
       ],
       "pinned_note": "Two twins because the check has to fail in one direction and stay quiet in the other, and only one of those was ever asserted. The first plants `Also available under MIT.` on the README and demands the gate name it. The second plants a link to `docs/LIMITS.md` and the word `SUMMIT` and demands silence, which is the case the old line got wrong."
+    },
+    {
+      "id": "DEF-132",
+      "title": "the demo picture's canvas was measured at the advance width of the font it was drawn with, so the longest line of the report was clipped for every reader whose monospace is wider",
+      "effect": "THE DEFECT. `scripts/terminal_svg.py` sized the canvas as `COLUMNS * 8.42 + padding`, where 8.42 is the advance width of DejaVu Sans Mono at 14px - the face the picture was drawn with on the machine that wrote it. The picture is served to an `<img>` on somebody else's screen, so the face that draws it is the READER's `monospace`, and an `<img>` clips at the viewBox. A 104-character line fitted to the pixel here and lost its right-hand end on any machine resolving `monospace` to something wider. Eight lines of the English picture and eight of the Spanish one were over the edge, and the ones over the edge were the rule text: the part of the output the picture exists to show.\n\nWHY NOTHING SAID SO. `--check` compares the file on disk against what the command produces now, and both were drawn by the same script with the same constant, so the drift it looks for cannot be this. The picture was correct as a file and wrong as a picture, and the two had no checker in common.\n\nTHE FIX. The canvas is measured at 9.0px, wider than any common monospace face at 14px, and `release_check.py` reads that constant from the script that draws rather than carrying a second copy of it: a check on the published SVGs that every text line fits the box at that width, that nothing in the file fetches anything, and that every element is one a sanitiser keeps.",
+      "found_by": "adversarial review of new code",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "`docs/img/` travels in the sdist and the picture is on the landing page, so it was published; nothing the tool does depended on it.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_release_check.py::test_a_line_wider_than_the_canvas_is_refused_at_a_strangers_glyph_width",
+        "tests/test_release_check.py::test_the_picture_this_repository_publishes_is_accepted"
+      ],
+      "pinned_note": "The first plants a line longer than the canvas and demands the refusal; the second is the other direction, so the check cannot be satisfied by refusing everything."
+    },
+    {
+      "id": "DEF-133",
+      "title": "`figures.json` would have gone on naming a commit the branch no longer had after the history rewrite, and `make figures` could not have repaired it",
+      "effect": "THE DEFECT. DEF-128 made `make figures` idempotent by carrying the stamp - `generated_at` and the `git` block - over whenever every measured block is identical, so the file is a function of the tree and `git diff --exit-code` means something. A rewrite of the commit MESSAGES changes nothing that is measured: the trees are identical by construction. So after the rewrite every block would agree, the stamp would be carried, and `figures.json` would keep naming a commit that is not on the branch any more. `release_check.py` refuses exactly that, and `make figures` would have carried the same stamp again on every run: a red gate with no command that fixes it, at the point in the runbook where the branch has already been rewritten.\n\nWHY IT WOULD HAVE LOOKED LIKE SOMETHING ELSE. The old commit stays in the object database, held alive by the backup ref, so `git cat-file -e` answers yes. The failure would have read as an ancestry puzzle rather than as a stale stamp.\n\nTHE FIX. The carry is conditional on the recorded commit still being an ancestor of HEAD. A stamp is a record of when these figures were last measured to be different, and a record naming a commit the branch does not have is not a record.",
+      "found_by": "rehearsing a published step",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "It is in the measuring apparatus. It would have stopped a release rather than reaching one.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_release_check.py::test_the_stamp_is_not_carried_when_it_names_a_commit_the_branch_lost",
+        "tests/test_release_check.py::test_a_stamp_naming_a_commit_on_the_branch_is_still_carried",
+        "tests/test_release_check.py::test_the_stamp_condition_reads_the_repository_it_is_run_in"
+      ],
+      "pinned_note": "Three, because the condition can fail in three ways: never carrying, always carrying, and answering about a repository it is not in."
+    },
+    {
+      "id": "DEF-134",
+      "title": "the coverage floor and the measured coverage were the last two figures on either landing page that no command produced",
+      "effect": "THE DEFECT. Both READMEs carried `the floor is 88 and the tree measures 90`, typed. Every other number on those pages is derived, written by `sync_readme_figures.py` and refused by the gate when it drifts; these two were prose. The floor is enforced by `COVERAGE_FLOOR` in the Makefile and the measurement by the suite, and either could move without the sentence moving - a floor lowered to keep a build green with the page still quoting the old one is the drift in the direction that matters.\n\nTHE FIX. `scripts/coverage_figure.py` reads the floor from the Makefile that enforces it and the percentage from the coverage data file the suite leaves behind, `figures.py` records both, and the figures contract carries them like every other number. The patterns anchor BEHIND the figure rather than on the noun after it, because the sentence has no noun after it and the alternative was writing the word `percent` onto the landing page of a tool whose first negative is that it never states one.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "Both numbers were true when they were typed and were still true when they were derived. What was missing was anything that would have said so.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_release_check.py::test_a_stale_figure_fails",
+        "tests/test_release_check.py::test_a_figure_pattern_that_matches_nothing_fails"
+      ],
+      "pinned_note": "Held by the figure machinery itself: a figure in the contract whose pattern matches nothing on a page it declares is refused, and one whose value differs from the source is refused."
     }
   ]
 }

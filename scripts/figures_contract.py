@@ -98,6 +98,10 @@ def derive() -> dict[str, Any]:
     measured = json.loads(figures_path.read_text(encoding="utf-8"))
     if not measured.get("tests", {}).get("available"):
         raise ValueError("figures.json records no test count. Run `make figures`.")
+    if not measured.get("coverage", {}).get("available"):
+        raise ValueError(
+            "figures.json records no coverage. Run `make test-cov` and then `make figures`."
+        )
 
     # `evals/` and `fuzz/` went to tag v2.3.0, and with them the
     # judged-retrieval, marking-survival and benchmark figures. Nothing here
@@ -138,6 +142,14 @@ def derive() -> dict[str, Any]:
         "commands": len(commands),
         "design_notes": len(set(re.findall(r"^\| (D-\d+[a-z]?) \|", design, re.M))),
         "runtime_dependencies": 1,
+        # Two numbers that used to be typed into one sentence on both landing
+        # pages. The floor is what `make test-cov` enforces, read from the
+        # Makefile that enforces it; the percentage is what the suite last
+        # measured. Publishing the floor as a figure is the half that is easy
+        # to miss: a floor lowered to keep a build green, with the README still
+        # quoting the old one, is the drift in the direction that matters.
+        "coverage_floor": measured["coverage"]["floor"],
+        "coverage_percent": int(measured["coverage"]["percent"]),
     }
 
 def figures() -> list[Figure]:
@@ -217,6 +229,18 @@ def figures() -> list[Figure]:
                r"\b[\d,.]+(?= líneas de código de producto)", True),
         figure("rules", "i18n catalogue",
                r"\b\d+(?= documented rules)", r"\b\d+(?= reglas documentadas)"),
+        # The two coverage numbers, which were the last figures on either
+        # landing page that nothing produced. Anchored BEHIND the number
+        # rather than on the noun after it, because the sentence has no noun
+        # after it and the alternative was writing the word "percent" onto the
+        # landing page of a tool whose first negative is that it never states
+        # one. `anchor_nouns` reads the lookahead forms only, so these carry no
+        # noun to protect from markup, which is why they are written this way
+        # round and not the other.
+        figure("coverage_floor", "Makefile: COVERAGE_FLOOR",
+               r"(?<=the floor is )\d+", r"(?<=el suelo es )\d+"),
+        figure("coverage_percent", "figures.json: coverage json over the suite's data file",
+               r"(?<=the tree measures )\d+", r"(?<=el árbol mide )\d+"),
         # The ledger's counts live in `docs/ENGINEERING.md`. A landing page is
         # not where a reader meets a defect count, and the page that argues
         # about how the repository is held up is. Guarded there rather than
