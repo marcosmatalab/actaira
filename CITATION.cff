@@ -49,7 +49,7 @@ abstract: >-
 repository-code: "https://github.com/marcosmatalab/seamark"
 type: software
 version: 3.0.0
-date-released: "2026-09-15"
+date-released: "2026-09-23"
 license: Apache-2.0
 authors:
   - given-names: Marcos
