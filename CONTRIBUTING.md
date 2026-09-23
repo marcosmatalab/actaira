@@ -226,9 +226,8 @@ be guarded with `pytest.importorskip`.
 ## How this was built, and what that asks of a contribution
 
 Seamark was built by one person with heavy use of an AI coding assistant, over
-an intense stretch in September 2026. The commit dates say so.
-[`README.md`](README.md#how-this-was-built) states it in full and is the version
-to read; the short of it is that the product decisions and every rejected
+an intense stretch in September 2026. The commit dates say so. The short of
+it is that the product decisions and every rejected
 alternative in [`docs/DESIGN.md`](docs/DESIGN.md) are the author's, and the
 assistant wrote a large share of the implementation and the tests against them.
 
