@@ -276,3 +276,43 @@ def test_the_identifier_guard_catches_an_accented_name(tmp_path):
     assert any("parámetro" in offender for offender in offenders)
     assert not any("comentario" in offender for offender in offenders)
     assert not any("año" in offender for offender in offenders), "a string is not an identifier"
+
+
+# Words that carry an accent in every use, and nouns in -cion/-sion, which are
+# accented in the singular whatever the sentence. The words whose accent depends
+# on the sentence (que/qué, esta/está, cambio/cambió) are not here: a check that
+# guessed at those would be wrong in both directions, and a reader is not.
+ALWAYS_ACCENTED = (
+    "asi", "aqui", "alli", "ahi", "despues", "todavia", "ningun", "algun", "segun",
+    "tambien", "ademas", "mas", "ambito", "ambitos", "politica", "politicas",
+    "identica", "identicas", "identico", "identicos", "ultimo", "ultima", "numero",
+    "codigo", "pagina", "linea", "lineas", "unico", "unica", "valido", "valida",
+    "invalido", "invalida", "arbol", "metodo", "tecnica", "automatico", "automatica",
+    "publico", "analisis", "dia", "dias", "traves", "leido", "leida", "leidos", "leidas",
+)
+UNACCENTED = re.compile(r"\b(?:" + "|".join(ALWAYS_ACCENTED) + r"|\w+[cs]ion)\b", re.IGNORECASE)
+
+
+def unaccented_words(text: str) -> list[str]:
+    """The words in a Spanish string that are always written with an accent and
+    are not, leaving placeholders and code alone."""
+    prose = re.sub(r"\{[^}]*\}|`[^`]*`", " ", text)
+    return UNACCENTED.findall(prose)
+
+
+def test_the_spanish_catalogue_writes_its_accents():
+    """The demo printed `Que ha cambiado` and `Identicas en los dos lados`."""
+    found = {
+        key: unaccented_words(text)
+        for key, text in CATALOGUES["es"]["ui"].items()
+        if isinstance(text, str) and unaccented_words(text)
+    }
+
+    assert found == {}
+
+
+def test_the_accent_check_catches_what_the_catalogue_carried():
+    """The twin: two lines the catalogue had, and one it has to leave alone."""
+    assert unaccented_words("Identicas en los dos lados: {count}")
+    assert unaccented_words("la sal deshace la redaccion")
+    assert not unaccented_words("Sesión {session} grabada, `--version` aparte")

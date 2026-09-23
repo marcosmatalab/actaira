@@ -74,21 +74,21 @@
       "note": "this script"
     },
     "tests": {
-      "blank": 4495,
-      "code": 11694,
-      "comment": 1344,
-      "docstring": 3422,
+      "blank": 4504,
+      "code": 11717,
+      "comment": 1348,
+      "docstring": 3426,
       "files": 53,
-      "lines": 20955,
+      "lines": 20995,
       "note": "the test suite"
     },
     "total": {
-      "blank": 7397,
-      "code": 25781,
-      "comment": 3253,
-      "docstring": 7257,
+      "blank": 7406,
+      "code": 25804,
+      "comment": 3257,
+      "docstring": 7261,
       "files": 117,
-      "lines": 43688,
+      "lines": 43728,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -257,12 +257,12 @@
     },
     "total_lines": 856
   },
-  "generated_at": "2026-09-23T16:33:10+00:00",
+  "generated_at": "2026-09-23T16:48:58+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 77,
-    "head": "4bfd6e7",
+    "commits": 78,
+    "head": "b63a732",
     "head_date": "2026-09-23"
   },
   "package": {
@@ -283,7 +283,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 2724,
+    "collected": 2726,
     "files": 46,
     "per_file": {
       "tests/test_action_yml.py": 13,
@@ -299,7 +299,7 @@
       "tests/test_dsse.py": 25,
       "tests/test_file_size.py": 12,
       "tests/test_fixtures_are_published.py": 193,
-      "tests/test_i18n.py": 146,
+      "tests/test_i18n.py": 148,
       "tests/test_keyring.py": 34,
       "tests/test_layering.py": 9,
       "tests/test_mcp.py": 15,
