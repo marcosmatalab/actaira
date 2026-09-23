@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://seamark.dev/schemas/trace-v2.json",
+  "$id": "https://github.com/marcosmatalab/seamark/schemas/trace-v2.json",
   "title": "Seamark trace v2",
   "description": "What an agent did, in one shape whatever observed it. The capture level on every event is what decides what the document may claim: a trace read from the agent's own transcript cannot assert authenticity, and says so rather than leaving the field out. Field names follow the OpenTelemetry GenAI semantic conventions where those have one. Arguments and results travel as sha256 digests, because these files hold somebody's conversation; the literal content appears only when the caller asked for it. Nothing here is a summary and nothing here is a number standing in for evidence. What v2 changes over v1, and why none of it fitted inside v1: MCP revision 2026-07-28 removed protocol-level sessions and the initialize handshake (SEP-2567, SEP-2575), so the facts that used to be established once per session - the protocol revision, the client, the server, and the key by which two messages belong to one run - are now carried by every message and are recorded per event here. Seven gap reasons are added with them, and widening a closed enum narrows nothing for a producer and everything for a consumer that switches exhaustively, which is the rule that makes this a new version rather than an addition to the old one. trace/v1 stays published and stays readable.",
   "type": "object",

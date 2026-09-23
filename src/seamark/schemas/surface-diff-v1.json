@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://seamark.dev/schemas/surface-diff-v1.json",
+  "$id": "https://github.com/marcosmatalab/seamark/schemas/surface-diff-v1.json",
   "title": "Seamark surface difference, v1",
   "description": "Which capability appears, disappears, widens, narrows or changes between two surfaces. Five lists that are never mixed, plus a sixth for what could not be resolved on either side, which is counted apart and never distributed among the five. Nothing here is a total, an ordering or a summary.",
   "type": "object",

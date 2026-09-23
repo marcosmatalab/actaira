@@ -85,6 +85,9 @@ had:
   measures, and no other release note, because a published one is a record;
 - every tracked file against the name this product had until 3.0.0, which may
   appear only where a table says how often and why;
+- every contract's `$id` against the repository URL `pyproject.toml` declares,
+  because an identifier published under a name this project does not hold is
+  one somebody else can answer for;
 - the two publishing jobs against the asymmetry the release order rests on:
   the rehearsal may repeat itself and the publication may not, and each is
   reachable from one event and no other - the condition and the `needs:` chain
@@ -189,11 +192,21 @@ are standing when they decide.
 So the criterion is held as the part of it a command can answer, in
 `scripts/release_check.py`:
 
-- each page has a CEILING, at 500 lines for `README.md` and 510 for
-  `README.es.md`, which is a little above where this work left them. The
-  Spanish page is allowed the extra because Spanish is longer, not because it
-  matters less. Growing is red, shrinking is free: a page that has grown past
-  its own argument twice needs a stop, not a target;
+- each page has a CEILING, at 530 lines for `README.md` and 540 for
+  `README.es.md`. The Spanish page is allowed the extra because Spanish is
+  longer, not because it matters less. Growing is red, shrinking is free: a
+  page that has grown past its own argument twice needs a stop, not a target;
+- the ceiling sits ABOUT TWO SECTIONS above the page, and the size of a section
+  is measured rather than guessed: the last one added, the paragraph saying
+  where the name comes from, cost 18 lines. The first version of this gate left
+  six, which is the mistake the coverage floor avoided on purpose by sitting at
+  88 while the tree measures 90. A gate pegged to today's value goes red on the
+  first legitimate sentence, and a gate that goes red on legitimate work is one
+  somebody raises in a hurry to get on with the day - after which it holds
+  whatever the page happens to say. Six lines of room would have measured
+  nothing except who was willing to argue with it. What the pages measure now
+  is printed by the check rather than written down beside it, because a figure
+  written down beside it is exactly what went stale here;
 - the FIRST SCREEN has to carry the name, one bold sentence saying what this
   is, at least three badges and a command the reader can run. That is what
   "about 300 lines" was reaching for, written as the thing it was reaching for
@@ -311,10 +324,10 @@ holds it down. `make figures` checks every test the ledger names against what
 pytest actually collects, so a renamed test is reported by name rather than
 leaving a total that still looks healthy.
 
-154 defects have been found here, by 21 distinct mechanisms, and every one of
+156 defects have been found here, by 21 distinct mechanisms, and every one of
 them was found by a mechanism that can fail. 0 still open.
-61 were never in a released build and are marked as such rather than dropped.
-Every entry is held down: 34 pinned by a named test, and 104 by a written note,
+62 were never in a released build and are marked as such rather than dropped.
+Every entry is held down: 35 pinned by a named test, and 105 by a written note,
 where a named test would be a weaker copy of what the linter or the gate
 already does.
 

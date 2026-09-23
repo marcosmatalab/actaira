@@ -1563,6 +1563,36 @@
       "fixed": true,
       "pinned_by": [],
       "pinned_note": "Pinned by the runner rather than by a test: the `workflows` job runs that exact command on every push and every pull request, and a test here would be a second copy of a linter's opinion. What was missing was not a test but a run, and the run is in CI."
+    },
+    {
+      "id": "DEF-137",
+      "title": "every published contract carried an identifier on a domain nobody here had registered",
+      "effect": "THE DEFECT. The six JSON Schemas the package ships declared `$id` under `<product>.dev/schemas/`, a domain this project does not own and never did - first under the old product name, and then, when the rename swept the tree, under the new one. Nothing malfunctioned, and that is the shape of it: an identifier is a claim about a name, and this one claimed a name that was free for anybody to take. Whoever registered it could answer for every contract this tool publishes, and the only symptom before that day was a URL that read well.\n\nWHY NOBODY SAW IT. Two gates ran over these files and neither was looking at this. `tests/test_schemas.py` resolves every reference locally, so an unreachable namespace is invisible to it by design; the release gate compared the generated contract index against the registry, which is agreement between two things that were wrong together. The rename made it worse rather than exposing it, because a sweep that rewrites a string end to end carries the string's assumptions with it.\n\nWHAT MAKES IT THIS REPOSITORY'S DEFECT IN PARTICULAR. `ACT-S003` is a rule this tool raises in other people's trees: a hook referenced by a path somebody else can change is not a reference you can approve. Publishing contracts under a name somebody else can register is that rule, with a different noun.\n\nTHE FIX. Every `$id` is now under the repository's own URL, which is the string `pyproject.toml` already publishes to every index, and `docs/CONTRACTS.md` is generated with the namespace read off the schemas rather than typed. The gate reads the repository URL from that one place and refuses any identifier outside it, so the next schema cannot reintroduce a rented name. Design note D-303 carries the rejected alternative: a raw URL pinned to a branch or a tag, which resolves in a browser and gives one contract a new identity every release.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": true,
+      "shipped_in": "1.0.0 through 2.3.0",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_release_check.py::test_a_contract_published_on_a_domain_fails",
+        "tests/test_release_check.py::test_a_contract_published_under_another_repository_fails",
+        "tests/test_release_check.py::test_an_identifier_that_names_another_file_fails",
+        "tests/test_release_check.py::test_the_contracts_on_disk_are_all_under_the_declared_repository",
+        "tests/test_release_check.py::test_the_published_page_states_the_namespace_the_schemas_use"
+      ],
+      "pinned_note": "Three plants and two directions: a contract on a domain, a contract under somebody else's repository, and an identifier that names another file in the right namespace; then the tree as it stands, where the whole set raises nothing and the page states the namespace the documents actually carry."
+    },
+    {
+      "id": "DEF-138",
+      "title": "the landing-page ceiling sat six lines above the page, which is a gate that goes red on the next honest paragraph",
+      "effect": "THE DEFECT. `LANDING_CEILING` held `README.md` to 500 lines while the page measured 494, and `README.es.md` to 510 against 503. The number was chosen when the pages were 476 and 485 and was never moved as they grew, so the room it was given had already been spent. The next legitimate section - the last one cost 18 lines - would have turned `make all` red for a reason that has nothing to do with what the gate is for.\n\nWHY THAT MATTERS MORE THAN IT LOOKS. The failure of a gate like this is not a red build, it is the edit that follows it: somebody in a hurry raises the number to fit what is already on the page, and from then on the ceiling measures nothing. This project had already made the opposite decision once, on purpose and with the reason written beside it - the coverage floor sits at 88 against a measured 90 precisely so that one honest defensive branch does not break the build. Two gates over the same kind of property, one given slack and one not, and the one without it was the one nobody had revisited.\n\nTHE FIX. The ceilings are 530 and 540, about two sections above the pages, where the size of a section is measured rather than guessed. The comment beside the numbers and `docs/ENGINEERING.md` both state the slack and the reason for it, and the existing check already fails if the prose stops stating the ceiling it argues for.",
+      "found_by": "external adversarial audit",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "It is in the release gate, not in the tool. It would have stopped a future edit to a page rather than reaching anybody who installed this.",
+      "fixed": true,
+      "pinned_by": [],
+      "pinned_note": "Pinned by the argument beside the number rather than by a test, and deliberately: a test asserting that the page still has room left would be the tight gate again, one level up - it would fail on the first line added, which is the behaviour this entry is about. What is held instead is that the number cannot drift from its reason. `the_landing_pages_keep_their_shape` fails when `docs/ENGINEERING.md` stops stating the ceiling it argues for, so moving the number without moving the argument is red."
     }
   ]
 }

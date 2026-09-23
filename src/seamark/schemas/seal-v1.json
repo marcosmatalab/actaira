@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://seamark.dev/schemas/seal-v1.json",
+  "$id": "https://github.com/marcosmatalab/seamark/schemas/seal-v1.json",
   "title": "Seamark surface seal, v1",
   "description": "A signed baseline of one surface, carrying no content. Paths and the names a third party chose travel as salted references whose salt stays with the operator; everything a capability observed travels as one digest of its facts. What remains is rule identifiers, resolution states and counts, which is the rule docs/GOVERNANCE.md states about what may leave a machine.",
   "type": "object",

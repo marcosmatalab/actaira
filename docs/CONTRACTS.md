@@ -18,6 +18,41 @@ seamark schema report-v1       # print one
 ```
 
 
+## Where the identifiers point
+
+Every contract's `$id` is under the repository's own URL:
+
+```
+https://github.com/marcosmatalab/seamark/schemas/<name>.json
+```
+
+A `$id` is an identity, not an address. Nothing in this package fetches one -
+`seamark` validates offline, against the schemas it ships, and the registry
+resolves every reference locally - so what the identifier has to do is name one
+contract for as long as that contract exists, and name it for this project and
+no other. That is a question of who holds the name, not of how the name reads.
+
+A domain named after the product reads better and is rented. The day it lapses,
+or the day somebody else registers it first, these documents are published in a
+namespace this project cannot speak for, and a consumer that resolves the
+identifier resolves it against a stranger. That is the mistake
+[`ACT-S003`](RULES.md#act-s003) refuses in somebody else's hooks - a reference
+to a name another party can change under you - and a tool that raises it while
+committing it would be arguing with itself. The repository URL is held by the
+account that publishes the releases, and a rename does not strand it: GitHub
+answers the old path with a redirect to the new one. That is not an idle
+detail here - this project changes its name in the release this page ships
+with, and the namespace came through it.
+
+Rejected: a raw URL pinned to a branch or a tag. It resolves in a browser, which
+is the whole of its advantage, and it changes the identifier every time the file
+moves in the tree or the release advances - so one contract would carry as many
+identities as it had versions, which is the opposite of what a `$id` is for.
+
+The release gate refuses any `$id` outside this namespace, so a schema added
+later cannot quietly reintroduce a rented one.
+
+
 ## Current
 
 | Contract | What it is | Produced by |

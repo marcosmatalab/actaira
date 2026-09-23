@@ -179,6 +179,31 @@ repository.
   from there by six readers for other vendors. They are in `surface/disk.py`,
   moved with no change of behaviour and no change of name, before phase S4's
   machine-scope readers made the miscount ten rather than six.
+- **Every published contract was identified by a name nobody here held.** The
+  six schemas declared `$id` under a `.dev` domain named after the product,
+  first the old name and then, after the rename swept the tree, the new one.
+  Neither was ever registered by this project. Nothing failed, and that is the
+  shape of the defect: an identifier is a claim about a name, this one claimed
+  a name that was free, and the first symptom would have been the day somebody
+  took it and every contract this tool publishes started resolving into their
+  namespace. It is also the rule this tool raises in other people's trees -
+  `ACT-S003`, a reference bound to a name another party can change. The `$id`
+  of every contract is now under the repository's own URL, read from the one
+  place that already publishes it, `pyproject.toml`; `docs/CONTRACTS.md` is
+  generated with the namespace taken off the schemas and states why an
+  identifier is tied to something owned; and a release check refuses any `$id`
+  outside it, so the next schema cannot reintroduce a rented name. This is a
+  breaking change for a consumer that matched on the old identifier, which is
+  the other reason it belongs in a major version. Design note D-303, DEF-137.
+- **The landing-page ceiling sat six lines above the page.** `README.md` was
+  494 lines against a ceiling of 500 set when it was 476, so the next section
+  worth writing would have turned the whole gate red for a reason unrelated to
+  what the gate is for - and the edit that follows that is somebody raising the
+  number to fit the page, after which it measures nothing. The ceilings are 530
+  and 540, about two sections above the pages, where a section is the eighteen
+  lines the last one cost. It is the decision the coverage floor already made
+  on purpose by sitting at 88 against a measured 90, applied to the gate that
+  had not been revisited. DEF-138.
 - **`MANIFEST.in` excluded a file that had not existed since phase A.1.**
   `.pre-commit-hooks.yaml` exists again, so the line is true rather than merely
   quiet, and `action.yml` is excluded beside it for the same reason: both are
@@ -248,9 +273,10 @@ not been published under its name yet.
 What changed with it: the distribution on PyPI (`seamark`), the command
 (`seamark`), the import path (`import seamark`), the package directory
 (`src/seamark/`), the repository (`github.com/marcosmatalab/seamark`), the
-identifiers of the four live contracts, the author label on the rule packs, and
-every page in the tree that is about the product rather than about what
-happened.
+identifiers of every contract on disk - which went further than the rename and
+left a product-named domain altogether for the repository's own URL, with the
+reason among the fixes above - the author label on the rule packs, and every
+page in the tree that is about the product rather than about what happened.
 
 What deliberately did not change, each because renaming it would break
 something rather than rename it: the entries of this file below 3.0.0, the

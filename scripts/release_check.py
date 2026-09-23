@@ -994,6 +994,81 @@ def contracts_index_is_current() -> str:
     return run.stdout.strip().split(": ", 1)[-1] + ", and the page on disk matches"
 
 
+def identifier_problems(repository: str, ids: dict[str, str]) -> list[str]:
+    """Pure, so a twin can plant a contract published under a rented name.
+
+    Design note D-303. A `$id` is an identity and nothing here fetches one, so
+    what it has to be is unambiguous and ours. Held as a prefix rather than as
+    a list of known identifiers, because the failure to catch is the schema
+    added next year, not the six on disk today.
+    """
+    namespace = repository.rstrip("/") + "/schemas/"
+    problems: list[str] = []
+    for name, identifier in sorted(ids.items()):
+        if not identifier:
+            problems.append(
+                f"{name}.json declares no `$id`, so the document it describes has no identity "
+                "at all and two of them could not be told apart by a consumer."
+            )
+        elif not identifier.startswith(namespace):
+            problems.append(
+                f"{name}.json is published as {identifier}, which is outside "
+                f"{namespace}. An identifier under a name this project does not hold is one "
+                "somebody else can answer for, and ACT-S003 is this tool refusing exactly that "
+                "in other people's trees."
+            )
+        elif identifier != f"{namespace}{name}.json":
+            problems.append(
+                f"{name}.json is published as {identifier}, which is in the right namespace "
+                "under another document's name. An identifier that does not name its own "
+                "file resolves to the wrong contract or to nothing at all."
+            )
+    return problems
+
+
+@check("every contract is published under a name this project holds")
+def contract_identifiers_are_ours() -> str:
+    """Design note D-303, and the sentence `docs/CONTRACTS.md` publishes.
+
+    These documents used to carry a `$id` on a domain named after the product,
+    which nobody here had registered. Nothing broke, which is the point: the
+    identifier would have gone on reading correctly right up to the day
+    somebody else took the name, and then every contract this tool publishes
+    would have been in a stranger's namespace with no diff to show for it.
+
+    The namespace is derived and never typed here. It comes from the
+    `Repository` URL in `pyproject.toml`, which is the same string the package
+    publishes to every index; `docs/CONTRACTS.md` states the namespace it reads
+    off the schemas themselves. One chain, in one direction: the page cannot
+    print a namespace the documents do not carry, and the documents cannot
+    carry one the packaging does not declare.
+    """
+    declared = re.search(
+        r'^Repository\s*=\s*"([^"]+)"', (ROOT / "pyproject.toml").read_text(encoding="utf-8"),
+        re.M,
+    )
+    if not declared:
+        raise DriftError(
+            "pyproject.toml declares no Repository URL, and this check has nothing to hold "
+            "the contract identifiers against."
+        )
+    folder = ROOT / "src" / "seamark" / "schemas"
+    ids = {
+        path.stem: json.loads(path.read_text(encoding="utf-8")).get("$id", "")
+        for path in sorted(folder.glob("*.json"))
+    }
+    if not ids:
+        raise DriftError(f"no schemas under {folder.relative_to(ROOT)}, so this checked nothing")
+    problems = identifier_problems(declared.group(1), ids)
+    if problems:
+        raise DriftError("\n".join(problems))
+    return (
+        f"{len(ids)} contracts, every one published under "
+        f"{declared.group(1).rstrip('/')}/schemas/, which is the URL pyproject.toml "
+        "declares for this repository"
+    )
+
+
 @check("the CLI prints the same bytes twice")
 def cli_output_is_deterministic() -> str:
     """Design note D-234. The READMEs show console blocks, and a console block
@@ -1613,11 +1688,17 @@ def the_network_guard_is_armed() -> str:
 # The shape of the landing page
 # --------------------------------------------------------------------------
 
-# The ceiling each landing page is held to, and the reason it is a ceiling
-# rather than a target is in `docs/ENGINEERING.md`. The pages are 476 and 485
-# lines; this leaves each of them a little room and refuses the direction they
-# have grown in twice before.
-LANDING_CEILING = {"README.md": 500, "README.es.md": 510}
+# The ceiling each landing page is held to, and the reason it is a ceiling rather
+# than a target is in `docs/ENGINEERING.md`. Each one sits about two sections
+# above the page it holds, where a section is the 18 lines the last legitimate one
+# cost. That slack is the same decision as the coverage floor of 88 against a
+# measured 90: a gate pegged to today's value goes red on the first honest edit,
+# and a gate that breaks on its own gets switched off. What it still refuses is
+# the direction these pages have grown in twice before, which is a chapter at a
+# time and never back down. What they measure today is in this check's own output
+# rather than written here, because a figure written here is what went stale last
+# time and left six lines of room.
+LANDING_CEILING = {"README.md": 530, "README.es.md": 540}
 
 # What has to be above the fold, and the depth a fold is taken to be. Nothing
 # here is about beauty: it is the four things a reader needs before they decide
@@ -1673,8 +1754,8 @@ def landing_problems(page: str, text_of: str) -> list[str]:
 def the_landing_pages_keep_their_shape() -> str:
     """The phase 4 criterion, as the part of it that can be measured.
 
-    The plan asked for a landing page of about 300 lines. These are 476 and
-    485, the reason is written up in `docs/ENGINEERING.md`, and what is held
+    The plan asked for a landing page of about 300 lines. Neither page reached
+    it, the reason is written up in `docs/ENGINEERING.md`, and what is held
     here is the two halves of that criterion that a command can answer: the
     page does not grow, and the first screen carries the name, the sentence,
     the badges and a command.
