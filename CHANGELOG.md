@@ -31,6 +31,22 @@ They are the one thing in this file a reader cannot re-derive from what is in
 front of them, and they are therefore the one thing in it worth the least:
 everything else here is checkable against the tree it describes.
 
+## [3.0.1] - 2026-09-23
+
+### Fixed
+
+- **`diff` suggested an option it does not have.** The surface resolvers, which
+  `check` and `diff` share, ended a cause with "(run with --machine)" or "not read
+  without --machine", and only `check` and `seal` take `--machine`; the landing
+  page's own picture printed it under `diff`. Every such hint now names
+  `seamark check --machine` (design note D-308). `tests/test_suggested_options.py`
+  reads what `check` and `diff` print, every help page and both catalogues, and
+  fails on an option or a command the parser does not have.
+- **The catalogue named commands that do not exist.** It told a reader to run
+  `source add`, `source list` and `policy check --state`, in texts no code path
+  reaches: the `change`, `decide` and `state` families, 43 keys per language
+  left by the model scanner. They are gone from both catalogues.
+
 ## [3.0.0] - 2026-09-23
 
 **The subject changes: from what an agent did to what an agent can do.** The

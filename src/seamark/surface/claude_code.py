@@ -287,7 +287,7 @@ def read(
         )
     else:
         not_read.append(
-            NotRead("~/.claude/settings.json and the managed policy", "not read without --machine")
+            NotRead("~/.claude/settings.json and the managed policy", "read only by `seamark check --machine`")
         )
 
     # Only files that exist are worth a gap. An absent settings file is not a

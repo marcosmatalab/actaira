@@ -205,7 +205,7 @@ def read(root: Path, *, machine: bool = False, home: Path | None = None) -> Read
         not_read.append(
             NotRead(
                 "~/.codex/config.toml and the managed layers",
-                "not read without --machine, and the project trust_level that decides whether "
+                "read only by `seamark check --machine`, and the project trust_level that decides whether "
                 "the .codex/ layer loads is in the first of them",
             )
         )
@@ -291,7 +291,7 @@ def _codex_trust(reading: Any, scope: Scope) -> tuple[Resolution, str | None]:
     return (
         Resolution.DECLARED,
         "the project .codex/ layer loads only when trusted, and no trust_level was read "
-        "(run with --machine to read ~/.codex/config.toml)",
+        "(`seamark check --machine` reads ~/.codex/config.toml)",
     )
 
 

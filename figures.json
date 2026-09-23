@@ -7,7 +7,7 @@
     "rules_by_family": {
       "ACT": 32
     },
-    "ui_messages": 230
+    "ui_messages": 187
   },
   "code": {
     "attest": {
@@ -49,10 +49,10 @@
     "rest": {
       "blank": 869,
       "code": 4275,
-      "comment": 481,
+      "comment": 485,
       "docstring": 1003,
       "files": 20,
-      "lines": 6628,
+      "lines": 6632,
       "note": "everything in src/ the areas above do not claim"
     },
     "schemas": {
@@ -67,28 +67,28 @@
     "scripts": {
       "blank": 854,
       "code": 4196,
-      "comment": 608,
+      "comment": 610,
       "docstring": 1080,
       "files": 16,
-      "lines": 6738,
+      "lines": 6740,
       "note": "this script"
     },
     "tests": {
-      "blank": 4464,
-      "code": 11628,
+      "blank": 4495,
+      "code": 11694,
       "comment": 1344,
-      "docstring": 3407,
-      "files": 52,
-      "lines": 20843,
+      "docstring": 3422,
+      "files": 53,
+      "lines": 20955,
       "note": "the test suite"
     },
     "total": {
-      "blank": 7366,
-      "code": 25715,
-      "comment": 3247,
-      "docstring": 7242,
-      "files": 116,
-      "lines": 43570,
+      "blank": 7397,
+      "code": 25781,
+      "comment": 3253,
+      "docstring": 7257,
+      "files": 117,
+      "lines": 43688,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -253,20 +253,20 @@
   },
   "docs": {
     "docs/DESIGN.md": {
-      "lines": 855
+      "lines": 856
     },
-    "total_lines": 855
+    "total_lines": 856
   },
-  "generated_at": "2026-09-23T15:53:37+00:00",
+  "generated_at": "2026-09-23T16:33:10+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 72,
-    "head": "05af0f7",
+    "commits": 77,
+    "head": "4bfd6e7",
     "head_date": "2026-09-23"
   },
   "package": {
-    "declared_version": "3.0.0",
+    "declared_version": "3.0.1",
     "development_dependencies": [
       "pytest>=8",
       "pytest-cov>=5",
@@ -278,13 +278,13 @@
       "cryptography>=41"
     ],
     "runtime_dependency_count": 1,
-    "version": "3.0.0",
+    "version": "3.0.1",
     "version_agrees_with_pyproject": true
   },
   "tests": {
     "available": true,
-    "collected": 2714,
-    "files": 45,
+    "collected": 2724,
+    "files": 46,
     "per_file": {
       "tests/test_action_yml.py": 13,
       "tests/test_attest_anchor.py": 25,
@@ -294,12 +294,12 @@
       "tests/test_cli.py": 32,
       "tests/test_consistency.py": 285,
       "tests/test_defect_ledger.py": 564,
-      "tests/test_design_notes.py": 92,
+      "tests/test_design_notes.py": 93,
       "tests/test_diff.py": 25,
       "tests/test_dsse.py": 25,
       "tests/test_file_size.py": 12,
       "tests/test_fixtures_are_published.py": 193,
-      "tests/test_i18n.py": 145,
+      "tests/test_i18n.py": 146,
       "tests/test_keyring.py": 34,
       "tests/test_layering.py": 9,
       "tests/test_mcp.py": 15,
@@ -319,6 +319,7 @@
       "tests/test_schemas.py": 24,
       "tests/test_seal_and_report.py": 21,
       "tests/test_signing_domain_separation.py": 4,
+      "tests/test_suggested_options.py": 8,
       "tests/test_surface.py": 100,
       "tests/test_surface_instructions.py": 34,
       "tests/test_surface_rules.py": 80,

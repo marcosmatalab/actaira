@@ -2225,11 +2225,13 @@ def the_release_section_uses_the_new_name() -> str:
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     problems = release_section_name_problems(changelog, declared.group(1))
     section = "\n".join(line for _, line in release_sections(changelog, declared.group(1)))
+    # In the file and not in the section: the shapes belong to the 3.0.0 entry,
+    # which stays a record once a later version is the one being released.
     for pattern, reason in RELEASE_SECTION_OLD_NAME:
-        if not reason.strip() or not re.search(pattern, section, re.I):
+        if not reason.strip() or not re.search(pattern, changelog, re.I):
             problems.append(
-                f"the allowance `{pattern}` matches nothing in the section being released. "
-                "An allowance for a line that has gone is one nobody will notice widening."
+                f"the allowance `{pattern}` matches nothing in CHANGELOG.md. An allowance "
+                "for a line that has gone is one nobody will notice widening."
             )
     if problems:
         raise DriftError("\n".join(problems))

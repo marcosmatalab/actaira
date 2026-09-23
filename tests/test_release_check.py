@@ -1685,8 +1685,10 @@ def test_the_notes_this_tree_would_publish_state_what_it_measures():
     """Non-vacuity over the real file: the check reads the notes that are
     about to be pasted into a release, and finds both figures in them."""
     module = _release_check()
+    from seamark import __version__  # noqa: PLC0415
+
     notes = (
-        Path(REPO_ROOT) / ".github" / "release-notes" / "v3.0.0.md"
+        Path(REPO_ROOT) / ".github" / "release-notes" / f"v{__version__}.md"
     ).read_text(encoding="utf-8")
     measured = json.loads((Path(REPO_ROOT) / "figures.json").read_text(encoding="utf-8"))
 
