@@ -29,19 +29,17 @@ name: release
 
 on:
   # The release exists before this runs: a person wrote it and pressed the
-  # button. What this adds is the attested build and the upload to the index.
+  # button. What this adds is the attested build, attached to that release.
+  # Nothing is uploaded to a package index: the tool installs from its tag, and
+  # `scripts/release_check.py` refuses a workflow that uploads (design note D-306).
   release:
     types: [published]
-  # The rehearsal. TestPyPI, from the same job that publishes to PyPI, so the
-  # thing being rehearsed is the thing that will run.
-  workflow_dispatch:
 
 # Nothing by default. Every job asks for what it needs and no more.
 permissions: {}
 
-# One release at a time, and never cancelled. A publish half-done is the one
-# state this whole file is arranged to avoid: `cancel-in-progress` on a job
-# that uploads to an index would mean stopping between two files.
+# One release at a time, and never cancelled: `cancel-in-progress` on the job
+# that attaches the assets would mean stopping between two files.
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
@@ -107,8 +105,7 @@ jobs:
           path: dist
       - name: upload them to the release a person wrote
         # `--clobber` so that re-running this job replaces the assets instead
-        # of failing halfway. A release asset can be replaced; a PyPI version
-        # cannot, which is why the order in the runbook is this one.
+        # of failing halfway.
         #
         # The tag goes through `env:` and is quoted in the command. A tag name
         # is somebody else's string the moment this repository has more than
@@ -121,53 +118,3 @@ jobs:
         run: |
           set -euo pipefail
           gh release upload "$TAG" dist/* --clobber --repo "$REPOSITORY"
-
-  testpypi:
-    name: the rehearsal, to TestPyPI
-    needs: build
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    # The environment is half of what makes Trusted Publishing safe: PyPI's
-    # publisher form names this environment, so a workflow run that is not this
-    # one cannot mint a token for it even if it lives in this repository.
-    environment: testpypi
-    permissions:
-      id-token: write  # the identity TestPyPI trusts; there is no token and no secret here
-    steps:
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
-        with:
-          name: dist
-          path: dist
-      - name: leave only what an index takes
-        # `dist/SHA256SUMS` belongs to the release, not to PyPI: twine refuses
-        # a file it cannot recognise as a distribution, and a job that dies at
-        # the upload step because of a checksum file would die AFTER the
-        # rehearsal was supposed to have proved the upload works.
-        run: rm -f dist/SHA256SUMS
-      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # v1.14.2
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          packages-dir: dist
-          # A rehearsal is re-run, and TestPyPI keeps what it was given the
-          # first time. On PyPI below there is no such line: a version that is
-          # already there is a mistake and has to say so.
-          skip-existing: true
-
-  pypi:
-    name: publish to PyPI, with no token anywhere
-    needs: [build, attach]
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      id-token: write  # the identity PyPI trusts; this is the whole of what replaces a token
-    steps:
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
-        with:
-          name: dist
-          path: dist
-      - name: leave only what an index takes
-        run: rm -f dist/SHA256SUMS
-      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # v1.14.2
-        with:
-          packages-dir: dist

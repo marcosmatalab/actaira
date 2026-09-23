@@ -158,6 +158,14 @@ def sha256sums(paths: list[Path]) -> Path:
     return target
 
 
+# What a clean install is asked to run, and the rule its data probe reads. Named
+# here so `tests/test_package_contents.py` can hold them against the parser and
+# the packs offline: the install needs a network, and a list only the install
+# ever read still named `schema` and a scanner rule a phase after both left.
+SMOKE = (["--version"], ["--help"], ["scan", "--demo"])
+PROBE_RULE = "ACT-S001"
+
+
 def install_and_run(wheel: Path) -> None:
     """The check no inspection of the archive can make: does it work.
 
@@ -178,7 +186,7 @@ def install_and_run(wheel: Path) -> None:
             [str(python), "-m", "pip", "install", "--quiet", str(wheel)],
             check=True, capture_output=True,
         )
-        for argv in (["--version"], ["--help"], ["schema"]):
+        for argv in SMOKE:
             run = subprocess.run(  # noqa: S603 - a fixed argv, no shell
                 [str(python), "-m", "seamark", *argv],
                 capture_output=True, text=True, timeout=180,
@@ -194,11 +202,11 @@ def install_and_run(wheel: Path) -> None:
         probe = (
             "from seamark.i18n.catalog import Catalog;"
             "from seamark import schemas;"
-            "import importlib.resources as r;"
-            "Catalog('es').rule('ACT-PKL-002');"
+            "from seamark.surface import rules;"
+            f"Catalog('es').rule('{PROBE_RULE}');"
             "assert schemas.names();"
-            "assert r.files('seamark.web').joinpath('static/index.html').is_file();"
-            "print('  clean install: catalogue, schemas and the interface all load')"
+            f"assert '{PROBE_RULE}' in {{rule.id for rule in rules.load()}};"
+            "print('  clean install: catalogue, schemas and rule packs all load')"
         )
         run = subprocess.run(  # noqa: S603 - a fixed argv, no shell
             [str(python), "-c", probe], capture_output=True, text=True, timeout=180,
