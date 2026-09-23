@@ -2180,6 +2180,42 @@ def release_section_name_problems(changelog: str, version: str) -> list[str]:
     return problems
 
 
+def unreleased_command_problems(changelog: str, commands: set[str]) -> list[str]:
+    """Commands the parser already has, written up under `## Unreleased`. Pure.
+
+    Design note D-307. 3.0.0 shipped `diff` and `seal` while the changelog
+    listed both as unreleased, so a reader of the tag could not tell what it
+    contained. Rejected: comparing against git tags, which a tarball and a
+    shallow clone do not carry.
+    """
+    problems: list[str] = []
+    inside = False
+    for number, line in enumerate(changelog.splitlines(), 1):
+        if line.startswith("## "):
+            inside = line[3:].strip() == "Unreleased"
+            continue
+        if inside:
+            for command in sorted(set(re.findall(r"`seamark (\w+)", line)) & commands):
+                problems.append(
+                    f"CHANGELOG.md:{number} lists `seamark {command}` as unreleased, and the "
+                    "version this tree is at already ships it"
+                )
+    return problems
+
+
+@check("nothing the installed version ships is written up as unreleased")
+def the_changelog_says_what_the_version_ships() -> str:
+    from seamark.cli import build_parser
+
+    parser = build_parser()
+    commands = set(parser._subparsers._group_actions[0].choices)  # noqa: SLF001
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    problems = unreleased_command_problems(changelog, commands)
+    if problems:
+        raise DriftError("\n".join(problems))
+    return f"{len(commands)} commands, none of them written up as unreleased"
+
+
 @check("the section of the changelog being released uses the new name")
 def the_release_section_uses_the_new_name() -> str:
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")

@@ -31,13 +31,84 @@ They are the one thing in this file a reader cannot re-derive from what is in
 front of them, and they are therefore the one thing in it worth the least:
 everything else here is checkable against the tree it describes.
 
-## Unreleased
+## [3.0.0] - 2026-09-23
 
-**The subject changes: from what an agent did to what an agent can do.** No code
-moved in phase S0 and no version is released here. What changed is the doctrine
-the code is written against, and it is recorded now rather than at the release
-that first ships against it, because a later session can only read the
-repository.
+**The subject changes: from what an agent did to what an agent can do.** The
+first release of the current product. Phase S0 changed the doctrine the code is
+written against, the phases after it built the commands that implement it, and
+everything below ships in this version.
+
+### Renamed
+
+**The project is called seamark.** `Actaira` is a different product of the same
+author - the AI Act platform, which lives in its own repository and at
+actaira.com - and two unrelated things under one name is a confusion a reader
+cannot resolve from the outside. This one moved, because it is the one that had
+not been published under its name yet.
+
+What changed with it: the distribution (`seamark`), the command
+(`seamark`), the import path (`import seamark`), the package directory
+(`src/seamark/`), the repository (`github.com/marcosmatalab/seamark`), the
+identifiers of every contract on disk - which went further than the rename and
+left a product-named domain altogether for the repository's own URL, with the
+reason among the fixes above - the author label on the rule packs, and every
+page in the tree that is about the product rather than about what happened.
+
+What deliberately did not change, each because renaming it would break
+something rather than rename it: the entries of this file below 3.0.0, the
+documentation of the archived scanner under `docs/archive/`, the locators of
+the form `v2.3.0:<path>` that point into a tag whose tree has the old paths,
+the DSSE `predicateType` this tool verifies and never writes, and the
+distinguished names inside the recorded RFC 3161 certificates. The rule ids
+keep their `ACT-` prefix: they are published identifiers that do not spell the
+name, and renaming them would rewrite the expectations of 54 third-party
+repositories in the corpus. `scripts/release_check.py` holds all of it, and
+fails on an occurrence nobody wrote down as well as on a record that has gone.
+
+**Why the version did not restart at 1.0.0.** The repository is the same
+object: it keeps its history, its tags, its releases and this file, and 1.0.0
+is already in it, further down. A second 1.0.0 would collide inside one
+CHANGELOG to spare a stranger the surprise of meeting a project at 3.0.0, and
+the surprise is the honest one - the rename is a breaking change for anybody
+who had installed the last release, which is exactly what a major version is
+for. Rejected: starting at 1.0.0 as a new product, which would claim a first
+release in a repository whose own record contradicts it.
+
+**Why a major, decided rather than inherited.** Semantic versioning asks whether
+a consumer written against the last release still works, and none does: ten
+published contracts are withdrawn, twenty of twenty-two commands are gone, and
+the entry hash and both signature preimages changed shape, so packages and
+receipts issued by 2.3.0 no longer verify here. The alternative was 2.4.0 with a
+long deprecation, rejected because there is nothing to deprecate toward - the
+tool no longer reads model artifacts at all.
+
+The subject changes from model artifacts to AI agent runs. The scanner - formats,
+controls, connectors, scan, bom, agents, governance, web, the bundle resolver, the
+marking and trust modules and the 2 458-line CLI - is archived whole at tag
+`v2.3.0`; what survives is the evidence core: attest,
+state, policy, report, receipt, subject and the conformance package, renamed from
+`agentgov` because it collided with the `agents` module beside it. Two
+cryptographic defects found on the way out are fixed: the chain entry hash
+promised length prefixes and concatenated with `|`, and a demonstrated collision
+moved bytes across a field boundary undetected; the package manifest and the
+receipt both signed 32 bare bytes under the same default key with no domain
+separation. `seamark` is two commands, `verify` and `keygen`, until the trace
+format that the other six need exists.
+
+Phase 0.1, which closed the seven findings of an external review on top of this
+release, ended at 17 authored files against an initial budget of 14. The three
+extensions were authorised in conversation, each with its reason, and all three
+had the same one: two of the findings were not bugs but an inverted default, and
+inverting a default has a blast radius that lives in the tests which encoded the
+old one. `dsse_envelope_valid` printing [FAIL] beside `Result: OK` was fixed by
+making failure the default in `verify.settle`, and that reached `test_receipt`,
+`test_schemas`, `test_dsse`, `test_merkle`, `test_chain_domain_separation` and
+`test_package_verify` - six files that were correct about the code as it was and
+wrong about the code as it had to become. That count cannot be made in advance,
+which is why the budget was a real constraint and was raised rather than
+quietly exceeded. Work rule 8 in `CLAUDE.md` now requires such an authorisation
+to be written into the phase's commit message, because this one lived only in
+the chat and the next session had no way to read it.
 
 ### Changed
 
@@ -265,80 +336,6 @@ None was caught by a gate, and each says something about why:
 - The backlog line that reassigned `ci.yml` to phase S3. It had been closed by
   A.1 already, and this phase moved it to a new phase without rechecking it,
   which is the one thing a backlog must not do to an inherited line.
-
-## [3.0.0] - 2026-09-15
-
-### Renamed
-
-**The project is called seamark.** `Actaira` is a different product of the same
-author - the AI Act platform, which lives in its own repository and at
-actaira.com - and two unrelated things under one name is a confusion a reader
-cannot resolve from the outside. This one moved, because it is the one that had
-not been published under its name yet.
-
-What changed with it: the distribution (`seamark`), the command
-(`seamark`), the import path (`import seamark`), the package directory
-(`src/seamark/`), the repository (`github.com/marcosmatalab/seamark`), the
-identifiers of every contract on disk - which went further than the rename and
-left a product-named domain altogether for the repository's own URL, with the
-reason among the fixes above - the author label on the rule packs, and every
-page in the tree that is about the product rather than about what happened.
-
-What deliberately did not change, each because renaming it would break
-something rather than rename it: the entries of this file below 3.0.0, the
-documentation of the archived scanner under `docs/archive/`, the locators of
-the form `v2.3.0:<path>` that point into a tag whose tree has the old paths,
-the DSSE `predicateType` this tool verifies and never writes, and the
-distinguished names inside the recorded RFC 3161 certificates. The rule ids
-keep their `ACT-` prefix: they are published identifiers that do not spell the
-name, and renaming them would rewrite the expectations of 54 third-party
-repositories in the corpus. `scripts/release_check.py` holds all of it, and
-fails on an occurrence nobody wrote down as well as on a record that has gone.
-
-**Why the version did not restart at 1.0.0.** The repository is the same
-object: it keeps its history, its tags, its releases and this file, and 1.0.0
-is already in it, further down. A second 1.0.0 would collide inside one
-CHANGELOG to spare a stranger the surprise of meeting a project at 3.0.0, and
-the surprise is the honest one - the rename is a breaking change for anybody
-who had installed the last release, which is exactly what a major version is
-for. Rejected: starting at 1.0.0 as a new product, which would claim a first
-release in a repository whose own record contradicts it.
-
-**Why a major, decided rather than inherited.** Semantic versioning asks whether
-a consumer written against the last release still works, and none does: ten
-published contracts are withdrawn, twenty of twenty-two commands are gone, and
-the entry hash and both signature preimages changed shape, so packages and
-receipts issued by 2.3.0 no longer verify here. The alternative was 2.4.0 with a
-long deprecation, rejected because there is nothing to deprecate toward - the
-tool no longer reads model artifacts at all.
-
-The subject changes from model artifacts to AI agent runs. The scanner - formats,
-controls, connectors, scan, bom, agents, governance, web, the bundle resolver, the
-marking and trust modules and the 2 458-line CLI - is archived whole at tag
-`v2.3.0`; what survives is the evidence core: attest,
-state, policy, report, receipt, subject and the conformance package, renamed from
-`agentgov` because it collided with the `agents` module beside it. Two
-cryptographic defects found on the way out are fixed: the chain entry hash
-promised length prefixes and concatenated with `|`, and a demonstrated collision
-moved bytes across a field boundary undetected; the package manifest and the
-receipt both signed 32 bare bytes under the same default key with no domain
-separation. `seamark` is two commands, `verify` and `keygen`, until the trace
-format that the other six need exists.
-
-Phase 0.1, which closed the seven findings of an external review on top of this
-release, ended at 17 authored files against an initial budget of 14. The three
-extensions were authorised in conversation, each with its reason, and all three
-had the same one: two of the findings were not bugs but an inverted default, and
-inverting a default has a blast radius that lives in the tests which encoded the
-old one. `dsse_envelope_valid` printing [FAIL] beside `Result: OK` was fixed by
-making failure the default in `verify.settle`, and that reached `test_receipt`,
-`test_schemas`, `test_dsse`, `test_merkle`, `test_chain_domain_separation` and
-`test_package_verify` - six files that were correct about the code as it was and
-wrong about the code as it had to become. That count cannot be made in advance,
-which is why the budget was a real constraint and was raised rather than
-quietly exceeded. Work rule 8 in `CLAUDE.md` now requires such an authorisation
-to be written into the phase's commit message, because this one lived only in
-the chat and the next session had no way to read it.
 
 ## [2.3.0] - 2026-09-12
 
