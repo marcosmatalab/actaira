@@ -290,7 +290,7 @@ jobs:
         with:
           fetch-depth: 0       # diff necesita los dos lados, o sea la historia entera
           persist-credentials: false
-      - uses: marcosmatalab/seamark@c0a33675c14b8a622ddb794ab3f516a514e3124d
+      - uses: marcosmatalab/seamark@09520a596840bb354ed1962700fc962f983c91d4
 ```
 
 **Los dos `uses:` van fijados por SHA de commit, y eso no es decoración.** Una
@@ -322,7 +322,7 @@ Para un hook local, este repositorio publica uno:
 ```yaml
 repos:
   - repo: https://github.com/marcosmatalab/seamark
-    rev: c0a33675c14b8a622ddb794ab3f516a514e3124d
+    rev: 09520a596840bb354ed1962700fc962f983c91d4
     hooks:
       - id: seamark-check
 ```

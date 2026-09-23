@@ -9,14 +9,14 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-23T08:04:30+00:00 for seamark 3.0.0, at commit e4c6934.
+Generated 2026-09-23T09:41:57+00:00 for seamark 3.0.0, at commit 05cb63b.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, pytest-cov>=5, ruff>=0.6, jsonschema>=4.18
-- 63 commits, most recent 2026-09-23
+- 65 commits, most recent 2026-09-23
 
 ## Tests
 
