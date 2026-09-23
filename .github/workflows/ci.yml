@@ -121,6 +121,11 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           persist-credentials: false
+          # DEF-139. The suite asks git about the commits the documentation
+          # cites and about every body the branch carries; a shallow clone
+          # answers with one commit. `release_check.py` refuses this job
+          # without it.
+          fetch-depth: 0
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: ${{ matrix.python-version }}
@@ -278,11 +283,9 @@ jobs:
         run: python scripts/history_check.py
 
       - name: the measured figures are the ones committed
-        run: |
-          set -euo pipefail
-          python scripts/figures.py
-          python scripts/sync_readme_figures.py
-          git diff --exit-code
+        # Through the target `make all` runs, so the laptop and the runner
+        # ask this one way. DEF-140 is what two spellings of it cost.
+        run: make figures-committed PY=python
 
   dogfood:
     name: this repository runs its own Action on itself and uploads the result

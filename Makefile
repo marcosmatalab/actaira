@@ -1,8 +1,8 @@
 # `lint`, `test`, `figures`, `contracts`, `design-notes` and `release-check` run
 # on a clean checkout with no arguments and no network.
 #
-# `all` is made of `lint`, `test-cov`, `figures` and `release-check`, in the order a
-# failure is cheapest to read. Nothing in it needs anything beyond the dev extra.
+# `all` is made of `lint`, `test-cov`, `figures-committed`, `release-check` and
+# `history-check`, in the order a failure is cheapest to read. Nothing in it needs anything beyond the dev extra.
 #
 # What went to tag v2.3.0 with the scanner, and why no target here calls it:
 # `eval`, `benchmark`, `eval-marking`, `real-corpus` and `nightly-real` all ran
@@ -13,7 +13,7 @@
 # that give them something to measure.
 PY ?= python3
 
-.PHONY: help install test test-cov lint figures release-check contracts design-notes demo-image report-image \
+.PHONY: help install test test-cov lint figures figures-committed release-check contracts design-notes demo-image report-image \
         history-check package source-archive types clean all
 
 help:
@@ -23,6 +23,7 @@ help:
 	@echo "lint       run ruff"
 	@echo "types      hold every mypy-clean module clean; needs the types extra"
 	@echo "figures    measure the repository into docs/FIGURES.md and figures.json"
+	@echo "figures-committed  measure again and refuse any difference from HEAD"
 	@echo "demo-image draw the demo command output into docs/img/01-demo.svg"
 	@echo "report-image  capture the HTML report into docs/img/02-report.png"
 	@echo "contracts  regenerate docs/CONTRACTS.md from the shipped schemas"
@@ -32,7 +33,7 @@ help:
 	@echo "package    build the wheel and the sdist into dist/ and check what is in them"
 	@echo "source-archive  zip the tracked source into dist/, from an allowlist"
 	@echo "clean      remove every generated directory and build artifact"
-	@echo "all        lint, test-cov, figures, release-check, history-check"
+	@echo "all        lint, test-cov, figures-committed, release-check, history-check"
 
 install:
 	$(PY) -m pip install -e ".[dev]"
@@ -68,6 +69,13 @@ types:
 figures:
 	$(PY) scripts/figures.py
 	$(PY) scripts/sync_readme_figures.py
+
+# DEF-140. `all` ran `figures` and then `release-check`, so the gate read the
+# file it had just rewritten, and ended green over a tree it had dirtied. This
+# re-measures and refuses any difference, which is what CI's step asks too.
+# Rejected: `release-check` first, which still leaves the dirty tree unasked.
+figures-committed: figures
+	git diff --exit-code
 
 # The two pictures the landing page shows, each from the command it shows.
 #
@@ -161,7 +169,7 @@ source-archive:
 # steps as separate jobs rather than invoking `all`, so a red build names the
 # stage that failed instead of the word "all". `history-check` is last because
 # it is the only one that reads something a working tree does not contain.
-all: lint test-cov figures release-check history-check
+all: lint test-cov figures-committed release-check history-check
 
 clean:
 	rm -rf .pytest_cache .ruff_cache build dist
