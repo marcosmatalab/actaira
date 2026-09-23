@@ -736,6 +736,46 @@ def test_a_malformed_pack_is_refused_at_load_with_a_message(tmp_path, body, expe
     assert expected in str(raised.value)
 
 
+def _names_a_word_twice(attribution: str) -> bool:
+    """Whether a printed `rule written by <author> <pack> / <severity>` repeats a word."""
+    words = attribution.split("rule written by", 1)[-1].split("/")[0].lower().split()
+    return any(first == second for first, second in zip(words, words[1:], strict=False))
+
+
+def test_a_printed_attribution_names_the_pack_once(capsys):
+    """D-304. The landing page's picture printed `Seamark core core / high`: the
+    author field carried the pack's name, and every report prints the author
+    followed by the pack. Read off what `check` prints over the keyv reconstruction."""
+    cli.main(["check", "--repo", str(Path(REPO_ROOT) / "tests/fixtures/surface/keyv-august")])
+    printed = [line for line in capsys.readouterr().out.splitlines() if "rule written by" in line]
+
+    assert printed, "no attribution was printed, so this checked nothing"
+    assert not [line for line in printed if _names_a_word_twice(line)]
+
+
+def test_the_attribution_check_catches_a_repeated_pack():
+    """The twin: the line the landing page carried, planted, must be caught."""
+    assert _names_a_word_twice("      rule written by  Seamark core core / high")
+    assert not _names_a_word_twice("      rule written by  Seamark core / high")
+
+
+def test_an_author_that_ends_in_its_pack_name_is_refused_at_load(tmp_path):
+    """D-304, for every pack and not only the shipped one: an author ending in
+    the pack's name would print the name twice wherever a finding is attributed."""
+    path = tmp_path / "echo.toml"
+    path.write_text(
+        '[pack]\nname="core"\nauthor="Acme Core"\n[[rule]]\nid="ACT-S001"\nversion="1"\n'
+        'vendor="v"\nrequires="DECLARED"\nseverity="low"\ncapability="c"\nremediation="r"\n'
+        '[[rule.when]]\nfact="a"\n',
+        encoding="utf-8",
+    )
+
+    with pytest.raises(rules.PackError) as raised:
+        rules.load_pack(path)
+
+    assert "repeats the pack name" in str(raised.value)
+
+
 def test_a_rule_answers_indeterminate_rather_than_false_on_a_fact_it_lacks():
     """The third negative, at the level it is actually enforced: a clause names
     the fact, so a capability without it cannot be answered `False` by accident."""
