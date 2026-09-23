@@ -1179,6 +1179,125 @@ def test_a_comment_naming_the_other_way_is_not_a_second_builder():
     assert (problems, through) == ([], 1)
 
 
+SHALLOW_TEST_JOB = """\
+jobs:
+  test:
+    steps:
+      - uses: actions/checkout@0000000000000000000000000000000000000000
+        with:
+          persist-credentials: false
+      - run: python -m pytest tests
+"""
+
+
+@pytest.mark.parametrize(
+    ("depth", "run"),
+    [
+        # DEF-139 as it was: the suite, on the default one-commit checkout.
+        ("", "python -m pytest tests"),
+        # Two is what `dogfood` needs for its diff, and it is still not a history.
+        ("          fetch-depth: 2\n", "python scripts/history_check.py"),
+        ("", "make all PY=python"),
+    ],
+)
+def test_a_job_that_reads_the_history_from_a_shallow_clone_is_named(depth, run):
+    module = _release_check()
+    planted = SHALLOW_TEST_JOB.replace(
+        "          persist-credentials: false\n", "          persist-credentials: false\n" + depth
+    ).replace("python -m pytest tests", run)
+
+    problems, whole = module.shallow_problems({"ci.yml": planted})
+
+    assert whole == 0
+    assert problems and "job `test`" in problems[0], problems
+
+
+def test_a_job_that_fetches_the_whole_history_is_accepted():
+    """The other direction, so the check cannot pass by refusing every job."""
+    module = _release_check()
+    planted = SHALLOW_TEST_JOB.replace(
+        "persist-credentials: false\n", "persist-credentials: false\n          fetch-depth: 0\n"
+    )
+
+    assert module.shallow_problems({"ci.yml": planted}) == ([], 1)
+
+
+def test_a_job_that_reads_nothing_and_a_comment_naming_pytest_are_not_readers():
+    """A job that never asks git is free to be shallow, and the comment that
+    explains why a job is shallow must not make it a reader."""
+    module = _release_check()
+    planted = SHALLOW_TEST_JOB.replace(
+        "      - run: python -m pytest tests\n",
+        "      # no pytest here, and no fetch-depth either\n      - run: ruff check src\n",
+    )
+
+    assert module.shallow_problems({"ci.yml": planted}) == ([], 0)
+
+
+def test_the_fetch_depth_of_one_job_does_not_cover_the_next():
+    """The depth is read per job. A file-wide search would let `consistency`'s
+    `fetch-depth: 0` answer for `test`, which is the shape DEF-139 had."""
+    module = _release_check()
+    planted = SHALLOW_TEST_JOB + (
+        "  consistency:\n"
+        "    steps:\n"
+        "      - uses: actions/checkout@0000000000000000000000000000000000000000\n"
+        "        with:\n"
+        "          fetch-depth: 0\n"
+        "      - run: python scripts/release_check.py\n"
+    )
+
+    problems, whole = module.shallow_problems({"ci.yml": planted})
+
+    assert whole == 1
+    assert problems == ["ci.yml: job `test` runs pytest on a shallow clone"]
+
+
+def test_every_job_here_that_reads_the_history_fetches_all_of_it():
+    module = _release_check()
+
+    assert "each from a whole clone" in module.history_readers_fetch_the_history()
+
+
+def test_the_gate_and_ci_ask_whether_the_figures_are_committed_one_way():
+    """DEF-140. `make all` re-measured and never asked for an empty diff, while
+    CI's step did; now both go through one target, and the target asks."""
+    makefile = (Path(REPO_ROOT) / "Makefile").read_text(encoding="utf-8")
+    workflow = (Path(REPO_ROOT) / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+
+    target = re.search(r"^figures-committed: figures\n((?:\t.*\n)+)", makefile, re.MULTILINE)
+    assert target and "git diff --exit-code" in target.group(1)
+    assert re.search(r"^all:.*\bfigures-committed\b", makefile, re.MULTILINE)
+    assert "run: make figures-committed" in workflow
+    assert "scripts/figures.py" not in "\n".join(
+        line for line in workflow.splitlines() if not line.strip().startswith("#")
+    )
+
+
+@pytest.mark.parametrize(("rewrites", "expected"), [(True, "red"), (False, "green")])
+def test_figures_committed_refuses_a_measurement_that_changes_the_tree(tmp_path, rewrites, expected):
+    """The twin: the real target, over a repository whose `figures.py` plants
+    a difference, has to go red - and green when it plants none."""
+    make, git = shutil.which("make"), shutil.which("git")
+    if make is None or git is None:
+        pytest.skip("needs make and git; the gate runs in WSL, where both are present")
+    shutil.copy(Path(REPO_ROOT) / "Makefile", tmp_path / "Makefile")
+    (tmp_path / "scripts").mkdir()
+    body = "open('figures.json', 'w').write('{\"head\": \"moved\"}')\n" if rewrites else ""
+    (tmp_path / "scripts" / "figures.py").write_text(body, encoding="utf-8")
+    (tmp_path / "scripts" / "sync_readme_figures.py").write_text("", encoding="utf-8")
+    (tmp_path / "figures.json").write_text('{"head": "old"}', encoding="utf-8")
+    for argv in (["init", "-q"], ["add", "-A"],
+                 ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "planted"]):
+        subprocess.run([git, *argv], cwd=tmp_path, check=True, capture_output=True)
+
+    done = subprocess.run(
+        [make, "figures-committed", f"PY={sys.executable}"], cwd=tmp_path, capture_output=True, text=True
+    )
+
+    assert ("green" if done.returncode == 0 else "red") == expected, done.stdout + done.stderr
+
+
 def test_a_workflow_set_that_builds_nothing_fails_rather_than_passing_empty(working_tree, tmp_path):
     """Work rule 11. A check for "nothing builds it the wrong way" is
     satisfied by nothing building it at all, which is the same green as a

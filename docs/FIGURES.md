@@ -9,7 +9,7 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-23T09:41:57+00:00 for seamark 3.0.0, at commit 05cb63b.
+Generated 2026-09-23T09:58:24+00:00 for seamark 3.0.0, at commit 791554f.
 
 ## The package
 
@@ -20,7 +20,7 @@ Generated 2026-09-23T09:41:57+00:00 for seamark 3.0.0, at commit 05cb63b.
 
 ## Tests
 
-**2682** tests collected by pytest across 45 files.
+**2700** tests collected by pytest across 45 files.
 
 | file | tests |
 |---|---:|
@@ -31,7 +31,7 @@ Generated 2026-09-23T09:41:57+00:00 for seamark 3.0.0, at commit 05cb63b.
 | `tests/test_chain_domain_separation.py` | 14 |
 | `tests/test_cli.py` | 32 |
 | `tests/test_consistency.py` | 285 |
-| `tests/test_defect_ledger.py` | 556 |
+| `tests/test_defect_ledger.py` | 564 |
 | `tests/test_design_notes.py` | 88 |
 | `tests/test_diff.py` | 25 |
 | `tests/test_dsse.py` | 25 |
@@ -52,7 +52,7 @@ Generated 2026-09-23T09:41:57+00:00 for seamark 3.0.0, at commit 05cb63b.
 | `tests/test_proxy_transports.py` | 28 |
 | `tests/test_reachability.py` | 50 |
 | `tests/test_readme_parity.py` | 30 |
-| `tests/test_release_check.py` | 123 |
+| `tests/test_release_check.py` | 133 |
 | `tests/test_scan_claude_code.py` | 33 |
 | `tests/test_schemas.py` | 24 |
 | `tests/test_seal_and_report.py` | 21 |
@@ -69,13 +69,13 @@ Generated 2026-09-23T09:41:57+00:00 for seamark 3.0.0, at commit 05cb63b.
 | `tests/test_value_inventory.py` | 7 |
 | `tests/test_verify_strictness.py` | 23 |
 | `tests/test_workflow_shell.py` | 5 |
-| **total** | **2682** |
+| **total** | **2700** |
 
 Statement coverage of `src/seamark`: **90**, measured by `make test-cov`, which fails under 88.
 
 ## Defects found in this repository
 
-**156** defects, from `docs/defects.json` (138 entries), found by **21** different mechanisms. **35** are pinned by a named regression test, across 64 tests. 94 were defects in the shipped tool; the rest were found the same way but lived in the measuring apparatus, and each says so.
+**158** defects, from `docs/defects.json` (140 entries), found by **21** different mechanisms. **37** are pinned by a named regression test, across 71 tests. 94 were defects in the shipped tool; the rest were found the same way but lived in the measuring apparatus, and each says so.
 
 | what found it | defects |
 |---|---:|
@@ -86,9 +86,9 @@ Statement coverage of `src/seamark`: **90**, measured by `make test-cov`, which 
 | product review against a roadmap | 9 |
 | adversarial legal review | 8 |
 | reading the tool's own output | 7 |
+| running it on the runner for the first time | 7 |
 | test suite | 7 |
 | using the tool as a person would | 6 |
-| running it on the runner for the first time | 5 |
 | running the gate | 5 |
 | real-serialiser corpus | 4 |
 | running the harness | 3 |
@@ -100,7 +100,7 @@ Statement coverage of `src/seamark`: **90**, measured by `make test-cov`, which 
 | exhaustive sweep | 1 |
 | reading the vendor's documentation | 1 |
 | running the gate on the development machine | 1 |
-| **total** | **156** |
+| **total** | **158** |
 
 Every test named in the ledger was checked against what pytest collects: all of them are collected.
 Pinned by a note rather than by a test, with the reason stated in the ledger: DEF-01, DEF-03, DEF-04, DEF-05, DEF-06, DEF-07, DEF-08, DEF-09, DEF-10, DEF-13, DEF-15, DEF-16, DEF-17, DEF-18, DEF-19, DEF-20, DEF-21, DEF-22, DEF-23, DEF-24, DEF-25, DEF-26, DEF-27, DEF-28, DEF-29, DEF-30, DEF-31, DEF-32, DEF-33, DEF-34, DEF-35, DEF-36, DEF-37, DEF-40, DEF-43, DEF-44, DEF-45, DEF-46, DEF-47, DEF-48, DEF-49, DEF-50, DEF-51, DEF-52, DEF-54, DEF-55, DEF-56, DEF-57, DEF-58, DEF-59, DEF-60, DEF-61, DEF-62, DEF-65, DEF-66, DEF-67, DEF-68, DEF-69, DEF-70, DEF-71, DEF-72, DEF-73, DEF-74, DEF-75, DEF-76, DEF-77, DEF-78, DEF-79, DEF-80, DEF-81, DEF-82, DEF-83, DEF-84, DEF-85, DEF-86, DEF-87, DEF-88, DEF-89, DEF-90, DEF-91, DEF-92, DEF-93, DEF-94, DEF-95, DEF-97, DEF-98, DEF-99, DEF-101, DEF-102, DEF-103, DEF-104, DEF-105, DEF-106, DEF-107, DEF-108, DEF-109, DEF-110, DEF-111, DEF-112, DEF-113, DEF-114, DEF-115, DEF-116, DEF-136, DEF-138.
@@ -120,9 +120,9 @@ and the modules are the source of truth.
 | schemas | 1 | 137 | 27 | 46 | 43 | 21 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
 | rest | 20 | 6619 | 4270 | 1003 | 477 | 869 |
-| tests | 52 | 20639 | 11500 | 3390 | 1339 | 4410 |
-| scripts | 16 | 6578 | 4073 | 1077 | 593 | 835 |
-| **total** | 116 | 43197 | 25459 | 7222 | 3223 | 7293 |
+| tests | 52 | 20758 | 11582 | 3399 | 1341 | 4436 |
+| scripts | 16 | 6655 | 4128 | 1085 | 600 | 842 |
+| **total** | 116 | 43393 | 25596 | 7239 | 3232 | 7326 |
 
 Documentation, in lines of Markdown:
 

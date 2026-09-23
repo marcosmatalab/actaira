@@ -1593,6 +1593,39 @@
       "fixed": true,
       "pinned_by": [],
       "pinned_note": "Pinned by the argument beside the number rather than by a test, and deliberately: a test asserting that the page still has room left would be the tight gate again, one level up - it would fail on the first line added, which is the behaviour this entry is about. What is held instead is that the number cannot drift from its reason. `the_landing_pages_keep_their_shape` fails when `docs/ENGINEERING.md` stops stating the ceiling it argues for, so moving the number without moving the argument is red."
+    },
+    {
+      "id": "DEF-139",
+      "title": "the suite ran on a one-commit clone in CI, so every test that asks git about this repository failed there and nowhere else",
+      "effect": "THE DEFECT. The `test` job checked the tree out with the default depth of one commit. Two tests read the history of this repository: `cited_commits_exist`, reached through `test_the_check_passes_on_this_repository_and_says_what_it_read`, asks whether the SHA the README tells a reader to pin is a commit here, and `test_the_history_gate_passes_on_the_bodies_this_branch_will_carry` counts the bodies the branch carries. On one commit the first answered `09520a5... is not a commit in this repository` and the second read 1 body, on all three interpreters.\n\nWHY NOBODY SAW IT. Both tests arrived in commits that were never pushed one by one: the last green run was on 2026-09-19, and the history rewrite reached the runner as one force-push of 23 commits. And no laptop can see it, because every clone a laptop makes, the gate's included, is whole. The `consistency` job already fetched the whole history and said why in a comment; the job next to it did not, and nothing compared the two.\n\nTHE FIX. The `test` job fetches the whole history, and the release gate reads every workflow and refuses a job that runs pytest, a make target that reads git or one of the three scripts that do, on a checkout without `fetch-depth: 0`. Per job, because a file-wide search would let the `consistency` job's depth answer for the `test` job. Rejected: skipping those tests on a shallow clone, which is a check that passes by having nothing to read.",
+      "found_by": "running it on the runner for the first time",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "It is in the CI definition, not in the package. It turned a run red; it reached nobody who installed this.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_release_check.py::test_a_job_that_reads_the_history_from_a_shallow_clone_is_named",
+        "tests/test_release_check.py::test_a_job_that_fetches_the_whole_history_is_accepted",
+        "tests/test_release_check.py::test_a_job_that_reads_nothing_and_a_comment_naming_pytest_are_not_readers",
+        "tests/test_release_check.py::test_the_fetch_depth_of_one_job_does_not_cover_the_next",
+        "tests/test_release_check.py::test_every_job_here_that_reads_the_history_fetches_all_of_it"
+      ],
+      "pinned_note": "Three plants of a shallow reader (the default depth, depth 2, and `make all`), the whole-history job accepted, a job that reads nothing left alone, one job's depth refused as cover for another's, and the workflows as they stand."
+    },
+    {
+      "id": "DEF-140",
+      "title": "`make all` rewrote figures.json before the release gate read it, and ended green over the tree it had dirtied",
+      "effect": "THE DEFECT. `all` ran `figures` and then `release-check`. `figures.py` carries the stamp only while the commit it names is an ancestor of HEAD, so when that commit was gone it re-stamped the file with HEAD, and `release-check` then compared the tree against a file written a second earlier. Nothing in `all` asked whether the tree was still the one committed. CI's step did, with its own spelling: the figures scripts and `git diff --exit-code`.\n\nWHAT IT LET THROUGH. `791554f` was amended after `make figures` ran, so its `figures.json` named `05cb63b`, the commit the amend replaced and nobody else has. Over a clean clone of that HEAD `make all` was green and left `figures.json` and `docs/FIGURES.md` modified; on the runner `release_check.py` reads the committed file and refused it: `figures.json names commit 05cb63b, which is not in this repository`.\n\nTHE FIX. One target, `figures-committed`, measures again and refuses any difference, and both `all` and the CI step go through it, so the laptop and the runner ask this one way. It runs before `release-check`, which then reads the file HEAD carries. Rejected: moving `release-check` ahead of `figures`, which reads the committed file and still never asks about the tree the gate leaves behind.",
+      "found_by": "running it on the runner for the first time",
+      "counts_as": 1,
+      "shipped_defect": false,
+      "not_shipped_because": "It is in the gate, not in the package. What it let through was a stale stamp in a measurement file, which CI refused.",
+      "fixed": true,
+      "pinned_by": [
+        "tests/test_release_check.py::test_figures_committed_refuses_a_measurement_that_changes_the_tree",
+        "tests/test_release_check.py::test_the_gate_and_ci_ask_whether_the_figures_are_committed_one_way"
+      ],
+      "pinned_note": "The real target run over a planted repository in both directions, red when the measurement changes the tree and green when it does not, and the Makefile and the workflow read to hold that both go through that one target."
     }
   ]
 }

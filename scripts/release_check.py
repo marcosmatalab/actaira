@@ -2781,6 +2781,83 @@ def the_package_is_built_one_way() -> str:
 
 
 # --------------------------------------------------------------------------
+# The jobs that read the history fetch all of it
+# --------------------------------------------------------------------------
+
+# What reads commits: the suite (it runs `cited_commits_exist` and
+# `history_check` on this repository), and the three scripts that ask git
+# directly. Rejected: a skip in each test when the clone is shallow, which is
+# a check that passes by having nothing to read - work rule 11.
+HISTORY_READERS = (
+    (re.compile(r"\bpytest\b"), "pytest"),
+    (re.compile(r"\bscripts/(?:release_check|history_check|figures)\.py\b"), "a script that reads git"),
+    (re.compile(r"\bmake\s+(?:all|test|test-cov|release-check|history-check|figures|figures-committed)\b"),
+     "a make target that reads git"),
+)
+JOB = re.compile(r"^  ([A-Za-z0-9_-]+):\s*$")
+
+
+def shallow_problems(workflows: dict[str, str]) -> tuple[list[str], int]:
+    """(the jobs that read history from a shallow clone, how many read it whole).
+    Pure, so the twins can plant a workflow without writing one into `.github/`."""
+    problems: list[str] = []
+    whole = 0
+    for name, text_of in sorted(workflows.items()):
+        jobs: dict[str, list[str]] = {}
+        current = None
+        in_jobs = False
+        for line in text_of.splitlines():
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            if not line.startswith(" "):
+                in_jobs, current = line.startswith("jobs:"), None
+                continue
+            found = JOB.match(line) if in_jobs else None
+            if found:
+                current = found.group(1)
+                jobs[current] = []
+            elif current is not None:
+                jobs[current].append(line)
+        for job, lines in jobs.items():
+            readers = sorted({label for line in lines for pattern, label in HISTORY_READERS
+                              if pattern.search(line)})
+            if not readers:
+                continue
+            if any(re.search(r"\bfetch-depth:\s*0\b", line) for line in lines):
+                whole += 1
+            else:
+                problems.append(f"{name}: job `{job}` runs {' and '.join(readers)} on a shallow clone")
+    return problems, whole
+
+
+@check("every CI job that reads the history fetches all of it")
+def history_readers_fetch_the_history() -> str:
+    """DEF-139. `actions/checkout` fetches one commit unless told otherwise,
+    and the suite asks git about commits the documentation cites and about
+    every body the branch carries. On one commit those questions come back
+    "not a commit in this repository" and "1 commit read", and nothing on a
+    laptop can see it, because every clone a laptop makes is whole.
+    """
+    found = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
+    if not found:
+        raise DriftError(".github/workflows holds no workflow, so nothing runs the suite")
+    workflows = {path.relative_to(ROOT).as_posix(): path.read_text(encoding="utf-8") for path in found}
+    offenders, whole = shallow_problems(workflows)
+    if offenders:
+        raise DriftError(
+            "these read commits from a clone that has one, so they fail on the runner "
+            "and pass on every laptop; give the checkout `fetch-depth: 0`:\n  "
+            + "\n  ".join(offenders)
+        )
+    if not whole:
+        raise DriftError(
+            "no workflow job runs anything that reads the history, so this check found "
+            "nothing to hold. It looked for " + ", ".join(label for _, label in HISTORY_READERS)
+        )
+    return f"{whole} job(s) across {len(workflows)} workflows read the history, each from a whole clone"
+
+
+# --------------------------------------------------------------------------
 # Commit SHAs written into the documentation
 # --------------------------------------------------------------------------
 
