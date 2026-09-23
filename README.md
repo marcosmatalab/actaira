@@ -98,7 +98,7 @@ that matters.*
 
 | 🧪 Quality | 📦 Scope | ⚙️ Integration |
 |---|---|---|
-| **2,711 tests**, run on Python 3.11, 3.12 and 3.13 | **32 documented rules** from versioned packs | **7 CLI commands**, one runtime dependency |
+| **2,714 tests**, run on Python 3.11, 3.12 and 3.13 | **32 documented rules** from versioned packs | **7 CLI commands**, one runtime dependency |
 | **Coverage gate** in CI: the floor is 88 and the tree measures 90 | **15,989 lines of product code** | GitHub Action, pre-commit hook, SARIF 2.1.0 |
 | Release gate over every figure, flag and claim status | **4 versioned contracts** published as JSON Schema | Self-contained HTML report, no network |
 
@@ -469,9 +469,9 @@ Every figure below comes from a command. Run any of them and compare.
 
 | Claim | Command | Result |
 |---|---|---|
-| 2,711 tests | `python -m pytest --collect-only -q -o addopts=` | the same count |
+| 2,714 tests | `python -m pytest --collect-only -q -o addopts=` | the same count |
 | 15,989 lines of product code | `find src -name '*.py' \| xargs cat \| wc -l` | the same count |
-| 43,513 lines of Python in the tree | `python scripts/figures.py` | `docs/FIGURES.md`, per area |
+| 43,570 lines of Python in the tree | `python scripts/figures.py` | `docs/FIGURES.md`, per area |
 | 32 documented rules | `python scripts/rules_doc.py` | `docs/RULES.md`, from the packs |
 | 7 CLI commands, and no eighth | `seamark --help` | the seven above |
 | the coverage floor holds | `make test-cov` | the floor is 88 and the tree measures 90 |

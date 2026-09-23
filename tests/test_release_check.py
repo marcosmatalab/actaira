@@ -2127,3 +2127,24 @@ def test_a_published_section_and_a_recorded_shape_are_left_alone():
     )
 
     assert module.release_section_name_problems(planted, "3.0.0") == []
+
+
+def test_nothing_the_installed_version_ships_is_written_up_as_unreleased():
+    """D-307, over the real file and the real parser."""
+    module = _release_check()
+    from seamark.cli import build_parser  # noqa: PLC0415
+
+    commands = set(build_parser()._subparsers._group_actions[0].choices)  # noqa: SLF001
+    changelog = (Path(REPO_ROOT) / "CHANGELOG.md").read_text(encoding="utf-8")
+
+    assert module.unreleased_command_problems(changelog, commands) == []
+
+
+def test_a_shipped_command_under_unreleased_is_refused():
+    """The twin: the state the changelog was in, planted."""
+    module = _release_check()
+    planted = "## Unreleased\n\n- **`seamark diff`**, two refs.\n\n## [3.0.0] - x\n\n- `seamark diff`\n"
+
+    problems = module.unreleased_command_problems(planted, {"diff", "check"})
+
+    assert len(problems) == 1 and "CHANGELOG.md:3" in problems[0], problems

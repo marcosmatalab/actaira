@@ -117,7 +117,8 @@ inside a section that is otherwise live: **3.4** (CycloneDX ML-BOM) and **3.5**
 | D-303 | Every contract identifier lives under the repository's URL rather than a domain named after the product, because a name that can be registered by somebody else is not an identifier | `src/seamark/schemas/__init__.py:32` |
 | D-304 | A pack whose author ends in the pack's own name is refused at load, because every report prints the author followed by the pack and would print the name twice | `src/seamark/surface/rules.py:246` |
 | D-305 | The changelog section about to be published is read line by line, and the old product name may appear there only in recorded shapes, because a per-file count cannot tell a record from a slip | `scripts/release_check.py:2132` |
-| D-306 | Nothing is uploaded to a package index: the tool installs from its release tag and the release carries the attested wheel and sdist, because a publishing job with no publisher registered can only fail | `scripts/release_check.py:2212` |
+| D-306 | Nothing is uploaded to a package index: the tool installs from its release tag and the release carries the attested wheel and sdist, because a publishing job with no publisher registered can only fail | `scripts/release_check.py:2248` |
+| D-307 | A command the parser already has may not be written up under `## Unreleased`, because a reader of a tag has to be able to tell from the changelog what it contains | `scripts/release_check.py:2186` |
 
 Thirty-nine rows left this table in phase A, with the modules they argued
 about: every note numbered for `coverage.py`, `miniyaml.py`, `io_budget.py`,

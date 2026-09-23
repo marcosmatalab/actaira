@@ -65,30 +65,30 @@
       "note": "the published contracts"
     },
     "scripts": {
-      "blank": 848,
-      "code": 4172,
+      "blank": 854,
+      "code": 4196,
       "comment": 608,
-      "docstring": 1074,
+      "docstring": 1080,
       "files": 16,
-      "lines": 6702,
+      "lines": 6738,
       "note": "this script"
     },
     "tests": {
-      "blank": 4456,
-      "code": 11617,
+      "blank": 4464,
+      "code": 11628,
       "comment": 1344,
-      "docstring": 3405,
+      "docstring": 3407,
       "files": 52,
-      "lines": 20822,
+      "lines": 20843,
       "note": "the test suite"
     },
     "total": {
-      "blank": 7352,
-      "code": 25680,
+      "blank": 7366,
+      "code": 25715,
       "comment": 3247,
-      "docstring": 7234,
+      "docstring": 7242,
       "files": 116,
-      "lines": 43513,
+      "lines": 43570,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -253,16 +253,16 @@
   },
   "docs": {
     "docs/DESIGN.md": {
-      "lines": 854
+      "lines": 855
     },
-    "total_lines": 854
+    "total_lines": 855
   },
-  "generated_at": "2026-09-23T15:39:36+00:00",
+  "generated_at": "2026-09-23T15:53:37+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 71,
-    "head": "f4a15bf",
+    "commits": 72,
+    "head": "05af0f7",
     "head_date": "2026-09-23"
   },
   "package": {
@@ -283,7 +283,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 2711,
+    "collected": 2714,
     "files": 45,
     "per_file": {
       "tests/test_action_yml.py": 13,
@@ -294,7 +294,7 @@
       "tests/test_cli.py": 32,
       "tests/test_consistency.py": 285,
       "tests/test_defect_ledger.py": 564,
-      "tests/test_design_notes.py": 91,
+      "tests/test_design_notes.py": 92,
       "tests/test_diff.py": 25,
       "tests/test_dsse.py": 25,
       "tests/test_file_size.py": 12,
@@ -314,7 +314,7 @@
       "tests/test_proxy_transports.py": 28,
       "tests/test_reachability.py": 50,
       "tests/test_readme_parity.py": 30,
-      "tests/test_release_check.py": 135,
+      "tests/test_release_check.py": 137,
       "tests/test_scan_claude_code.py": 33,
       "tests/test_schemas.py": 24,
       "tests/test_seal_and_report.py": 21,
