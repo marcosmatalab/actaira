@@ -243,6 +243,15 @@ def load_pack(path: Path) -> tuple[Rule, ...]:
                 f"{where}: no `author`, and the [pack] table sets no default. Every finding "
                 "publishes who wrote the rule it came from."
             )
+        # Design note D-304. Every report prints the author and then the pack, so
+        # an author ending in the pack's name prints it twice (`Seamark core core`).
+        # Refused at load, for every pack. Rejected: dropping the pack from the
+        # printed line, which hides the one field that says where a rule came from.
+        if author.split()[-1].lower() == str(pack_name).lower():
+            raise PackError(
+                f"{where}: the author {author!r} repeats the pack name {pack_name!r}, and "
+                "every report prints the author followed by the pack. Name the author alone."
+            )
         clauses: list[Clause] = []
         for raw in block.get("when") or ():
             if not isinstance(raw, dict):

@@ -111,10 +111,10 @@ APPEARED: 1
   + claude-code  hook.command  .claude/settings.json  [project]
       after  effective  cdaeb29f3e8ba9ee
       ! ACT-S001  A hook runs a command on a session-start event, so opening a session runs it before anybody has read anything.
-        rule written by  Seamark core core / high
+        rule written by  Seamark core / high
         suggested by the rule: Remove the hook, or move it to ~/.claude/settings.json where it is yours rather than the repository's. A hook on a session-start event runs before you have read anything.
       ! ACT-S003  A hook runs a script inside this repository, so whoever can land a commit decides what it runs.
-        rule written by  Seamark core core / medium
+        rule written by  Seamark core / medium
         suggested by the rule: Tie your approval to the script's sha256 rather than its path: the file at that path can change after you read it, and the hook will run whatever is there.
 
 Could not be resolved on one side or the other: 2
@@ -140,10 +140,10 @@ APARECE: 1
   + claude-code  hook.command  .claude/settings.json  [project]
       despues  effective  cdaeb29f3e8ba9ee
       ! ACT-S001  Un hook ejecuta un comando en un evento de arranque de sesión, así que abrir una sesión lo ejecuta antes de que nadie haya leído nada.
-        regla escrita por  Seamark core core / high
+        regla escrita por  Seamark core / high
         sugerido por la regla: Remove the hook, or move it to ~/.claude/settings.json where it is yours rather than the repository's. A hook on a session-start event runs before you have read anything.
       ! ACT-S003  Un hook ejecuta un script de este repositorio, así que quien pueda meter un commit decide qué se ejecuta.
-        regla escrita por  Seamark core core / medium
+        regla escrita por  Seamark core / medium
         sugerido por la regla: Tie your approval to the script's sha256 rather than its path: the file at that path can change after you read it, and the hook will run whatever is there.
 
 No se pudo resolver en uno de los dos lados: 2
