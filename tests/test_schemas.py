@@ -322,8 +322,8 @@ def test_the_registry_resolves_every_reference():
         "a schema references another again; the assertion above is live now, and "
         "this line is the one to delete"
     )
-    walk({"properties": {"x": {"$ref": "https://seamark.dev/schemas/trace-v3.json"}}})
-    assert referenced == {"https://seamark.dev/schemas/trace-v3.json"}, "the walk does not walk"
+    walk({"properties": {"x": {"$ref": "https://github.com/marcosmatalab/seamark/schemas/trace-v3.json"}}})
+    assert referenced == {"https://github.com/marcosmatalab/seamark/schemas/trace-v3.json"}, "the walk does not walk"
 
 
 def test_every_published_contract_has_its_required_fields_frozen():

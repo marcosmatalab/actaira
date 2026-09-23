@@ -1932,3 +1932,98 @@ def test_the_line_patterns_in_use_all_match_something_in_this_tree():
             continue
 
     assert module.unused_line_patterns(module.NAME_ON_LINES, texts) == []
+
+
+# --------------------------------------------------------------------------
+# The namespace the contracts are published under
+# --------------------------------------------------------------------------
+
+IDENTIFIER_CHECK = "every contract is published under a name this project holds"
+HELD = "https://github.com/marcosmatalab/seamark"
+
+
+def test_the_contracts_on_disk_are_all_under_the_declared_repository():
+    """Non-vacuity, over the tree as it stands, and over more than one file:
+    the check reads every schema the package ships and finds each of them
+    under the URL `pyproject.toml` declares."""
+    module = _release_check()
+
+    detail = module.contract_identifiers_are_ours()
+
+    assert "contracts, every one published under" in detail
+    assert HELD in detail
+
+
+def test_a_contract_published_on_a_domain_fails():
+    """The defect this was written for, planted: an identifier that reads
+    beautifully and lives on a name nobody in this repository has registered."""
+    module = _release_check()
+
+    problems = module.identifier_problems(
+        HELD, {"trace-v3": "https://example.dev/schemas/trace-v3.json"}
+    )
+
+    assert any("outside" in problem for problem in problems), problems
+    assert any("somebody else can answer for" in problem for problem in problems), problems
+
+
+def test_a_contract_published_under_another_repository_fails():
+    """The same failure without a domain in it. A URL under github.com is not
+    the point; a URL under OUR repository is."""
+    module = _release_check()
+
+    problems = module.identifier_problems(
+        HELD, {"trace-v3": "https://github.com/someone-else/seamark/schemas/trace-v3.json"}
+    )
+
+    assert any("outside" in problem for problem in problems), problems
+
+
+def test_an_identifier_that_names_another_file_fails():
+    """Right namespace, wrong document. The pair has to resolve to itself, or
+    the registry maps two files onto one key and the second one wins."""
+    module = _release_check()
+
+    problems = module.identifier_problems(
+        HELD, {"trace-v3": f"{HELD}/schemas/trace-v2.json"}
+    )
+
+    assert any("another document's name" in problem for problem in problems), problems
+
+
+def test_a_schema_with_no_identifier_at_all_fails():
+    module = _release_check()
+
+    problems = module.identifier_problems(HELD, {"trace-v3": ""})
+
+    assert any("declares no" in problem for problem in problems), problems
+
+
+def test_the_identifiers_as_they_are_raise_nothing():
+    """The other direction over the real files, so the plants above cannot be
+    satisfied by a rule that objects to everything."""
+    module = _release_check()
+    folder = Path(REPO_ROOT) / "src" / "seamark" / "schemas"
+    ids = {
+        path.stem: json.loads(path.read_text(encoding="utf-8")).get("$id", "")
+        for path in sorted(folder.glob("*.json"))
+    }
+
+    assert len(ids) > 1, "one file would not prove the loop runs"
+    assert module.identifier_problems(HELD, ids) == []
+
+
+def test_the_published_page_states_the_namespace_the_schemas_use():
+    """`docs/CONTRACTS.md` tells a reader where the identifiers live. It is
+    generated, so what is checked here is the sentence a consumer acts on: the
+    namespace on the page is the one the documents carry."""
+    module = _release_check()
+    page = (Path(REPO_ROOT) / "docs" / "CONTRACTS.md").read_text(encoding="utf-8")
+    namespace = json.loads(
+        (Path(REPO_ROOT) / "src" / "seamark" / "schemas" / "trace-v3.json").read_text(
+            encoding="utf-8"
+        )
+    )["$id"].rsplit("/", 1)[0] + "/"
+
+    assert namespace in page, namespace
+    assert module.identifier_problems(HELD, {"trace-v3": namespace + "trace-v3.json"}) == []

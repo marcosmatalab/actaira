@@ -114,6 +114,7 @@ inside a section that is otherwise live: **3.4** (CycloneDX ML-BOM) and **3.5**
 | D-300 | The bounded disk primitives live under their own name, because six readers for other vendors were importing them from a manufacturer's module | `src/seamark/surface/disk.py:3` |
 | D-301 | Every claim a README makes about a command, a flag or an exit code resolves against the parser, and a claim block that names no command is refused | `scripts/release_check.py:699` |
 | D-302 | The proxy sends the agent nothing when the server sent nothing, so a client with no deadline of its own waits, because fabricating a reply would put a message the server never sent into the agent's input | `src/seamark/proxy/stdio.py:373` |
+| D-303 | Every contract identifier lives under the repository's URL rather than a domain named after the product, because a name that can be registered by somebody else is not an identifier | `src/seamark/schemas/__init__.py:32` |
 
 Thirty-nine rows left this table in phase A, with the modules they argued
 about: every note numbered for `coverage.py`, `miniyaml.py`, `io_budget.py`,

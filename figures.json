@@ -56,39 +56,39 @@
       "note": "everything in src/ the areas above do not claim"
     },
     "schemas": {
-      "blank": 20,
+      "blank": 21,
       "code": 27,
       "comment": 43,
-      "docstring": 36,
+      "docstring": 46,
       "files": 1,
-      "lines": 126,
+      "lines": 137,
       "note": "the published contracts"
     },
     "scripts": {
-      "blank": 816,
-      "code": 3971,
-      "comment": 584,
-      "docstring": 1053,
+      "blank": 835,
+      "code": 4073,
+      "comment": 593,
+      "docstring": 1077,
       "files": 16,
-      "lines": 6424,
+      "lines": 6578,
       "note": "this script"
     },
     "tests": {
-      "blank": 4381,
-      "code": 11451,
-      "comment": 1336,
-      "docstring": 3376,
+      "blank": 4410,
+      "code": 11500,
+      "comment": 1339,
+      "docstring": 3390,
       "files": 52,
-      "lines": 20544,
+      "lines": 20639,
       "note": "the test suite"
     },
     "total": {
-      "blank": 7244,
-      "code": 25308,
-      "comment": 3211,
-      "docstring": 7174,
+      "blank": 7293,
+      "code": 25459,
+      "comment": 3223,
+      "docstring": 7222,
       "files": 116,
-      "lines": 42937,
+      "lines": 43197,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -117,7 +117,7 @@
       "benchmark self-tests": 2,
       "benign corpus": 1,
       "exhaustive sweep": 1,
-      "external adversarial audit": 23,
+      "external adversarial audit": 25,
       "fuzzing": 14,
       "product review against a roadmap": 9,
       "reading the tool's own output": 7,
@@ -133,13 +133,13 @@
       "writing a test for an adjacent feature": 2
     },
     "checked_against_pytest": true,
-    "defects": 154,
-    "entries": 136,
-    "in_the_shipped_tool": 93,
+    "defects": 156,
+    "entries": 138,
+    "in_the_shipped_tool": 94,
     "mechanisms": 21,
-    "named_tests": 59,
+    "named_tests": 64,
     "named_tests_not_collected": [],
-    "pinned_by_a_named_test": 34,
+    "pinned_by_a_named_test": 35,
     "pinned_by_a_note_instead": [
       "DEF-01",
       "DEF-03",
@@ -244,7 +244,8 @@
       "DEF-114",
       "DEF-115",
       "DEF-116",
-      "DEF-136"
+      "DEF-136",
+      "DEF-138"
     ],
     "source": "docs/defects.json",
     "still_open": 0,
@@ -252,17 +253,17 @@
   },
   "docs": {
     "docs/DESIGN.md": {
-      "lines": 850
+      "lines": 851
     },
-    "total_lines": 850
+    "total_lines": 851
   },
-  "generated_at": "2026-09-22T22:02:19+00:00",
+  "generated_at": "2026-09-23T08:04:30+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 62,
-    "head": "8ac1d2b",
-    "head_date": "2026-09-22"
+    "commits": 63,
+    "head": "e4c6934",
+    "head_date": "2026-09-23"
   },
   "package": {
     "declared_version": "3.0.0",
@@ -282,7 +283,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 2666,
+    "collected": 2682,
     "files": 45,
     "per_file": {
       "tests/test_action_yml.py": 13,
@@ -292,8 +293,8 @@
       "tests/test_chain_domain_separation.py": 14,
       "tests/test_cli.py": 32,
       "tests/test_consistency.py": 285,
-      "tests/test_defect_ledger.py": 548,
-      "tests/test_design_notes.py": 87,
+      "tests/test_defect_ledger.py": 556,
+      "tests/test_design_notes.py": 88,
       "tests/test_diff.py": 25,
       "tests/test_dsse.py": 25,
       "tests/test_file_size.py": 12,
@@ -313,7 +314,7 @@
       "tests/test_proxy_transports.py": 28,
       "tests/test_reachability.py": 50,
       "tests/test_readme_parity.py": 30,
-      "tests/test_release_check.py": 116,
+      "tests/test_release_check.py": 123,
       "tests/test_scan_claude_code.py": 33,
       "tests/test_schemas.py": 24,
       "tests/test_seal_and_report.py": 21,

@@ -28,6 +28,17 @@ What a version promises, stated precisely so it can be kept:
 
 `tests/test_schemas.py` enforces the first of those against a frozen list, so
 dropping a required field fails the build rather than a customer's parser.
+
+Design note D-303. Every `$id` here is under the repository's own URL, which
+this project holds, and not under a domain named after the product, which it
+does not. An identifier nobody else can take is the whole point of having one:
+a name somebody may register tomorrow would leave these contracts published in
+a stranger's namespace, which is what `ACT-S003` tells other people not to
+accept from their own hooks. Rejected: `https://<product>.dev/...`, which
+reads better and is a rented word; and a raw URL pinned to a branch or a tag,
+which resolves today and changes the identifier every time the file moves or
+the release advances, so one contract would have as many identities as it had
+releases.
 """
 from __future__ import annotations
 

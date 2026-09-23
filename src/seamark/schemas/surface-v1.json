@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://seamark.dev/schemas/surface-v1.json",
+  "$id": "https://github.com/marcosmatalab/seamark/schemas/surface-v1.json",
   "title": "Seamark surface document, v1",
   "description": "What agents can do in one root, resolved across scopes, with every capability naming the file it came from and the documented merge rule that settled it. Three lists that are never mixed: what was resolved, what could not be, and what this release does not read. Nothing here is a total, an ordering or a summary.",
   "type": "object",
