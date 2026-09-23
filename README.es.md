@@ -15,7 +15,7 @@ Seamark lee la configuración que cargan tus agentes de código, resuelve lo que
 
 **Seamark 3.0.0** · Apache-2.0 · una dependencia en tiempo de ejecución · sin conexión, sin telemetría, sin cuenta
 
-**[English](README.md)** · [Qué hace](#-qué-hace-en-palabras-sencillas) · [Quickstart](#-quickstart) · [Comandos](docs/COMMANDS.md) · [Diseño](docs/DESIGN.md)
+**[English](README.md)** · [Qué hace](#-qué-hace-en-palabras-sencillas) · [Inicio rápido](#-inicio-rápido) · [Compromisos](#-compromisos-de-diseño) · [Comandos](docs/COMMANDS.md) · [Diseño](docs/DESIGN.md)
 
 ```bash
 pip install git+https://github.com/marcosmatalab/seamark && seamark check
@@ -40,7 +40,24 @@ solo dice qué tiene permitido hacer el agente.
 |:-:|---|---|
 | 🔍 | *¿Qué puede hacer un agente en este repositorio ahora mismo?* | `seamark check` |
 | 🔀 | *¿Qué añadió, quitó, ensanchó o estrechó este pull request?* | `seamark diff` |
-| 🔏 | *¿La aprobación que firmé sigue describiendo lo que hay?* | `seamark seal` · `seamark verify` |
+| 🔏 | *¿La aprobación que firmé sigue describiendo lo que hay?* | `seamark seal` · `seamark verify` (construido en parte) |
+
+### ⚙️ Cómo funciona, en cuatro pasos
+
+1. **Leer.** Encuentra la configuración de agentes de siete fuentes en el
+   repositorio, y con `--machine` en los ámbitos de usuario y gestionado: ajustes,
+   hooks, listas de servidores MCP, permisos, política de sandbox, ficheros de
+   instrucciones. Los analiza y nunca los ejecuta; un fichero que ve y aún no
+   sabe leer se lista, no se omite.
+2. **Resolver.** Aplica la precedencia documentada de cada fabricante para
+   calcular la *superficie efectiva*: lo que el agente puede hacer de verdad una
+   vez mezclados todos los ficheros.
+3. **Nombrar.** Aplica 32 reglas documentadas sobre esa superficie. Cada hallazgo
+   cita el fichero, la regla de mezcla (trazable hasta la página del fabricante
+   de la que se leyó) y el autor de la regla.
+4. **Comparar.** Resuelve dos commits de la misma forma e informa de cada
+   capacidad como APARECE, DESAPARECE, SE ENSANCHA, SE ESTRECHA o CAMBIA, con un
+   código de salida sobre el que CI puede actuar.
 
 ```mermaid
 flowchart LR
@@ -54,7 +71,28 @@ flowchart LR
 hook de agente en un repositorio; un solo `diff` lo nombra, cita las reglas que
 dispararon, y se niega a adivinar lo que solo puede decidir la máquina del usuario:
 
-![La salida de la demo de keyv: un hook que aparece, dos reglas que disparan y dos capacidades que no se pudieron resolver](docs/img/01-demo-es.svg)
+![La salida de la demo de keyv: un hook que aparece, dos reglas que disparan y una tarea cuyo efecto no se pudo resolver](docs/img/01-demo-es.svg)
+
+---
+
+## 🎯 Por qué importa
+
+La configuración de los agentes se ha convertido en superficie ejecutable. Un
+hook en `.claude/settings.json` ejecuta un comando de shell en cuanto se abre una
+sesión, una entrada en `.mcp.json` está a una aprobación de lanzar un servidor
+con las credenciales del desarrollador, y una tarea en `.vscode/tasks.json` puede
+ejecutarse al abrir la carpeta. La oleada de cadena de suministro de keyv de
+agosto de 2026 usó dos de ellos: el hook y la tarea.
+
+La revisión de código está mal situada para detectarlo:
+
+- **Disperso.** La respuesta abarca varios ficheros, ámbitos y fabricantes, cada uno con sus reglas de mezcla.
+- **Opaco en un diff.** Un cambio de una línea en un JSON puede dar acceso a la shell; quien revisa ve sintaxis, no capacidades.
+- **Dependiente del contexto.** Que una línea tenga efecto puede depender de ficheros que no están en el pull request.
+
+Seamark lo convierte en una sola respuesta revisable y citada: *este pull request
+le da al agente un hook que se ejecuta al abrir sesión, y esta es la regla que
+explica por qué importa.*
 
 ---
 
@@ -66,7 +104,7 @@ dispararon, y se niega a adivinar lo que solo puede decidir la máquina del usua
 |---|---|---|
 | **2.700 tests**, ejecutados en Python 3.11, 3.12 y 3.13 | **32 reglas documentadas** en paquetes versionados | **7 comandos de CLI**, una dependencia en tiempo de ejecución |
 | **Puerta de cobertura** en CI: el suelo es 88 y el árbol mide 90 | **15.980 líneas de código de producto** | Acción de GitHub, hook de pre-commit, SARIF 2.1.0 |
-| Puerta de release sobre cada cifra y cada afirmación | **4 contratos versionados** publicados como JSON Schema | Informe HTML autocontenido, sin red |
+| Puerta de release sobre cada cifra, flag y estado de afirmación | **4 contratos versionados** publicados como JSON Schema | Informe HTML autocontenido, sin red |
 
 </div>
 
@@ -80,8 +118,8 @@ qué comando produce cada una.
   contra el orden de mezcla que publica su propia documentación, y la superficie
   del repositorio es la unión de todos ellos.
 - 📎 **Cada hallazgo va citado.** El fichero del que sale, la regla de mezcla con
-  la URL y la versión de la documentación del fabricante, y la regla que lo
-  nombra con su autor y su paquete.
+  la URL, la fecha de lectura y un digest de la página del fabricante, y la regla
+  que lo nombra con su autor y su paquete.
 - 🔒 **Seguro por construcción.** Nunca ejecuta lo que lee, y `diff` lee los
   objetos de git directamente: sin checkout, sin hooks, sin filtros, sin mover HEAD.
 - ❔ **Nunca adivina.** Lo que no se puede resolver desde el repositorio sale
@@ -90,9 +128,10 @@ qué comando produce cada una.
   rotación y revocación, ligadas a digests, nunca a nombres ni a fechas.
 - 📴 **Privado por defecto.** Sin cuenta, sin telemetría; `check`, `diff`, `seal`
   y `verify` funcionan por completo sin conexión.
-- 🌍 **Bilingüe.** Informes y mensajes en inglés y en español (`--lang es`).
-- 🛡️ **Cadena de release blindada.** Se construye en un runner de CI con
-  procedencia SLSA firmada, y cada acción de terceros va fijada por SHA de commit.
+- 🌍 **Bilingüe.** Mensajes de la herramienta en inglés y en español
+  (`--lang es`); el texto de una regla queda en el idioma en que lo escribió su autor.
+- 🛡️ **Cadena de release blindada.** El flujo de release construye en un runner de
+  CI y firma procedencia SLSA; cada acción de terceros va fijada por SHA de commit.
 - ✅ **Documentación que se verifica sola.** La puerta de release comprueba cada
   comando, flag, cifra y estado de afirmación de esta página contra el código.
 
@@ -100,38 +139,31 @@ qué comando produce cada una.
 
 ## ⏱ Comprobar esto en 60 segundos
 
-Sin conexión, sin cuenta y sin ningún agente instalado:
-
-```bash
-pip install git+https://github.com/marcosmatalab/seamark && seamark scan --demo
-```
-
-Y todo lo demás, desde un clon limpio:
+Sin cuenta y sin ningún agente; tras la instalación, todo funciona sin conexión:
 
 ```bash
 git clone https://github.com/marcosmatalab/seamark && cd seamark
-pip install -e ".[dev]"
-make all        # lint, la suite con su suelo de cobertura, las cifras medidas, las dos puertas
+pip install -e . && python scripts/demo_keyv.py     # el diff de keyv de la imagen de arriba
 ```
 
-O `make all` está verde o esta página está equivocada. La puerta de release lee
-esta página y resuelve sus comandos, flags, cifras y estados de afirmación contra
-el código, así que si cualquiera de ellos se desvía, la build falla.
+Y la puerta entera, que tarda más:
+
+```bash
+pip install -e ".[dev]" && make all   # lint, la suite con su suelo de cobertura, las cifras medidas, las dos puertas
+```
+
+Si `make all` está en verde, cada comando, flag, cifra y estado de afirmación de
+esta página concuerda con el código: la puerta de release lee la página y hace
+fallar la build ante cualquier desvío.
 
 ---
 
 ## 🧭 Qué es esto
 
-Un agente abre tu repositorio. Antes de que escribas nada ya ha leído un fichero
-de ajustes que puede registrar un hook para ejecutarse al abrir sesión, una
-lista de servidores MCP a los que conectarse, un conjunto de permisos, una
-política de sandbox y un fichero de instrucciones. Esos ficheros llegan de
-varios ámbitos a la vez (gestionado, usuario, proyecto, local) y cada fabricante
-documenta sus propias reglas para mezclarlos.
-
-Seamark lee esos ficheros, resuelve a qué suman, nombra cada capacidad con la
-regla que la encontró, y dice qué ha cambiado desde la última vez. Lee, resuelve
-e informa: nunca bloquea y nunca ejecuta nada.
+Una herramienta de control de cambios para la configuración de agentes: lee,
+resuelve e informa, y nunca bloquea ni ejecuta nada. La configuración llega de
+varios ámbitos a la vez (gestionado, usuario, proyecto, local), y Seamark
+resuelve la escalera de cada fabricante tal como ese fabricante la documenta.
 
 ### Las tres afirmaciones
 
@@ -142,7 +174,7 @@ puede separarse del código.
 
 **1. Superficie** - lo que un agente puede hacer aquí, resuelto entre ámbitos y
 fabricantes. Cada capacidad cita el fichero del que sale, la regla de mezcla
-documentada que la resolvió con la URL y la versión de la documentación del
+documentada que la resolvió con la URL, la fecha de lectura y un digest de la página del
 fabricante que la enuncia, y la regla de Seamark que la nombra.
 
 > **Construido.** Comandos: `seamark check`.
@@ -180,7 +212,7 @@ no lo que puede hacer, y uno gestiona una clave.
 
 ---
 
-## 🚀 Quickstart
+## 🚀 Inicio rápido
 
 ```bash
 pip install git+https://github.com/marcosmatalab/seamark
@@ -190,8 +222,8 @@ Una dependencia en tiempo de ejecución (`cryptography`). Sin cuenta y sin red.
 Para trabajar en la herramienta, clónala y usa `pip install -e ".[dev]"`.
 
 Para esto sirve el producto, sobre la oleada de cadena de suministro de keyv del
-4 de agosto de 2026, reconstruida desde los informes publicados. El script
-construye un repositorio desechable con dos commits, limpio y después
+4 de agosto de 2026, reconstruida desde los informes publicados.
+`scripts/demo_keyv.py` construye un repositorio desechable con dos commits, limpio y después
 comprometido, y compara los dos; su salida es la imagen
 [del principio de esta página](#-qué-hace-en-palabras-sencillas).
 La misma salida en texto, para copiarla o compararla, está en
@@ -278,7 +310,7 @@ controla git y su sha256. No imprime literales de comandos, URLs ni cabeceras si
 `--with-content`, así que un secreto de un fichero de ajustes nunca llega a un log.
 
 Códigos de salida: `0` no disparó nada y no quedó nada sin resolver, `1` disparó
-una regla, `3` no disparó nada y algo no se pudo resolver.
+una regla, `3` no disparó nada y algo no se pudo resolver, `2` error de uso.
 
 ### 🔀 `seamark diff` - qué ha cambiado
 
@@ -325,7 +357,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
-          fetch-depth: 0       # diff necesita los dos lados, o sea la historia entera
+          fetch-depth: 0       # diff necesita los dos commits; la forma más simple de tenerlos
           persist-credentials: false
       - uses: marcosmatalab/seamark@2c25f4981b12ff3f0854bbb79e2eaecb0a4be5ec
 ```
@@ -391,7 +423,8 @@ otra.
 
 **2. Nunca juzgar, solo citar.** Seamark compara lo observado contra una norma
 **escrita por otro** y la nombra, publicando el id de esa regla, su versión, su
-paquete y su autor. Ningún modelo está en el camino de decisión.
+paquete y su autor. Ningún modelo está en el camino de decisión. Las 32 reglas
+documentadas vienen en el paquete `core`, atribuidas a su autor como cualquier otro.
 
 **3. Nunca inferir lo no observado.** Un predicado sin información devuelve
 INDETERMINADO, jamás False. Cada regla declara lo que necesita para responder, y
@@ -407,6 +440,23 @@ Las cuatro están afirmadas sobre código que existe: la primera en
 segunda en cada hallazgo llevando el autor y el paquete de su regla, la tercera
 en `Clause.holds` devolviendo None ante un hecho que nadie escribió, y la cuarta
 en `diff` leyendo dos árboles sin hacer checkout de ninguno.
+
+---
+
+## 📐 Compromisos de diseño
+
+Cada decisión de abajo compra algo y cuesta algo, a propósito. Cada una se sigue
+de las invariantes de arriba; el razonamiento está en
+[`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) y [`docs/DESIGN.md`](docs/DESIGN.md).
+
+| Decisión | Qué ganas | Qué cuesta |
+|---|---|---|
+| **Leer, nunca ejecutar** | Hecho para pasarse sobre pull requests no fiables | Informa de lo que la configuración *declara*, no de lo que se ejecutó |
+| **INDETERMINADO antes que adivinar** | Algo desconocido nunca se da por seguro | Algunas respuestas quedan para una persona, como los ajustes que solo tiene la máquina del usuario |
+| **Reglas citadas, sin puntuaciones** | Cada hallazgo es atribuible y auditable | No hay un único número de riesgo para ordenar el backlog |
+| **Ningún modelo en el camino de decisión** | Misma entrada, mismos bytes; la puerta de release repite la salida con dos semillas de hash | La cobertura es exactamente lo que describen los paquetes de reglas |
+| **Objetos de git, no un checkout** | Nunca se ejecuta ningún hook, filtro ni driver de textconv | Cada lado se copia a un árbol temporal, y un árbol demasiado grande se rechaza en vez de leerse a medias |
+| **Sin conexión, una sola dependencia** | Uso en entornos aislados y una cadena de suministro mínima | Sin panel hospedado; los informes son ficheros que conservas |
 
 ---
 
