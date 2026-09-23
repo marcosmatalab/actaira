@@ -23,7 +23,7 @@
 
 [pack]
 name = "core"
-author = "Seamark core"
+author = "Seamark"
 vendor = "claude-code"
 version = "1"
 

@@ -115,6 +115,7 @@ inside a section that is otherwise live: **3.4** (CycloneDX ML-BOM) and **3.5**
 | D-301 | Every claim a README makes about a command, a flag or an exit code resolves against the parser, and a claim block that names no command is refused | `scripts/release_check.py:699` |
 | D-302 | The proxy sends the agent nothing when the server sent nothing, so a client with no deadline of its own waits, because fabricating a reply would put a message the server never sent into the agent's input | `src/seamark/proxy/stdio.py:373` |
 | D-303 | Every contract identifier lives under the repository's URL rather than a domain named after the product, because a name that can be registered by somebody else is not an identifier | `src/seamark/schemas/__init__.py:32` |
+| D-304 | A pack whose author ends in the pack's own name is refused at load, because every report prints the author followed by the pack and would print the name twice | `src/seamark/surface/rules.py:246` |
 
 Thirty-nine rows left this table in phase A, with the modules they argued
 about: every note numbered for `coverage.py`, `miniyaml.py`, `io_budget.py`,

@@ -48,11 +48,11 @@
     },
     "rest": {
       "blank": 869,
-      "code": 4270,
-      "comment": 477,
+      "code": 4275,
+      "comment": 481,
       "docstring": 1003,
       "files": 20,
-      "lines": 6619,
+      "lines": 6628,
       "note": "everything in src/ the areas above do not claim"
     },
     "schemas": {
@@ -74,21 +74,21 @@
       "note": "this script"
     },
     "tests": {
-      "blank": 4436,
-      "code": 11582,
+      "blank": 4447,
+      "code": 11604,
       "comment": 1341,
-      "docstring": 3399,
+      "docstring": 3406,
       "files": 52,
-      "lines": 20758,
+      "lines": 20798,
       "note": "the test suite"
     },
     "total": {
-      "blank": 7326,
-      "code": 25596,
-      "comment": 3232,
-      "docstring": 7239,
+      "blank": 7337,
+      "code": 25623,
+      "comment": 3236,
+      "docstring": 7246,
       "files": 116,
-      "lines": 43393,
+      "lines": 43442,
       "note": "every Python file under scripts, src, tests, each counted once"
     },
     "trace": {
@@ -253,16 +253,16 @@
   },
   "docs": {
     "docs/DESIGN.md": {
-      "lines": 851
+      "lines": 852
     },
-    "total_lines": 851
+    "total_lines": 852
   },
-  "generated_at": "2026-09-23T09:58:24+00:00",
+  "generated_at": "2026-09-23T14:50:08+00:00",
   "generated_by": "scripts/figures.py",
   "git": {
     "available": true,
-    "commits": 65,
-    "head": "791554f",
+    "commits": 68,
+    "head": "1374554",
     "head_date": "2026-09-23"
   },
   "package": {
@@ -283,7 +283,7 @@
   },
   "tests": {
     "available": true,
-    "collected": 2700,
+    "collected": 2704,
     "files": 45,
     "per_file": {
       "tests/test_action_yml.py": 13,
@@ -294,7 +294,7 @@
       "tests/test_cli.py": 32,
       "tests/test_consistency.py": 285,
       "tests/test_defect_ledger.py": 564,
-      "tests/test_design_notes.py": 88,
+      "tests/test_design_notes.py": 89,
       "tests/test_diff.py": 25,
       "tests/test_dsse.py": 25,
       "tests/test_file_size.py": 12,
@@ -319,7 +319,7 @@
       "tests/test_schemas.py": 24,
       "tests/test_seal_and_report.py": 21,
       "tests/test_signing_domain_separation.py": 4,
-      "tests/test_surface.py": 97,
+      "tests/test_surface.py": 100,
       "tests/test_surface_instructions.py": 34,
       "tests/test_surface_rules.py": 80,
       "tests/test_surface_vendors.py": 155,
