@@ -45,7 +45,7 @@ repository.
   **currency**, replacing authenticity, conformance and inclusion. Surface is
   what an agent can do here, resolved across scopes and vendors, with every
   capability citing its file, the vendor's documented merge rule with the URL
-  and version that states it, and the Actaira rule that names it. Change is what
+  and version that states it, and the seamark rule that names it. Change is what
   appears, disappears, widens or narrows between two moments. Currency is
   whether an approval still describes what is there, bound to digests and never
   to names or dates.
@@ -80,7 +80,7 @@ repository.
 
 ### Added
 
-- **`actaira diff`, and with it the second of the three product claims.** Two
+- **`seamark diff`, and with it the second of the three product claims.** Two
   git refs, or two directories, compared without checking either of them out:
   the trees are materialised with `git ls-tree` and `git cat-file`, which run no
   hook, apply no filter and no textconv driver, into a temporary directory the
@@ -89,7 +89,7 @@ repository.
   one side or the other, which is never folded into the five. Widened and
   narrowed exist only where a fact's own name states which value is the wider
   one; everywhere else the answer is CHANGED with both digests.
-- **`actaira seal`**, a signed baseline of a surface that carries no content:
+- **`seamark seal`**, a signed baseline of a surface that carries no content:
   paths and the names a third party chose travel as salted references whose salt
   stays with the operator, and everything a capability observed travels as one
   sha256 over its facts. `attest/package.py::write_package` had been reachable
@@ -144,7 +144,7 @@ repository.
   not its call. It is the same decision A.1 made about
   `.github/actions/actaira-scan`, applied to the sibling that was left. The
   pre-commit integration returns when there is something to hook a commit to.
-  **It returned in phase S3**, with `actaira check` and one hook rather than
+  **It returned in phase S3**, with `seamark check` and one hook rather than
   two, and this entry stays in the past tense it was written in: what was
   removed is still what was removed.
 - `actaira_contract` and `actaira_verdict` from the MCP server's `tools/list`.
@@ -161,7 +161,7 @@ repository.
 ### Fixed
 
 - **The gate could not tell a true claim from a false one.** After phase S1
-  shipped `actaira check`, both READMEs went on publishing "Does not exist"
+  shipped `seamark check`, both READMEs went on publishing "Does not exist"
   under the claim that command implements, for a whole phase, and
   `release_check.readme_documents_the_commands` was green throughout: it asked
   only whether the command was NAMED on the page. Phase S2 found it by reading,
@@ -316,7 +316,7 @@ cryptographic defects found on the way out are fixed: the chain entry hash
 promised length prefixes and concatenated with `|`, and a demonstrated collision
 moved bytes across a field boundary undetected; the package manifest and the
 receipt both signed 32 bare bytes under the same default key with no domain
-separation. `actaira` is two commands, `verify` and `keygen`, until the trace
+separation. `seamark` is two commands, `verify` and `keygen`, until the trace
 format that the other six need exists.
 
 Phase 0.1, which closed the seven findings of an external review on top of this
