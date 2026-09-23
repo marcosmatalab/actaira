@@ -71,3 +71,46 @@ def test_the_requirement_list_would_notice_a_resource_that_stopped_shipping(tmp_
         planted.unlink()
 
     assert planted.relative_to(Path(SRC_DIR)).as_posix() not in _required()
+
+
+def _build_package():
+    sys.path.insert(0, str(Path(REPO_ROOT) / "scripts"))
+    import build_package  # noqa: PLC0415
+
+    return build_package
+
+
+def _parses(argv: list[str]) -> bool:
+    """Whether the CLI's own parser accepts `argv`. `--help` and `--version`
+    leave through SystemExit(0), which is acceptance."""
+    from seamark.cli import build_parser  # noqa: PLC0415
+
+    try:
+        build_parser().parse_args(argv)
+    except SystemExit as leaving:
+        return leaving.code == 0
+    return True
+
+
+def test_the_clean_install_runs_commands_the_cli_has(capsys):
+    """`make package INSTALL=--install` ran `seamark schema`, a command that
+    left with the scanner, so the step the release runbook rehearses with
+    failed on every run and nothing in CI ran it. Read off the parser offline,
+    because the install itself needs a network for its one dependency."""
+    build_package = _build_package()
+
+    assert build_package.SMOKE, "no command is run after the install"
+    assert [argv for argv in build_package.SMOKE if not _parses(argv)] == []
+
+
+def test_the_smoke_check_would_notice_a_command_that_is_gone(capsys):
+    """The twin: the command it used to run."""
+    assert not _parses(["schema"])
+
+
+def test_the_install_probe_reads_a_rule_the_packs_ship():
+    """The probe read `ACT-PKL-002`, a scanner rule, out of the catalogue."""
+    build_package = _build_package()
+    from seamark.surface import rules  # noqa: PLC0415
+
+    assert build_package.PROBE_RULE in {rule.id for rule in rules.load()}
