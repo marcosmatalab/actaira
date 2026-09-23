@@ -137,6 +137,12 @@ repository.
 
 ### Removed
 
+- **The PyPI and TestPyPI jobs in `.github/workflows/release.yml`**, and the
+  `workflow_dispatch` rehearsal that reached the second. Nothing is uploaded to
+  a package index: the tool installs from its release tag, with
+  `pip install "git+https://github.com/marcosmatalab/seamark@v3.0.0"`, and the
+  release carries the attested wheel and sdist. A job that uploads to an index
+  is refused by the release gate (design note D-306).
 - `.pre-commit-hooks.yaml`, which published two hooks that could not run: both
   called `actaira scan --fail-on high` over `.pkl`, `.onnx` and `.h5`, and
   neither `--fail-on` nor exit code 3 has existed since 3.0.0. Phase A.1 found
@@ -270,7 +276,7 @@ actaira.com - and two unrelated things under one name is a confusion a reader
 cannot resolve from the outside. This one moved, because it is the one that had
 not been published under its name yet.
 
-What changed with it: the distribution on PyPI (`seamark`), the command
+What changed with it: the distribution (`seamark`), the command
 (`seamark`), the import path (`import seamark`), the package directory
 (`src/seamark/`), the repository (`github.com/marcosmatalab/seamark`), the
 identifiers of every contract on disk - which went further than the rename and
