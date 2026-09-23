@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-23T16:33:10+00:00 for seamark 3.0.1, at commit 4bfd6e7.
+Generated 2026-09-23T16:48:58+00:00 for seamark 3.0.1, at commit b63a732.
 
 ## The package
 
 - version **3.0.1**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, pytest-cov>=5, ruff>=0.6, jsonschema>=4.18
-- 77 commits, most recent 2026-09-23
+- 78 commits, most recent 2026-09-23
 
 ## Tests
 
-**2724** tests collected by pytest across 46 files.
+**2726** tests collected by pytest across 46 files.
 
 | file | tests |
 |---|---:|
@@ -37,7 +37,7 @@ Generated 2026-09-23T16:33:10+00:00 for seamark 3.0.1, at commit 4bfd6e7.
 | `tests/test_dsse.py` | 25 |
 | `tests/test_file_size.py` | 12 |
 | `tests/test_fixtures_are_published.py` | 193 |
-| `tests/test_i18n.py` | 146 |
+| `tests/test_i18n.py` | 148 |
 | `tests/test_keyring.py` | 34 |
 | `tests/test_layering.py` | 9 |
 | `tests/test_mcp.py` | 15 |
@@ -70,7 +70,7 @@ Generated 2026-09-23T16:33:10+00:00 for seamark 3.0.1, at commit 4bfd6e7.
 | `tests/test_value_inventory.py` | 7 |
 | `tests/test_verify_strictness.py` | 23 |
 | `tests/test_workflow_shell.py` | 5 |
-| **total** | **2724** |
+| **total** | **2726** |
 
 Statement coverage of `src/seamark`: **90**, measured by `make test-cov`, which fails under 88.
 
@@ -121,9 +121,9 @@ and the modules are the source of truth.
 | schemas | 1 | 137 | 27 | 46 | 43 | 21 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
 | rest | 20 | 6632 | 4275 | 1003 | 485 | 869 |
-| tests | 53 | 20955 | 11694 | 3422 | 1344 | 4495 |
+| tests | 53 | 20995 | 11717 | 3426 | 1348 | 4504 |
 | scripts | 16 | 6740 | 4196 | 1080 | 610 | 854 |
-| **total** | 117 | 43688 | 25781 | 7257 | 3253 | 7397 |
+| **total** | 117 | 43728 | 25804 | 7261 | 3257 | 7406 |
 
 Documentation, in lines of Markdown:
 
