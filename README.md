@@ -15,7 +15,7 @@ Seamark reads the configuration your coding agents load, resolves what it actual
 
 **Seamark 3.0.0** · Apache-2.0 · one runtime dependency · offline, no telemetry, no account
 
-**[Español](README.es.md)** · [What it does](#-what-it-does-in-plain-words) · [Quickstart](#-quickstart) · [Commands](docs/COMMANDS.md) · [Design](docs/DESIGN.md)
+**[Español](README.es.md)** · [What it does](#-what-it-does-in-plain-words) · [Quickstart](#-quickstart) · [Trade-offs](#-design-trade-offs) · [Commands](docs/COMMANDS.md) · [Design](docs/DESIGN.md)
 
 ```bash
 pip install git+https://github.com/marcosmatalab/seamark && seamark check
@@ -39,7 +39,21 @@ powers, and no single file tells you what the agent is allowed to do.
 |:-:|---|---|
 | 🔍 | *What can an agent do in this repository right now?* | `seamark check` |
 | 🔀 | *What did this pull request add, remove, widen or narrow?* | `seamark diff` |
-| 🔏 | *Does the approval I signed still describe what is there?* | `seamark seal` · `seamark verify` |
+| 🔏 | *Does the approval I signed still describe what is there?* | `seamark seal` · `seamark verify` (partly built) |
+
+### ⚙️ How it works, in four steps
+
+1. **Read.** It finds the agent configuration of seven sources in the repository,
+   and with `--machine` in the user and managed scopes: settings, hooks, MCP
+   server lists, permissions, sandbox policy, instruction files. It parses them
+   and never runs them; a file it sees but does not read yet is listed, not skipped.
+2. **Resolve.** It applies each vendor's documented precedence to compute the
+   *effective surface*: what the agent can actually do once every file is merged.
+3. **Name.** It runs 32 documented rules over that surface. Each finding cites
+   the file, the merge rule (traceable to the vendor page it was read from), and
+   the rule's author.
+4. **Compare.** It resolves two commits the same way and reports each capability
+   as APPEARED, DISAPPEARED, WIDENED, NARROWED or CHANGED, with an exit code CI can act on.
 
 ```mermaid
 flowchart LR
@@ -53,7 +67,28 @@ flowchart LR
 in a repository; one `diff` names it, cites the rules that fired, and refuses to
 guess about what only the user's machine can decide:
 
-![The output of the keyv demo: a hook that appeared, two rules that fired, and two capabilities that could not be resolved](docs/img/01-demo.svg)
+![The output of the keyv demo: a hook that appeared, two rules that fired, and one task whose effect could not be resolved](docs/img/01-demo.svg)
+
+---
+
+## 🎯 Why it matters
+
+Agent configuration has become executable surface. A hook in
+`.claude/settings.json` runs a shell command the moment a session opens, an
+entry in `.mcp.json` is one approval away from launching a server with the
+developer's credentials, and a task in `.vscode/tasks.json` can run when the
+folder opens. The keyv supply-chain wave of August 2026 used two of them: the
+hook and the task.
+
+Code review is poorly placed to catch it:
+
+- **Scattered.** The answer spans several files, scopes and vendors, each with its own merge rules.
+- **Opaque in a diff.** A one-line JSON change can grant shell access; a reviewer sees syntax, not capability.
+- **Context-dependent.** Whether a line takes effect can depend on files outside the pull request.
+
+Seamark turns that into one reviewable, cited answer: *this pull request gives
+the agent a hook that runs at session start, and here is the rule that says why
+that matters.*
 
 ---
 
@@ -65,7 +100,7 @@ guess about what only the user's machine can decide:
 |---|---|---|
 | **2,700 tests**, run on Python 3.11, 3.12 and 3.13 | **32 documented rules** from versioned packs | **7 CLI commands**, one runtime dependency |
 | **Coverage gate** in CI: the floor is 88 and the tree measures 90 | **15,980 lines of product code** | GitHub Action, pre-commit hook, SARIF 2.1.0 |
-| Release gate over every figure and claim | **4 versioned contracts** published as JSON Schema | Self-contained HTML report, no network |
+| Release gate over every figure, flag and claim status | **4 versioned contracts** published as JSON Schema | Self-contained HTML report, no network |
 
 </div>
 
@@ -79,8 +114,8 @@ command produces each one.
   merge order its own documentation publishes, and the repository's surface is
   the union of all of them.
 - 📎 **Every finding is cited.** The file it came from, the merge rule with the
-  vendor documentation URL and version, and the rule that named it with its
-  author and pack.
+  vendor page's URL, the date it was read and a digest of the page, and the rule
+  that named it with its author and pack.
 - 🔒 **Safe by construction.** It never executes what it reads, and `diff` reads
   git objects directly: no checkout, no hooks, no filters, HEAD never moves.
 - ❔ **Never guesses.** Anything that cannot be resolved from the repository is
@@ -89,9 +124,10 @@ command produces each one.
   revocation, bound to digests, never to names or dates.
 - 📴 **Private by default.** No account, no telemetry; `check`, `diff`, `seal`
   and `verify` work fully offline.
-- 🌍 **Bilingual.** Reports and messages in English and Spanish (`--lang es`).
-- 🛡️ **Hardened release pipeline.** Built on a CI runner with signed SLSA build
-  provenance, and every third-party action pinned by commit SHA.
+- 🌍 **Bilingual.** Tool messages in English and Spanish (`--lang es`); a rule's
+  own text stays in the language its author wrote it in.
+- 🛡️ **Hardened release pipeline.** The release workflow builds on a CI runner and
+  signs SLSA build provenance; every third-party action is pinned by commit SHA.
 - ✅ **Self-verifying documentation.** The release gate checks every command,
   flag, figure and claim status on this page against the code.
 
@@ -99,37 +135,31 @@ command produces each one.
 
 ## ⏱ Verify this in 60 seconds
 
-Offline, with no account and no agent installed:
-
-```bash
-pip install git+https://github.com/marcosmatalab/seamark && seamark scan --demo
-```
-
-And the whole of it, from a clean clone:
+No account and no agent needed; after the install, everything runs offline:
 
 ```bash
 git clone https://github.com/marcosmatalab/seamark && cd seamark
-pip install -e ".[dev]"
-make all        # lint, the suite with its coverage floor, the measured figures, the two gates
+pip install -e . && python scripts/demo_keyv.py     # the keyv diff pictured above
 ```
 
-`make all` is green or this page is wrong. The release gate parses this page and
-resolves its commands, flags, figures and claim statuses against the code, so
-any of them drifting fails the build.
+And the whole gate, which takes longer:
+
+```bash
+pip install -e ".[dev]" && make all   # lint, the suite with its coverage floor, the measured figures, the two gates
+```
+
+If `make all` is green, every command, flag, figure and claim status on this
+page matches the code: the release gate parses the page and fails the build on
+any drift.
 
 ---
 
 ## 🧭 What this is
 
-An agent opens your repository. Before you type anything it has already read a
-settings file that can register a hook to run at session start, a list of MCP
-servers to connect to, a permission set, a sandbox policy and an instructions
-file. Those files arrive from several scopes at once (managed, user, project,
-local) and each vendor documents its own rules for merging them.
-
-Seamark reads those files, resolves what they add up to, names each capability
-with the rule that found it, and says what changed since last time. It reads,
-resolves and reports: it never blocks and never runs anything.
+A change-control tool for agent configuration: it reads, resolves and reports,
+and it never blocks and never runs anything. Configuration arrives from several
+scopes at once (managed, user, project, local), and Seamark resolves each
+vendor's ladder the way that vendor documents it.
 
 ### The three claims
 
@@ -139,8 +169,8 @@ parser in both directions, so a claim here cannot drift from the code.
 
 **1. Surface** - what an agent can do here, resolved across scopes and
 vendors. Every capability cites the file it came from, the documented merge
-rule that resolved it with the URL and version of the vendor documentation that
-states it, and the Seamark rule that names it.
+rule that resolved it with the URL, the date read and a digest of the vendor
+page that states it, and the Seamark rule that names it.
 
 > **Built.** Commands: `seamark check`.
 > Claude Code, Codex CLI, Cursor, Gemini CLI, the VS Code task and settings
@@ -187,8 +217,8 @@ One runtime dependency (`cryptography`). No account, no network. To work on the
 tool itself, clone it and `pip install -e ".[dev]"` instead.
 
 Here is what the product is for, on the 4 August 2026 keyv supply-chain wave,
-reconstructed from the published reports. The script builds a throwaway
-repository with two commits, clean and then compromised, and diffs them; its
+reconstructed from the published reports. `scripts/demo_keyv.py` builds a
+throwaway repository with two commits, clean and then compromised, and diffs them; its
 output is the picture [at the top of this page](#-what-it-does-in-plain-words).
 The same output as text, to copy or to diff, is in
 [`docs/COMMANDS.md`](docs/COMMANDS.md), where the suite runs it and compares it
@@ -274,7 +304,7 @@ git tracks it, and its sha256. It prints no literal command, URL or header
 without `--with-content`, so a secret in a settings file never reaches a log.
 
 Exit codes: `0` nothing fired and nothing was unresolved, `1` a rule fired, `3`
-nothing fired and something could not be resolved.
+nothing fired and something could not be resolved, `2` a usage error.
 
 ### 🔀 `seamark diff` - what changed
 
@@ -320,7 +350,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
-          fetch-depth: 0       # diff needs both sides, so the whole history
+          fetch-depth: 0       # diff needs both commits; the simplest way to have them
           persist-credentials: false
       - uses: marcosmatalab/seamark@2c25f4981b12ff3f0854bbb79e2eaecb0a4be5ec
 ```
@@ -385,7 +415,8 @@ that is an attributed label, never aggregated with another.
 
 **2. Never judge, only cite.** Seamark compares what was observed against a norm
 **written by somebody else** and names it, publishing that rule's id, version,
-package and author. No model sits on the decision path.
+package and author. No model sits on the decision path. The 32 documented rules
+ship in the `core` pack, attributed to its author like any other pack.
 
 **3. Never infer the unobserved.** A predicate with no information returns
 INDETERMINATE, never False. Every rule declares what it needs in order to
@@ -401,6 +432,23 @@ Each is asserted over code that exists: the first by
 every finding carrying its rule's author and pack, the third by `Clause.holds`
 returning None for a fact nobody wrote down, and the fourth by `diff` reading
 two trees without checking either of them out.
+
+---
+
+## 📐 Design trade-offs
+
+Every choice below buys something and costs something, on purpose. Each follows
+from the invariants above; the reasoning is in [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md)
+and [`docs/DESIGN.md`](docs/DESIGN.md).
+
+| Decision | What you gain | What it costs |
+|---|---|---|
+| **Read, never execute** | Built to run on untrusted pull requests | It reports what configuration *declares*, not what ran |
+| **INDETERMINATE over a guess** | An unknown is never reported as safe | Some answers are left to a human, such as settings only the user's machine holds |
+| **Cited rules, no scores** | Every finding is attributable and auditable | No single risk number to sort a backlog by |
+| **No model on the decision path** | Same input, same bytes; the release gate re-runs the output under two hash seeds | Coverage is exactly what the rule packs describe |
+| **Git objects, not a checkout** | No hook, filter or textconv driver ever runs | Each side is copied to a temporary tree, and an oversized tree is refused rather than read in part |
+| **Offline, one runtime dependency** | Air-gapped use and a minimal supply chain | No hosted dashboard; reports are files you keep |
 
 ---
 
