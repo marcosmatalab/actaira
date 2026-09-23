@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-23T15:07:30+00:00 for seamark 3.0.0, at commit 6ad8a9f.
+Generated 2026-09-23T15:39:36+00:00 for seamark 3.0.0, at commit f4a15bf.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, pytest-cov>=5, ruff>=0.6, jsonschema>=4.18
-- 69 commits, most recent 2026-09-23
+- 71 commits, most recent 2026-09-23
 
 ## Tests
 
-**2708** tests collected by pytest across 45 files.
+**2711** tests collected by pytest across 45 files.
 
 | file | tests |
 |---|---:|
@@ -32,7 +32,7 @@ Generated 2026-09-23T15:07:30+00:00 for seamark 3.0.0, at commit 6ad8a9f.
 | `tests/test_cli.py` | 32 |
 | `tests/test_consistency.py` | 285 |
 | `tests/test_defect_ledger.py` | 564 |
-| `tests/test_design_notes.py` | 90 |
+| `tests/test_design_notes.py` | 91 |
 | `tests/test_diff.py` | 25 |
 | `tests/test_dsse.py` | 25 |
 | `tests/test_file_size.py` | 12 |
@@ -44,7 +44,7 @@ Generated 2026-09-23T15:07:30+00:00 for seamark 3.0.0, at commit 6ad8a9f.
 | `tests/test_merkle.py` | 146 |
 | `tests/test_netguard.py` | 19 |
 | `tests/test_no_aggregate.py` | 11 |
-| `tests/test_package_contents.py` | 3 |
+| `tests/test_package_contents.py` | 6 |
 | `tests/test_package_verify.py` | 31 |
 | `tests/test_proxy_completeness.py` | 49 |
 | `tests/test_proxy_http_interposition.py` | 15 |
@@ -52,7 +52,7 @@ Generated 2026-09-23T15:07:30+00:00 for seamark 3.0.0, at commit 6ad8a9f.
 | `tests/test_proxy_transports.py` | 28 |
 | `tests/test_reachability.py` | 50 |
 | `tests/test_readme_parity.py` | 30 |
-| `tests/test_release_check.py` | 136 |
+| `tests/test_release_check.py` | 135 |
 | `tests/test_scan_claude_code.py` | 33 |
 | `tests/test_schemas.py` | 24 |
 | `tests/test_seal_and_report.py` | 21 |
@@ -69,7 +69,7 @@ Generated 2026-09-23T15:07:30+00:00 for seamark 3.0.0, at commit 6ad8a9f.
 | `tests/test_value_inventory.py` | 7 |
 | `tests/test_verify_strictness.py` | 23 |
 | `tests/test_workflow_shell.py` | 5 |
-| **total** | **2708** |
+| **total** | **2711** |
 
 Statement coverage of `src/seamark`: **90**, measured by `make test-cov`, which fails under 88.
 
@@ -120,14 +120,14 @@ and the modules are the source of truth.
 | schemas | 1 | 137 | 27 | 46 | 43 | 21 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
 | rest | 20 | 6628 | 4275 | 1003 | 481 | 869 |
-| tests | 52 | 20837 | 11624 | 3409 | 1344 | 4460 |
-| scripts | 16 | 6729 | 4186 | 1088 | 605 | 850 |
-| **total** | 116 | 43555 | 25701 | 7252 | 3244 | 7358 |
+| tests | 52 | 20822 | 11617 | 3405 | 1344 | 4456 |
+| scripts | 16 | 6702 | 4172 | 1074 | 608 | 848 |
+| **total** | 116 | 43513 | 25680 | 7234 | 3247 | 7352 |
 
 Documentation, in lines of Markdown:
 
-- `docs/DESIGN.md`: 853
-- total: 853
+- `docs/DESIGN.md`: 854
+- total: 854
 
 ## Rules
 
