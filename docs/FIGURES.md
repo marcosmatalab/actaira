@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-23T09:58:24+00:00 for seamark 3.0.0, at commit 791554f.
+Generated 2026-09-23T14:50:08+00:00 for seamark 3.0.0, at commit 1374554.
 
 ## The package
 
 - version **3.0.0**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, pytest-cov>=5, ruff>=0.6, jsonschema>=4.18
-- 65 commits, most recent 2026-09-23
+- 68 commits, most recent 2026-09-23
 
 ## Tests
 
-**2700** tests collected by pytest across 45 files.
+**2704** tests collected by pytest across 45 files.
 
 | file | tests |
 |---|---:|
@@ -32,7 +32,7 @@ Generated 2026-09-23T09:58:24+00:00 for seamark 3.0.0, at commit 791554f.
 | `tests/test_cli.py` | 32 |
 | `tests/test_consistency.py` | 285 |
 | `tests/test_defect_ledger.py` | 564 |
-| `tests/test_design_notes.py` | 88 |
+| `tests/test_design_notes.py` | 89 |
 | `tests/test_diff.py` | 25 |
 | `tests/test_dsse.py` | 25 |
 | `tests/test_file_size.py` | 12 |
@@ -57,7 +57,7 @@ Generated 2026-09-23T09:58:24+00:00 for seamark 3.0.0, at commit 791554f.
 | `tests/test_schemas.py` | 24 |
 | `tests/test_seal_and_report.py` | 21 |
 | `tests/test_signing_domain_separation.py` | 4 |
-| `tests/test_surface.py` | 97 |
+| `tests/test_surface.py` | 100 |
 | `tests/test_surface_instructions.py` | 34 |
 | `tests/test_surface_rules.py` | 80 |
 | `tests/test_surface_vendors.py` | 155 |
@@ -69,7 +69,7 @@ Generated 2026-09-23T09:58:24+00:00 for seamark 3.0.0, at commit 791554f.
 | `tests/test_value_inventory.py` | 7 |
 | `tests/test_verify_strictness.py` | 23 |
 | `tests/test_workflow_shell.py` | 5 |
-| **total** | **2700** |
+| **total** | **2704** |
 
 Statement coverage of `src/seamark`: **90**, measured by `make test-cov`, which fails under 88.
 
@@ -119,15 +119,15 @@ and the modules are the source of truth.
 | core | 4 | 1184 | 733 | 209 | 83 | 159 |
 | schemas | 1 | 137 | 27 | 46 | 43 | 21 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
-| rest | 20 | 6619 | 4270 | 1003 | 477 | 869 |
-| tests | 52 | 20758 | 11582 | 3399 | 1341 | 4436 |
+| rest | 20 | 6628 | 4275 | 1003 | 481 | 869 |
+| tests | 52 | 20798 | 11604 | 3406 | 1341 | 4447 |
 | scripts | 16 | 6655 | 4128 | 1085 | 600 | 842 |
-| **total** | 116 | 43393 | 25596 | 7239 | 3232 | 7326 |
+| **total** | 116 | 43442 | 25623 | 7246 | 3236 | 7337 |
 
 Documentation, in lines of Markdown:
 
-- `docs/DESIGN.md`: 851
-- total: 851
+- `docs/DESIGN.md`: 852
+- total: 852
 
 ## Rules
 

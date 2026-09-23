@@ -102,8 +102,8 @@ explica por qué importa.*
 
 | 🧪 Calidad | 📦 Alcance | ⚙️ Integración |
 |---|---|---|
-| **2.700 tests**, ejecutados en Python 3.11, 3.12 y 3.13 | **32 reglas documentadas** en paquetes versionados | **7 comandos de CLI**, una dependencia en tiempo de ejecución |
-| **Puerta de cobertura** en CI: el suelo es 88 y el árbol mide 90 | **15.980 líneas de código de producto** | Acción de GitHub, hook de pre-commit, SARIF 2.1.0 |
+| **2.704 tests**, ejecutados en Python 3.11, 3.12 y 3.13 | **32 reglas documentadas** en paquetes versionados | **7 comandos de CLI**, una dependencia en tiempo de ejecución |
+| **Puerta de cobertura** en CI: el suelo es 88 y el árbol mide 90 | **15.989 líneas de código de producto** | Acción de GitHub, hook de pre-commit, SARIF 2.1.0 |
 | Puerta de release sobre cada cifra, flag y estado de afirmación | **4 contratos versionados** publicados como JSON Schema | Informe HTML autocontenido, sin red |
 
 </div>
@@ -477,9 +477,9 @@ Todas las cifras de abajo salen de un comando. Corre cualquiera y compara.
 
 | Afirmación | Comando | Resultado |
 |---|---|---|
-| 2.700 tests | `python -m pytest --collect-only -q -o addopts=` | la misma cuenta |
-| 15.980 líneas de código de producto | `find src -name '*.py' \| xargs cat \| wc -l` | la misma cuenta |
-| 43.393 líneas de Python en el árbol | `python scripts/figures.py` | `docs/FIGURES.md`, por área |
+| 2.704 tests | `python -m pytest --collect-only -q -o addopts=` | la misma cuenta |
+| 15.989 líneas de código de producto | `find src -name '*.py' \| xargs cat \| wc -l` | la misma cuenta |
+| 43.442 líneas de Python en el árbol | `python scripts/figures.py` | `docs/FIGURES.md`, por área |
 | 32 reglas documentadas | `python scripts/rules_doc.py` | `docs/RULES.md`, desde los paquetes |
 | 7 comandos de CLI, y no hay un octavo | `seamark --help` | los siete de arriba |
 | el suelo de cobertura aguanta | `make test-cov` | el suelo es 88 y el árbol mide 90 |

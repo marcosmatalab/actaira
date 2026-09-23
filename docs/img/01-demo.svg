@@ -12,13 +12,13 @@
     <text x="22" y="190" fill="#c9d1d9" xml:space="preserve">      after  effective  cdaeb29f3e8ba9ee</text>
     <text x="22" y="210" fill="#f85149" xml:space="preserve">      ! ACT-S001  A hook runs a command on a session-start event, so opening a session runs it before</text>
     <text x="22" y="230" fill="#f85149" xml:space="preserve">        anybody has read anything.</text>
-    <text x="22" y="250" fill="#c9d1d9" xml:space="preserve">        rule written by  Seamark core core / high</text>
+    <text x="22" y="250" fill="#c9d1d9" xml:space="preserve">        rule written by  Seamark core / high</text>
     <text x="22" y="270" fill="#c9d1d9" xml:space="preserve">        suggested by the rule: Remove the hook, or move it to ~/.claude/settings.json where it is yours</text>
     <text x="22" y="290" fill="#c9d1d9" xml:space="preserve">          rather than the repository's. A hook on a session-start event runs before you have read</text>
     <text x="22" y="310" fill="#c9d1d9" xml:space="preserve">          anything.</text>
     <text x="22" y="330" fill="#f85149" xml:space="preserve">      ! ACT-S003  A hook runs a script inside this repository, so whoever can land a commit decides what</text>
     <text x="22" y="350" fill="#f85149" xml:space="preserve">        it runs.</text>
-    <text x="22" y="370" fill="#c9d1d9" xml:space="preserve">        rule written by  Seamark core core / medium</text>
+    <text x="22" y="370" fill="#c9d1d9" xml:space="preserve">        rule written by  Seamark core / medium</text>
     <text x="22" y="390" fill="#c9d1d9" xml:space="preserve">        suggested by the rule: Tie your approval to the script's sha256 rather than its path: the file</text>
     <text x="22" y="410" fill="#c9d1d9" xml:space="preserve">          at that path can change after you read it, and the hook will run whatever is there.</text>
     <text x="22" y="450" fill="#e6edf3" xml:space="preserve">Could not be resolved on one side or the other: 2</text>
