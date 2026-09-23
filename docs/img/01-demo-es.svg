@@ -6,10 +6,10 @@
   <circle cx="56" cy="17" r="5" fill="#28c840"/>
   <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="14">
     <text x="22" y="70" fill="#7d8590" xml:space="preserve">$ python3 scripts/demo_keyv.py --lang es</text>
-    <text x="22" y="110" fill="#e6edf3" xml:space="preserve">Que ha cambiado entre HEAD~1 y HEAD</text>
+    <text x="22" y="110" fill="#e6edf3" xml:space="preserve">Qué ha cambiado entre HEAD~1 y HEAD</text>
     <text x="22" y="150" fill="#e6edf3" xml:space="preserve">APARECE: 1</text>
     <text x="22" y="170" fill="#3fb950" xml:space="preserve">  + claude-code  hook.command  .claude/settings.json  [project]</text>
-    <text x="22" y="190" fill="#c9d1d9" xml:space="preserve">      despues  effective  cdaeb29f3e8ba9ee</text>
+    <text x="22" y="190" fill="#c9d1d9" xml:space="preserve">      después  effective  cdaeb29f3e8ba9ee</text>
     <text x="22" y="210" fill="#f85149" xml:space="preserve">      ! ACT-S001  Un hook ejecuta un comando en un evento de arranque de sesión, así que abrir una</text>
     <text x="22" y="230" fill="#f85149" xml:space="preserve">        sesión lo ejecuta antes de que nadie haya leído nada.</text>
     <text x="22" y="250" fill="#c9d1d9" xml:space="preserve">        regla escrita por  Seamark core / high</text>
@@ -30,7 +30,7 @@
     <text x="22" y="570" fill="#c9d1d9" xml:space="preserve">      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's</text>
     <text x="22" y="590" fill="#c9d1d9" xml:space="preserve">        own settings file can set it, and no scope this run read says either way (`seamark check</text>
     <text x="22" y="610" fill="#c9d1d9" xml:space="preserve">        --machine` reads it)</text>
-    <text x="22" y="650" fill="#e6edf3" xml:space="preserve">Identicas en los dos lados: 0</text>
+    <text x="22" y="650" fill="#e6edf3" xml:space="preserve">Idénticas en los dos lados: 0</text>
     <text x="22" y="670" fill="#e6edf3" xml:space="preserve">Visto y no leído en esta versión: 7</text>
     <text x="22" y="710" fill="#e6edf3" xml:space="preserve">La configuración DECLARA; no demuestra comportamiento. Un hook escrito no es un hook que se ejecutó, y</text>
     <text x="22" y="730" fill="#e6edf3" xml:space="preserve">  uno ausente no prueba que no se ejecutara nada (límite publicado 11).</text>

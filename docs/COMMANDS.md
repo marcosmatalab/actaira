@@ -134,11 +134,11 @@ Configuration DECLARES; it does not prove behaviour. A hook that is written is n
 
 ```console
 $ python3 scripts/demo_keyv.py --lang es    # exits 1: una regla disparó sobre algo que llegó
-Que ha cambiado entre HEAD~1 y HEAD
+Qué ha cambiado entre HEAD~1 y HEAD
 
 APARECE: 1
   + claude-code  hook.command  .claude/settings.json  [project]
-      despues  effective  cdaeb29f3e8ba9ee
+      después  effective  cdaeb29f3e8ba9ee
       ! ACT-S001  Un hook ejecuta un comando en un evento de arranque de sesión, así que abrir una sesión lo ejecuta antes de que nadie haya leído nada.
         regla escrita por  Seamark core / high
         sugerido por la regla: Remove the hook, or move it to ~/.claude/settings.json where it is yours rather than the repository's. A hook on a session-start event runs before you have read anything.
@@ -152,7 +152,7 @@ No se pudo resolver en uno de los dos lados: 2
   ? a change to vscode task.command
       `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's own settings file can set it, and no scope this run read says either way (`seamark check --machine` reads it)
 
-Identicas en los dos lados: 0
+Idénticas en los dos lados: 0
 Visto y no leído en esta versión: 7
 
 La configuración DECLARA; no demuestra comportamiento. Un hook escrito no es un hook que se ejecutó, y uno ausente no prueba que no se ejecutara nada (límite publicado 11).

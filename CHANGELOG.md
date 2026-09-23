@@ -46,6 +46,12 @@ everything else here is checkable against the tree it describes.
   `source add`, `source list` and `policy check --state`, in texts no code path
   reaches: the `change`, `decide` and `state` families, 43 keys per language
   left by the model scanner. They are gone from both catalogues.
+- **The Spanish catalogue dropped its accents.** The demo printed "Que ha
+  cambiado" and "Identicas en los dos lados"; 17 texts wrote `mas`, `despues`,
+  `version`, `condicion` and the like. They are written out now, and
+  `tests/test_i18n.py` fails on a word that always carries an accent, or a noun
+  in -cion/-sion, written without one. The words whose accent depends on the
+  sentence are left to a reader.
 
 ## [3.0.0] - 2026-09-23
 
