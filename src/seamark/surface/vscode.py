@@ -176,7 +176,7 @@ def read(root: Path, *, machine: bool = False, home: Path | None = None) -> Read
         not_read.append(
             NotRead(
                 "the user's own VS Code settings.json",
-                f"not read without --machine, and it is the only scope that can set "
+                f"read only by `seamark check --machine`, and it is the only scope that can set "
                 f"`{AUTOMATIC_TASKS}`",
             )
         )
@@ -347,7 +347,7 @@ def vscode_surface(reading: Any, *, agent_version: str | None = None,
                     condition = (
                         f"`{AUTOMATIC_TASKS}` decides whether this runs; it is "
                         "APPLICATION-scoped, so only the user's own settings file can set "
-                        "it, and no scope this run read says either way (run with --machine)"
+                        "it, and no scope this run read says either way (`seamark check --machine` reads it)"
                     )
             emit(
                 found,

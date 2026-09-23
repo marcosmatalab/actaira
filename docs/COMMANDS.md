@@ -119,9 +119,9 @@ APPEARED: 1
 
 Could not be resolved on one side or the other: 2
   ? ACT-S016 on task.command
-      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's own settings file can set it, and no scope this run read says either way (run with --machine)
+      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's own settings file can set it, and no scope this run read says either way (`seamark check --machine` reads it)
   ? a change to vscode task.command
-      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's own settings file can set it, and no scope this run read says either way (run with --machine)
+      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's own settings file can set it, and no scope this run read says either way (`seamark check --machine` reads it)
 
 Identical on both sides: 0
 Seen and not read by this release: 7
@@ -148,9 +148,9 @@ APARECE: 1
 
 No se pudo resolver en uno de los dos lados: 2
   ? ACT-S016 on task.command
-      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's own settings file can set it, and no scope this run read says either way (run with --machine)
+      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's own settings file can set it, and no scope this run read says either way (`seamark check --machine` reads it)
   ? a change to vscode task.command
-      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's own settings file can set it, and no scope this run read says either way (run with --machine)
+      `task.allowAutomaticTasks` decides whether this runs; it is APPLICATION-scoped, so only the user's own settings file can set it, and no scope this run read says either way (`seamark check --machine` reads it)
 
 Identicas en los dos lados: 0
 Visto y no leído en esta versión: 7

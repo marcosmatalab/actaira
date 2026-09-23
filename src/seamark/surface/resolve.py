@@ -65,7 +65,7 @@ def _trust_state(reading: Reading, scope: Scope) -> tuple[Resolution, str | None
     return (
         Resolution.DECLARED,
         "waits for the workspace trust dialog; the trust state was not read "
-        "(run with --machine to read it)",
+        "(`seamark check --machine` reads it)",
     )
 
 

@@ -129,10 +129,14 @@ def read(root: Path, *, machine: bool = False, home: Path | None = None) -> Read
         for path in enterprise_paths():
             settings.append(read_json(Scope.MANAGED, path, str(path)))
     else:
+        # Design note D-308. A hint names `seamark check --machine` and never a
+        # bare flag: these causes print under `check` and `diff`, and only
+        # `check` takes it. Rejected: `--machine` on `diff`, which compares two
+        # refs against one home directory, so both sides would read the same scope.
         not_read.append(
             NotRead(
                 "~/.cursor/hooks.json, ~/.cursor/mcp.json and the enterprise hooks.json",
-                "not read without --machine",
+                "read only by `seamark check --machine`",
             )
         )
 
