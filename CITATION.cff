@@ -48,7 +48,7 @@ abstract: >-
   they catch.
 repository-code: "https://github.com/marcosmatalab/seamark"
 type: software
-version: 3.0.0
+version: 3.0.1
 date-released: "2026-09-23"
 license: Apache-2.0
 authors:

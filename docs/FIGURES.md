@@ -9,18 +9,18 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-23T15:53:37+00:00 for seamark 3.0.0, at commit 05af0f7.
+Generated 2026-09-23T16:33:10+00:00 for seamark 3.0.1, at commit 4bfd6e7.
 
 ## The package
 
-- version **3.0.0**, Python >=3.11
+- version **3.0.1**, Python >=3.11
 - runtime dependencies: **1** (cryptography>=41)
 - development dependencies: pytest>=8, pytest-cov>=5, ruff>=0.6, jsonschema>=4.18
-- 72 commits, most recent 2026-09-23
+- 77 commits, most recent 2026-09-23
 
 ## Tests
 
-**2714** tests collected by pytest across 45 files.
+**2724** tests collected by pytest across 46 files.
 
 | file | tests |
 |---|---:|
@@ -32,12 +32,12 @@ Generated 2026-09-23T15:53:37+00:00 for seamark 3.0.0, at commit 05af0f7.
 | `tests/test_cli.py` | 32 |
 | `tests/test_consistency.py` | 285 |
 | `tests/test_defect_ledger.py` | 564 |
-| `tests/test_design_notes.py` | 92 |
+| `tests/test_design_notes.py` | 93 |
 | `tests/test_diff.py` | 25 |
 | `tests/test_dsse.py` | 25 |
 | `tests/test_file_size.py` | 12 |
 | `tests/test_fixtures_are_published.py` | 193 |
-| `tests/test_i18n.py` | 145 |
+| `tests/test_i18n.py` | 146 |
 | `tests/test_keyring.py` | 34 |
 | `tests/test_layering.py` | 9 |
 | `tests/test_mcp.py` | 15 |
@@ -57,6 +57,7 @@ Generated 2026-09-23T15:53:37+00:00 for seamark 3.0.0, at commit 05af0f7.
 | `tests/test_schemas.py` | 24 |
 | `tests/test_seal_and_report.py` | 21 |
 | `tests/test_signing_domain_separation.py` | 4 |
+| `tests/test_suggested_options.py` | 8 |
 | `tests/test_surface.py` | 100 |
 | `tests/test_surface_instructions.py` | 34 |
 | `tests/test_surface_rules.py` | 80 |
@@ -69,7 +70,7 @@ Generated 2026-09-23T15:53:37+00:00 for seamark 3.0.0, at commit 05af0f7.
 | `tests/test_value_inventory.py` | 7 |
 | `tests/test_verify_strictness.py` | 23 |
 | `tests/test_workflow_shell.py` | 5 |
-| **total** | **2714** |
+| **total** | **2724** |
 
 Statement coverage of `src/seamark`: **90**, measured by `make test-cov`, which fails under 88.
 
@@ -119,15 +120,15 @@ and the modules are the source of truth.
 | core | 4 | 1184 | 733 | 209 | 83 | 159 |
 | schemas | 1 | 137 | 27 | 46 | 43 | 21 |
 | i18n | 2 | 55 | 30 | 7 | 7 | 11 |
-| rest | 20 | 6628 | 4275 | 1003 | 481 | 869 |
-| tests | 52 | 20843 | 11628 | 3407 | 1344 | 4464 |
-| scripts | 16 | 6738 | 4196 | 1080 | 608 | 854 |
-| **total** | 116 | 43570 | 25715 | 7242 | 3247 | 7366 |
+| rest | 20 | 6632 | 4275 | 1003 | 485 | 869 |
+| tests | 53 | 20955 | 11694 | 3422 | 1344 | 4495 |
+| scripts | 16 | 6740 | 4196 | 1080 | 610 | 854 |
+| **total** | 117 | 43688 | 25781 | 7257 | 3253 | 7397 |
 
 Documentation, in lines of Markdown:
 
-- `docs/DESIGN.md`: 855
-- total: 855
+- `docs/DESIGN.md`: 856
+- total: 856
 
 ## Rules
 

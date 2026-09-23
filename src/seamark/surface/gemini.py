@@ -150,7 +150,7 @@ def read(root: Path, *, machine: bool = False, home: Path | None = None) -> Read
         not_read.append(
             NotRead(
                 "~/.gemini/settings.json and the two system settings files",
-                "not read without --machine; the system settings file overrides the project's, "
+                "read only by `seamark check --machine`; the system settings file overrides the project's, "
                 "so a capability read here may be overridden by one that was not",
             )
         )
