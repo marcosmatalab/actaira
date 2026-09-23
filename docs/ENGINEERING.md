@@ -88,10 +88,10 @@ had:
 - every contract's `$id` against the repository URL `pyproject.toml` declares,
   because an identifier published under a name this project does not hold is
   one somebody else can answer for;
-- the two publishing jobs against the asymmetry the release order rests on:
-  the rehearsal may repeat itself and the publication may not, and each is
-  reachable from one event and no other - the condition and the `needs:` chain
-  are read, because a dispatch that reaches PyPI spends a version for good.
+- every workflow against an upload to a package index, which none may make
+  (design note D-306: the tool installs from its release tag), and the job
+  that writes to a release against the one event allowed to reach it - the
+  condition and the `needs:` chain are read, not guessed.
 
 A fourth, `scripts/history_check.py`, is neither of those: it reads the
 history rather than the tree, and it has a section of its own below.

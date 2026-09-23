@@ -2204,26 +2204,27 @@ def the_release_section_uses_the_new_name() -> str:
 
 
 # --------------------------------------------------------------------------
-# The publication happens once, the rehearsal as often as it takes
+# Nothing is uploaded to a package index
 # --------------------------------------------------------------------------
 
 RELEASE_WORKFLOW = ".github/workflows/release.yml"
-PUBLISH_ACTION = "pypa/gh-action-pypi-publish"
-TEST_INDEX = "test.pypi.org"
-REPEATABLE = "skip-existing"
 
-# Which event is allowed to reach which upload, and this is the half that is
-# irreversible. `skip-existing` decides what a second run does; this decides
-# whether a second run can happen at all. The rehearsal is started by hand, so
-# only `workflow_dispatch` may reach it; the publication follows a release a
-# person wrote, so only `release` may reach that. If the rehearsal could reach
-# PyPI - one `if:` deleted, one `needs:` loosened - step 9 of the runbook would
-# publish 3.0.0 for real, and a version on PyPI is spent for good.
-REACHABLE_FROM = {"rehearsal": "workflow_dispatch", "publication": "release"}
+# Design note D-306. The distribution is installed from its release tag and
+# the release carries the attested wheel and sdist; no workflow uploads to an
+# index. These are the spellings of an upload this check knows. Rejected:
+# keeping a PyPI job for later, which fails on every release until somebody
+# registers a publisher, and a job that can only fail is a gate people skip.
+INDEX_UPLOADS = (
+    "pypa/gh-action-pypi-publish", "twine upload", "upload.pypi.org",
+    "test.pypi.org", "uv publish", "poetry publish", "flit publish", "hatch publish",
+)
+
+# The command that writes to a release, and the one event allowed to reach it.
+RELEASE_WRITE = "gh release upload"
 
 # The release activity type that may start it. Without `types:` GitHub sends
 # `created`, `edited`, `deleted`, `prereleased` and more, so editing a typo in
-# the notes after publishing would start the whole thing again.
+# the notes after publishing would rebuild and replace the assets.
 RELEASE_ACTIVITY = "published"
 
 
@@ -2266,14 +2267,6 @@ def workflow_jobs(text_of: str) -> dict[str, str]:
     if current is not None:
         jobs[current] = "\n".join(lines)
     return jobs
-
-
-def publishing_jobs(text_of: str) -> dict[str, str]:
-    """The jobs that upload to an index, by name."""
-    return {
-        name: body for name, body in workflow_jobs(text_of).items()
-        if PUBLISH_ACTION in body
-    }
 
 
 def triggering_events(text_of: str) -> dict[str, list[str]]:
@@ -2336,8 +2329,8 @@ def events_reaching(jobs: dict[str, str], events: set[str]) -> dict[str, set[str
 
     A job runs for an event when its own condition admits it AND every job it
     needs also ran: GitHub skips a job whose dependency was skipped. That is
-    the whole of the analysis, and it is why `needs: [build, attach]` on the
-    PyPI job is a second lock rather than an ordering detail.
+    the whole of the analysis, and it is why a `needs:` chain is a lock and not
+    only an ordering detail.
     """
     reaching: dict[str, set[str]] = {}
 
@@ -2361,97 +2354,69 @@ def events_reaching(jobs: dict[str, str], events: set[str]) -> dict[str, set[str
 
 
 def publish_problems(text_of: str) -> list[str]:
-    """Everything that can be wrong about how the two uploads are reached.
+    """Everything that can be wrong about what a release workflow uploads.
 
-    Pure, over the text of a workflow, so a twin can delete a condition and
-    watch the rule refuse it without a workflow file to delete it from.
+    Pure, over the text of a workflow, so a twin can plant an index job without
+    a workflow file to plant it in.
     """
     problems: list[str] = []
     events = triggering_events(text_of)
     jobs = workflow_jobs(text_of)
     reaching = events_reaching(jobs, set(events))
-    uploads = {name: body for name, body in jobs.items() if PUBLISH_ACTION in body}
 
     activity = events.get("release")
     if activity is not None and activity != [RELEASE_ACTIVITY]:
         problems.append(
             f"the `release` trigger fires on {activity or 'every activity type'} and not "
             f"on `{RELEASE_ACTIVITY}` alone. Editing the notes of a release that is "
-            "already out would start the publication again."
+            "already out would rebuild and replace its assets."
         )
-
-    for name, body in sorted(uploads.items()):
-        kind = "rehearsal" if TEST_INDEX in body else "publication"
-        repeatable = REPEATABLE in body
-        if kind == "rehearsal" and not repeatable:
+    for name, body in sorted(jobs.items()):
+        spelled = [upload for upload in INDEX_UPLOADS if upload in body]
+        if spelled:
             problems.append(
-                f"the `{name}` job publishes to the test index and does not carry "
-                f"`{REPEATABLE}`. A rehearsal that has uploaded once cannot upload "
-                "again, so its second run dies at the step the first one passed and "
-                "the error names the index rather than the cause."
+                f"the `{name}` job uploads to a package index ({', '.join(spelled)}). "
+                "This project installs from its release tag, and the release carries "
+                "the attested wheel and sdist; see design note D-306."
             )
-        if kind == "publication" and repeatable:
+        if RELEASE_WRITE in body and reaching[name] != {"release"}:
             problems.append(
-                f"the `{name}` job publishes to the real index and carries "
-                f"`{REPEATABLE}`, which turns publishing 3.0.0 twice into a green "
-                "build. A version that is already there is a mistake and has to say so."
-            )
-        allowed = {REACHABLE_FROM[kind]}
-        actual = reaching[name]
-        if actual != allowed:
-            problems.append(
-                f"the `{name}` job is the {kind} and can be reached from "
-                f"{sorted(actual) or 'no event at all'}; it may be reached from "
-                f"{sorted(allowed)} and nothing else"
-                + (". A rehearsal that reaches PyPI publishes the version for real, "
-                   "and a version on PyPI is spent for good."
-                   if kind == "publication" and "workflow_dispatch" in actual else ".")
+                f"the `{name}` job writes to the release and can be reached from "
+                f"{sorted(reaching[name]) or 'no event at all'}; it may be reached from "
+                "['release'] and nothing else."
             )
     return problems
 
 
-@check("the rehearsal can be repeated and the publication cannot")
-def publishing_happens_once() -> str:
-    """The asymmetry the whole release order rests on.
-
-    Everything reversible is done before everything that is not, and the last
-    irreversible step is the upload to PyPI. `skip-existing` is what makes the
-    TestPyPI job survivable - a rehearsal that fails after its upload is run
-    again, and the second run gets past the step the first one already did -
-    and it is the one thing that must never reach the job beside it, where it
-    would make a second publication of the same version look like a success.
-
-    The other half is which event can reach which job, and it is the half that
-    cannot be undone. `skip-existing` decides what a second run does; this
-    decides whether a second run can happen at all. One `if:` deleted from the
-    rehearsal's neighbour and step 9 of the runbook - a `workflow_dispatch`
-    meant for TestPyPI - would publish to PyPI for real. So the condition and
-    the `needs:` chain are read here and the answer is compared against one
-    event per job, rather than against nothing.
-    """
+@check("nothing is uploaded to a package index, and the release is written only on a release")
+def nothing_is_uploaded_to_an_index() -> str:
+    """D-306. Every workflow is read for an upload to an index, and the release
+    workflow for which event can reach the job that writes to a release."""
     path = ROOT / RELEASE_WORKFLOW
     if not path.is_file():
         raise DriftError(
             f"{RELEASE_WORKFLOW} is not in the tree, and it is what builds, attests and "
-            "publishes the distributions"
+            "attaches the distributions"
         )
     workflow = path.read_text(encoding="utf-8")
-    jobs = publishing_jobs(workflow)
-    if len(jobs) != 2:
-        raise DriftError(
-            f"{RELEASE_WORKFLOW} has {len(jobs)} job(s) using `{PUBLISH_ACTION}` and this "
-            f"check knows two, a rehearsal and a publication: {sorted(jobs) or 'none'}"
-        )
     problems = publish_problems(workflow)
+    others = sorted((ROOT / ".github" / "workflows").glob("*.y*ml"))
+    for other in others:
+        if other.name == path.name:
+            continue
+        spelled = [upload for upload in INDEX_UPLOADS if upload in other.read_text(encoding="utf-8")]
+        if spelled:
+            problems.append(f".github/workflows/{other.name} uploads to a package index "
+                            f"({', '.join(spelled)}); see design note D-306.")
+    writers = [name for name, body in workflow_jobs(workflow).items() if RELEASE_WRITE in body]
+    if not writers:
+        problems.append(f"no job in {RELEASE_WORKFLOW} writes to the release, so this "
+                        "check read nothing about who may")
     if problems:
         raise DriftError("\n".join(problems))
-    reaching = events_reaching(workflow_jobs(workflow), set(triggering_events(workflow)))
     return (
-        "2 publishing jobs: the rehearsal is reachable only from "
-        f"{sorted(reaching[next(n for n, b in jobs.items() if TEST_INDEX in b)])} and may "
-        "repeat itself, and the publication only from "
-        f"{sorted(reaching[next(n for n, b in jobs.items() if TEST_INDEX not in b)])} and "
-        "may not"
+        f"{len(others)} workflow(s) read, none uploading to an index; the release is "
+        f"written by {', '.join(writers)}, reachable only from a published release"
     )
 
 

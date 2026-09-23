@@ -17,11 +17,11 @@ publication. Neither of those two is a preference.
   history as ordinary commits; what the replay does to them is what it does to
   all the others.
 
-- **PyPI cannot be corrected.** The sdist carries `README.md`, and the README
-  carries a `uses: marcosmatalab/seamark@<sha>` and a `rev: <sha>` pointing at
-  commits of this repository. The rewrite moves all but one of them. Uploading
-  3.0.0 first would publish, permanently and unreplaceably, a page telling
-  readers to pin commits that no clone of this repository will have.
+- **A release is read the day it is cut.** The sdist carries `README.md`, and
+  the README carries a `uses: marcosmatalab/seamark@<sha>` and a `rev: <sha>`
+  pointing at commits of this repository. The rewrite moves all but one of
+  them. Cutting 3.0.0 first would attach a page telling readers to pin commits
+  that no clone of this repository will have.
 - **A tag cut first has to be deleted and cut again.** `v3.0.0` would point at
   a commit that leaves the branch, and deleting a published tag is exactly what
   ACT-S003 tells everybody else not to do.
@@ -34,9 +34,12 @@ publication. Neither of those two is a preference.
   an identity a reader can check rather than a laptop's word. That moves the
   build after the release exists, which is why step 13 creates a release with
   nothing attached and the workflow attaches what it built.
-- **The rehearsal comes before the tag.** It runs the same workflow against
-  TestPyPI, so what is rehearsed is the thing that will run, and a tag is not
-  spent finding out that the publisher form has a typo in it.
+- **The rehearsal comes before the tag.** It builds and installs the package
+  with the same target the release workflow runs, so a tag is not spent finding
+  out that the wheel does not install.
+- **Nothing goes to a package index.** The tool installs from its tag, and the
+  release carries the attested wheel and sdist. `scripts/release_check.py`
+  refuses a workflow that uploads anywhere else (design note D-306).
 
 `origin/main` is behind this branch by the whole of this piece of work, so the
 force-push in step 8 is also the first publication of it. Count it with
@@ -252,7 +255,7 @@ gate, zizmor, the Action used two ways, and the dogfood job that uploads this
 repository's own SARIF to code scanning. A red one here is a red one on the
 commit everything below is about to be cut from.
 
-## 10. Before the first release only: the signing key and the two environments
+## 10. Before the first release only: the signing key
 
 Three settings, once. Everything after this assumes them.
 
@@ -318,123 +321,20 @@ Add-Content -Encoding ascii -Path $HOME\.ssh\allowed_signers -Value "matagarciam
 order mark by default, ssh reads that file as bytes, and the first line then
 matches nobody.
 
-**The two environments the publish jobs run in.** Repository settings →
-Environments → New environment, twice, named exactly `pypi` and `testpypi`.
-What they are for in the first place is that PyPI's publisher form names one of
-them, so a workflow run that is not the release workflow cannot mint a token
-for it.
+## 11. The rehearsal, from a clean clone
 
-**Yes, `pypi` takes required reviewers, and put yourself on it.** Environments
-carry three protection rules - required reviewers (up to six), a wait timer,
-and a deployment branch and tag policy - and required reviewers is available on
-a public repository at no cost. Turn it on for `pypi` and on nothing else:
-
-> Settings → Environments → `pypi` → Required reviewers → add yourself → Save.
-
-Leave **Prevent self-review** unticked, and that is not a detail: it is off by
-default, and with one maintainer and one reviewer, ticking it makes the
-publication unapprovable by anybody - a deadlock that arrives with the release
-already public and the assets already attached.
-
-What it buys is the thing no check in this tree can buy. The gate refuses a
-workflow where a `workflow_dispatch` could reach the PyPI job, and it refuses
-it here, in a tree somebody has to change and commit. A protection rule refuses
-it at the moment it would happen, on the run, when the workflow is whatever it
-is that day: the job stops before its first step, GitHub notifies you, and the
-run waits. A mistaken trigger becomes a message asking whether you meant it
-instead of a version that is gone.
-
-It costs one click on every real release, which is a click on the one step in
-this file that cannot be taken back.
-
-Leave the wait timer alone - it delays without asking anybody anything - and
-leave the branch policy alone unless you read this first: a run started by
-`release: published` carries `refs/tags/v3.0.0` and not a branch, so a policy
-that allows only `main` blocks the publication rather than protecting it. If
-you want one, it has to be the tag pattern `v*`.
-
-**The two trusted publishers.** On PyPI and on TestPyPI, under the account's
-Publishing page, add a *pending publisher* (the project does not exist yet and
-that is what pending means), with exactly:
-
-| field | value |
-|---|---|
-| PyPI project name | `seamark` |
-| Owner | `marcosmatalab` |
-| Repository name | `seamark` |
-| Workflow name | `release.yml` |
-| Environment name | `pypi` on PyPI, `testpypi` on TestPyPI |
-
-The workflow's FILENAME is part of the trust, so renaming
-`.github/workflows/release.yml` later breaks publishing until the form is
-changed. That is written here because the failure arrives at upload time and
-reads like a permissions problem.
-
-## 11. The rehearsal, to TestPyPI, from the workflow that will do it for real
-
-Not `twine` from a laptop: the point of a rehearsal is to exercise the thing
-that will run, and what will run is the workflow.
+The same `make package` the release workflow runs, over a clean clone, with
+the wheel installed into a throwaway environment and the tool run out of it:
 
 ```bash
-gh workflow run release.yml
-gh run watch "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')"
+wsl -e bash -lc 'rm -rf /tmp/seamark-gate && git clone -q /mnt/c/Users/Usuario/Desktop/seamark /tmp/seamark-gate && cd /tmp/seamark-gate && /tmp/seamark-venv/bin/pip install -q build && PY=/tmp/seamark-venv/bin/python make package INSTALL=--install'
 ```
 
-It builds on the runner, attests the two distributions, and publishes them to
-TestPyPI through Trusted Publishing. Then install from there into an empty
-environment, with nothing from this checkout:
-
-```bash
-wsl -e bash -lc 'rm -rf /tmp/rehearsal && python3 -m venv /tmp/rehearsal && /tmp/rehearsal/bin/pip install --quiet --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ seamark'
-wsl -e bash -lc '/tmp/rehearsal/bin/seamark --version'
-wsl -e bash -lc 'cd /tmp && /tmp/rehearsal/bin/seamark scan --demo'
-```
-
-`seamark 3.0.0`, and then the demo session read out of the installed package
-with no agent on the machine. **A version uploaded to PyPI can never be
-replaced**, so this is not optional.
-
-`gh workflow run` only offers a workflow that is already on the default
-branch, which is why this comes after the force-push and not before it.
-
-**If the rehearsal fails, where it failed decides what to do.** The TestPyPI
-job carries `skip-existing`, which the PyPI job deliberately does not: a
-rehearsal is meant to be repeatable and a publication is meant to happen once.
-
-- **Before the upload** - the build, the attestation, `twine check`: nothing
-  was sent. Fix it and run it again.
-- **After the upload, in the install** - a wrong index URL, no network, a typo
-  in the command: TestPyPI now holds 3.0.0 and will never take those bytes
-  again, which is what `skip-existing` is for. Run it again; the upload step
-  passes over what is already there and you get back to the install.
-- **After the upload, because the distribution itself is wrong**: the bytes on
-  TestPyPI cannot be replaced and neither can the version number, so that
-  rehearsal is spent. Do NOT bump the version to buy another one - the version
-  is the thing half the checks in this tree compare against. Verify the fixed
-  build by installing the workflow's own artifact instead, which is the same
-  bytes the runner built and attested:
-
-  ```powershell
-  gh run download "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')" --name dist --dir $HOME\seamark-rehearsal
-  ```
-
-  ```bash
-  wsl -e bash -lc 'rm -rf /tmp/rehearsal && python3 -m venv /tmp/rehearsal && /tmp/rehearsal/bin/pip install --quiet /mnt/c/Users/Usuario/seamark-rehearsal/seamark-3.0.0-py3-none-any.whl'
-  wsl -e bash -lc 'cd /tmp && /tmp/rehearsal/bin/seamark scan --demo'
-  ```
-
-  Into the home directory and not into the checkout: an untracked folder in
-  the working tree is the one thing step 7 asks you to confirm is not there.
-
-  That skips the index round trip and nothing else. PyPI's upload is then the
-  first time those bytes are published anywhere, which is exactly what it is,
-  and the attestation is what lets somebody else check that claim.
-
-What the rehearsal does NOT exercise is the `attach` job: uploading the
-assets to a release needs a release, and there is not one yet. That is the one
-step of step 13 that runs for the first time when it runs for real, and it is
-also the only one that is repeatable - `gh release upload --clobber` replaces
-what is there, so a failure is a re-run rather than a burnt version.
+It builds both distributions into `dist/`, asserts what is inside them, and
+runs the installed CLI. Nothing is sent anywhere, so a failure here is fixed
+and run again. What it does NOT exercise is the `attach` job, which needs a
+release to write to; that job is repeatable (`gh release upload --clobber`),
+so a failure there is a re-run.
 
 ## 12. The tag, signed
 
@@ -458,17 +358,14 @@ gh release create v3.0.0 --title "Seamark 3.0.0" --notes-file .github/release-no
 
 Publishing it starts `.github/workflows/release.yml`, which builds the wheel
 and the sdist on the runner with the same `make package` a laptop runs, signs a
-provenance attestation for both, attaches them and `SHA256SUMS` to the release,
-and then publishes to PyPI.
+provenance attestation for both, and attaches them and `SHA256SUMS` to the
+release. Nothing is uploaded to a package index.
 
 **The release is public with no files attached for the few minutes that takes,
 and that is the workflow working rather than failing.** Anybody looking at the
 releases page in that window sees notes and no downloads.
 
-With required reviewers on the `pypi` environment, the run also stops before
-that last job and waits for you: the assets are attached, the notification
-arrives, and PyPI has not been touched. Approve it on the run page. Watch it to
-the end:
+Watch it to the end:
 
 ```bash
 gh run watch "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')"
@@ -480,26 +377,6 @@ cannot be borrowed by whoever is typing. A laptop build can be checksummed and
 not attested, and a repository whose subject is supply chains publishing a
 wheel that nobody can trace back to a commit is the thing a hostile reader
 looks for first.
-
-**Why Trusted Publishing and not a token.** Decided rather than defaulted:
-
-- it removes the long-lived credential. A `~/.pypirc` on a laptop is exactly
-  the standing secret this repository tells other people to look for;
-- it is what makes the PyPI side verifiable at all. `gh-action-pypi-publish`
-  mints PEP 740 attestations when it publishes through Trusted Publishing and
-  cannot when it publishes with a token, so with a token the release would
-  carry provenance and the index would carry none;
-- the failure mode is cheap. A misconfigured publisher is rejected by PyPI
-  before anything is uploaded: nothing is published, the version is not
-  consumed, you fix the form and re-run. The irreversible step - a version name
-  being taken - happens only on a successful upload, which is equally true of
-  twine.
-
-What it costs is two forms filled in before the first upload, which is step 10.
-A token upload (`twine upload`) still works and is what to fall back to if PyPI's
-publisher form cannot be used on the day; if that happens, the line in the
-release notes about verifying the PyPI artifact has to come out, because it
-would no longer be true.
 
 ## 14. Verify what was published, the way a stranger would
 
@@ -517,7 +394,11 @@ git -C C:\Users\Usuario\Desktop\seamark tag -v v3.0.0
 
 ```bash
 wsl -e bash -lc 'cd /mnt/c/Users/Usuario/seamark-verify && sha256sum -c SHA256SUMS'
+wsl -e bash -lc 'rm -rf /tmp/from-tag && python3 -m venv /tmp/from-tag && /tmp/from-tag/bin/pip install -q "git+https://github.com/marcosmatalab/seamark@v3.0.0" && /tmp/from-tag/bin/seamark --version'
 ```
+
+The last line is the install the README and the notes publish, run the way a
+stranger runs it: from the tag, into an empty environment.
 
 The same four checks are in the release notes, in the POSIX spelling a reader
 on any other machine would use, so that nobody has to be told they exist.
@@ -537,18 +418,16 @@ Topics, twelve, which is where GitHub stops showing them well:
 `static-analysis`, `sarif`, `devsecops`, `github-action`, `pre-commit-hook`,
 `attestation`, `python`.
 
-Website: `https://pypi.org/project/seamark/`. No page of its own: a report of
+Website: `https://github.com/marcosmatalab/seamark/releases/latest`. No page of its own: a report of
 this repository fires no rule, so a published demo would be a demo where
 nothing happens.
 
 **Everything else on GitHub that carries a name, so that none of it is found
 later.** The repository name is step 1. The About text and the website field
 are the two above, and neither of them is set by the rename. None of the twelve
-topics names the product, so the list is unchanged. The trusted publishers and
-the two environments name the repository and are step 10. The Marketplace
-listing is created from the repository in step 16 and takes the new name with
-it. There are no Actions secrets to rename, because Trusted Publishing left
-none.
+topics names the product, so the list is unchanged. The Marketplace listing is
+created from the repository in step 16 and takes the new name with it. There
+are no Actions secrets to rename, because nothing here uses one.
 
 The one that looks like a mistake and is not: the Security tab. Code scanning
 files findings under the category the upload declares, and that category is now
