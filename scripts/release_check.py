@@ -1965,7 +1965,7 @@ NAME_IN_FILES: dict[str, tuple[int, str]] = {
     # Records. A record renamed afterwards is a record of something that did
     # not happen.
     "CHANGELOG.md": (
-        56,
+        50,
         "every entry below 3.0.0 is a release that went out under the old name, "
         "and the header says so: a published version keeps the name it was "
         "published under, because its tag and its artifacts cannot be renamed.",
@@ -2126,6 +2126,80 @@ def the_rename_is_not_half_done() -> str:
         f"{len(counted)} files read; the old name is left in {len(NAME_IN_FILES)} of "
         f"them, {kept} times, each one recorded with its reason, and on "
         f"{len(NAME_ON_LINES)} kinds of line that are somebody else's bytes"
+    )
+
+
+# Design note D-305. The count above held CHANGELOG.md at 56 and could not tell a
+# record from a slip: `diff` and `seal` were written up under the old command
+# name in the section about to be published. So that section is read line by
+# line, and the old name may appear there only as one of these. Rejected: a flat
+# ban on the name in the section, which the paragraph announcing the rename breaks.
+RELEASE_SECTION_OLD_NAME = (
+    (r"`" + OLD_NAME + r" scan --fail-on high`",
+     "the command the two removed pre-commit hooks called, named as it was"),
+    (r"\.github/actions/" + OLD_NAME + r"-scan",
+     "a removed directory, at the path it had"),
+    (r"`" + OLD_NAME + r"_(?:contract|verdict)`",
+     "two MCP tools removed before the rename, named as they were listed"),
+    (r"src/" + OLD_NAME + r"/mcp\.py", "a removed file, at the path it had"),
+    (r"`" + OLD_NAME + r"` is a different product",
+     "the sentence that announces the rename has to name what it renames"),
+    (OLD_NAME + r"\.com", "the other product's domain, in that same paragraph"),
+)
+
+
+def release_sections(changelog: str, version: str) -> list[tuple[int, str]]:
+    """(line number, line) for every line under `## Unreleased` or `## [version]`."""
+    lines: list[tuple[int, str]] = []
+    inside = False
+    for number, line in enumerate(changelog.splitlines(), 1):
+        if line.startswith("## "):
+            title = line[3:].strip()
+            inside = title == "Unreleased" or title.startswith(f"[{version}]")
+        elif inside:
+            lines.append((number, line))
+    return lines
+
+
+def release_section_name_problems(changelog: str, version: str) -> list[str]:
+    """Every line of the unpublished section that names the old product outside
+    an allowance. Pure, so the twins can plant a section."""
+    section = release_sections(changelog, version)
+    if not section:
+        return [f"CHANGELOG.md has no `## Unreleased` or `## [{version}]` section to read"]
+    problems: list[str] = []
+    for number, line in section:
+        masked = line
+        for pattern, _ in RELEASE_SECTION_OLD_NAME:
+            masked = re.sub(pattern, "", masked, flags=re.I)
+        if re.search(OLD_NAME, masked, re.I):
+            problems.append(
+                f"CHANGELOG.md:{number} names the old product in the section for "
+                f"{version}, which is published under the new name: {line.strip()}"
+            )
+    return problems
+
+
+@check("the section of the changelog being released uses the new name")
+def the_release_section_uses_the_new_name() -> str:
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    declared = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, re.M)
+    if not declared:
+        raise DriftError("pyproject.toml declares no version")
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    problems = release_section_name_problems(changelog, declared.group(1))
+    section = "\n".join(line for _, line in release_sections(changelog, declared.group(1)))
+    for pattern, reason in RELEASE_SECTION_OLD_NAME:
+        if not reason.strip() or not re.search(pattern, section, re.I):
+            problems.append(
+                f"the allowance `{pattern}` matches nothing in the section being released. "
+                "An allowance for a line that has gone is one nobody will notice widening."
+            )
+    if problems:
+        raise DriftError("\n".join(problems))
+    return (
+        f"{len(section.splitlines())} lines under {declared.group(1)}, the old name only "
+        f"in {len(RELEASE_SECTION_OLD_NAME)} recorded shapes"
     )
 
 

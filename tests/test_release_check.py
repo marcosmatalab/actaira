@@ -2146,3 +2146,42 @@ def test_the_published_page_states_the_namespace_the_schemas_use():
 
     assert namespace in page, namespace
     assert module.identifier_problems(HELD, {"trace-v3": namespace + "trace-v3.json"}) == []
+
+
+# --------------------------------------------------------------------------
+# The section of the changelog about to be published, under the new name
+# --------------------------------------------------------------------------
+
+
+def test_the_changelog_section_being_released_uses_the_new_name():
+    """D-305, over the real file: the section a release will paste is read."""
+    module = _release_check()
+    changelog = (Path(REPO_ROOT) / "CHANGELOG.md").read_text(encoding="utf-8")
+
+    from seamark import __version__  # noqa: PLC0415
+
+    assert module.release_sections(changelog, __version__), "no section was read"
+    assert module.release_section_name_problems(changelog, __version__) == []
+
+
+def test_a_command_written_under_the_old_name_in_that_section_is_refused():
+    """The twin: the shape the 3.0.0 section carried, planted."""
+    module = _release_check()
+    old = module.OLD_NAME
+    planted = f"## Unreleased\n\n- **`{old} diff`**, two refs compared.\n\n## [2.3.0] - x\n"
+
+    problems = module.release_section_name_problems(planted, "3.0.0")
+
+    assert len(problems) == 1 and "CHANGELOG.md:3" in problems[0], problems
+
+
+def test_a_published_section_and_a_recorded_shape_are_left_alone():
+    """A published entry keeps its name, and a removed file is named as it was."""
+    module = _release_check()
+    old = module.OLD_NAME
+    planted = (
+        f"## [3.0.0] - x\n\n- `src/{old}/mcp.py`, above.\n\n"
+        f"## [2.3.0] - x\n\n- **`{old} scan`** ships.\n"
+    )
+
+    assert module.release_section_name_problems(planted, "3.0.0") == []
