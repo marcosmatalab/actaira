@@ -751,12 +751,12 @@ def test_the_stamp_is_not_carried_when_it_names_a_commit_the_branch_lost():
                 "git": {"commits": 1, "head": "c3a5cf7"},
                 "code": {"total": {"lines": 10}}}
     measured = {"generated_at": "2026-09-22T12:00:00+00:00",
-                "git": {"commits": 1, "head": "189c383"},
+                "git": {"commits": 1, "head": "dd22172"},
                 "code": {"total": {"lines": 10}}}
 
     keep(measured, existing, False)
 
-    assert measured["git"]["head"] == "189c383"
+    assert measured["git"]["head"] == "dd22172"
     assert measured["generated_at"] == "2026-09-22T12:00:00+00:00"
 
 

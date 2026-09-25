@@ -40,12 +40,6 @@ abstract: >-
   every record declaring the level it was captured at and what that level may
   not claim. Underneath all of it, an offline verifier over an RFC 6962 Merkle
   tree with Ed25519 signatures, integrity and identity kept as separate answers.
-  Built by one author with heavy use of an AI coding assistant. The product
-  decisions, the invariants and every rejected alternative in docs/DESIGN.md are
-  the author's; the assistant wrote a large share of the implementation and the
-  tests against them. README.md states this in full, and the gates in the
-  repository exist because assistance at that speed produces exactly the failure
-  they catch.
 repository-code: "https://github.com/marcosmatalab/seamark"
 type: software
 version: 3.0.1

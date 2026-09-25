@@ -9,7 +9,7 @@ together with the reason for not touching it. Work rule 2 of
 
 - ~~Local `main` (f706527, 275ecf4) unpublished; it lives on
   pivot/agent-conformance until the README is rewritten.~~ **Closed in 1.1b.**
-  `main` was published as a fast-forward over `origin/main` (b61f634 was an
+  `main` was published as a fast-forward over `origin/main` (50e6f81 was an
   ancestor), and `pivot/agent-conformance` was retired: it was behind (635532f)
   and held nothing missing from `main`, which contains it whole in its own
   history. `main` is the product line. A branch that duplicates the main line

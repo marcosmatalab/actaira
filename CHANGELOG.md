@@ -128,13 +128,13 @@ making failure the default in `verify.settle`, and that reached `test_receipt`,
 `test_package_verify` - six files that were correct about the code as it was and
 wrong about the code as it had to become. That count cannot be made in advance,
 which is why the budget was a real constraint and was raised rather than
-quietly exceeded. Work rule 8 in `CLAUDE.md` now requires such an authorisation
+quietly exceeded. Work rule 8 in the governance document now requires such an authorisation
 to be written into the phase's commit message, because this one lived only in
-the chat and the next session had no way to read it.
+conversation and the next review had no way to read it.
 
 ### Changed
 
-- `CLAUDE.md`'s three product claims are now **surface**, **change** and
+- The governance document's three product claims are now **surface**, **change** and
   **currency**, replacing authenticity, conformance and inclusion. Surface is
   what an agent can do here, resolved across scopes and vendors, with every
   capability citing its file, the vendor's documented merge rule with the URL
@@ -166,7 +166,7 @@ the chat and the next session had no way to read it.
   not exist. Readers touch the disk; resolution and rules are pure functions over
   what was read.
 - Executing what a hook, a task or an MCP server declares is added to the
-  forbidden list, in `CLAUDE.md` and in `docs/GOVERNANCE.md`.
+  forbidden list, in the governance document and in `docs/GOVERNANCE.md`.
 - `docs/GOVERNANCE.md`'s wire table now carries rules that fired, resolution
   states and currency states where it carried verdicts. What never crosses is
   unchanged: content, full stop.
@@ -221,9 +221,9 @@ the chat and the next session had no way to read it.
   were tried against this question first and dropped, each for a fact about
   somebody else's shipped code: cross-vendor session forensics, sandbox
   containment validation, and the generated-to-shipped code metric. Section 11.3
-  records why this note's file is `CLAUDE.md` rather than a module, which makes
+  records why this note's file is the governance document rather than a module, which makes
   it the first row in the table whose location is not code.
-- `tests/test_cli.py` gains a check that reads the CLI list out of `CLAUDE.md`
+- `tests/test_cli.py` gains a check that reads the CLI list out of the governance document
   and fails on a name there that neither exists in the parser nor states the
   phase it arrives in. A name on that list without a phase is a published
   promise.
@@ -343,7 +343,7 @@ None was caught by a gate, and each says something about why:
 - `docs/ENGINEERING.md` said design notes live in the modules they argue about.
   It now states the whole rule, whose second branch is deliberately narrow: a
   decision about **how** something is built is implemented by its module; a
-  doctrine decision, about **what** gets built, is implemented by `CLAUDE.md`,
+  doctrine decision, about **what** gets built, is implemented by the governance document,
   and nothing else may point there. `docs/DESIGN.md` section 11.3 argues it.
 - `src/actaira/mcp.py`, above.
 - `CONTRIBUTING.md` again, on a second reading: it said the repository has no

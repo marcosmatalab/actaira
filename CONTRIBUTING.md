@@ -223,22 +223,6 @@ Development dependencies are cheaper but not free. The `dev` extra is
 recorded beside it in `pyproject.toml`. Anything used by a single test should
 be guarded with `pytest.importorskip`.
 
-## How this was built, and what that asks of a contribution
-
-Seamark was built by one person with heavy use of an AI coding assistant, over
-an intense stretch in September 2026. The commit dates say so. The short of
-it is that the product decisions and every rejected
-alternative in [`docs/DESIGN.md`](docs/DESIGN.md) are the author's, and the
-assistant wrote a large share of the implementation and the tests against them.
-
-That is why the gates here are unusually strict, and it is the one thing worth
-knowing before sending a change: the checks in this repository exist because
-assistance at that speed produces exactly the failure they catch. A
-contribution written the same way is welcome on the same terms. Say so in the
-pull request, and hold it to the same bar: a test with a negative control, a
-design note with its rejected alternative, and `make all` green on a clean
-clone.
-
 ## Pull requests
 
 A short checklist, in the order that saves the most time:

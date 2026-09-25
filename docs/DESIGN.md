@@ -80,7 +80,7 @@ inside a section that is otherwise live: **3.4** (CycloneDX ML-BOM) and **3.5**
 | D-266 | One writer at a time, records that name their own run, and an order taken from the records rather than from the filenames | `src/seamark/proxy/__init__.py:83` |
 | D-267 | A network guard that only runs when somebody remembers it is not a guard, and it needs a test that it still bites | `tests/netguard.py:3` |
 | D-268 | Every field of the published document is classified by who writes its value, and a third-party value is referenced unless the table says why not | `src/seamark/trace/provenance.py:3` |
-| D-269 | The subject is what an agent CAN do, not what one did, and the three products that were tried against that question first | `docs/PRINCIPLES.md:33` |
+| D-269 | The subject is what an agent CAN do, not what one did, and the three products that were tried against that question first | `docs/PRINCIPLES.md:29` |
 | D-270 | Three resolution states for what a FILE permits, kept apart from the four capture levels for what a RUN did | `src/seamark/surface/__init__.py:3` |
 | D-271 | Every read of somebody else's repository is bounded before it is attempted, and every path is resolved before it is opened | `src/seamark/surface/disk.py:15` |
 | D-272 | Finding the script a hook names is a parse, and a shape it cannot parse costs a stated gap rather than a guess | `src/seamark/surface/disk.py:301` |

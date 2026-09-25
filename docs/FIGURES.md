@@ -9,7 +9,7 @@ code twice, and a number nobody can regenerate is a number nobody can check.
 make figures
 ```
 
-Generated 2026-09-23T16:48:58+00:00 for seamark 3.0.1, at commit b63a732.
+Generated 2026-09-23T16:48:58+00:00 for seamark 3.0.1, at commit 18d5a25.
 
 ## The package
 

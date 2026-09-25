@@ -359,7 +359,7 @@ jobs:
         with:
           fetch-depth: 0       # diff necesita los dos commits; la forma más simple de tenerlos
           persist-credentials: false
-      - uses: marcosmatalab/seamark@2c25f4981b12ff3f0854bbb79e2eaecb0a4be5ec
+      - uses: marcosmatalab/seamark@705b888b74322c538e9b1a61ebd336adfde0ea48
 ```
 
 **Los dos `uses:` van fijados por SHA de commit, a propósito.** Una etiqueta es
@@ -387,7 +387,7 @@ Para un hook local, este repositorio publica uno:
 ```yaml
 repos:
   - repo: https://github.com/marcosmatalab/seamark
-    rev: 2c25f4981b12ff3f0854bbb79e2eaecb0a4be5ec
+    rev: 705b888b74322c538e9b1a61ebd336adfde0ea48
     hooks:
       - id: seamark-check
 ```

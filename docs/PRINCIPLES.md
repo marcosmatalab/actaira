@@ -4,13 +4,9 @@ What Seamark is, what it refuses to do, and the rules the work follows. This is
 the governance document, and it is the only one: a second page of principles is
 a second place a principle can be written down differently.
 
-It was [`CLAUDE.md`](../CLAUDE.md) at the repository root, in Spanish, linked
-from an English README as "the only governance document". Two things were wrong
-with that and only one of them was the language. A file named after an agent's
-instruction format is read as instructions for an agent, and the argument of
-this project belongs to the project. `CLAUDE.md` is still there and is now what
-its name says: the short set of instructions for an agent working in this tree,
-pointing here for everything else.
+It used to live at the repository root, in Spanish, linked from an English
+README as "the only governance document". It is here now, in English, because
+the argument of this project belongs to the project.
 
 ---
 

@@ -12,7 +12,7 @@ what the suite reads is the snapshot this script writes.
 Every file is pinned by its blob sha, which is what git computed over those
 bytes, so the snapshot says exactly which bytes were read and a re-run that gets
 different bytes is visible rather than silent. Each one carries the repository,
-the commit, the licence and that sha in `provenance.json` beside it - CLAUDE.md
+the commit, the licence and that sha in `provenance.json` beside it - docs/PRINCIPLES.md
 requires a rule's tests to run on a real configuration, citing repo, commit and
 licence, or on a reconstruction from a published report.
 
@@ -108,7 +108,7 @@ QUERIES = {
     # Phase S2. One broad query per vendor, then the targeted ones a rule needs
     # when the broad sweep produces no violating case. Same argument as above: a
     # rule with no real violating case goes LOOKING for one, and if it still
-    # finds none it says so with the queries and the date (CLAUDE.md's third,
+    # finds none it says so with the queries and the date (docs/PRINCIPLES.md's third,
     # narrow branch) rather than getting a fixture we wrote ourselves.
     "vscode-tasks": 'path:.vscode filename:tasks.json "folderOpen"',
     "vscode-tasks-broad": "path:.vscode filename:tasks.json runOptions",

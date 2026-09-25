@@ -157,7 +157,7 @@ its reason and with the size it was when it was allowed:
 
 **The trade-off, stated rather than implied.** Three files stay long, so the
 criterion is not met as written. What is bought is that none of the three is
-rearranged at the end of a release by an agent working from a plan that never
+rearranged at the end of a release from a plan that never
 named two of them, and what is paid is that a reader of `cli.py` still has
 1,086 lines in front of them. The exception is bounded in three directions: a
 fourth file over the cap fails, one of these three growing past the size

@@ -165,8 +165,8 @@ def test_version_is_the_package_version(capsys):
 # command from an intention, and the whole point of the phase before this one
 # was that the tree stops describing intentions in the present tense.
 
-# The governance document was `CLAUDE.md`, in Spanish, at the root. It is
-# `docs/PRINCIPLES.md` now, in English, and this reads it there. The section
+# The governance document is `docs/PRINCIPLES.md`, in English, and this reads
+# it there. The section
 # heading and the phase mark moved language with it; nothing else changed,
 # because what this checks is the list and not the prose around it.
 DOCTRINE_PAGE = "docs/PRINCIPLES.md"

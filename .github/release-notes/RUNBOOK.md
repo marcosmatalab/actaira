@@ -1,7 +1,7 @@
 # Publishing 3.0.0
 
 Everything in this file needs a credential, a token or a push. Nothing here is
-done by the repository, and nothing here is done by an agent: each line is one
+done by the repository: each line is one
 a person runs, in this order, having read it.
 
 The texts to paste are beside this file: [`v2.3.0.md`](v2.3.0.md) and
@@ -50,7 +50,7 @@ Run the gate first. Not `make all` on the working tree, which answers for a
 tree nobody receives:
 
 ```bash
-wsl -e bash -lc 'rm -rf /tmp/seamark-gate && git clone -q /mnt/c/Users/Usuario/Desktop/seamark /tmp/seamark-gate && cd /tmp/seamark-gate && PY=/tmp/seamark-venv/bin/python make all'
+wsl -e bash -lc 'rm -rf /tmp/seamark-gate && git clone -q /mnt/c/Users/<you>/Desktop/seamark /tmp/seamark-gate && cd /tmp/seamark-gate && PY=/tmp/seamark-venv/bin/python make all'
 ```
 
 ## 1. Rename the repository on GitHub
@@ -70,17 +70,17 @@ doing the two hours in between twice.
 ## 2. Move the checkout, with the editor closed
 
 The tree, its tooling and every command below name
-`C:\Users\Usuario\Desktop\seamark`. The folder on this machine is still
+`C:\Users\<you>\Desktop\seamark`. The folder on this machine is still
 called `actaira`.
 
-**Close Claude Code and any editor that has this folder open before you run
+**Close any editor or tool that has this folder open before you run
 this.** A process that is holding the directory writes its next file into a
 path that has moved, and what it leaves behind is half of something in a place
 nobody is looking.
 
 ```powershell
-Rename-Item C:\Users\Usuario\Desktop\actaira seamark
-cd C:\Users\Usuario\Desktop\seamark
+Rename-Item C:\Users\<you>\Desktop\actaira seamark
+cd C:\Users\<you>\Desktop\seamark
 git remote set-url origin https://github.com/marcosmatalab/seamark.git
 git remote -v
 git status --porcelain
@@ -96,12 +96,12 @@ has to be re-run after a reboot, and the gate says `No such file or directory`
 if it has not been:
 
 ```bash
-wsl -e bash -lc 'rm -rf /tmp/seamark-venv && python3 -m venv /tmp/seamark-venv && /tmp/seamark-venv/bin/pip install --quiet -e "/mnt/c/Users/Usuario/Desktop/seamark[dev]"'
+wsl -e bash -lc 'rm -rf /tmp/seamark-venv && python3 -m venv /tmp/seamark-venv && /tmp/seamark-venv/bin/pip install --quiet -e "/mnt/c/Users/<you>/Desktop/seamark[dev]"'
 ```
 
 ## 3. The archive branch
 
-`archive/model-scanner` points at `b61f6346`, which is the same commit as tag
+`archive/model-scanner` points at `50e6f81a`, which is the same commit as tag
 `v2.3.0` and is an ancestor of `main`. It conserves nothing that is not already
 conserved twice, and every locator in the tree names the tag now.
 
@@ -198,7 +198,7 @@ remove.
 Then re-measure and commit, in one commit:
 
 ```bash
-wsl -e bash -lc 'cd /mnt/c/Users/Usuario/Desktop/seamark && PY=/tmp/seamark-venv/bin/python make figures'
+wsl -e bash -lc 'cd /mnt/c/Users/<you>/Desktop/seamark && PY=/tmp/seamark-venv/bin/python make figures'
 git add README.md README.es.md figures.json docs/FIGURES.md .github/history-rewrite/rewritten-shas.tsv
 git commit -m "Point the documented commits at the ones that replaced them"
 ```
@@ -217,7 +217,7 @@ moves it.
 ## 7. The gate, over the rewritten history
 
 ```bash
-wsl -e bash -lc 'rm -rf /tmp/seamark-gate && git clone -q /mnt/c/Users/Usuario/Desktop/seamark /tmp/seamark-gate && cd /tmp/seamark-gate && PY=/tmp/seamark-venv/bin/python make all'
+wsl -e bash -lc 'rm -rf /tmp/seamark-gate && git clone -q /mnt/c/Users/<you>/Desktop/seamark /tmp/seamark-gate && cd /tmp/seamark-gate && PY=/tmp/seamark-venv/bin/python make all'
 git status --porcelain      # empty but for the plan
 ```
 
@@ -327,7 +327,7 @@ The same `make package` the release workflow runs, over a clean clone, with
 the wheel installed into a throwaway environment and the tool run out of it:
 
 ```bash
-wsl -e bash -lc 'rm -rf /tmp/seamark-gate && git clone -q /mnt/c/Users/Usuario/Desktop/seamark /tmp/seamark-gate && cd /tmp/seamark-gate && /tmp/seamark-venv/bin/pip install -q build && PY=/tmp/seamark-venv/bin/python make package INSTALL=--install'
+wsl -e bash -lc 'rm -rf /tmp/seamark-gate && git clone -q /mnt/c/Users/<you>/Desktop/seamark /tmp/seamark-gate && cd /tmp/seamark-gate && /tmp/seamark-venv/bin/pip install -q build && PY=/tmp/seamark-venv/bin/python make package INSTALL=--install'
 ```
 
 It builds both distributions into `dist/`, asserts what is inside them, and
@@ -389,11 +389,11 @@ gh release download v3.0.0 --dir $HOME\seamark-verify --repo marcosmatalab/seama
 cd $HOME\seamark-verify
 gh attestation verify seamark-3.0.0-py3-none-any.whl --repo marcosmatalab/seamark
 gh attestation verify seamark-3.0.0.tar.gz --repo marcosmatalab/seamark
-git -C C:\Users\Usuario\Desktop\seamark tag -v v3.0.0
+git -C C:\Users\<you>\Desktop\seamark tag -v v3.0.0
 ```
 
 ```bash
-wsl -e bash -lc 'cd /mnt/c/Users/Usuario/seamark-verify && sha256sum -c SHA256SUMS'
+wsl -e bash -lc 'cd /mnt/c/Users/<you>/seamark-verify && sha256sum -c SHA256SUMS'
 wsl -e bash -lc 'rm -rf /tmp/from-tag && python3 -m venv /tmp/from-tag && /tmp/from-tag/bin/pip install -q "git+https://github.com/marcosmatalab/seamark@v3.0.0" && /tmp/from-tag/bin/seamark --version'
 ```
 

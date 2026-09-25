@@ -352,7 +352,7 @@ jobs:
         with:
           fetch-depth: 0       # diff needs both commits; the simplest way to have them
           persist-credentials: false
-      - uses: marcosmatalab/seamark@2c25f4981b12ff3f0854bbb79e2eaecb0a4be5ec
+      - uses: marcosmatalab/seamark@705b888b74322c538e9b1a61ebd336adfde0ea48
 ```
 
 **Both `uses:` are pinned to a commit SHA, on purpose.** A tag is a name and a
@@ -379,7 +379,7 @@ For a local hook, this repository publishes one:
 ```yaml
 repos:
   - repo: https://github.com/marcosmatalab/seamark
-    rev: 2c25f4981b12ff3f0854bbb79e2eaecb0a4be5ec
+    rev: 705b888b74322c538e9b1a61ebd336adfde0ea48
     hooks:
       - id: seamark-check
 ```
